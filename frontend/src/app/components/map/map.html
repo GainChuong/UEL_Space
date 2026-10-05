@@ -1,0 +1,119 @@
+<div class="map-container">
+  <!-- Left Panel: Categories -->
+  <aside class="left-panel">
+    <h2 class="panel-title">Lọc không gian</h2>
+    
+    <div class="category-list">
+      <button class="category-item active">
+        <span class="icon">🏢</span> Tất cả
+      </button>
+      <button class="category-item">
+        <span class="icon">🏛️</span> Giảng đường
+      </button>
+      <button class="category-item">
+        <span class="icon">📚</span> Thư viện
+      </button>
+      <button class="category-item">
+        <span class="icon">👨‍🏫</span> Phòng học
+      </button>
+      <button class="category-item">
+        <span class="icon">👥</span> Phòng họp
+      </button>
+      <button class="category-item">
+        <span class="icon">💻</span> Khu tự học
+      </button>
+      <button class="category-item">
+        <span class="icon">🎯</span> CLB - Đội nhóm
+      </button>
+    </div>
+    
+    <div class="status-legend mt-8">
+      <h3>Trạng thái</h3>
+      <div class="legend-item"><span class="dot available"></span> Trống</div>
+      <div class="legend-item"><span class="dot in-use"></span> Đang sử dụng</div>
+      <div class="legend-item"><span class="dot reserved"></span> Đã đặt</div>
+      <div class="legend-item"><span class="dot maintenance"></span> Bảo trì</div>
+      <div class="legend-item"><span class="dot restricted"></span> Hạn chế</div>
+    </div>
+  </aside>
+
+  <!-- Center Panel: Interactive Map -->
+  <main class="center-panel">
+    <div class="map-wrapper" id="leafletMap">
+      <!-- Leaflet map goes here -->
+    </div>
+    
+    <!-- Empty State / Suggestion overlay (Edge Case Handling) -->
+    @if (showEmptyState) {
+      <div class="empty-state-overlay">
+        <div class="card suggestion-card">
+          <div class="icon">🔍</div>
+          <h3>Không tìm thấy phòng phù hợp</h3>
+          <p>Hiện không có phòng 50 chỗ trống vào khung giờ này.</p>
+          <div class="suggestions mt-4">
+            <h4>Gợi ý thay thế:</h4>
+            <button class="btn-outline w-full mt-2">Phòng B1.104 (Sức chứa 40, Trống)</button>
+            <button class="btn-outline w-full mt-2">Phòng A2.201 (Sức chứa 50, Trống từ 15:00)</button>
+          </div>
+          <button class="btn-primary mt-4 w-full" (click)="closeEmptyState()">Đã hiểu</button>
+        </div>
+      </div>
+    }
+  </main>
+
+  <!-- Right Panel: Space Details -->
+  <aside class="right-panel">
+    @if (selectedSpace) {
+      <div class="space-detail">
+        <div class="space-image">
+          <img [src]="selectedSpace.image" alt="Room">
+          <div class="status-badge" [class]="selectedSpace.status">{{selectedSpace.statusText}}</div>
+        </div>
+        
+        <div class="space-info">
+          <h2>{{selectedSpace.name}}</h2>
+          <p class="location">{{selectedSpace.building}} - Tầng {{selectedSpace.floor}}</p>
+          
+          <div class="info-grid mt-4">
+            <div class="info-item">
+              <span class="label">Sức chứa</span>
+              <span class="value">{{selectedSpace.capacity}} người</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Loại</span>
+              <span class="value">{{selectedSpace.type}}</span>
+            </div>
+          </div>
+          
+          <div class="equipment mt-4">
+            <h3>Thiết bị</h3>
+            <div class="chip-group">
+              @for (eq of selectedSpace.equipment; track eq) {
+                <span class="chip mini">{{eq}}</span>
+              }
+            </div>
+          </div>
+          
+          <div class="booking-section mt-6">
+            <h3>Đặt phòng</h3>
+            <div class="form-group">
+              <label>Ngày</label>
+              <input type="date" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Thời gian</label>
+              <input type="time" class="form-control">
+            </div>
+            <button class="btn-primary w-full mt-4">Xác nhận đặt phòng</button>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="placeholder-content">
+        <div class="icon">👆</div>
+        <p>Chọn một không gian trên bản đồ để xem chi tiết và đặt phòng.</p>
+        <button class="btn-outline mt-4" (click)="triggerEmptyStateDemo()">Mô phỏng: Tìm phòng ảo</button>
+      </div>
+    }
+  </aside>
+</div>

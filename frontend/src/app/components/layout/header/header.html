@@ -1,0 +1,26 @@
+<header class="header">
+  <div class="container header-content">
+    <div class="logo">
+      <a routerLink="/">
+        <img src="assets/Logo ngang (Horizontal).png" alt="UEL SPACE">
+      </a>
+    </div>
+    
+    <nav class="navigation">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Trang chủ</a>
+      <a routerLink="/map" routerLinkActive="active">Bản đồ</a>
+      <a routerLink="/spaces" routerLinkActive="active">Không gian</a>
+      <a routerLink="/booking" routerLinkActive="active">Đặt phòng</a>
+      <a routerLink="/about" routerLinkActive="active">Về chúng tôi</a>
+    </nav>
+    
+    <div class="actions">
+      <button class="icon-btn notification" aria-label="Notifications">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+      </button>
+      <button class="icon-btn profile" aria-label="Profile">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      </button>
+    </div>
+  </div>
+</header>
