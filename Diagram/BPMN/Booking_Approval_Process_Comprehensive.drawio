@@ -1,0 +1,153 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0" version="21.0.0" type="device">
+  <diagram id="booking1" name="Booking Process">
+    <mxGraphModel dx="1434" dy="790" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Pool -->
+        <mxCell id="pool" value="Space Management - Booking Process" style="swimlane;childLayout=stackLayout;horizontal=0;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="50" width="1450" height="450" as="geometry" />
+        </mxCell>
+        
+        <!-- Swimlanes -->
+        <mxCell id="lane_user" value="User (Sinh viên/GV)" style="swimlane;horizontal=0;html=1;" vertex="1" parent="pool">
+          <mxGeometry x="30" y="0" width="1420" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_sys" value="System" style="swimlane;horizontal=0;html=1;" vertex="1" parent="pool">
+          <mxGeometry x="30" y="150" width="1420" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_mgr" value="Space Manager" style="swimlane;horizontal=0;html=1;" vertex="1" parent="pool">
+          <mxGeometry x="30" y="300" width="1420" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- Nodes in User Lane -->
+        <mxCell id="start" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="lane_user">
+          <mxGeometry x="50" y="55" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="task_submit" value="Tạo yêu cầu&#xa;đặt phòng" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_user">
+          <mxGeometry x="150" y="45" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Nodes in System Lane -->
+        <mxCell id="task_validate" value="Kiểm tra dữ liệu" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_sys">
+          <mxGeometry x="150" y="45" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gw_valid" value="Hợp lệ?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="lane_sys">
+          <mxGeometry x="320" y="35" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="end_invalid" value="Lỗi dữ liệu" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=4;" vertex="1" parent="lane_sys">
+          <mxGeometry x="340" y="135" width="40" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="task_conflict" value="Kiểm tra trùng lịch" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_sys">
+          <mxGeometry x="450" y="45" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gw_conflict" value="Trùng?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="lane_sys">
+          <mxGeometry x="620" y="35" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="end_conflict" value="Lỗi trùng" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=4;" vertex="1" parent="lane_sys">
+          <mxGeometry x="640" y="135" width="40" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="task_save" value="Lưu Y/c (PENDING)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_sys">
+          <mxGeometry x="750" y="45" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="task_notify" value="Thông báo Quản lý" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_sys">
+          <mxGeometry x="920" y="45" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Nodes in Manager Lane -->
+        <mxCell id="task_review" value="Xem xét yêu cầu" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_mgr">
+          <mxGeometry x="920" y="45" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gw_approve" value="Duyệt?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="lane_mgr">
+          <mxGeometry x="1090" y="35" width="80" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="task_reject" value="Nhập lý do từ chối" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_mgr">
+          <mxGeometry x="1220" y="90" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="task_approve" value="Phê duyệt" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_mgr">
+          <mxGeometry x="1220" y="0" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Nodes back in System Lane for finalizing -->
+        <mxCell id="task_sys_reject" value="Cập nhật REJECTED" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_sys">
+          <mxGeometry x="1220" y="90" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="task_sys_approve" value="Cập nhật APPROVED &amp; Gửi QR" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_sys">
+          <mxGeometry x="1220" y="0" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="end_success" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=4;" vertex="1" parent="lane_sys">
+          <mxGeometry x="1370" y="10" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="end_fail" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=4;" vertex="1" parent="lane_sys">
+          <mxGeometry x="1370" y="100" width="40" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Edges -->
+        <mxCell id="e1" edge="1" parent="lane_user" source="start" target="task_submit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="pool" source="task_submit" target="task_validate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="lane_sys" source="task_validate" target="gw_valid">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_v_no" edge="1" parent="lane_sys" source="gw_valid" target="end_invalid">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Không" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="e_v_no" />
+        </mxCell>
+        <mxCell id="e_v_yes" edge="1" parent="lane_sys" source="gw_valid" target="task_conflict">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Hợp lệ" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="e_v_yes" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="lane_sys" source="task_conflict" target="gw_conflict">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c_yes" edge="1" parent="lane_sys" source="gw_conflict" target="end_conflict">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Có" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="e_c_yes" />
+        </mxCell>
+        <mxCell id="e_c_no" edge="1" parent="lane_sys" source="gw_conflict" target="task_save">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Không" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="e_c_no" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="lane_sys" source="task_save" target="task_notify">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="pool" source="task_notify" target="task_review">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="lane_mgr" source="task_review" target="gw_approve">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_no" edge="1" parent="lane_mgr" source="gw_approve" target="task_reject">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Từ chối" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="e_a_no" />
+        </mxCell>
+        <mxCell id="e_a_yes" edge="1" parent="lane_mgr" source="gw_approve" target="task_approve">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Đồng ý" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="e_a_yes" />
+        </mxCell>
+        
+        <mxCell id="e8" edge="1" parent="pool" source="task_approve" target="task_sys_approve">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="pool" source="task_reject" target="task_sys_reject">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e10" edge="1" parent="lane_sys" source="task_sys_approve" target="end_success">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="lane_sys" source="task_sys_reject" target="end_fail">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
