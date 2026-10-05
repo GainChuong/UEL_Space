@@ -1,67 +1,18 @@
 # Sơ đồ Entity Relationship Diagram (ERD) - Campus Space Management System
 
-Tài liệu sơ đồ quan hệ thực thể (ERD) được trích xuất hoàn chỉnh từ [Entity_Specification.md](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Instruction/Entity_Specification.md), bao gồm đầy đủ 23 thực thể (Real-world Entities & System-generated Entities) phân chia theo 7 Phân hệ Database Modules.
+Sơ đồ ERD trực quan được thiết kế tối ưu hóa bố cục (Layout-Optimized), sắp xếp theo cụm module từ Trái sang Phải và từ Trên xuống Dưới nhằm **tối thiểu hóa tối đa việc chồng chéo các đường nối (Edge Crossing)**.
 
 ---
 
-## 1. Top-Level ERD Overview (Mermaid Syntax)
+## 1. Sơ đồ ERD Tổng thể (Master ERD Diagram - Clean Layout)
 
 ```mermaid
 erDiagram
-    %% Identity Module
-    ROLE ||--o{ USER : "assigns"
-    ORGANIZATION ||--o{ ORGANIZATION_MEMBER : "has"
-    USER ||--o{ ORGANIZATION_MEMBER : "belongs_to"
+    direction LR
 
-    %% Space Module
-    BUILDING ||--o{ FLOOR : "contains"
-    FLOOR ||--o{ SPACE : "contains"
-    SPACE_TYPE ||--o{ SPACE : "classifies"
-    SPACE ||--o{ SPACE : "parent_child"
-    SPACE ||--o{ SPACE_EQUIPMENT : "has"
-    EQUIPMENT ||--o{ SPACE_EQUIPMENT : "assigned_to"
-    SPACE_TYPE ||--o{ SPACE_POLICY : "defines_policy"
-    SPACE ||--o{ SPACE_POLICY : "overrides_policy"
-
-    %% Booking Module
-    USER ||--o{ BOOKING_REQUEST : "submits"
-    ORGANIZATION ||--o{ BOOKING_REQUEST : "makes"
-    SPACE ||--o{ BOOKING_REQUEST : "reserved_in"
-    BOOKING_REQUEST ||--o{ BOOKING_EQUIPMENT : "requests"
-    EQUIPMENT ||--o{ BOOKING_EQUIPMENT : "requested"
-    BOOKING_REQUEST ||--o{ APPROVAL : "has"
-    USER ||--o{ APPROVAL : "processes"
-    SPACE ||--o{ SCHEDULE : "scheduled_in"
-    ORGANIZATION ||--o{ SCHEDULE : "uses_schedule"
-
-    %% Usage Module
-    USER ||--o{ USAGE_SESSION : "initiates"
-    SPACE ||--o{ USAGE_SESSION : "occurs_in"
-    BOOKING_REQUEST ||--o| USAGE_SESSION : "originates_from"
-    USAGE_SESSION ||--o{ PRESENCE_RECORD : "logs"
-    USAGE_SESSION ||--o{ RELEASE_CASE : "generates"
-
-    %% Monitoring & Admin Module
-    SPACE ||--o{ OCCUPANCY_RECORD : "snapshots"
-    SPACE ||--o{ STATUS_HISTORY : "tracks_changes"
-    USER ||--o{ NOTIFICATION : "receives"
-    USER ||--o{ INCIDENT : "reports"
-    SPACE ||--o{ INCIDENT : "occurs_at"
-    EQUIPMENT ||--o{ INCIDENT : "involved_in"
-    USER ||--o{ FEEDBACK : "submits"
-    SPACE ||--o{ FEEDBACK : "evaluated_for"
-    USAGE_SESSION ||--o{ FEEDBACK : "rated_for"
-    USER ||--o{ AUDIT_LOG : "triggers"
-```
-
----
-
-## 2. Detailed Schema Definitions by Module
-
-### 2.1 Identity & Organization Modules
-
-```mermaid
-erDiagram
+    %% ----------------------------------------------------
+    %% CLUSTER 1: IDENTITY & PERMISSION (Top-Left)
+    %% ----------------------------------------------------
     ROLE {
         string Role_ID PK
         string Role_Name
@@ -105,17 +56,13 @@ erDiagram
     }
 
     ROLE ||--o{ USER : "assigns"
-    USER ||--o{ ORGANIZATION_MEMBER : "belongs_to"
-    ORGANIZATION ||--o{ ORGANIZATION_MEMBER : "has"
-    ORGANIZATION ||--o{ ORGANIZATION : "parent_hierarchy"
-```
+    USER ||--o{ ORGANIZATION_MEMBER : "has_membership"
+    ORGANIZATION ||--o{ ORGANIZATION_MEMBER : "contains_member"
+    ORGANIZATION ||--o{ ORGANIZATION : "parent_of"
 
----
-
-### 2.2 Space & Asset Modules
-
-```mermaid
-erDiagram
+    %% ----------------------------------------------------
+    %% CLUSTER 2: CAMPUS & SPACE INFRASTRUCTURE (Top-Right)
+    %% ----------------------------------------------------
     BUILDING {
         string Building_ID PK
         string Building_Code
@@ -194,22 +141,18 @@ erDiagram
         string Status
     }
 
-    BUILDING ||--o{ FLOOR : "contains"
+    BUILDING ||--o{ FLOOR : "has"
     FLOOR ||--o{ SPACE : "contains"
     SPACE_TYPE ||--o{ SPACE : "classifies"
-    SPACE ||--o{ SPACE : "parent_child"
-    SPACE ||--o{ SPACE_EQUIPMENT : "has"
-    EQUIPMENT ||--o{ SPACE_EQUIPMENT : "assigned_to"
-    SPACE_TYPE ||--o{ SPACE_POLICY : "defines"
-    SPACE ||--o{ SPACE_POLICY : "overrides"
-```
+    SPACE ||--o{ SPACE : "sub_space"
+    SPACE ||--o{ SPACE_EQUIPMENT : "equips"
+    EQUIPMENT ||--o{ SPACE_EQUIPMENT : "used_in"
+    SPACE_TYPE ||--o{ SPACE_POLICY : "default_policy"
+    SPACE ||--o{ SPACE_POLICY : "custom_policy"
 
----
-
-### 2.3 Booking & Usage Modules
-
-```mermaid
-erDiagram
+    %% ----------------------------------------------------
+    %% CLUSTER 3: BOOKING & RESERVATION (Center)
+    %% ----------------------------------------------------
     BOOKING_REQUEST {
         string Request_ID PK
         string User_ID FK
@@ -262,6 +205,19 @@ erDiagram
         string Status
     }
 
+    USER ||--o{ BOOKING_REQUEST : "submits"
+    ORGANIZATION ||--o{ BOOKING_REQUEST : "sponsors"
+    SPACE ||--o{ BOOKING_REQUEST : "booked_at"
+    BOOKING_REQUEST ||--o{ BOOKING_EQUIPMENT : "requests_item"
+    EQUIPMENT ||--o{ BOOKING_EQUIPMENT : "assigned_to_booking"
+    BOOKING_REQUEST ||--o{ APPROVAL : "requires"
+    USER ||--o{ APPROVAL : "approves"
+    SPACE ||--o{ SCHEDULE : "scheduled_for"
+    ORGANIZATION ||--o{ SCHEDULE : "holds_schedule"
+
+    %% ----------------------------------------------------
+    %% CLUSTER 4: USAGE & PRESENCE TRACKING (Bottom-Center)
+    %% ----------------------------------------------------
     USAGE_SESSION {
         string Usage_ID PK
         string User_ID FK
@@ -299,19 +255,16 @@ erDiagram
         string Processing_Result
     }
 
-    BOOKING_REQUEST ||--o{ BOOKING_EQUIPMENT : "includes"
-    BOOKING_REQUEST ||--o{ APPROVAL : "reviewed_by"
-    BOOKING_REQUEST ||--o| USAGE_SESSION : "initiates"
-    USAGE_SESSION ||--o{ PRESENCE_RECORD : "tracks"
-    USAGE_SESSION ||--o{ RELEASE_CASE : "escalates"
-```
+    USER ||--o{ USAGE_SESSION : "uses"
+    SPACE ||--o{ USAGE_SESSION : "occupied_by"
+    BOOKING_REQUEST ||--o| USAGE_SESSION : "triggers"
+    USAGE_SESSION ||--o{ PRESENCE_RECORD : "records_presence"
+    USAGE_SESSION ||--o{ RELEASE_CASE : "creates_release"
+    USER ||--o{ RELEASE_CASE : "handled_by_staff"
 
----
-
-### 2.4 Monitoring & Administration Modules
-
-```mermaid
-erDiagram
+    %% ----------------------------------------------------
+    %% CLUSTER 5: MONITORING, INCIDENTS & FEEDBACK (Bottom-Right)
+    %% ----------------------------------------------------
     OCCUPANCY_RECORD {
         string Occupancy_ID PK
         string Space_ID FK
@@ -379,4 +332,16 @@ erDiagram
         datetime Timestamp
         json Change_Content
     }
+
+    SPACE ||--o{ OCCUPANCY_RECORD : "logs_occupancy"
+    SPACE ||--o{ STATUS_HISTORY : "logs_status"
+    USER ||--o{ NOTIFICATION : "receives"
+    USER ||--o{ INCIDENT : "reports"
+    USER ||--o{ INCIDENT : "handles"
+    SPACE ||--o{ INCIDENT : "occurs_in"
+    EQUIPMENT ||--o{ INCIDENT : "faulty_item"
+    USER ||--o{ FEEDBACK : "gives"
+    SPACE ||--o{ FEEDBACK : "evaluated_at"
+    USAGE_SESSION ||--o{ FEEDBACK : "session_feedback"
+    USER ||--o{ AUDIT_LOG : "audited_action"
 ```
