@@ -1,0 +1,219 @@
+// ==========================================
+// CAMPUS SPACE MANAGEMENT SYSTEM - DBML ERD
+// ==========================================
+
+// ===== Core Accounts & Tenants =====
+
+Table Organization {
+  id varchar [primary key]
+  name varchar [not null]
+  domain varchar
+  contact_email varchar
+  status varchar [default: 'ACTIVE']
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table User {
+  id varchar [primary key]
+  organization_id varchar [ref: > Organization.id]
+  email varchar [not null, unique]
+  full_name varchar [not null]
+  role varchar [not null, note: 'Admin / Manager / Student / Lecturer / Staff']
+  phone_number varchar
+  status varchar [default: 'ACTIVE']
+  deleted_at timestamp
+  created_at timestamp
+  updated_at timestamp
+  version int [default: 1]
+}
+
+// ===== Space Master Data =====
+
+Table Space_Category {
+  id varchar [primary key]
+  organization_id varchar [ref: > Organization.id]
+  name varchar [not null]
+  description text
+}
+
+Table Building {
+  id varchar [primary key]
+  organization_id varchar [ref: > Organization.id]
+  name varchar [not null]
+  location varchar
+  total_floors int
+}
+
+Table Floor {
+  id varchar [primary key]
+  building_id varchar [ref: > Building.id]
+  floor_number int [not null]
+  layout_map_url varchar
+}
+
+Table Space {
+  id varchar [primary key]
+  organization_id varchar [ref: > Organization.id]
+  floor_id varchar [ref: > Floor.id]
+  category_id varchar [ref: > Space_Category.id]
+  name varchar [not null]
+  capacity int [not null]
+  status varchar [not null, default: 'AVAILABLE', note: 'AVAILABLE, OCCUPIED, MAINTENANCE']
+  created_by_id varchar [ref: > User.id]
+  deleted_at timestamp
+  created_at timestamp
+  updated_at timestamp
+  version int [default: 1]
+}
+
+Table Amenity_Type {
+  id varchar [primary key]
+  name varchar [not null]
+  icon varchar
+}
+
+Table Space_Amenity {
+  space_id varchar [ref: > Space.id]
+  amenity_id varchar [ref: > Amenity_Type.id]
+  quantity int [default: 1]
+  status varchar
+  
+  indexes {
+    (space_id, amenity_id) [pk]
+  }
+}
+
+// ===== Schedules & Transactions =====
+
+Table Academic_Schedule {
+  id varchar [primary key]
+  organization_id varchar [ref: > Organization.id]
+  space_id varchar [ref: > Space.id]
+  semester varchar
+  course_code varchar
+  start_time timestamp
+  end_time timestamp
+  schedule_type varchar
+  recurrence_rule varchar
+  status varchar
+}
+
+Table Booking_Request {
+  id varchar [primary key]
+  organization_id varchar [ref: > Organization.id]
+  user_id varchar [ref: > User.id]
+  space_id varchar [ref: > Space.id]
+  start_time timestamp [not null]
+  end_time timestamp [not null]
+  status varchar [default: 'PENDING', note: 'PENDING, APPROVED, REJECTED, CANCELLED']
+  reason text
+  approved_by_id varchar [ref: > User.id]
+  deleted_at timestamp
+  created_at timestamp
+  updated_at timestamp
+  version int [default: 1]
+}
+
+Table Usage_Session {
+  id varchar [primary key]
+  booking_id varchar [ref: > Booking_Request.id]
+  user_id varchar [ref: > User.id]
+  space_id varchar [ref: > Space.id]
+  check_in_time timestamp
+  check_out_time timestamp
+  status varchar [note: 'ACTIVE, COMPLETED, AUTO_CHECKED_OUT']
+  created_at timestamp
+  updated_at timestamp
+  version int
+}
+
+Table Violation_Record {
+  id varchar [primary key]
+  user_id varchar [ref: > User.id]
+  session_id varchar [ref: > Usage_Session.id]
+  violation_type varchar [not null]
+  penalty_points int
+  description text
+  created_at timestamp
+}
+
+// ===== Incident & Maintenance =====
+
+Table Incident_Report {
+  id varchar [primary key]
+  organization_id varchar [ref: > Organization.id]
+  space_id varchar [ref: > Space.id]
+  reported_by_id varchar [ref: > User.id]
+  title varchar
+  description text
+  severity varchar [note: 'LOW, MEDIUM, HIGH']
+  status varchar [default: 'REPORTED', note: 'REPORTED, IN_PROGRESS, RESOLVED']
+  resolved_at timestamp
+  deleted_at timestamp
+  created_at timestamp
+  updated_at timestamp
+  version int
+}
+
+Table Maintenance_Log {
+  id varchar [primary key]
+  incident_id varchar [ref: > Incident_Report.id]
+  space_id varchar [ref: > Space.id]
+  performed_by_id varchar [ref: > User.id]
+  action_taken text
+  cost decimal
+  maintenance_date timestamp
+}
+
+// ===== IoT & Sensors =====
+
+Table Sensor_Device {
+  id varchar [primary key]
+  space_id varchar [ref: > Space.id]
+  device_type varchar [note: 'CAMERA, MOTION, TEMP']
+  mac_address varchar [unique]
+  status varchar
+  last_ping timestamp
+}
+
+Table Telemetry_Data {
+  id varchar [primary key]
+  device_id varchar [ref: > Sensor_Device.id]
+  occupancy_count int
+  temperature decimal
+  recorded_at timestamp
+}
+
+// ===== System & Logs =====
+
+Table Notification {
+  id varchar [primary key]
+  user_id varchar [ref: > User.id]
+  type varchar
+  title varchar
+  content text
+  is_read boolean [default: false]
+  created_at timestamp
+}
+
+Table Audit_Log {
+  id varchar [primary key]
+  entity_name varchar [not null]
+  entity_id varchar [not null]
+  action varchar [not null, note: 'CREATE, UPDATE, DELETE']
+  changed_by_id varchar [ref: > User.id]
+  changes_json json
+  created_at timestamp
+}
+
+Table System_Configuration {
+  id varchar [primary key]
+  organization_id varchar [ref: > Organization.id]
+  config_key varchar [not null]
+  config_value json [not null]
+  
+  indexes {
+    (organization_id, config_key) [unique]
+  }
+}
