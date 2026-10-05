@@ -24,9 +24,9 @@ export class Map implements OnInit, AfterViewInit {
     // Initialize map centered on UEL coordinates (approximate)
     this.map = L.map('leafletMap').setView([10.8700, 106.7780], 17);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
-      attribution: '&copy; OpenStreetMap &copy; CARTO'
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(this.map);
 
     // Add a demo marker
