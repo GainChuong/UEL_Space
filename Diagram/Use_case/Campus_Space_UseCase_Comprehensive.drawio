@@ -22,9 +22,8 @@
         </mxCell>
 
         <!-- Inheritance: Manager is a User -->
-        <mxCell id="edge_inherit" edge="1" parent="1" source="actor_manager" target="actor_user">
+        <mxCell id="edge_inherit" style="endArrow=block;endSize=16;endFill=0;html=1;rounded=0;" edge="1" parent="1" source="actor_manager" target="actor_user">
           <mxGeometry relative="1" as="geometry" />
-          <mxCell style="endArrow=block;endSize=16;endFill=0;html=1;rounded=0;" edge="1" parent="edge_inherit" />
         </mxCell>
 
         <!-- ======================= -->
