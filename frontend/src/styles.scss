@@ -1,157 +1,66 @@
+@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
 @import 'leaflet/dist/leaflet.css';
 
-:root {
-  /* Primary Colors */
-  --uel-blue: #003B71;
-  --sky-blue: #00A3E0;
-  --uel-orange: #FF7900;
-  
-  /* Neutral Colors */
-  --white: #FFFFFF;
-  --bg-gray: #F5F7FA;
-  --dark-text: #111827;
-  --text-muted: #6B7280;
-  --border-gray: #E5E7EB;
+@theme {
+  --color-uel-blue: #003B71;
+  --color-sky-blue: #00A3E0;
+  --color-uel-orange: #FF7900;
+  --color-bg-gray: #F5F7FA;
+  --color-dark-text: #111827;
+  --color-text-muted: #6B7280;
+  --color-border-gray: #E5E7EB;
 
-  /* Status Colors */
-  --status-available: #10B981;
-  --status-in-use: #3B82F6;
-  --status-reserved: #F59E0B;
-  --status-maintenance: #9CA3AF;
-  --status-restricted: #EF4444;
-  
-  /* Radii */
+  --color-status-available: #10B981;
+  --color-status-in-use: #3B82F6;
+  --color-status-reserved: #F59E0B;
+  --color-status-maintenance: #9CA3AF;
+  --color-status-restricted: #EF4444;
+
+  --font-be-vietnam: 'Be Vietnam Pro', sans-serif;
+
   --radius-sm: 8px;
   --radius-md: 16px;
   --radius-lg: 24px;
   --radius-pill: 9999px;
-  
-  /* Shadows */
+
   --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
   --shadow-md: 0 8px 24px rgba(0,32,77,0.08);
   --shadow-lg: 0 16px 40px rgba(0,32,77,0.12);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+:root {
+  --uel-blue: #003B71;
+  --uel-orange: #FF7900;
+  --sky-blue: #00A3E0;
 }
 
 body {
-  font-family: 'Be Vietnam Pro', sans-serif;
-  background-color: var(--bg-gray);
-  color: var(--dark-text);
+  font-family: var(--font-be-vietnam);
+  background-color: var(--color-bg-gray);
+  color: var(--color-dark-text);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-weight: 700;
-  color: var(--uel-blue);
-  line-height: 1.2;
-}
-
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
-button {
-  font-family: inherit;
-  cursor: pointer;
-  border: none;
-  outline: none;
-  background: none;
-}
-
-/* Base UI Components */
-.btn-primary {
-  background-color: var(--uel-blue);
-  color: var(--white);
-  padding: 14px 32px;
-  border-radius: var(--radius-pill);
-  font-weight: 600;
-  font-size: 16px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  
-  &:hover {
-    background-color: var(--uel-orange);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+@layer components {
+  .btn-primary {
+    @apply bg-uel-blue text-white px-8 py-3 rounded-pill font-semibold text-base transition-all duration-300 inline-flex items-center justify-center gap-3 shadow-sm hover:bg-uel-orange hover:-translate-y-0.5 hover:shadow-md;
   }
-}
 
-.btn-accent {
-  background-color: var(--uel-orange);
-  color: var(--white);
-  padding: 14px 32px;
-  border-radius: var(--radius-pill);
-  font-weight: 600;
-  font-size: 16px;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    filter: brightness(1.1);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+  .btn-accent {
+    @apply bg-uel-orange text-white px-8 py-3 rounded-pill font-semibold text-base transition-all duration-300 hover:brightness-110 hover:-translate-y-0.5 hover:shadow-md;
   }
-}
 
-.btn-outline {
-  background-color: transparent;
-  color: var(--uel-blue);
-  border: 2px solid var(--uel-blue);
-  padding: 12px 30px;
-  border-radius: var(--radius-pill);
-  font-weight: 600;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background-color: var(--uel-blue);
-    color: var(--white);
+  .btn-outline {
+    @apply bg-transparent text-uel-blue border-2 border-uel-blue px-8 py-3 rounded-pill font-semibold transition-all duration-300 hover:bg-uel-blue hover:text-white;
   }
-}
 
-.card {
-  background-color: var(--white);
-  border-radius: var(--radius-md);
-  padding: 32px;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-gray);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
+  .card {
+    @apply bg-white rounded-md p-8 shadow-sm border border-border-gray transition-all duration-300 hover:-translate-y-1 hover:shadow-md;
   }
-}
 
-.container {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 0 40px;
-}
-
-.chip {
-  padding: 10px 20px;
-  border-radius: var(--radius-pill);
-  font-size: 14px;
-  font-weight: 600;
-  border: 1px solid var(--border-gray);
-  color: var(--text-muted);
-  background: var(--white);
-  cursor: pointer;
-  transition: all 0.2s;
-  
-  &.active, &:hover {
-    border-color: var(--uel-blue);
-    color: var(--uel-blue);
-    background: rgba(0, 59, 113, 0.05);
+  .chip {
+    @apply px-5 py-2.5 rounded-pill text-sm font-semibold border border-border-gray text-text-muted bg-white cursor-pointer transition-all duration-200 hover:border-uel-blue hover:text-uel-blue hover:bg-[rgba(0,59,113,0.05)];
   }
 }

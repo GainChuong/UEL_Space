@@ -1,119 +1,157 @@
-<div class="map-container">
-  <!-- Left Panel: Categories -->
-  <aside class="left-panel">
-    <h2 class="panel-title">Lọc không gian</h2>
+<div class="pt-24 pb-8 px-6 max-w-[1600px] mx-auto h-screen flex flex-col">
+  <div class="flex-1 flex gap-6 overflow-hidden">
     
-    <div class="category-list">
-      <button class="category-item active">
-        <span class="icon">🏢</span> Tất cả
-      </button>
-      <button class="category-item">
-        <span class="icon">🏛️</span> Giảng đường
-      </button>
-      <button class="category-item">
-        <span class="icon">📚</span> Thư viện
-      </button>
-      <button class="category-item">
-        <span class="icon">👨‍🏫</span> Phòng học
-      </button>
-      <button class="category-item">
-        <span class="icon">👥</span> Phòng họp
-      </button>
-      <button class="category-item">
-        <span class="icon">💻</span> Khu tự học
-      </button>
-      <button class="category-item">
-        <span class="icon">🎯</span> CLB - Đội nhóm
-      </button>
-    </div>
-    
-    <div class="status-legend mt-8">
-      <h3>Trạng thái</h3>
-      <div class="legend-item"><span class="dot available"></span> Trống</div>
-      <div class="legend-item"><span class="dot in-use"></span> Đang sử dụng</div>
-      <div class="legend-item"><span class="dot reserved"></span> Đã đặt</div>
-      <div class="legend-item"><span class="dot maintenance"></span> Bảo trì</div>
-      <div class="legend-item"><span class="dot restricted"></span> Hạn chế</div>
-    </div>
-  </aside>
-
-  <!-- Center Panel: Interactive Map -->
-  <main class="center-panel">
-    <div class="map-wrapper" id="leafletMap">
-      <!-- Leaflet map goes here -->
-    </div>
-    
-    <!-- Empty State / Suggestion overlay (Edge Case Handling) -->
-    @if (showEmptyState) {
-      <div class="empty-state-overlay">
-        <div class="card suggestion-card">
-          <div class="icon">🔍</div>
-          <h3>Không tìm thấy phòng phù hợp</h3>
-          <p>Hiện không có phòng 50 chỗ trống vào khung giờ này.</p>
-          <div class="suggestions mt-4">
-            <h4>Gợi ý thay thế:</h4>
-            <button class="btn-outline w-full mt-2">Phòng B1.104 (Sức chứa 40, Trống)</button>
-            <button class="btn-outline w-full mt-2">Phòng A2.201 (Sức chứa 50, Trống từ 15:00)</button>
-          </div>
-          <button class="btn-primary mt-4 w-full" (click)="closeEmptyState()">Đã hiểu</button>
+    <!-- Left Panel: Categories -->
+    <aside class="w-72 bg-white rounded-3xl shadow-sm border border-border-gray p-6 flex flex-col flex-shrink-0 h-full overflow-y-auto custom-scrollbar">
+      <h2 class="text-xl font-bold text-uel-blue mb-6">Lọc không gian</h2>
+      
+      <div class="flex flex-col gap-2">
+        <button class="flex items-center gap-3 px-4 py-3 rounded-xl bg-uel-blue/5 text-uel-blue font-bold border border-uel-blue/20 transition-colors">
+          <span class="text-xl">🏢</span> Tất cả
+        </button>
+        <button class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-bg-gray text-text-muted font-medium border border-transparent hover:border-border-gray transition-colors">
+          <span class="text-xl">🏛️</span> Giảng đường
+        </button>
+        <button class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-bg-gray text-text-muted font-medium border border-transparent hover:border-border-gray transition-colors">
+          <span class="text-xl">📚</span> Thư viện
+        </button>
+        <button class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-bg-gray text-text-muted font-medium border border-transparent hover:border-border-gray transition-colors">
+          <span class="text-xl">👨‍🏫</span> Phòng học
+        </button>
+        <button class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-bg-gray text-text-muted font-medium border border-transparent hover:border-border-gray transition-colors">
+          <span class="text-xl">👥</span> Phòng họp
+        </button>
+        <button class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-bg-gray text-text-muted font-medium border border-transparent hover:border-border-gray transition-colors">
+          <span class="text-xl">💻</span> Khu tự học
+        </button>
+        <button class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-bg-gray text-text-muted font-medium border border-transparent hover:border-border-gray transition-colors">
+          <span class="text-xl">🎯</span> CLB - Đội nhóm
+        </button>
+      </div>
+      
+      <div class="mt-auto pt-8">
+        <h3 class="text-sm font-bold text-text-muted uppercase tracking-wider mb-4">Trạng thái</h3>
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center gap-3 text-sm font-medium text-dark-text"><span class="w-3 h-3 rounded-full bg-status-available shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span> Trống</div>
+          <div class="flex items-center gap-3 text-sm font-medium text-dark-text"><span class="w-3 h-3 rounded-full bg-status-in-use shadow-[0_0_8px_rgba(59,130,246,0.4)]"></span> Đang sử dụng</div>
+          <div class="flex items-center gap-3 text-sm font-medium text-dark-text"><span class="w-3 h-3 rounded-full bg-status-reserved shadow-[0_0_8px_rgba(245,158,11,0.4)]"></span> Đã đặt</div>
+          <div class="flex items-center gap-3 text-sm font-medium text-dark-text"><span class="w-3 h-3 rounded-full bg-status-maintenance shadow-[0_0_8px_rgba(156,163,175,0.4)]"></span> Bảo trì</div>
+          <div class="flex items-center gap-3 text-sm font-medium text-dark-text"><span class="w-3 h-3 rounded-full bg-status-restricted shadow-[0_0_8px_rgba(239,68,68,0.4)]"></span> Hạn chế</div>
         </div>
       </div>
-    }
-  </main>
-
-  <!-- Right Panel: Space Details -->
-  <aside class="right-panel">
-    @if (selectedSpace) {
-      <div class="space-detail">
-        <div class="space-image">
-          <img [src]="selectedSpace.image" alt="Room">
-          <div class="status-badge" [class]="selectedSpace.status">{{selectedSpace.statusText}}</div>
-        </div>
-        
-        <div class="space-info">
-          <h2>{{selectedSpace.name}}</h2>
-          <p class="location">{{selectedSpace.building}} - Tầng {{selectedSpace.floor}}</p>
-          
-          <div class="info-grid mt-4">
-            <div class="info-item">
-              <span class="label">Sức chứa</span>
-              <span class="value">{{selectedSpace.capacity}} người</span>
-            </div>
-            <div class="info-item">
-              <span class="label">Loại</span>
-              <span class="value">{{selectedSpace.type}}</span>
-            </div>
-          </div>
-          
-          <div class="equipment mt-4">
-            <h3>Thiết bị</h3>
-            <div class="chip-group">
-              @for (eq of selectedSpace.equipment; track eq) {
-                <span class="chip mini">{{eq}}</span>
-              }
-            </div>
-          </div>
-          
-          <div class="booking-section mt-6">
-            <h3>Đặt phòng</h3>
-            <div class="form-group">
-              <label>Ngày</label>
-              <input type="date" class="form-control">
-            </div>
-            <div class="form-group">
-              <label>Thời gian</label>
-              <input type="time" class="form-control">
-            </div>
-            <button class="btn-primary w-full mt-4">Xác nhận đặt phòng</button>
-          </div>
+    </aside>
+  
+    <!-- Center Panel: Interactive Map -->
+    <main class="flex-1 bg-white rounded-3xl shadow-sm border border-border-gray relative overflow-hidden flex flex-col h-full">
+      <div class="w-full h-full" id="leafletMap">
+        <!-- Leaflet map goes here -->
+        <!-- Temporary placeholder for visual before leaflet loads -->
+        <div class="absolute inset-0 bg-bg-gray flex items-center justify-center -z-10">
+          <p class="text-text-muted font-medium">Bản đồ đang tải...</p>
         </div>
       </div>
-    } @else {
-      <div class="placeholder-content">
-        <div class="icon">👆</div>
-        <p>Chọn một không gian trên bản đồ để xem chi tiết và đặt phòng.</p>
-        <button class="btn-outline mt-4" (click)="triggerEmptyStateDemo()">Mô phỏng: Tìm phòng ảo</button>
-      </div>
-    }
-  </aside>
+      
+      <!-- Empty State / Suggestion overlay -->
+      @if (showEmptyState) {
+        <div class="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center p-6 z-[1000]">
+          <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-border-gray text-center animate-[fade-in-up_0.3s_ease-out]">
+            <div class="w-16 h-16 bg-uel-orange/10 text-uel-orange rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-dark-text mb-2">Không tìm thấy phòng phù hợp</h3>
+            <p class="text-text-muted mb-6">Hiện không có phòng 50 chỗ trống vào khung giờ này.</p>
+            
+            <div class="text-left bg-bg-gray rounded-2xl p-4 mb-6">
+              <h4 class="text-sm font-bold text-dark-text mb-3">Gợi ý thay thế:</h4>
+              <div class="flex flex-col gap-2">
+                <button class="w-full text-left px-4 py-3 rounded-xl bg-white border border-border-gray hover:border-uel-blue hover:text-uel-blue transition-colors text-sm font-medium">Phòng B1.104 (Sức chứa 40, Trống)</button>
+                <button class="w-full text-left px-4 py-3 rounded-xl bg-white border border-border-gray hover:border-uel-blue hover:text-uel-blue transition-colors text-sm font-medium">Phòng A2.201 (Sức chứa 50, Trống từ 15:00)</button>
+              </div>
+            </div>
+            <button class="btn-primary w-full" (click)="closeEmptyState()">Đã hiểu</button>
+          </div>
+        </div>
+      }
+    </main>
+  
+    <!-- Right Panel: Space Details -->
+    <aside class="w-96 bg-white rounded-3xl shadow-sm border border-border-gray flex flex-col flex-shrink-0 h-full overflow-hidden">
+      @if (selectedSpace) {
+        <div class="flex flex-col h-full overflow-y-auto custom-scrollbar">
+          <!-- Space Image Header -->
+          <div class="h-56 bg-bg-gray relative shrink-0">
+            <!-- image placeholder -->
+            <img [src]="selectedSpace.image" alt="Room" class="w-full h-full object-cover">
+            <div class="absolute top-4 right-4 px-3 py-1.5 rounded-full text-xs font-bold bg-white/90 backdrop-blur-sm border border-white/50 shadow-sm flex items-center gap-2"
+                 [ngClass]="{
+                   'text-status-available': selectedSpace.status === 'available',
+                   'text-status-in-use': selectedSpace.status === 'in-use',
+                   'text-status-reserved': selectedSpace.status === 'reserved'
+                 }">
+              <span class="w-2 h-2 rounded-full"
+                    [ngClass]="{
+                      'bg-status-available': selectedSpace.status === 'available',
+                      'bg-status-in-use': selectedSpace.status === 'in-use',
+                      'bg-status-reserved': selectedSpace.status === 'reserved'
+                    }"></span>
+              {{selectedSpace.statusText}}
+            </div>
+          </div>
+          
+          <div class="p-6 flex-1 flex flex-col">
+            <h2 class="text-2xl font-bold text-uel-blue mb-1">{{selectedSpace.name}}</h2>
+            <p class="text-text-muted text-sm font-medium flex items-center gap-1.5 mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              {{selectedSpace.building}} - Tầng {{selectedSpace.floor}}
+            </p>
+            
+            <div class="grid grid-cols-2 gap-3 mb-6">
+              <div class="bg-bg-gray rounded-2xl p-4 border border-border-gray/50">
+                <span class="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">Sức chứa</span>
+                <span class="block text-lg font-bold text-dark-text">{{selectedSpace.capacity}}</span>
+              </div>
+              <div class="bg-bg-gray rounded-2xl p-4 border border-border-gray/50">
+                <span class="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">Loại</span>
+                <span class="block text-lg font-bold text-dark-text truncate">{{selectedSpace.type}}</span>
+              </div>
+            </div>
+            
+            <div class="mb-6">
+              <h3 class="text-sm font-bold text-dark-text mb-3">Thiết bị</h3>
+              <div class="flex flex-wrap gap-2">
+                @for (eq of selectedSpace.equipment; track eq) {
+                  <span class="px-3 py-1.5 rounded-lg bg-sky-blue/10 text-uel-blue text-xs font-semibold">{{eq}}</span>
+                }
+              </div>
+            </div>
+            
+            <div class="mt-auto pt-6 border-t border-border-gray">
+              <h3 class="text-base font-bold text-dark-text mb-4">Đặt phòng</h3>
+              <div class="flex gap-3 mb-4">
+                <div class="flex-1">
+                  <label class="block text-xs font-semibold text-text-muted mb-1.5">Ngày</label>
+                  <input type="date" class="w-full bg-bg-gray border border-border-gray rounded-xl px-3 py-2.5 text-sm font-medium outline-none focus:border-uel-blue transition-colors">
+                </div>
+                <div class="flex-1">
+                  <label class="block text-xs font-semibold text-text-muted mb-1.5">Thời gian</label>
+                  <input type="time" class="w-full bg-bg-gray border border-border-gray rounded-xl px-3 py-2.5 text-sm font-medium outline-none focus:border-uel-blue transition-colors">
+                </div>
+              </div>
+              <button class="btn-primary w-full py-3.5">Xác nhận đặt phòng</button>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <div class="flex flex-col items-center justify-center h-full p-8 text-center bg-bg-gray/30">
+          <div class="w-20 h-20 bg-white rounded-full shadow-sm flex items-center justify-center text-3xl mb-6 text-uel-blue/50">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          </div>
+          <h3 class="text-lg font-bold text-dark-text mb-2">Chưa chọn không gian</h3>
+          <p class="text-text-muted text-sm leading-relaxed mb-8">Click vào một điểm trên bản đồ hoặc chọn từ danh sách bên trái để xem chi tiết và đặt phòng.</p>
+          <button class="btn-outline w-full" (click)="triggerEmptyStateDemo()">Demo: Xem thử một phòng</button>
+        </div>
+      }
+    </aside>
+    
+  </div>
 </div>

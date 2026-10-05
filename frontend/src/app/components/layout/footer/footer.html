@@ -1,1 +1,72 @@
-<p>footer works!</p>
+<footer class="bg-uel-blue text-white pt-16 pb-8 border-t border-uel-blue/10">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+      <!-- Logo and Description -->
+      <div class="md:col-span-1">
+        <a routerLink="/" class="flex items-center gap-3 mb-6 group">
+          <div class="w-10 h-10 bg-white/10 rounded-[12px] flex items-center justify-center group-hover:bg-uel-orange transition-colors duration-300">
+             <svg xmlns="http://www.w3.org/2000/svg" class="text-white w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white tracking-tight leading-none">UEL SPACE</h2>
+          </div>
+        </a>
+        <p class="text-white/70 text-sm leading-relaxed mb-6">
+          Nền tảng quản lý và đặt chỗ không gian thông minh tại Trường Đại học Kinh tế - Luật (UEL).
+        </p>
+      </div>
+
+      <!-- Quick Links -->
+      <div>
+        <h3 class="text-white font-bold mb-6">Liên kết nhanh</h3>
+        <ul class="space-y-4">
+          <li><a routerLink="/" class="text-white/70 hover:text-white transition-colors text-sm">Trang chủ</a></li>
+          <li><a routerLink="/map" class="text-white/70 hover:text-white transition-colors text-sm">Bản đồ khuôn viên</a></li>
+          <li><a routerLink="/spaces" class="text-white/70 hover:text-white transition-colors text-sm">Danh sách phòng</a></li>
+          <li><a routerLink="/booking" class="text-white/70 hover:text-white transition-colors text-sm">Hướng dẫn đặt phòng</a></li>
+        </ul>
+      </div>
+
+      <!-- Support -->
+      <div>
+        <h3 class="text-white font-bold mb-6">Hỗ trợ</h3>
+        <ul class="space-y-4">
+          <li><a routerLink="/faq" class="text-white/70 hover:text-white transition-colors text-sm">Câu hỏi thường gặp</a></li>
+          <li><a routerLink="/contact" class="text-white/70 hover:text-white transition-colors text-sm">Liên hệ hỗ trợ</a></li>
+          <li><a routerLink="/report" class="text-white/70 hover:text-white transition-colors text-sm">Báo cáo sự cố</a></li>
+          <li><a routerLink="/rules" class="text-white/70 hover:text-white transition-colors text-sm">Quy định sử dụng</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact -->
+      <div>
+        <h3 class="text-white font-bold mb-6">Thông tin liên hệ</h3>
+        <ul class="space-y-4">
+          <li class="flex items-start gap-3 text-white/70 text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" class="mt-0.5 shrink-0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            Khu phố 3, Phường Linh Xuân, TP. Thủ Đức, TP. Hồ Chí Minh
+          </li>
+          <li class="flex items-center gap-3 text-white/70 text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+            (028) 37244 555
+          </li>
+          <li class="flex items-center gap-3 text-white/70 text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            space@uel.edu.vn
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Divider & Copyright -->
+    <div class="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
+      <p class="text-white/50 text-xs">
+        &copy; 2026 UEL SPACE. All rights reserved.
+      </p>
+      <div class="flex items-center gap-6">
+        <a href="#" class="text-white/50 hover:text-white transition-colors text-xs">Điều khoản dịch vụ</a>
+        <a href="#" class="text-white/50 hover:text-white transition-colors text-xs">Chính sách bảo mật</a>
+      </div>
+    </div>
+  </div>
+</footer>
