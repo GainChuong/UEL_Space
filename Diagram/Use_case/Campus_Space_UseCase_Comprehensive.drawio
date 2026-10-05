@@ -1,0 +1,120 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0" version="21.0.0" type="device">
+  <diagram id="comprehensive_uc" name="Comprehensive Use Case">
+    <mxGraphModel dx="1434" dy="790" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- System Boundary -->
+        <mxCell id="boundary" value="Campus Space Management System" style="swimlane;whiteSpace=wrap;html=1;startSize=30;" vertex="1" parent="1">
+          <mxGeometry x="250" y="50" width="600" height="1300" as="geometry" />
+        </mxCell>
+
+        <!-- Actors -->
+        <mxCell id="actor_user" value="Người dùng&#xa;(SV/GV)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="300" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="actor_manager" value="Space Manager&#xa;(Quản lý/Kỹ thuật)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="800" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="actor_admin" value="System Admin&#xa;(Quản trị viên)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
+          <mxGeometry x="950" y="600" width="40" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Inheritance: Manager is a User -->
+        <mxCell id="edge_inherit" edge="1" parent="1" source="actor_manager" target="actor_user">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell style="endArrow=block;endSize=16;endFill=0;html=1;rounded=0;" edge="1" parent="edge_inherit" />
+        </mxCell>
+
+        <!-- ======================= -->
+        <!-- USER USE CASES (Top half) -->
+        <!-- ======================= -->
+        <mxCell id="uc_u1" value="Tra cứu lịch trống &amp; Không gian" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="60" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_u2" value="Đặt phòng (Booking)" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="140" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_u3" value="Quản lý yêu cầu (Hủy/Sửa)" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="220" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_u4" value="Check-in mã QR" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="300" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_u5" value="Check-out trả phòng" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="380" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_u6" value="Báo cáo sự cố (Incident)" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="460" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_u7" value="Nhận thông báo (Notification)" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="540" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ======================= -->
+        <!-- MANAGER USE CASES (Mid) -->
+        <!-- ======================= -->
+        <mxCell id="uc_m1" value="Phê duyệt / Từ chối đặt phòng" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="700" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_m2" value="Xử lý sự cố / Bảo trì" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="780" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_m3" value="Xem báo cáo &amp; Thống kê sử dụng" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="860" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_m4" value="Quản lý IoT Sensor (Camera)" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="boundary">
+          <mxGeometry x="50" y="940" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ======================= -->
+        <!-- ADMIN USE CASES (Right) -->
+        <!-- ======================= -->
+        <mxCell id="uc_a1" value="Quản lý Tổ chức (Organization)" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="boundary">
+          <mxGeometry x="350" y="460" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_a2" value="Quản lý Người dùng &amp; Phân quyền" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="boundary">
+          <mxGeometry x="350" y="540" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_a3" value="Quản lý Danh mục Không gian" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="boundary">
+          <mxGeometry x="350" y="620" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_a4" value="Quản lý Tiện ích (Amenity)" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="boundary">
+          <mxGeometry x="350" y="700" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_a5" value="Cấu hình Quy tắc (Business Rules)" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="boundary">
+          <mxGeometry x="350" y="780" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_a6" value="Xem Nhật ký Hệ thống (Audit Log)" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="boundary">
+          <mxGeometry x="350" y="860" width="200" height="60" as="geometry" />
+        </mxCell>
+
+
+        <!-- User Connections -->
+        <mxCell id="e_u1" edge="1" parent="1" source="actor_user" target="uc_u1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_u2" edge="1" parent="1" source="actor_user" target="uc_u2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_u3" edge="1" parent="1" source="actor_user" target="uc_u3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_u4" edge="1" parent="1" source="actor_user" target="uc_u4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_u5" edge="1" parent="1" source="actor_user" target="uc_u5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_u6" edge="1" parent="1" source="actor_user" target="uc_u6"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_u7" edge="1" parent="1" source="actor_user" target="uc_u7"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Manager Connections -->
+        <mxCell id="e_m1" edge="1" parent="1" source="actor_manager" target="uc_m1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_m2" edge="1" parent="1" source="actor_manager" target="uc_m2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_m3" edge="1" parent="1" source="actor_manager" target="uc_m3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_m4" edge="1" parent="1" source="actor_manager" target="uc_m4"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Admin Connections -->
+        <mxCell id="e_a1" edge="1" parent="1" source="actor_admin" target="uc_a1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_a2" edge="1" parent="1" source="actor_admin" target="uc_a2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_a3" edge="1" parent="1" source="actor_admin" target="uc_a3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_a4" edge="1" parent="1" source="actor_admin" target="uc_a4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_a5" edge="1" parent="1" source="actor_admin" target="uc_a5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_a6" edge="1" parent="1" source="actor_admin" target="uc_a6"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
