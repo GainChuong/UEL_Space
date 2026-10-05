@@ -1,141 +1,141 @@
-<div class="pt-32 pb-20 overflow-hidden relative">
-  <!-- Decorative Background Blurs -->
-  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-gradient-to-b from-uel-blue/5 to-transparent -z-10"></div>
-  <div class="absolute top-20 left-10 w-72 h-72 bg-sky-blue/20 rounded-full blur-[80px] -z-10"></div>
-  <div class="absolute top-40 right-10 w-96 h-96 bg-uel-orange/10 rounded-full blur-[100px] -z-10"></div>
-
-  <section class="max-w-7xl mx-auto px-6 relative z-10">
-    <div class="flex flex-col lg:flex-row items-center gap-16">
+<div class="bg-[#F5F7F9] min-h-screen pb-20">
+  
+  <!-- Hero Section Container -->
+  <div class="pt-6 px-6 max-w-[1440px] mx-auto">
+    <!-- Hero Card (Rounded with Image & Blue Gradient) -->
+    <div class="relative w-full h-[600px] rounded-[32px] overflow-hidden shadow-sm flex flex-col justify-center px-16">
       
-      <!-- Left: Text & Search -->
-      <div class="flex-1 text-left">
-        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-uel-blue/10 border border-uel-blue/20 text-uel-blue text-sm font-bold tracking-wide mb-8">
-          <span class="w-2 h-2 rounded-full bg-uel-orange animate-pulse"></span>
-          SMART CAMPUS PLATFORM
-        </div>
+      <!-- Background Image & Gradient -->
+      <div class="absolute inset-0 z-0 bg-[#0066CC]">
+        <!-- Pseudo image (Using a high quality campus image from Unsplash to simulate the render) -->
+        <img src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=2000" class="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay mix-blend-luminosity" alt="Campus">
         
-        <h1 class="text-[3.5rem] leading-[1.1] font-bold text-dark-text mb-6 tracking-tight">
-          Find the right space.<br />
-          <span class="text-transparent bg-clip-text bg-gradient-to-r from-uel-blue to-sky-blue">Use it smarter.</span>
+        <!-- Blue Gradient Overlay (Solid blue on left fading to transparent on right) -->
+        <div class="absolute inset-0 bg-gradient-to-r from-[#0052A3] via-[#0066CC]/80 to-transparent"></div>
+      </div>
+
+      <!-- Hero Content (z-10 ensures it sits above background) -->
+      <div class="relative z-10 max-w-2xl text-white mt-10">
+        
+        <h1 class="text-[56px] font-black leading-[1.1] tracking-tight mb-6 drop-shadow-md">
+          Find the right space.<br>
+          Use it smarter.
         </h1>
         
-        <p class="text-xl text-text-muted mb-12 max-w-xl leading-relaxed">
+        <p class="text-xl font-medium text-white/90 mb-12 max-w-[500px] leading-relaxed drop-shadow-sm">
           Khám phá, đặt chỗ và sử dụng không gian trong khuôn viên UEL một cách thông minh và hiệu quả.
         </p>
 
-        <!-- Command Center Search -->
-        <div class="bg-white p-4 rounded-3xl shadow-[0_8px_30px_rgba(0,32,77,0.08)] border border-border-gray/60 w-full max-w-2xl relative transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,32,77,0.12)]">
-          <div class="flex items-center gap-3 bg-bg-gray rounded-2xl p-2 pr-3">
-            <div class="w-12 h-12 flex items-center justify-center text-text-muted">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
-            </div>
-            <input type="text" placeholder="Tìm phòng, thư viện, khu vực..." class="flex-1 bg-transparent border-none outline-none text-dark-text placeholder:text-text-muted/70 text-lg font-medium">
-            <button class="bg-uel-blue hover:bg-uel-orange text-white px-8 py-3.5 rounded-xl font-bold transition-colors duration-300 shadow-sm cursor-pointer" routerLink="/map">
-              Tìm kiếm
+        <!-- Search & Filter Container -->
+        <div class="w-[720px]">
+          <!-- Main Search Input -->
+          <div class="bg-white rounded-2xl h-[72px] flex items-center px-6 shadow-lg mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="#6B7280" stroke-width="2" class="shrink-0"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+            <input type="text" placeholder="Tìm phòng, thư viện, khu vực..." class="flex-1 bg-transparent border-none outline-none text-[#111827] placeholder:text-[#9CA3AF] text-[17px] font-medium px-4 h-full">
+            <button class="shrink-0 text-uel-blue hover:text-sky-blue transition-colors cursor-pointer" routerLink="/map">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
             </button>
           </div>
-          
-          <!-- Filter Chips -->
-          <div class="flex items-center gap-3 mt-4 px-2 overflow-x-auto pb-2 scrollbar-hide">
-            <button class="flex items-center gap-2 px-4 py-2 rounded-full border border-border-gray hover:border-uel-blue text-sm font-semibold text-text-muted hover:text-uel-blue transition-colors cursor-pointer whitespace-nowrap bg-white">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-              Chọn ngày
-            </button>
-            <button class="flex items-center gap-2 px-4 py-2 rounded-full border border-border-gray hover:border-uel-blue text-sm font-semibold text-text-muted hover:text-uel-blue transition-colors cursor-pointer whitespace-nowrap bg-white">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              Thời gian
-            </button>
-            <button class="flex items-center gap-2 px-4 py-2 rounded-full border border-border-gray hover:border-uel-blue text-sm font-semibold text-text-muted hover:text-uel-blue transition-colors cursor-pointer whitespace-nowrap bg-white">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-              Sức chứa
-            </button>
-            <button class="flex items-center gap-2 px-4 py-2 rounded-full border border-border-gray hover:border-uel-blue text-sm font-semibold text-text-muted hover:text-uel-blue transition-colors cursor-pointer whitespace-nowrap bg-white">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-              Thiết bị
-            </button>
-          </div>
-        </div>
-      </div>
 
-      <!-- Right: Visual Map/Graphic -->
-      <div class="flex-1 relative">
-        <div class="w-full h-[500px] rounded-[40px] bg-white shadow-2xl border-4 border-white overflow-hidden relative group">
-          <!-- Conceptual Graphic instead of img, or use map styling -->
-          <div class="absolute inset-0 bg-bg-gray">
-            <div class="w-full h-full opacity-30" style="background-image: radial-gradient(#003b71 1px, transparent 1px); background-size: 20px 20px;"></div>
+          <!-- Filter Dropdowns -->
+          <div class="flex items-center gap-3">
             
-            <!-- Floating interactive elements -->
-            <div class="absolute top-1/4 left-1/4 bg-white p-3 rounded-2xl shadow-lg border border-border-gray flex items-center gap-3 animate-[bounce_4s_infinite]">
-              <div class="w-10 h-10 bg-status-available/20 text-status-available rounded-xl flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-              </div>
-              <div>
-                <div class="text-xs font-bold text-dark-text">Phòng học A.101</div>
-                <div class="text-[10px] text-status-available font-semibold">Trống</div>
-              </div>
-            </div>
-            
-            <div class="absolute bottom-1/3 right-1/4 bg-white p-3 rounded-2xl shadow-lg border border-border-gray flex items-center gap-3 animate-[bounce_5s_infinite_0.5s]">
-              <div class="w-10 h-10 bg-uel-orange/20 text-uel-orange rounded-xl flex items-center justify-center">
+            <button class="flex-1 bg-white hover:bg-gray-50 h-14 rounded-2xl flex items-center justify-between px-4 shadow-sm transition-colors cursor-pointer text-uel-blue">
+              <div class="flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <span class="text-[15px] font-semibold text-[#111827]">Hôm nay</span>
               </div>
-              <div>
-                <div class="text-xs font-bold text-dark-text">Phòng họp B.205</div>
-                <div class="text-[10px] text-uel-orange font-semibold">Đã đặt</div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="#6B7280" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+            </button>
+
+            <button class="flex-1 bg-white hover:bg-gray-50 h-14 rounded-2xl flex items-center justify-between px-4 shadow-sm transition-colors cursor-pointer text-uel-blue">
+              <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span class="text-[15px] font-semibold text-[#111827]">08:00 - 17:00</span>
               </div>
-            </div>
-            
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="#6B7280" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+            </button>
+
+            <button class="flex-1 bg-white hover:bg-gray-50 h-14 rounded-2xl flex items-center justify-between px-4 shadow-sm transition-colors cursor-pointer text-uel-blue">
+              <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span class="text-[15px] font-semibold text-[#111827]">Sức chứa</span>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="#6B7280" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+            </button>
+
+            <button class="flex-1 bg-white hover:bg-gray-50 h-14 rounded-2xl flex items-center justify-between px-4 shadow-sm transition-colors cursor-pointer text-uel-blue">
+              <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                <span class="text-[15px] font-semibold text-[#111827]">Thiết bị</span>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="#6B7280" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+            </button>
+
           </div>
         </div>
       </div>
     </div>
-  </section>
-</div>
+  </div>
 
-<!-- Features Section -->
-<section class="max-w-7xl mx-auto px-6 py-24">
-  <div class="text-center mb-16">
-    <h2 class="text-3xl font-bold text-uel-blue mb-4">Tiện ích nổi bật</h2>
-    <p class="text-text-muted text-lg max-w-2xl mx-auto">Trải nghiệm hệ sinh thái quản lý không gian thông minh, được thiết kế tối ưu dành riêng cho cộng đồng UEL.</p>
+  <!-- Features Section -->
+  <div class="max-w-[1440px] mx-auto px-6 mt-8">
+    <div class="bg-white rounded-[32px] p-10 flex items-center justify-between gap-8 shadow-sm border border-border-gray/50">
+      
+      <!-- Feature 1 -->
+      <div class="flex items-start gap-4 flex-1">
+        <div class="w-12 h-12 bg-sky-blue/10 rounded-full flex items-center justify-center shrink-0 text-uel-blue">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        </div>
+        <div>
+          <h3 class="text-[#111827] font-bold text-base mb-1">Tìm kiếm dễ dàng</h3>
+          <p class="text-[#6B7280] text-sm leading-relaxed">Tra cứu nhanh chóng các<br>phòng trống phù hợp với nhu cầu.</p>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="w-[1px] h-16 bg-border-gray hidden lg:block"></div>
+
+      <!-- Feature 2 -->
+      <div class="flex items-start gap-4 flex-1">
+        <div class="w-12 h-12 bg-sky-blue/10 rounded-full flex items-center justify-center shrink-0 text-uel-blue">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><circle cx="9" cy="15" r="1" fill="currentColor"></circle><circle cx="15" cy="15" r="1" fill="currentColor"></circle></svg>
+        </div>
+        <div>
+          <h3 class="text-[#111827] font-bold text-base mb-1">Đặt phòng nhanh chóng</h3>
+          <p class="text-[#6B7280] text-sm leading-relaxed">Chỉ với vài bước đơn giản,<br>đặt chỗ ngay lập tức.</p>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="w-[1px] h-16 bg-border-gray hidden lg:block"></div>
+
+      <!-- Feature 3 -->
+      <div class="flex items-start gap-4 flex-1">
+        <div class="w-12 h-12 bg-sky-blue/10 rounded-full flex items-center justify-center shrink-0 text-uel-blue">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+        </div>
+        <div>
+          <h3 class="text-[#111827] font-bold text-base mb-1">Check-in / Check-out</h3>
+          <p class="text-[#6B7280] text-sm leading-relaxed">Quét mã QR để sử dụng phòng<br>và theo dõi thời gian thực.</p>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="w-[1px] h-16 bg-border-gray hidden lg:block"></div>
+
+      <!-- Feature 4 -->
+      <div class="flex items-start gap-4 flex-1">
+        <div class="w-12 h-12 bg-sky-blue/10 rounded-full flex items-center justify-center shrink-0 text-uel-blue">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><path d="M12 2v10l5.5 5.5"></path></svg>
+        </div>
+        <div>
+          <h3 class="text-[#111827] font-bold text-base mb-1">Số liệu thống kê</h3>
+          <p class="text-[#6B7280] text-sm leading-relaxed">Theo dõi mức độ sử dụng,<br>hỗ trợ quản lý không gian hiệu quả.</p>
+        </div>
+      </div>
+
+    </div>
   </div>
-  
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-    
-    <!-- Feature 1 -->
-    <div class="bg-white rounded-3xl p-8 border border-border-gray shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
-      <div class="w-14 h-14 bg-uel-orange/10 text-uel-orange rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-uel-orange group-hover:text-white transition-all duration-300">
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-      </div>
-      <h3 class="text-xl font-bold text-dark-text mb-3">Tìm kiếm dễ dàng</h3>
-      <p class="text-text-muted leading-relaxed">Tra cứu nhanh chóng các phòng trống phù hợp với nhu cầu và lịch trình của bạn.</p>
-    </div>
-    
-    <!-- Feature 2 -->
-    <div class="bg-white rounded-3xl p-8 border border-border-gray shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
-      <div class="w-14 h-14 bg-uel-blue/10 text-uel-blue rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-uel-blue group-hover:text-white transition-all duration-300">
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-      </div>
-      <h3 class="text-xl font-bold text-dark-text mb-3">Đặt phòng nhanh chóng</h3>
-      <p class="text-text-muted leading-relaxed">Chỉ với vài bước đơn giản, giữ chỗ không gian tức thì cho buổi học hoặc họp nhóm.</p>
-    </div>
-    
-    <!-- Feature 3 -->
-    <div class="bg-white rounded-3xl p-8 border border-border-gray shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
-      <div class="w-14 h-14 bg-uel-orange/10 text-uel-orange rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-uel-orange group-hover:text-white transition-all duration-300">
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-      </div>
-      <h3 class="text-xl font-bold text-dark-text mb-3">Check-in tự động</h3>
-      <p class="text-text-muted leading-relaxed">Quét mã QR tại phòng để xác nhận sử dụng và theo dõi thời gian thực một cách thông minh.</p>
-    </div>
-    
-    <!-- Feature 4 -->
-    <div class="bg-white rounded-3xl p-8 border border-border-gray shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
-      <div class="w-14 h-14 bg-uel-blue/10 text-uel-blue rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-uel-blue group-hover:text-white transition-all duration-300">
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><path d="M3 9h18"></path><path d="M9 21V9"></path></svg>
-      </div>
-      <h3 class="text-xl font-bold text-dark-text mb-3">Thống kê trực quan</h3>
-      <p class="text-text-muted leading-relaxed">Theo dõi mức độ sử dụng không gian, hỗ trợ ban quản lý tối ưu hóa tài nguyên hiệu quả.</p>
-    </div>
-    
-  </div>
-</section>
+
+</div>

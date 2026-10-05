@@ -1,33 +1,9 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
 @import 'leaflet/dist/leaflet.css';
-
-@theme {
-  --color-uel-blue: #003B71;
-  --color-sky-blue: #00A3E0;
-  --color-uel-orange: #FF7900;
-  --color-bg-gray: #F5F7FA;
-  --color-dark-text: #111827;
-  --color-text-muted: #6B7280;
-  --color-border-gray: #E5E7EB;
-
-  --color-status-available: #10B981;
-  --color-status-in-use: #3B82F6;
-  --color-status-reserved: #F59E0B;
-  --color-status-maintenance: #9CA3AF;
-  --color-status-restricted: #EF4444;
-
-  --font-be-vietnam: 'Be Vietnam Pro', sans-serif;
-
-  --radius-sm: 8px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --radius-pill: 9999px;
-
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-  --shadow-md: 0 8px 24px rgba(0,32,77,0.08);
-  --shadow-lg: 0 16px 40px rgba(0,32,77,0.12);
-}
 
 :root {
   --uel-blue: #003B71;
@@ -36,9 +12,9 @@
 }
 
 body {
-  font-family: var(--font-be-vietnam);
-  background-color: var(--color-bg-gray);
-  color: var(--color-dark-text);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  background-color: #F5F7FA;
+  color: #111827;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -57,7 +33,7 @@ body {
   }
 
   .card {
-    @apply bg-white rounded-md p-8 shadow-sm border border-border-gray transition-all duration-300 hover:-translate-y-1 hover:shadow-md;
+    @apply bg-white rounded-2xl p-8 shadow-sm border border-border-gray transition-all duration-300 hover:-translate-y-1 hover:shadow-md;
   }
 
   .chip {

@@ -1,8 +1,9 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
 
 @Component({
-  imports: [],
+  imports: [CommonModule],
   selector: 'app-map',
   styleUrl: './map.scss',
   templateUrl: './map.html',
