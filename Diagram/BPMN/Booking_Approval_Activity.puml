@@ -1,0 +1,45 @@
+@startuml
+title Workflow: Booking & Approval Process
+
+|User (Student/Lecturer)|
+start
+:Tạo yêu cầu đặt phòng (Booking Request);
+
+|System|
+:Kiểm tra dữ liệu (Validate Data);
+if (Dữ liệu hợp lệ?) then (Có)
+  :Kiểm tra trùng lịch (Detect Conflicts - F35);
+  if (Có trùng lịch không?) then (Không)
+    :Lưu yêu cầu (Trạng thái: PENDING);
+    :Gửi thông báo cho Quản lý;
+    
+    |Space Manager|
+    :Xem xét yêu cầu đặt phòng;
+    if (Phê duyệt?) then (Đồng ý)
+      :Thao tác Phê duyệt;
+      
+      |System|
+      :Cập nhật trạng thái Booking (APPROVED);
+      :Cập nhật trạng thái Không gian (RESERVED);
+      :Tạo & Gửi mã QR cho User;
+      stop
+    else (Từ chối)
+      |Space Manager|
+      :Nhập lý do từ chối;
+      
+      |System|
+      :Cập nhật trạng thái Booking (REJECTED);
+      :Gửi thông báo từ chối cho User;
+      stop
+    endif
+  else (Có)
+    |System|
+    :Báo lỗi trùng lịch;
+    stop
+  endif
+else (Không)
+  |System|
+  :Báo lỗi dữ liệu không hợp lệ;
+  stop
+endif
+@enduml

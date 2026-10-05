@@ -1,0 +1,46 @@
+@startuml
+title Workflow: Check-in, Usage Monitoring & Auto-Checkout
+
+|User|
+start
+:Đến phòng & Quét mã QR (F07);
+
+|System|
+:Xác thực Booking & Thời gian (Validate Check-in);
+if (Hợp lệ?) then (Có)
+  :Bắt đầu Phiên sử dụng (Usage Session);
+  :Cập nhật trạng thái Không gian (OCCUPIED);
+  
+  repeat
+    |System (Cron Job)|
+    :Đợi 5 phút (Timer);
+    :Kiểm tra trạng thái vắng mặt qua Camera/Cảm biến (F37);
+    if (Thời gian vắng mặt?) then (Vượt ngưỡng Auto Check-out)
+      :Tự động Check-out (F38);
+      :Tạo hồ sơ Release Case (F39);
+      |Space Staff|
+      :Tiếp nhận & Xử lý Release Case;
+      :Giải quyết xong (Đồ đạc bị bỏ quên, v.v.);
+      |System (Cron Job)|
+      break
+    elseif (Vượt ngưỡng Cảnh báo?) then (Có)
+      :Gửi cảnh báo vắng mặt qua App/Email;
+    else (An toàn)
+      :Tiếp tục duy trì phiên;
+    endif
+  repeat while (User tự Check-out thủ công?) is (Không)
+  -> (Có);
+  
+  |User|
+  :Xác nhận Check-out trên App (F08);
+  
+  |System|
+  :Kết thúc Phiên sử dụng;
+  :Cập nhật trạng thái Không gian (AVAILABLE);
+  stop
+else (Không)
+  |System|
+  :Báo lỗi Check-in thất bại;
+  stop
+endif
+@enduml

@@ -1,0 +1,34 @@
+@startuml
+title Workflow: Incident Reporting & Resolution
+
+|User (Reporter)|
+start
+:Phát hiện sự cố;
+:Gửi báo cáo sự cố (Submit Incident - F12);
+
+|System|
+:Lưu sự cố (Trạng thái: REPORTED);
+:Gửi thông báo cho Quản lý / Kỹ thuật viên;
+
+|Manager (Technician)|
+:Xem xét và đánh giá sự cố;
+if (Mức độ nghiêm trọng?) then (Nghiêm trọng / Không thể dùng)
+  :Đánh dấu phong tỏa không gian;
+  |System|
+  :Khóa phòng, đổi trạng thái (MAINTENANCE);
+  |Manager (Technician)|
+  :Tiến hành sửa chữa lớn;
+  :Xác nhận đã khắc phục xong;
+  |System|
+  :Mở khóa phòng (AVAILABLE);
+else (Nhẹ / Vẫn dùng được)
+  |Manager (Technician)|
+  :Tiến hành sửa chữa nhỏ;
+  :Xác nhận đã khắc phục xong;
+endif
+
+|System|
+:Cập nhật trạng thái sự cố (RESOLVED);
+:Gửi thông báo hoàn tất cho người báo cáo;
+stop
+@enduml
