@@ -1,0 +1,103 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0" version="21.0.0" type="device">
+  <diagram id="checkin_process" name="Check-In &amp; Usage Process">
+    <mxGraphModel dx="1434" dy="790" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Pool -->
+        <mxCell id="pool" value="Check-In, Usage &amp; Auto-Checkout (IoT)" style="swimlane;childLayout=stackLayout;horizontal=0;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="50" width="1600" height="450" as="geometry" />
+        </mxCell>
+        
+        <!-- Swimlanes -->
+        <mxCell id="lane_user" value="User (Sinh viên/GV)" style="swimlane;horizontal=0;html=1;" vertex="1" parent="pool">
+          <mxGeometry x="30" y="0" width="1570" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_sys" value="System (Core/Cron)" style="swimlane;horizontal=0;html=1;" vertex="1" parent="pool">
+          <mxGeometry x="30" y="150" width="1570" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_iot" value="IoT Sensor (Camera)" style="swimlane;horizontal=0;html=1;" vertex="1" parent="pool">
+          <mxGeometry x="30" y="300" width="1570" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- Nodes User -->
+        <mxCell id="start" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="lane_user">
+          <mxGeometry x="50" y="55" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="task_scan" value="Đến phòng &amp;&#xa;Quét QR Code" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_user">
+          <mxGeometry x="150" y="45" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="task_checkout_manual" value="Check-out thủ công" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_user">
+          <mxGeometry x="1250" y="45" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Nodes System -->
+        <mxCell id="task_validate" value="Xác thực Check-in" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_sys">
+          <mxGeometry x="150" y="45" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gw_valid" value="Hợp lệ?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="lane_sys">
+          <mxGeometry x="320" y="35" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="end_invalid" value="Lỗi" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=4;" vertex="1" parent="lane_sys">
+          <mxGeometry x="340" y="125" width="40" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="task_start_session" value="Bắt đầu Session&#xa;(OCCUPIED)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_sys">
+          <mxGeometry x="450" y="45" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="task_cron" value="Cron Job: Đợi 5 phút" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_sys">
+          <mxGeometry x="620" y="45" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="task_eval_iot" value="Đánh giá kết quả" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_sys">
+          <mxGeometry x="960" y="45" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="gw_abandoned" value="Vắng mặt?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="lane_sys">
+          <mxGeometry x="1130" y="35" width="80" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="task_auto_checkout" value="Tự động Check-out" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_sys">
+          <mxGeometry x="1250" y="110" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="task_free_space" value="Giải phóng phòng&#xa;(AVAILABLE)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_sys">
+          <mxGeometry x="1420" y="45" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="end_success" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=4;" vertex="1" parent="lane_sys">
+          <mxGeometry x="1560" y="55" width="40" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Nodes IoT -->
+        <mxCell id="task_ping_iot" value="Kích hoạt cảm biến" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_iot">
+          <mxGeometry x="620" y="45" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="task_detect" value="Quét không gian&#xa;Thu thập Telemetry" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_iot">
+          <mxGeometry x="790" y="45" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Edges -->
+        <mxCell id="e1" edge="1" parent="lane_user" source="start" target="task_scan"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" edge="1" parent="pool" source="task_scan" target="task_validate"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" edge="1" parent="lane_sys" source="task_validate" target="gw_valid"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_v_no" edge="1" parent="lane_sys" source="gw_valid" target="end_invalid"><mxGeometry relative="1" as="geometry" /><mxCell value="Không" style="edgeLabel;html=1;align=center;" vertex="1" connectable="0" parent="e_v_no" /></mxCell>
+        <mxCell id="e_v_yes" edge="1" parent="lane_sys" source="gw_valid" target="task_start_session"><mxGeometry relative="1" as="geometry" /><mxCell value="Có" style="edgeLabel;html=1;align=center;" vertex="1" connectable="0" parent="e_v_yes" /></mxCell>
+        
+        <mxCell id="e4" edge="1" parent="lane_sys" source="task_start_session" target="task_cron"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" edge="1" parent="pool" source="task_cron" target="task_ping_iot"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" edge="1" parent="lane_iot" source="task_ping_iot" target="task_detect"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e7" edge="1" parent="pool" source="task_detect" target="task_eval_iot"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" edge="1" parent="lane_sys" source="task_eval_iot" target="gw_abandoned"><mxGeometry relative="1" as="geometry" /></mxCell>
+        
+        <mxCell id="e_a_no" edge="1" parent="lane_sys" source="gw_abandoned" target="task_cron"><mxGeometry relative="1" as="geometry" /><mxCell value="Không (Có người)" style="edgeLabel;html=1;align=center;" vertex="1" connectable="0" parent="e_a_no" /></mxCell>
+        <mxCell id="e_a_yes" edge="1" parent="lane_sys" source="gw_abandoned" target="task_auto_checkout"><mxGeometry relative="1" as="geometry" /><mxCell value="Có (Vắng)" style="edgeLabel;html=1;align=center;" vertex="1" connectable="0" parent="e_a_yes" /></mxCell>
+
+        <!-- Manual Checkout branch -->
+        <mxCell id="e9" edge="1" parent="pool" source="task_checkout_manual" target="task_free_space"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e10" edge="1" parent="lane_sys" source="task_auto_checkout" target="task_free_space"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e11" edge="1" parent="lane_sys" source="task_free_space" target="end_success"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
