@@ -54,7 +54,20 @@ async function bootstrap() {
   app.use(morgan('dev'));
   app.use(
     cors({
-      origin: [env.clientOrigin, 'http://localhost:4200', 'http://127.0.0.1:4200'],
+      origin: (origin, callback) => {
+        // Cho phép các request không có origin (ví dụ curl, Postman, server-to-server)
+        if (!origin) return callback(null, true);
+        if (
+          origin.includes('localhost') ||
+          origin.includes('127.0.0.1') ||
+          origin.endsWith('.vercel.app') ||
+          origin.includes('onrender.com') ||
+          origin === env.clientOrigin
+        ) {
+          return callback(null, true);
+        }
+        return callback(null, true);
+      },
       credentials: true
     })
   );

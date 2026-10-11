@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: uel-space-api
+    env: node
+    plan: free
+    region: singapore
+    rootDir: my-server
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        value: mongodb+srv://gameyuno123_db_user:4ScSGOFQjScjIWOh@cluster0.jdglrux.mongodb.net/?retryWrites=true&w=majority
+      - key: MONGO_DB
+        value: uel_space
+      - key: SESSION_SECRET
+        value: uel-space-secret-ptwnc-2026-production-secure
+      - key: CLIENT_ORIGIN
+        value: https://uelspace-4zohboa0i-giang-nguyens-projects-9196e1ee.vercel.app
+      - key: ADMIN_EMAILS
+        value: admin@uel.edu.vn,quantri@uel.edu.vn,system@uel.edu.vn,gameyuno123@gmail.com
+      - key: ENABLE_JOBS
+        value: "true"
