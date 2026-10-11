@@ -9,7 +9,7 @@ async function connectToDb(uri = env.mongoUri, dbName = env.mongoDb) {
   if (database) return database;
 
   // Xử lý DNS SRV cho MongoDB Atlas trên môi trường mạng Windows
-  if (uri && uri.startsWith('mongodb+srv://')) {
+  if (process.platform === 'win32' && uri && uri.startsWith('mongodb+srv://')) {
     try {
       dns.setServers(['8.8.8.8', '1.1.1.1']);
     } catch (dnsErr) {
@@ -18,8 +18,9 @@ async function connectToDb(uri = env.mongoUri, dbName = env.mongoDb) {
   }
 
   client = new MongoClient(uri, { 
-    serverSelectionTimeoutMS: 10000,
-    connectTimeoutMS: 10000
+    serverSelectionTimeoutMS: 15000,
+    connectTimeoutMS: 15000,
+    tls: true
   });
 
   await client.connect();
