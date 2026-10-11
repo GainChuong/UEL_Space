@@ -1,0 +1,1871 @@
+<div class="admin-layout flex h-screen overflow-hidden bg-[#F8FAFC] dark:bg-[#070D18]">
+
+  <!-- =========================================================================
+       SIDEBAR NAVIGATION (Deep Brand UEL Blue #001D3D)
+       ========================================================================= -->
+  <aside class="w-72 bg-[#001428] text-white flex flex-col shrink-0 border-r border-[#002D5C]/80 z-30 select-none shadow-2xl relative overflow-hidden">
+    
+    <!-- Background Image with Blur & Deep Brand Tint (UI/UX Pro Max) -->
+    <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+      <img [src]="server_images_link + 'admin/panel.jpg'" alt="UEL Campus Background" 
+           class="w-full h-full object-cover object-center scale-110 filter blur-[10px] opacity-25">
+      <div class="absolute inset-0 bg-gradient-to-b from-[#001428]/88 via-[#001D3D]/80 to-[#001224]/92"></div>
+    </div>
+
+    <!-- Sidebar Header & Logo -->
+    <div class="px-6 py-5 border-b border-white/10 flex items-center justify-between relative z-10 backdrop-blur-[2px]">
+      <a routerLink="/" class="flex items-center group cursor-pointer transition-transform hover:scale-[1.02]" [title]="'Về trang chủ UEL SPACE' | t">
+        <img [src]="server_images_link + 'logo_am_ban.png'" alt="UEL Space" class="h-10 w-auto max-w-[210px] object-contain drop-shadow">
+      </a>
+    </div>
+
+    <!-- Navigation Menu Items -->
+    <nav class="flex-1 px-3 py-3 space-y-1.5 overflow-y-auto relative z-10">
+      
+      <div class="text-[10px] font-black uppercase text-slate-400 px-3 pt-2 pb-1 tracking-wider">
+        {{ 'Quản trị Vận hành' | t }}
+      </div>
+
+      <!-- 1. Overview -->
+      <button (click)="activeTab = 'overview'"
+              [class]="activeTab === 'overview' ? 'bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 text-white shadow-md font-bold' : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'"
+              class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer">
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+          <span>{{ 'Tổng quan & Công suất' | t }}</span>
+        </div>
+      </button>
+
+      <!-- 2. Approvals -->
+      <button (click)="activeTab = 'approvals'"
+              [class]="activeTab === 'approvals' ? 'bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 text-white shadow-md font-bold' : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'"
+              class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer">
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+          <span>{{ 'Phê duyệt Đặt phòng' | t }}</span>
+        </div>
+        @if (pendingBookingsCount > 0) {
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/15 text-slate-100 border border-white/10">
+            {{pendingBookingsCount}}
+          </span>
+        }
+      </button>
+
+      <!-- 3. Exceptions -->
+      <button (click)="activeTab = 'exceptions'"
+              [class]="activeTab === 'exceptions' ? 'bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 text-white shadow-md font-bold' : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'"
+              class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer">
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span>{{ 'Xử lý Ngoại lệ (No-show)' | t }}</span>
+        </div>
+        @if (activeExceptionsCount > 0) {
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/15 text-slate-100 border border-white/10">
+            {{activeExceptionsCount}}
+          </span>
+        }
+      </button>
+
+      <!-- 4. QR Check-in Station (Kiosk Mode) -->
+      <button (click)="activeTab = 'qr-checkin'; resetScanResult()"
+              [class]="activeTab === 'qr-checkin' ? 'bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 text-white shadow-md font-bold' : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'"
+              class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer">
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/></svg>
+          <span>{{ 'Trạm Quét QR & Check-in' | t }}</span>
+        </div>
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/15 text-slate-100 border border-white/10">
+          KIOSK
+        </span>
+      </button>
+
+      <div class="text-[10px] font-black uppercase text-slate-400 px-3 pt-4 pb-1 tracking-wider">
+        {{ 'Tài nguyên & Hệ thống' | t }}
+      </div>
+
+      <!-- 4. Spaces -->
+      <button (click)="activeTab = 'spaces'"
+              [class]="activeTab === 'spaces' ? 'bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 text-white shadow-md font-bold' : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'"
+              class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer">
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+          <span>{{ 'Không gian & Thiết bị' | t }}</span>
+        </div>
+      </button>
+
+      <!-- 5. Users -->
+      <button (click)="activeTab = 'users'"
+              [class]="activeTab === 'users' ? 'bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 text-white shadow-md font-bold' : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'"
+              class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer">
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>{{ 'Người dùng & Phân quyền' | t }}</span>
+        </div>
+      </button>
+
+      <!-- 6. Audit -->
+      <button (click)="activeTab = 'audit'"
+              [class]="activeTab === 'audit' ? 'bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 text-white shadow-md font-bold' : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'"
+              class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer">
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>{{ 'Nhật ký Hệ thống (Audit)' | t }}</span>
+        </div>
+      </button>
+
+      <!-- 7. Occupancy Detection (AI Vision) -->
+      <button (click)="activeTab = 'occupancy-detection'; stopOccupancyDetection()"
+              [class]="activeTab === 'occupancy-detection' ? 'bg-emerald-600 text-white shadow-md font-bold' : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'"
+              class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer">
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>{{ 'Nhận diện Công suất (AI)' | t }}</span>
+        </div>
+        @if (occDetectionRunning) {
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        }
+      </button>
+
+    </nav>
+
+    </aside>
+
+  <!-- =========================================================================
+       MAIN CANVAS AREA
+       ========================================================================= -->
+  <div class="flex-1 flex flex-col h-screen overflow-hidden">
+    
+    <!-- Topbar Header -->
+    <header class="glass-header dark:bg-slate-900/90 h-16 border-b border-border-gray dark:border-slate-800 px-6 flex items-center justify-between shrink-0 z-20">
+      
+      <!-- Left: Breadcrumb / Section Title -->
+      <div class="flex items-center gap-3">
+        <span class="text-xs font-semibold text-text-muted dark:text-slate-400">{{ 'Bảng Quản trị' | t }}</span>
+        <span class="text-xs text-border-gray dark:text-slate-600 font-bold">/</span>
+        <h1 class="text-sm font-black text-dark-text dark:text-white tracking-tight uppercase">
+          @if (activeTab === 'overview') { {{ 'Tổng quan & Công suất thời gian thực' | t }} }
+          @if (activeTab === 'approvals') { {{ 'Phê duyệt đơn đặt phòng (F19-F20)' | t }} }
+          @if (activeTab === 'exceptions') { {{ 'Xử lý ngoại lệ & Giải phóng phòng (F21-F23)' | t }} }
+          @if (activeTab === 'spaces') { {{ 'Quản trị Không gian & Thiết bị (F15-F18)' | t }} }
+          @if (activeTab === 'users') { {{ 'Quản lý Người dùng & Tổ chức (F29-F33)' | t }} }
+          @if (activeTab === 'audit') { {{ 'Nhật ký thao tác & Bảo mật (F34)' | t }} }
+          @if (activeTab === 'qr-checkin') { {{ 'Trạm Quét QR & Xác thực Hiện diện (F09/F38)' | t }} }
+          @if (activeTab === 'occupancy-detection') { {{ 'Nhận diện Công suất Phòng • AI Computer Vision' | t }} }
+        </h1>
+      </div>
+
+      <!-- Right: Controls & Admin Quick Profile -->
+      <div class="flex items-center gap-3 sm:gap-4">
+        
+        <!-- Quick Scan QR Action Button: Clean UEL Blue Styling -->
+        <button (click)="openQuickScanModal()"
+                class="px-3.5 py-1.5 rounded-xl bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 hover:bg-[#002D5C] text-white text-xs font-bold flex items-center gap-2 shadow-xs hover:shadow-sm transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/></svg>
+          <span>{{ 'Quét QR Check-in' | t }}</span>
+        </button>
+
+        <!-- Campus Selector Tag -->
+        <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-uel-blue/5 dark:bg-sky-400/10 border border-uel-blue/20 dark:border-sky-400/20 text-xs text-uel-blue dark:text-sky-400 font-bold">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>{{ 'UEL - Cơ sở Linh Xuân, Thủ Đức' | t }}</span>
+        </div>
+
+        <!-- =====================================================================
+             1. NOTIFICATION BELL & DROPDOWN POPOVER
+             ===================================================================== -->
+        <div class="relative">
+          <button (click)="toggleNotification($event)"
+                  class="w-9 h-9 rounded-xl border border-border-gray dark:border-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-uel-blue dark:hover:text-sky-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer" 
+                  [title]="(settingsService.language$ | async) === 'vi' ? 'Thông báo hệ thống' : 'System Notifications'">
+            <div class="relative flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              </svg>
+              @if (settingsService.unreadCount > 0) {
+                <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900"></span>
+              }
+            </div>
+          </button>
+
+          <!-- Notification Popover Menu -->
+          @if (isNotificationOpen) {
+            <div (click)="$event.stopPropagation()"
+                 class="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-[9999] animate-scaleIn text-slate-800 dark:text-white dark:text-slate-100">
+              
+              <!-- Header -->
+              <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/40">
+                <div class="flex items-center gap-2">
+                  <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-800 dark:text-white">
+                    {{ (settingsService.language$ | async) === 'vi' ? 'Thông báo Quản trị' : 'Admin Alerts' }}
+                  </h4>
+                  @if (settingsService.unreadCount > 0) {
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-uel-orange text-white">
+                      {{ settingsService.unreadCount }} {{ (settingsService.language$ | async) === 'vi' ? 'mới' : 'new' }}
+                    </span>
+                  }
+                </div>
+
+                @if (settingsService.unreadCount > 0) {
+                  <button (click)="markAllAsRead($event)"
+                          class="text-[11px] font-bold text-uel-blue dark:text-sky-400 hover:underline cursor-pointer">
+                    {{ (settingsService.language$ | async) === 'vi' ? 'Đã đọc tất cả' : 'Mark all read' }}
+                  </button>
+                }
+              </div>
+
+              <!-- Tab Filters -->
+              <div class="px-4 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 text-xs">
+                <button (click)="activeNotifTab = 'all'"
+                        [class]="activeNotifTab === 'all' ? 'bg-uel-blue dark:bg-sky-500 text-white font-bold' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium'"
+                        class="px-3 py-1 rounded-full text-[11px] transition-colors cursor-pointer">
+                  {{ (settingsService.language$ | async) === 'vi' ? 'Tất cả' : 'All' }}
+                </button>
+                <button (click)="activeNotifTab = 'unread'"
+                        [class]="activeNotifTab === 'unread' ? 'bg-uel-blue dark:bg-sky-500 text-white font-bold' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium'"
+                        class="px-3 py-1 rounded-full text-[11px] transition-colors cursor-pointer">
+                  {{ (settingsService.language$ | async) === 'vi' ? 'Chưa đọc' : 'Unread' }} ({{ settingsService.unreadCount }})
+                </button>
+              </div>
+
+              <!-- List of Notifications -->
+              <div class="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                @for (n of (settingsService.notifications$ | async); track n.id) {
+                  @if (activeNotifTab === 'all' || !n.read) {
+                    <div (click)="markAsRead(n.id, $event)"
+                         [class]="n.read ? 'bg-white dark:bg-slate-900 opacity-75' : 'bg-uel-blue/[0.03] dark:bg-sky-400/[0.05]'"
+                         class="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer flex items-start gap-3">
+                      
+                      <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
+                           [class]="n.type === 'success' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400' :
+                                    n.type === 'warning' ? 'bg-amber-100 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400' :
+                                    'bg-sky-100 text-sky-600 dark:bg-sky-950/50 dark:text-sky-400'">
+                        @if (n.type === 'success') {
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        } @else if (n.type === 'warning') {
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        } @else {
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        }
+                      </div>
+
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-1">
+                          <h5 class="text-xs font-bold text-slate-800 dark:text-white truncate" [class.font-black]="!n.read">
+                            {{ n.title | t }}
+                          </h5>
+                          @if (!n.read) {
+                            <span class="w-2 h-2 rounded-full bg-uel-orange shrink-0"></span>
+                          }
+                        </div>
+                        <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-1 line-clamp-2 leading-relaxed">
+                          {{ n.message | t }}
+                        </p>
+                        <span class="text-[10px] text-slate-400 mt-1 block">
+                          {{ n.timeAgo | t }} • {{ n.timestamp }}
+                        </span>
+                      </div>
+                    </div>
+                  }
+                } @empty {
+                  <div class="py-10 text-center text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-2 opacity-50"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    <p class="text-xs">{{ (settingsService.language$ | async) === 'vi' ? 'Không có thông báo mới' : 'No new notifications' }}</p>
+                  </div>
+                }
+              </div>
+
+              <!-- Footer -->
+              <div class="p-3 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 text-center">
+                <span class="text-[11px] text-slate-400">
+                  {{ (settingsService.language$ | async) === 'vi' ? 'Cập nhật trực tiếp từ hệ thống IoT &amp; AI F38' : 'Real-time sync from IoT &amp; AI F38' }}
+                </span>
+              </div>
+
+            </div>
+          }
+        </div>
+
+        <!-- =====================================================================
+             2. ADMIN AVATAR / PROFILE & DROPDOWN POPOVER
+             ===================================================================== -->
+        <div class="relative pl-2 border-l border-border-gray dark:border-slate-800">
+          <button (click)="toggleProfile($event)"
+                  class="flex items-center gap-2.5 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors cursor-pointer group"
+                  [title]="(settingsService.isLoggedIn$ | async) ? ('Tài khoản Quản trị viên' | t) : ('Đăng nhập' | t)">
+            
+            <div class="w-9 h-9 rounded-full border-2 flex items-center justify-center shrink-0 shadow-xs transition-colors"
+                 [class]="(settingsService.isLoggedIn$ | async) 
+                  ? 'border-uel-blue text-uel-blue bg-white dark:bg-slate-800 dark:border-sky-400 dark:text-sky-400 group-hover:bg-uel-blue group-hover:text-white' 
+                  : 'border-slate-300 dark:border-slate-700 text-slate-400 bg-slate-100 dark:bg-slate-800'">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M20 21a8 8 0 0 0-16 0"/>
+              </svg>
+            </div>
+
+            <div class="hidden md:block text-left leading-tight">
+              @if (settingsService.isLoggedIn$ | async) {
+                <div class="text-xs font-bold text-dark-text dark:text-white flex items-center gap-1.5">
+                  <span>Admin UEL</span>
+                  <svg class="w-3 h-3 text-slate-400 group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+                </div>
+                <div class="text-[10px] text-text-muted dark:text-slate-400 font-medium">admin@uel.edu.vn</div>
+              } @else {
+                <div class="text-xs font-bold text-slate-500 dark:text-slate-300">
+                  {{ (settingsService.language$ | async) === 'vi' ? 'Chưa đăng nhập' : 'Not logged in' }}
+                </div>
+                <div class="text-[10px] text-text-muted dark:text-slate-400">{{ 'Nhấn để đăng nhập' | t }}</div>
+              }
+            </div>
+          </button>
+
+          <!-- Profile Popover Menu -->
+          @if (isProfileOpen) {
+            <div (click)="$event.stopPropagation()"
+                 class="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-[9999] animate-scaleIn text-slate-800 dark:text-white dark:text-slate-100">
+              
+              <!-- CASE 1: LOGGED IN -->
+              @if (settingsService.isLoggedIn$ | async) {
+                <!-- User Header Info -->
+                <div class="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full border-2 border-uel-blue dark:border-sky-400 bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-400 flex items-center justify-center font-bold text-sm shrink-0">
+                      A
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <div class="text-xs font-extrabold text-slate-900 dark:text-white truncate">Admin UEL</div>
+                      <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate">admin@uel.edu.vn</div>
+                      <span class="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-slate-900 text-white dark:bg-sky-400 dark:text-slate-900">
+                        SYSTEM ADMIN
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Menu Items -->
+                <div class="p-2 space-y-1">
+                  <!-- Settings Button (Required by user) -->
+                  <button (click)="openSettings()"
+                          class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer text-left">
+                    <div class="flex items-center gap-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-uel-blue dark:text-sky-400 shrink-0">
+                        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                      <span>{{ (settingsService.language$ | async) === 'vi' ? 'Cài đặt hệ thống' : 'Settings' }}</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 capitalize">
+                      {{ (settingsService.theme$ | async) === 'dark' ? 'Dark' : 'Light' }} • {{ (settingsService.language$ | async)?.toUpperCase() }}
+                    </span>
+                  </button>
+
+                  <!-- Link to client portal -->
+                  <a routerLink="/"
+                     (click)="isProfileOpen = false"
+                     class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer text-left">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-uel-blue dark:text-sky-400 shrink-0"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    <span>{{ (settingsService.language$ | async) === 'vi' ? 'Về giao diện sinh viên' : 'Client Interface' }}</span>
+                  </a>
+
+                  <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
+
+                  <!-- Log out Button (Required by user) -->
+                  <button (click)="handleLogout()"
+                          class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs font-bold transition-colors cursor-pointer text-left">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>{{ (settingsService.language$ | async) === 'vi' ? 'Đăng xuất quản trị' : 'Log out' }}</span>
+                  </button>
+                </div>
+              }
+
+              <!-- CASE 2: NOT LOGGED IN (Chỉ có nút Log in theo yêu cầu) -->
+              @else {
+                <div class="p-5 text-center">
+                  <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 mx-auto flex items-center justify-center mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                  </div>
+                  <h5 class="text-xs font-bold text-slate-800 dark:text-white">
+                    {{ (settingsService.language$ | async) === 'vi' ? 'Chưa đăng nhập' : 'Not signed in' }}
+                  </h5>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 mb-4 leading-relaxed">
+                    {{ (settingsService.language$ | async) === 'vi' ? 'Đăng nhập tài khoản Quản trị viên để quản lý hệ thống không gian.' : 'Sign in with Administrator account to manage spaces.' }}
+                  </p>
+
+                  <button (click)="handleLogin()"
+                          class="w-full py-2.5 rounded-xl bg-uel-blue hover:bg-uel-blue-dark dark:bg-sky-600 dark:hover:bg-sky-700 text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    <span>{{ (settingsService.language$ | async) === 'vi' ? 'Đăng nhập' : 'Log in' }}</span>
+                  </button>
+                </div>
+              }
+
+            </div>
+          }
+        </div>
+
+      </div>
+
+    </header>
+
+    <!-- Main Scrollable Body Content -->
+    <main class="flex-1 overflow-y-auto p-6 lg:p-8 space-y-6">
+
+      <!-- =====================================================================
+           TAB 1: OVERVIEW & REAL-TIME OCCUPANCY (F41 / F43)
+           ===================================================================== -->
+      @if (activeTab === 'overview') {
+        
+        <!-- Bento Grid Metric KPI Cards: Tối giản, chuyên nghiệp, không lạm dụng màu -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          <!-- Card 1: Pending Approvals -->
+          <div (click)="activeTab = 'approvals'"
+               class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-border-gray dark:border-slate-800 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer group">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ 'Đơn chờ duyệt' | t }}</span>
+              <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+            </div>
+            <div class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{{pendingBookingsCount}}</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1.5 flex items-center gap-1 group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors">
+              <span>{{ 'Cần xử lý trước giờ mượn' | t }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+            </div>
+          </div>
+
+          <!-- Card 2: Occupancy Rate -->
+          <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-border-gray dark:border-slate-800 shadow-2xs">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ 'Công suất sử dụng' | t }}</span>
+              <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              </div>
+            </div>
+            <div class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">68.4%</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1.5 flex items-center gap-1">
+              <span>{{ 'Đang có 192 sinh viên sử dụng' | t }}</span>
+            </div>
+          </div>
+
+          <!-- Card 3: Active Exceptions -->
+          <div (click)="activeTab = 'exceptions'"
+               class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-border-gray dark:border-slate-800 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer group">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ 'Ca vắng mặt (No-show)' | t }}</span>
+              <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </div>
+            </div>
+            <div class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{{activeExceptionsCount}}</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1.5 flex items-center gap-1 group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors">
+              <span>{{ 'Vắng mặt quá 15 phút' | t }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+            </div>
+          </div>
+
+          <!-- Card 4: Active Spaces -->
+          <div (click)="activeTab = 'spaces'"
+               class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-border-gray dark:border-slate-800 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer group">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ 'Không gian hoạt động' | t }}</span>
+              <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+            </div>
+            <div class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">43/45</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1.5">{{ '2 không gian đang bảo trì CSVC' | t }}</div>
+          </div>
+
+        </div>
+
+        <!-- Section: Real-time Utilization by Building -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Left 2 Cols: Building Occupancy Progress -->
+          <div class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-3xl p-6 border border-border-gray dark:border-slate-800 shadow-xs space-y-5">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-base font-black text-dark-text dark:text-white tracking-tight">{{ 'Mật độ sử dụng theo Tòa nhà' | t }}</h3>
+                <p class="text-xs text-text-muted dark:text-slate-400 font-medium">{{ 'Dữ liệu tính toán thời gian thực theo cơ chế snapshot F41/F43' | t }}</p>
+              </div>
+              <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">{{ 'Snapshot: 15 phút/lần' | t }}</span>
+            </div>
+
+            <div class="space-y-4 pt-2">
+              
+              <!-- Building 1: Thư viện UEL -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs font-semibold">
+                  <span class="text-slate-800 dark:text-white flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700"></span>
+                    {{ 'Tòa nhà Thư viện (Tầng 1 - Tầng 3)' | t }}
+                  </span>
+                  <span class="text-slate-700 dark:text-slate-200 font-bold">88% <span class="text-[10px] text-amber-700 dark:text-amber-300 font-semibold bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-200/60 dark:border-amber-800/60 ml-1">{{ 'Cao điểm' | t }}</span></span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <div class="h-full bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 rounded-full" style="width: 88%"></div>
+                </div>
+              </div>
+
+              <!-- Building 2: Tòa nhà A -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs font-semibold">
+                  <span class="text-slate-800 dark:text-white flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                    {{ 'Tòa nhà A (Phòng họp & Hội trường)' | t }}
+                  </span>
+                  <span class="text-slate-700 dark:text-slate-200 font-bold">62%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <div class="h-full bg-slate-700 rounded-full" style="width: 62%"></div>
+                </div>
+              </div>
+
+              <!-- Building 3: Tòa nhà B1 & B2 -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs font-semibold">
+                  <span class="text-slate-800 dark:text-white flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                    {{ 'Tòa nhà B1 & B2 (Phòng học lý thuyết)' | t }}
+                  </span>
+                  <span class="text-slate-700 dark:text-slate-200 font-bold">74%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <div class="h-full bg-slate-700 rounded-full" style="width: 74%"></div>
+                </div>
+              </div>
+
+              <!-- Building 4: Chòi tự học ngoài trời -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs font-semibold">
+                  <span class="text-slate-800 dark:text-white flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                    {{ 'Chòi tự học ngoài trời (Đường Thanh Niên)' | t }}
+                  </span>
+                  <span class="text-slate-700 dark:text-slate-200 font-bold">40%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <div class="h-full bg-slate-700 rounded-full" style="width: 40%"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Right Col: Quick Approvals Summary -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-border-gray dark:border-slate-800 shadow-2xs flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-black text-dark-text dark:text-white tracking-tight">{{ 'Cần duyệt khẩn' | t }}</h3>
+                <span class="text-[11px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-slate-800">
+                  {{pendingBookingsCount}} {{ 'đơn' | t }}
+                </span>
+              </div>
+
+              <div class="space-y-3">
+                @for (b of bookings.slice(0, 2); track b.id) {
+                  <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-bold text-dark-text dark:text-white">{{ b.spaceName | t }}</span>
+                      <span class="text-[10px] font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-1.5 py-0.5 rounded">
+                        {{b.code}}
+                      </span>
+                    </div>
+                    <div class="text-[11px] text-text-muted dark:text-slate-400">
+                      {{ 'Người đặt:' | t }} <span class="font-semibold text-slate-700 dark:text-slate-200">{{b.bookerName}}</span> ({{ b.organization | t }})
+                    </div>
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400">
+                      {{ 'Thời gian:' | t }} <span class="font-semibold text-slate-700 dark:text-slate-200">{{b.timeSlot}} - {{b.date}}</span>
+                    </div>
+                    <div class="flex items-center gap-2 pt-1">
+                      <button (click)="approveBooking(b)" 
+                              class="flex-1 py-1.5 rounded-lg bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 hover:bg-[#002D5C] text-white text-xs font-semibold transition-colors cursor-pointer text-center shadow-2xs">
+                        {{ 'Duyệt ngay' | t }}
+                      </button>
+                      <button (click)="openRejectModal(b)" 
+                              class="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800 text-xs font-semibold transition-colors cursor-pointer text-center">
+                        {{ 'Từ chối' | t }}
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <button (click)="activeTab = 'approvals'"
+                    class="w-full mt-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all text-center cursor-pointer">
+              {{ 'Xem toàn bộ danh sách đơn →' | t }}
+            </button>
+          </div>
+
+        </div>
+
+      }
+
+      <!-- =====================================================================
+           TAB 2: BOOKING APPROVALS WORKFLOW (F19 - F20)
+           ===================================================================== -->
+      @if (activeTab === 'approvals') {
+        
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-border-gray dark:border-slate-800 shadow-xs space-y-6">
+          
+          <!-- Filters & Action Bar -->
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+            
+            <!-- Search & Building Filter -->
+            <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+              <div class="relative w-full sm:w-72">
+                <input type="text"
+                       [(ngModel)]="searchFilter"
+                       [placeholder]="'Tìm mã đơn, tên SV, không gian...' | t"
+                       class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-border-gray dark:border-slate-700 rounded-xl outline-none focus:border-uel-blue focus:bg-white dark:focus:bg-slate-900 transition-all dark:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="absolute left-3 top-2.5 text-slate-400"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              </div>
+
+              <select [(ngModel)]="selectedBuildingFilter"
+                      class="text-xs bg-slate-50 dark:bg-slate-800 border border-border-gray dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-uel-blue font-semibold text-slate-700 dark:text-slate-200">
+                <option value="all">{{ 'Tất cả Tòa nhà' | t }}</option>
+                <option value="A">{{ 'Tòa nhà A' | t }}</option>
+                <option value="A3">{{ 'Tòa nhà A3' | t }}</option>
+                <option value="B2">{{ 'Tòa nhà B2' | t }}</option>
+                <option value="Thư viện">{{ 'Thư viện UEL' | t }}</option>
+                <option value="Thanh Niên">{{ 'Khuôn viên ngoài trời' | t }}</option>
+              </select>
+            </div>
+
+            <!-- Stats Badge -->
+            <div class="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 self-end sm:self-auto">
+              <span>{{ 'Tổng số:' | t }} {{filteredBookings.length}} {{ 'đơn' | t }}</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+              <span class="text-rose-600 dark:text-rose-400 font-extrabold">{{pendingBookingsCount}} {{ 'chờ duyệt' | t }}</span>
+            </div>
+
+          </div>
+
+          <!-- Bookings Data Table -->
+          <div class="overflow-x-auto rounded-2xl border border-border-gray dark:border-slate-800">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-[#F8FAFC] dark:bg-slate-800 border-b border-border-gray dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[11px]">
+                <tr>
+                  <th class="py-3 px-4">{{ 'Mã đơn & Ngày' | t }}</th>
+                  <th class="py-3 px-4">{{ 'Người đặt & Tổ chức' | t }}</th>
+                  <th class="py-3 px-4">{{ 'Không gian & Khung giờ' | t }}</th>
+                  <th class="py-3 px-4">{{ 'Mục đích & Sức chứa' | t }}</th>
+                  <th class="py-3 px-4 text-center">{{ 'Trạng thái' | t }}</th>
+                  <th class="py-3 px-4 text-right">{{ 'Thao tác xử lý' | t }}</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border-gray dark:divide-slate-800">
+                @for (b of filteredBookings; track b.id) {
+                  <tr class="table-row-hover dark:hover:bg-slate-800">
+                    
+                    <!-- Code & Date -->
+                    <td class="py-3.5 px-4">
+                      <div class="font-bold text-slate-800 dark:text-white">{{b.code}}</div>
+                      <div class="text-[11px] text-text-muted dark:text-slate-400 mt-0.5">{{b.date}}</div>
+                    </td>
+
+                    <!-- Booker & Org -->
+                    <td class="py-3.5 px-4">
+                      <div class="font-bold text-dark-text dark:text-white">{{b.bookerName}}</div>
+                      <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[180px]">{{ b.organization | t }}</div>
+                      <div class="text-[10px] text-slate-400 font-medium">{{b.bookerEmail}}</div>
+                    </td>
+
+                    <!-- Space & Time -->
+                    <td class="py-3.5 px-4">
+                      <div class="font-bold text-dark-text dark:text-white flex items-center gap-2">
+                        <span>{{ b.spaceName | t }}</span>
+                        @if (b.hasConflictWarning) {
+                          <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[10px] font-semibold" [title]="'Phát hiện trùng lịch học' | t">
+                            {{ 'Trùng lịch' | t }}
+                          </span>
+                        }
+                      </div>
+                      <div class="text-[11px] text-uel-blue dark:text-sky-400 font-semibold mt-0.5">{{b.timeSlot}}</div>
+                      <div class="text-[10px] text-slate-400">{{ b.building | t }}</div>
+                    </td>
+
+                    <!-- Purpose & Attendees -->
+                    <td class="py-3.5 px-4 max-w-[220px]">
+                      <div class="font-medium text-slate-700 dark:text-slate-200 truncate" [title]="b.purpose | t">{{ b.purpose | t }}</div>
+                      <div class="text-[11px] text-text-muted dark:text-slate-400 mt-0.5">
+                        <span class="font-bold text-slate-800 dark:text-white">{{b.attendees}}</span> {{ 'người tham dự' | t }} ({{ b.activityType | t }})
+                      </div>
+                    </td>
+
+                    <!-- Status Badge -->
+                    <td class="py-3.5 px-4 text-center">
+                      @if (b.status === 'PENDING') {
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[10px] font-black">
+                          {{ 'CHỜ DUYỆT' | t }}
+                        </span>
+                      }
+                      @if (b.status === 'APPROVED') {
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[10px] font-black">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                          {{ 'ĐÃ DUYỆT' | t }}
+                        </span>
+                      }
+                      @if (b.status === 'REJECTED') {
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-[10px] font-black">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                          {{ 'TỪ CHỐI' | t }}
+                        </span>
+                      }
+                    </td>
+
+                    <!-- Action Buttons -->
+                    <td class="py-3.5 px-4 text-right">
+                      <div class="flex items-center justify-end gap-1.5">
+                        
+                        <!-- Detail Button -->
+                        <button (click)="openDetailModal(b)"
+                                class="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer" [title]="'Xem chi tiết đơn' | t">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+
+                        @if (b.status === 'PENDING') {
+                          <!-- Approve Button -->
+                          <button (click)="approveBooking(b)"
+                                  class="px-2.5 py-1 rounded-lg bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 hover:bg-[#002D5C] text-white font-semibold text-[11px] transition-colors cursor-pointer shadow-xs">
+                            {{ 'Phê duyệt' | t }}
+                          </button>
+                          
+                          <!-- Reject Button -->
+                          <button (click)="openRejectModal(b)"
+                                  class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800 font-semibold text-[11px] transition-colors cursor-pointer">
+                            {{ 'Từ chối' | t }}
+                          </button>
+                        } @else {
+                          <span class="text-[10px] text-slate-400 italic">{{ 'Đã xử lý' | t }}</span>
+                        }
+
+                      </div>
+                    </td>
+
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+      }
+
+      <!-- =====================================================================
+           TAB 3: EXCEPTION HANDLING (RELEASE CASES & NO-SHOW - F21 - F23)
+           ===================================================================== -->
+      @if (activeTab === 'exceptions') {
+        
+        <div class="space-y-6">
+          
+          <!-- Banner: Explanation of Business Rules F21-F23 (Tinh gọn, chuyên nghiệp) -->
+          <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-start gap-4">
+            <div class="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center shrink-0 font-bold">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div>
+              <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">{{ 'Cơ chế phát hiện vắng mặt & Thu hồi chỗ tự động (F21-F23 & F38)' | t }}</h3>
+              <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                {{ 'Hệ thống tự động rà quét session mỗi 5 phút. Khi sinh viên vắng mặt quá ' | t }}<span class="font-bold underline text-slate-800 dark:text-white">{{ '15 phút' | t }}</span>{{ ' (away_warning_minutes) mà không quét mã QR xác nhận sự hiện diện (Presence Tracking F09), hệ thống tự động đưa vào danh sách ngoại lệ chờ Admin can thiệp hoặc giải phóng chỗ cho sinh viên khác.' | t }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Exception Cases Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            @for (rc of releaseCases; track rc.id) {
+              <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-border-gray dark:border-slate-800 shadow-xs space-y-4 flex flex-col justify-between">
+                
+                <div class="space-y-3">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <h4 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">{{ rc.spaceName | t }}</h4>
+                      <div class="text-xs font-semibold text-slate-700 dark:text-slate-200 mt-0.5">{{rc.userName}}</div>
+                      <div class="text-[11px] text-slate-400 font-medium">{{rc.userEmail}}</div>
+                    </div>
+                    
+                    <div>
+                      @if (rc.status === 'STILL_PENDING') {
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 shrink-0">
+                          {{ 'CẦN XỬ LÝ' | t }}
+                        </span>
+                      }
+                      @if (rc.status === 'USER_RETURNED') {
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shrink-0">
+                          {{ 'ĐÃ CÓ MẶT' | t }}
+                        </span>
+                      }
+                      @if (rc.status === 'SPACE_RELEASED') {
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 shrink-0">
+                          {{ 'ĐÃ THU HỒI CHỖ' | t }}
+                        </span>
+                      }
+                      @if (rc.status === 'ESCALATED') {
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white border border-slate-300 dark:border-slate-700 shrink-0">
+                          {{ 'ĐÃ KỶ LUẬT' | t }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Away Metrics -->
+                  <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 text-xs space-y-1.5">
+                    <div class="flex items-center justify-between">
+                      <span class="text-text-muted dark:text-slate-400">{{ 'Thời gian vắng mặt:' | t }}</span>
+                      <span class="font-black text-rose-600 dark:text-rose-400">{{rc.awayMinutes}} {{ 'phút' | t }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-text-muted dark:text-slate-400">{{ 'Ngưỡng cảnh báo:' | t }}</span>
+                      <span class="font-bold text-slate-700 dark:text-slate-200">{{rc.thresholdMinutes}} {{ 'phút' | t }}</span>
+                    </div>
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200 dark:border-slate-800 leading-snug">
+                      {{ rc.notes | t }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Admin Action Buttons (F21 Results) -->
+                @if (rc.status === 'STILL_PENDING') {
+                  <div class="space-y-2 pt-2 border-t border-border-gray dark:border-slate-800">
+                    <div class="grid grid-cols-2 gap-2">
+                      <button (click)="handleReleaseAction(rc, 'USER_RETURNED')"
+                              class="py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-xs transition-colors cursor-pointer text-center border border-slate-200 dark:border-slate-800">
+                        {{ 'Đã quay lại' | t }}
+                      </button>
+                      <button (click)="handleReleaseAction(rc, 'SPACE_RELEASED')"
+                              class="py-2 rounded-xl bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 hover:bg-[#002D5C] text-white font-semibold text-xs transition-colors cursor-pointer text-center shadow-xs">
+                        {{ 'Thu hồi phòng' | t }}
+                      </button>
+                    </div>
+                    <button (click)="handleReleaseAction(rc, 'ESCALATED')"
+                            class="w-full py-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-[11px] font-semibold transition-colors cursor-pointer text-center">
+                      {{ 'Chuyển tiếp báo cáo vi phạm (Escalate)' | t }}
+                    </button>
+                  </div>
+                }
+
+              </div>
+            }
+          </div>
+
+        </div>
+
+      }
+
+      <!-- =====================================================================
+           TAB 4: SPACES & EQUIPMENT (F15 - F18)
+           ===================================================================== -->
+      @if (activeTab === 'spaces') {
+        
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-border-gray dark:border-slate-800 shadow-xs space-y-6">
+          
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-black text-dark-text dark:text-white tracking-tight">{{ 'Danh mục Không gian & Cấu hình Chính sách' | t }}</h3>
+              <p class="text-xs text-text-muted dark:text-slate-400">{{ 'Quản trị trạng thái AVAILABLE / MAINTENANCE và thiết lập ngưỡng tự động trả phòng' | t }}</p>
+            </div>
+            <button class="px-4 py-2 rounded-xl bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 text-white text-xs font-bold hover:bg-uel-blue/90 transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              {{ 'Thêm không gian mới' | t }}
+            </button>
+          </div>
+
+          <!-- Spaces Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            @for (s of spaces; track s.id) {
+              <div class="rounded-3xl border border-border-gray dark:border-slate-800 p-5 space-y-4 hover:shadow-md transition-shadow bg-white dark:bg-slate-900">
+                
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <h4 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">{{ s.name | t }}</h4>
+                    <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ s.building | t }} • {{ s.floor | t }}</div>
+                  </div>
+                  
+                  <div>
+                    @if (s.status === 'AVAILABLE') {
+                      <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shrink-0">
+                        {{ 'SẴN SÀNG' | t }}
+                      </span>
+                    }
+                    @if (s.status === 'IN_USE') {
+                      <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 shrink-0">
+                        {{ 'ĐANG SỬ DỤNG' | t }}
+                      </span>
+                    }
+                    @if (s.status === 'RESERVED') {
+                      <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shrink-0">
+                        {{ 'ĐÃ ĐẶT CHỖ' | t }}
+                      </span>
+                    }
+                    @if (s.status === 'MAINTENANCE') {
+                      <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 shrink-0">
+                        {{ 'BẢO TRÌ CSVC' | t }}
+                      </span>
+                    }
+                  </div>
+                </div>
+
+                <!-- Specs -->
+                <div class="bg-white dark:bg-slate-800 p-3 rounded-2xl border border-border-gray dark:border-slate-800 text-xs space-y-1.5">
+                  <div class="flex items-center justify-between">
+                    <span class="text-text-muted dark:text-slate-400">{{ 'Sức chứa tối đa:' | t }}</span>
+                    <span class="font-bold text-dark-text dark:text-white">{{s.capacity}} {{ 'chỗ' | t }}</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-text-muted dark:text-slate-400">{{ 'Cảnh báo vắng mặt:' | t }}</span>
+                    <span class="font-bold text-slate-700 dark:text-slate-200">{{s.awayWarningMinutes}} {{ 'phút' | t }}</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-text-muted dark:text-slate-400">{{ 'Tự động trả phòng:' | t }}</span>
+                    <span class="font-bold text-slate-700 dark:text-slate-200">{{s.autoCheckoutMinutes}} {{ 'phút' | t }}</span>
+                  </div>
+                </div>
+
+                <!-- Equipments Tag List -->
+                <div class="flex flex-wrap gap-1.5">
+                  @for (eq of s.equipment; track eq) {
+                    <span class="px-2 py-0.5 rounded-md bg-slate-200/60 dark:bg-slate-700/60 text-slate-700 dark:text-slate-200 text-[10px] font-medium">
+                      {{ eq | t }}
+                    </span>
+                  }
+                </div>
+
+                <!-- Toggle Maintenance Button -->
+                <button (click)="toggleSpaceMaintenance(s)"
+                        [class]="s.status === 'MAINTENANCE' ? 'bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 hover:bg-[#002D5C] text-white' : 'bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800'"
+                        class="w-full py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-center">
+                  @if (s.status === 'MAINTENANCE') {
+                    {{ 'Mở lại hoạt động (Unlock)' | t }}
+                  } @else {
+                    {{ 'Khóa để bảo trì (Maintenance Lock)' | t }}
+                  }
+                </button>
+
+              </div>
+            }
+          </div>
+
+        </div>
+
+      }
+
+      <!-- =====================================================================
+           TAB 5: USERS & ROLES MANAGEMENT (F29 - F33)
+           ===================================================================== -->
+      @if (activeTab === 'users') {
+        
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-border-gray dark:border-slate-800 shadow-xs space-y-6">
+          
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-black text-dark-text dark:text-white tracking-tight">{{ 'Danh sách Tài khoản & Phân quyền Hệ thống' | t }}</h3>
+              <p class="text-xs text-text-muted dark:text-slate-400">{{ 'Gắn vai trò ADMIN, SPACE_MANAGER, LECTURER, STUDENT theo quy chuẩn F29' | t }}</p>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border border-border-gray dark:border-slate-800">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-[#F8FAFC] dark:bg-slate-800 border-b border-border-gray dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[11px]">
+                <tr>
+                  <th class="py-3 px-4">{{ 'Tài khoản & Họ tên' | t }}</th>
+                  <th class="py-3 px-4">Email</th>
+                  <th class="py-3 px-4">{{ 'Vai trò (Role)' | t }}</th>
+                  <th class="py-3 px-4">{{ 'Đơn vị / Tổ chức' | t }}</th>
+                  <th class="py-3 px-4 text-center">{{ 'Trạng thái' | t }}</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border-gray dark:divide-slate-800">
+                @for (u of users; track u.id) {
+                  <tr class="table-row-hover dark:hover:bg-slate-800">
+                    <td class="py-3.5 px-4 font-bold text-dark-text dark:text-white">
+                      <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-bold text-[11px] flex items-center justify-center">
+                          {{u.name.charAt(0)}}
+                        </div>
+                        <span>{{u.name}}</span>
+                      </div>
+                    </td>
+                    <td class="py-3.5 px-4 text-slate-600 dark:text-slate-300 font-medium">{{u.email}}</td>
+                    <td class="py-3.5 px-4">
+                      @if (u.role === 'ADMIN') {
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-900 text-white dark:bg-sky-400 dark:text-slate-900">{{ 'Quản trị viên' | t }}</span>
+                      }
+                      @if (u.role === 'SPACE_MANAGER') {
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800">{{ 'Quản lý không gian' | t }}</span>
+                      }
+                      @if (u.role === 'LECTURER') {
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800">{{ 'Giảng viên' | t }}</span>
+                      }
+                      @if (u.role === 'STUDENT') {
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800">{{ 'Sinh viên' | t }}</span>
+                      }
+                    </td>
+                    <td class="py-3.5 px-4 text-slate-600 dark:text-slate-300">{{ u.organization | t }}</td>
+                    <td class="py-3.5 px-4 text-center">
+                      @if (u.status === 'ACTIVE') {
+                        <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">{{ 'Hoạt động' | t }}</span>
+                      } @else {
+                        <span class="text-[10px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-800">{{ 'Tạm khóa' | t }}</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+      }
+
+      <!-- =====================================================================
+           TAB 6: AUDIT LOGS (F34)
+           ===================================================================== -->
+      @if (activeTab === 'audit') {
+        
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-border-gray dark:border-slate-800 shadow-xs space-y-6">
+          
+          <div>
+            <h3 class="text-base font-black text-dark-text dark:text-white tracking-tight">{{ 'Nhật ký Thao tác & Vết kiểm toán (Audit Logs)' | t }}</h3>
+            <p class="text-xs text-text-muted dark:text-slate-400">{{ 'Ghi nhận toàn bộ vết phê duyệt, từ chối, khóa bảo trì và can thiệp giải phóng phòng' | t }}</p>
+          </div>
+
+          <div class="space-y-3">
+            @for (log of auditLogs; track log.id) {
+              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 flex items-start justify-between gap-4">
+                
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-800">
+                      {{log.action}}
+                    </span>
+                    <span class="text-xs font-bold text-dark-text dark:text-white">{{ log.target | t }}</span>
+                  </div>
+                  <p class="text-xs text-slate-600 dark:text-slate-300">{{ log.details | t }}</p>
+                  <div class="text-[10px] text-slate-400 font-medium">{{ 'Thực hiện bởi:' | t }} {{log.actor}}</div>
+                </div>
+
+                <div class="text-right shrink-0">
+                  <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400">{{log.timestamp}}</div>
+                  <span [class]="log.level === 'CRITICAL' ? 'text-rose-600 dark:text-rose-400 font-black' : (log.level === 'WARNING' ? 'text-amber-600 dark:text-amber-400 font-black' : 'text-slate-400 font-medium')"
+                        class="text-[10px] uppercase">
+                    Level: {{log.level}}
+                  </span>
+                </div>
+
+              </div>
+            }
+          </div>
+
+        </div>
+
+      }
+
+      <!-- =====================================================================
+           TAB 7: QR CHECK-IN SCANNER & PRESENCE VERIFICATION (F09, F21-F23, F38)
+           ===================================================================== -->
+      @if (activeTab === 'qr-checkin') {
+
+        <div class="space-y-6 animate-[fade-in_0.2s_ease-out]">
+
+          <!-- Top Banner: Kiosk Check-in Hub -->
+          <div class="bg-gradient-to-r from-[#001D3D] via-[#002D5C] to-[#003B71] rounded-3xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 border border-white/10">
+            <div class="relative z-10 max-w-2xl">
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-bold text-slate-200 mb-3 tracking-wide uppercase">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/></svg>
+                {{ 'Trạm Quét QR Check-in • Presence Verification (F09 / F38)' | t }}
+              </div>
+              <h2 class="text-2xl sm:text-3xl font-black tracking-tight mb-2">{{ 'Xác thực có mặt & Kích hoạt không gian' | t }}</h2>
+              <p class="text-white/80 text-xs sm:text-sm leading-relaxed">
+                {{ 'Quét mã QR trên vé đặt chỗ của sinh viên để xác thực người đặt đã thực sự đến phòng. Hệ thống tự động chuyển trạng thái sang ' | t }}<strong class="text-emerald-300">{{ 'Đang sử dụng (IN_USE)' | t }}</strong>{{ ' và loại bỏ nguy cơ bị cưỡng chế thu hồi do No-show.' | t }}
+              </p>
+            </div>
+
+            <!-- Quick Stats in Hub -->
+            <div class="relative z-10 flex gap-3 flex-wrap">
+              <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl px-5 py-3 text-center min-w-[110px]">
+                <div class="text-2xl font-black text-white">{{recentCheckIns.length}}</div>
+                <div class="text-[11px] font-semibold text-white/70 uppercase tracking-wider">{{ 'Lượt quét hôm nay' | t }}</div>
+              </div>
+              <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl px-5 py-3 text-center min-w-[110px]">
+                <div class="text-2xl font-black text-emerald-300">43/45</div>
+                <div class="text-[11px] font-semibold text-white/70 uppercase tracking-wider">{{ 'Phòng đang mở' | t }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Interactive Station Grid: Scanner Left (7 cols) + Verification Details Right (5 cols) -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            <!-- LEFT: Camera Viewfinder & USB Input Hub (7 Cols) -->
+            <div class="lg:col-span-7 bg-white dark:bg-slate-900 rounded-3xl p-6 border border-border-gray dark:border-slate-800 shadow-xs space-y-6">
+
+              <!-- Section Title & Mode Controls -->
+              <div class="flex items-center justify-between pb-4 border-b border-border-gray dark:border-slate-800">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-2xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-400 flex items-center justify-center font-black border border-uel-blue/20 dark:border-sky-400/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  </div>
+                  <div>
+                    <h3 class="text-base font-black text-dark-text dark:text-white tracking-tight">{{ 'Khu vực nhận diện mã QR' | t }}</h3>
+                    <p class="text-xs text-text-muted dark:text-slate-400">{{ 'Hỗ trợ Camera trực tiếp & Máy quét mã Barcode/QR cầm tay' | t }}</p>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  @if (cameraActive) {
+                    <button (click)="toggleCameraFacing()" 
+                            class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+                            [title]="'Chuyển đổi Camera' | t">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                      <span>{{ 'Đổi Cam' | t }}</span>
+                    </button>
+                    <button (click)="stopCamera()" 
+                            class="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-600 dark:text-rose-400 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+                      <span>{{ 'Tắt Cam' | t }}</span>
+                    </button>
+                  } @else {
+                    <button (click)="startCamera()" 
+                            class="px-3.5 py-1.5 rounded-xl bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 hover:bg-[#002B54] text-white text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                      <span>{{ 'Bật Camera' | t }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Camera Viewfinder Box -->
+              <div class="relative bg-slate-900 rounded-2xl overflow-hidden aspect-video max-h-[340px] flex items-center justify-center border-2 border-slate-700/80 shadow-inner group">
+                
+                @if (cameraActive) {
+                  <!-- Live Video Stream -->
+                  <video id="qr-scanner-video" autoplay playsinline muted class="w-full h-full object-cover"></video>
+
+                  <!-- Dynamic Laser Line Scan Effect -->
+                  <div class="laser-scanner-line pointer-events-none"></div>
+
+                  <!-- QR Targeting Box Overlay (Subtle Sky Blue Corners) -->
+                  <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div class="w-56 h-56 border-2 border-dashed border-white/40 rounded-3xl relative flex items-center justify-center">
+                      <!-- 4 Sharp Corners -->
+                      <div class="absolute -top-1.5 -left-1.5 w-6 h-6 border-t-4 border-l-4 border-sky-400 rounded-tl-xl"></div>
+                      <div class="absolute -top-1.5 -right-1.5 w-6 h-6 border-t-4 border-r-4 border-sky-400 rounded-tr-xl"></div>
+                      <div class="absolute -bottom-1.5 -left-1.5 w-6 h-6 border-b-4 border-l-4 border-sky-400 rounded-bl-xl"></div>
+                      <div class="absolute -bottom-1.5 -right-1.5 w-6 h-6 border-b-4 border-r-4 border-sky-400 rounded-br-xl"></div>
+                      
+                      <div class="text-[11px] font-bold text-white/70 bg-black/50 px-3 py-1 rounded-full backdrop-blur-xs">
+                        {{ 'Đưa mã QR vào khung' | t }}
+                      </div>
+                    </div>
+                  </div>
+                } @else {
+                  <!-- Standby Viewport when camera off -->
+                  <div class="text-center p-8 space-y-3">
+                    <div class="w-16 h-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-slate-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/></svg>
+                    </div>
+                    <div class="text-sm font-bold text-white">{{ 'Camera đang ở chế độ chờ' | t }}</div>
+                    <p class="text-xs text-slate-400 max-w-sm mx-auto">
+                      {{ 'Bấm "Bật Camera" ở trên để quét qua webcam, hoặc sử dụng máy quét cầm tay USB / ô nhập mã bên dưới.' | t }}
+                    </p>
+                    <button (click)="startCamera()" 
+                            class="px-4 py-2 rounded-xl bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 hover:bg-[#002D5C] text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-xs">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                      {{ 'Kích hoạt Camera ngay' | t }}
+                    </button>
+                  </div>
+                }
+
+                @if (cameraError) {
+                  <div class="absolute bottom-3 left-3 right-3 p-2.5 rounded-xl bg-amber-900/90 border border-amber-500/50 text-amber-200 text-xs flex items-center gap-2 backdrop-blur-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span>{{cameraError}}</span>
+                  </div>
+                }
+              </div>
+
+              <!-- Hardware USB / Manual Code Input Bar -->
+              <div class="space-y-3 pt-2">
+                <div class="flex items-center justify-between text-xs">
+                  <label class="font-bold text-dark-text dark:text-white flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-uel-blue dark:text-sky-400"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                    {{ 'Quét bằng máy đọc mã vạch USB / Bàn phím / Nhập tay:' | t }}
+                  </label>
+                  <span class="text-text-muted dark:text-slate-400 text-[11px] font-medium">{{ 'Hỗ trợ phím Enter để xác nhận nhanh' | t }}</span>
+                </div>
+
+                <div class="flex items-center gap-2.5">
+                  <div class="relative flex-1">
+                    <input type="text"
+                           [(ngModel)]="scannerInputCode"
+                           (keyup.enter)="processQrCode()"
+                           [placeholder]="'Quét mã QR hoặc nhập UEL-88392...' | t"
+                           class="w-full pl-10 pr-4 py-3 text-sm font-bold bg-slate-50 dark:bg-slate-800 border-2 border-border-gray dark:border-slate-700 rounded-2xl outline-none focus:border-uel-blue focus:bg-white dark:focus:bg-slate-900 transition-all text-dark-text dark:text-white placeholder:font-sans placeholder:font-normal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="absolute left-3.5 top-3.5 text-slate-400"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/></svg>
+                  </div>
+                  <button (click)="processQrCode()"
+                          [disabled]="isProcessingScan || !scannerInputCode"
+                          class="px-6 py-3 rounded-2xl bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 hover:bg-[#00284D] disabled:bg-slate-200 dark:disabled:bg-slate-700 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold text-xs transition-all shadow-xs flex items-center gap-2 shrink-0 cursor-pointer">
+                    @if (isProcessingScan) {
+                      <svg class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                      <span>{{ 'Đang xác thực...' | t }}</span>
+                    } @else {
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                      <span>{{ 'Check-in ngay' | t }}</span>
+                    }
+                  </button>
+                </div>
+              </div>
+
+              <!-- Quick Demo Testing Chips (1-Click Test) -->
+              <div class="pt-4 border-t border-border-gray/70 dark:border-slate-800/70">
+                <div class="text-xs font-bold text-slate-700 dark:text-slate-200 mb-2 flex items-center justify-between">
+                  <span>{{ 'Mã đơn kiểm thử nhanh 1-chạm (Demo Kiosk):' | t }}</span>
+                  <span class="text-[11px] text-text-muted dark:text-slate-400">{{ 'Bấm mã để mô phỏng quét' | t }}</span>
+                </div>
+                <div class="flex flex-wrap gap-2 text-xs">
+                  <button (click)="processQrCode('UEL-88392')" 
+                          class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-bold transition-all cursor-pointer">
+                    UEL-88392 ({{ 'Phòng A.105' | t }})
+                  </button>
+                  <button (click)="processQrCode('UEL-88210')" 
+                          class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-bold transition-all cursor-pointer">
+                    UEL-88210 ({{ 'Chòi tự học 1' | t }})
+                  </button>
+                  <button (click)="processQrCode('UEL-88150')" 
+                          class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-bold transition-all cursor-pointer">
+                    UEL-88150 ({{ 'Phòng A3.301' | t }})
+                  </button>
+                  <button (click)="processQrCode('UEL-BK-2026-079')" 
+                          class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-bold transition-all cursor-pointer">
+                    UEL-BK-2026-079 ({{ 'Đã Từ chối' | t }})
+                  </button>
+                  <button (click)="processQrCode('UEL-FAKE-99999')" 
+                          class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-bold transition-all cursor-pointer">
+                    UEL-FAKE-99999 ({{ 'Test Lỗi' | t }})
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- RIGHT: Verification Result & Live Session Details (5 Cols) -->
+            <div class="lg:col-span-5 bg-white dark:bg-slate-900 rounded-3xl p-6 border border-border-gray dark:border-slate-800 shadow-xs space-y-5">
+              
+              <div class="flex items-center justify-between pb-3 border-b border-border-gray dark:border-slate-800">
+                <h3 class="text-base font-black text-dark-text dark:text-white tracking-tight">{{ 'Kết quả Xác thực Thực tế' | t }}</h3>
+                @if (scanResult.status !== 'IDLE') {
+                  <button (click)="resetScanResult()" 
+                          class="text-xs font-bold text-uel-blue dark:text-sky-400 hover:text-uel-orange dark:hover:text-orange-400 transition-colors cursor-pointer">
+                    {{ 'Làm mới kết quả' | t }}
+                  </button>
+                }
+              </div>
+
+              <!-- Case 1: SUCCESS -->
+              @if (scanResult.status === 'SUCCESS' && scanResult.booking) {
+                <div class="p-5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40 border-2 border-emerald-400/80 dark:border-emerald-700 space-y-4 animate-[fade-in-up_0.2s_ease-out]">
+                  
+                  <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-black shadow-md shrink-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div>
+                      <div class="text-xs font-black uppercase text-emerald-800 dark:text-emerald-300 tracking-wider">{{ 'Xác thực hợp lệ' | t }}</div>
+                      <h4 class="text-lg font-black text-emerald-950 dark:text-emerald-100">{{ scanResult.booking.spaceName | t }}</h4>
+                    </div>
+                  </div>
+
+                  <div class="bg-white dark:bg-slate-900 rounded-xl p-3.5 border border-emerald-200 dark:border-emerald-800 text-xs space-y-2">
+                    <div class="flex justify-between items-center"><span class="text-text-muted dark:text-slate-400">{{ 'Mã đặt chỗ:' | t }}</span> <span class="font-black text-uel-blue dark:text-sky-400 text-sm">{{scanResult.booking.code}}</span></div>
+                    <div class="flex justify-between items-center"><span class="text-text-muted dark:text-slate-400">{{ 'Người đặt:' | t }}</span> <span class="font-bold text-dark-text dark:text-white">{{scanResult.booking.bookerName}}</span></div>
+                    <div class="flex justify-between items-center"><span class="text-text-muted dark:text-slate-400">{{ 'Email sinh viên:' | t }}</span> <span class="text-slate-600 dark:text-slate-300 font-medium">{{scanResult.booking.bookerEmail}}</span></div>
+                    <div class="flex justify-between items-center"><span class="text-text-muted dark:text-slate-400">{{ 'Khung giờ đăng ký:' | t }}</span> <span class="font-bold text-uel-blue dark:text-sky-400">{{scanResult.booking.timeSlot}}</span></div>
+                    <div class="flex justify-between items-center"><span class="text-text-muted dark:text-slate-400">{{ 'Giờ Check-in thực tế:' | t }}</span> <span class="font-black text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/50 px-2 py-0.5 rounded">{{scanResult.booking.actualCheckInAt}}</span></div>
+                    <div class="flex justify-between items-center"><span class="text-text-muted dark:text-slate-400">{{ 'Trạng thái mới:' | t }}</span> <span class="font-black text-white bg-emerald-600 px-2.5 py-0.5 rounded-full uppercase text-[10px]">{{ 'Đang sử dụng (IN_USE)' | t }}</span></div>
+                  </div>
+
+                  <div class="p-3 rounded-xl bg-emerald-100/60 dark:bg-emerald-900/40 text-emerald-900 dark:text-emerald-200 text-xs font-medium leading-relaxed">
+                    {{ '✅ Đã ghi nhận sự hiện diện thực tế. Ca này được bảo vệ khỏi cơ chế tự động thu hồi phòng No-show (F21).' | t }}
+                  </div>
+
+                  <button (click)="resetScanResult()" 
+                          class="w-full py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs transition-colors shadow-sm cursor-pointer">
+                    {{ 'Sẵn sàng quét lượt tiếp theo →' | t }}
+                  </button>
+                </div>
+              }
+
+              <!-- Case 2: ERROR -->
+              @if (scanResult.status === 'ERROR') {
+                <div class="p-5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border-2 border-rose-300 dark:border-rose-800 space-y-4 animate-[fade-in-up_0.2s_ease-out]">
+                  
+                  <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center font-black shadow-md shrink-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    </div>
+                    <div>
+                      <div class="text-xs font-black uppercase text-rose-800 dark:text-rose-300 tracking-wider">{{ 'Từ chối Check-in' | t }}</div>
+                      <h4 class="text-sm font-bold text-rose-950 dark:text-rose-100">{{scanResult.message}}</h4>
+                    </div>
+                  </div>
+
+                  <div class="p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-rose-200 dark:border-rose-800 text-xs space-y-1.5 text-slate-700 dark:text-slate-200">
+                    <span class="font-bold text-rose-800 dark:text-rose-300 block">{{ 'Lý do từ chối:' | t }}</span>
+                    <p class="leading-relaxed">{{scanResult.reason}}</p>
+                  </div>
+
+                  @if (scanResult.isOverrideAllowed && scanResult.booking) {
+                    <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs space-y-2">
+                      <div class="font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        {{ 'Đặc quyền Quản trị viên (Admin Override):' | t }}
+                      </div>
+                      <p class="text-amber-800 dark:text-amber-300 text-[11px] leading-relaxed">
+                        {{ 'Nếu sinh viên xuất trình Thẻ Sinh viên / Giấy mời hợp lệ tại quầy, bạn có thể ghi đè quyền và cho phép vào phòng.' | t }}
+                      </p>
+                      <button (click)="adminOverrideCheckIn()" 
+                              class="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition-colors shadow-sm cursor-pointer">
+                        {{ 'Duyệt đặc cách (Admin Override)' | t }}
+                      </button>
+                    </div>
+                  }
+
+                  <button (click)="resetScanResult()" 
+                          class="w-full py-2.5 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-xs transition-colors cursor-pointer">
+                    {{ 'Đóng cảnh báo & Thử lại' | t }}
+                  </button>
+                </div>
+              }
+
+              <!-- Case 3: IDLE / WAITING -->
+              @if (scanResult.status === 'IDLE') {
+                <div class="py-12 px-6 text-center space-y-3 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
+                  <div class="w-14 h-14 rounded-full bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-400 flex items-center justify-center mx-auto">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  </div>
+                  <div class="text-sm font-bold text-dark-text dark:text-white">{{ 'Chưa có lượt quét nào' | t }}</div>
+                  <p class="text-xs text-text-muted dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
+                    {{ 'Đưa mã QR trên vé đặt chỗ của sinh viên trước camera hoặc dùng máy đọc mã vạch để kiểm tra thông tin.' | t }}
+                  </p>
+                </div>
+              }
+
+            </div>
+
+          </div>
+
+          <!-- Bottom: Live Check-in Audit Stream (Recent Logs) -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-border-gray dark:border-slate-800 shadow-xs space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-base font-black text-dark-text dark:text-white tracking-tight">{{ 'Lịch sử lượt quét tại trạm này hôm nay' | t }}</h3>
+                <p class="text-xs text-text-muted dark:text-slate-400">{{ 'Nhật ký xác thực thời gian thực theo thời gian thực (Presence Verification Log)' | t }}</p>
+              </div>
+              <span class="text-xs font-bold px-3 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                Live Session Tracking Active
+              </span>
+            </div>
+
+            <div class="overflow-x-auto rounded-2xl border border-border-gray dark:border-slate-800">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead class="bg-[#F8FAFC] dark:bg-slate-800 border-b border-border-gray dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[11px]">
+                  <tr>
+                    <th class="py-3 px-4">{{ 'Thời gian quét' | t }}</th>
+                    <th class="py-3 px-4">{{ 'Mã đặt chỗ' | t }}</th>
+                    <th class="py-3 px-4">{{ 'Không gian phòng' | t }}</th>
+                    <th class="py-3 px-4">{{ 'Sinh viên / Người đặt' | t }}</th>
+                    <th class="py-3 px-4">{{ 'Khung giờ' | t }}</th>
+                    <th class="py-3 px-4 text-center">{{ 'Phương thức quét' | t }}</th>
+                    <th class="py-3 px-4 text-right">{{ 'Xác nhận bởi' | t }}</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-border-gray dark:divide-slate-800">
+                  @for (item of recentCheckIns; track item.timestamp) {
+                    <tr class="table-row-hover dark:hover:bg-slate-800">
+                      <td class="py-3.5 px-4 font-medium text-slate-500 dark:text-slate-400">{{item.timestamp}}</td>
+                      <td class="py-3.5 px-4 font-bold text-slate-800 dark:text-white">{{item.bookingCode}}</td>
+                      <td class="py-3.5 px-4 font-bold text-dark-text dark:text-white">{{ item.spaceName | t }}</td>
+                      <td class="py-3.5 px-4 font-semibold text-slate-700 dark:text-slate-200">{{item.bookerName}}</td>
+                      <td class="py-3.5 px-4 text-slate-600 dark:text-slate-300 font-semibold">{{item.timeSlot}}</td>
+                      <td class="py-3.5 px-4 text-center">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 uppercase">
+                          {{item.type}}
+                        </span>
+                      </td>
+                      <td class="py-3.5 px-4 text-right font-medium text-[11px] text-text-muted dark:text-slate-400">{{ item.verifiedBy | t }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+      }
+
+      <!-- =====================================================================
+           TAB 8: OCCUPANCY DETECTION - AI COMPUTER VISION
+           ===================================================================== -->
+      @if (activeTab === 'occupancy-detection') {
+
+        <div class="space-y-6 animate-[fade-in_0.2s_ease-out]">
+
+          <!-- Top Banner: AI Vision Hub -->
+          <div class="bg-gradient-to-r from-[#064E3B] via-[#065F46] to-[#047857] rounded-3xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 border border-white/10">
+            <div class="relative z-10 max-w-2xl">
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-300/20 border border-emerald-300/30 text-xs font-black text-emerald-200 mb-3 tracking-wide uppercase">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                {{ 'AI Computer Vision • Nhận diện Công suất Thời gian thực' | t }}
+              </div>
+              <h2 class="text-2xl sm:text-3xl font-black tracking-tight mb-2">{{ 'Đếm & Nhận diện Số người trong Phòng' | t }}</h2>
+              <p class="text-white/80 text-xs sm:text-sm leading-relaxed">
+                {{ 'Sử dụng model ' | t }}<strong class="text-emerald-200">TensorFlow.js COCO-SSD (MobileNet v2)</strong>{{ ' chạy hoàn toàn trên trình duyệt để nhận diện và đếm số lượng người trong khung hình camera theo thời gian thực. Model chạy client-side, không cần server AI riêng.' | t }}
+              </p>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="relative z-10 flex gap-3 flex-wrap">
+              <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl px-5 py-3 text-center min-w-[110px]">
+                <div class="text-3xl font-black" [class]="occCurrentCount > 0 ? 'text-emerald-300' : 'text-white/50'">{{occCurrentCount}}</div>
+                <div class="text-[11px] font-semibold text-white/70 uppercase tracking-wider">{{ 'Người hiện tại' | t }}</div>
+              </div>
+              <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl px-5 py-3 text-center min-w-[110px]">
+                <div class="text-2xl font-black text-amber-300">{{occPeakCount}}</div>
+                <div class="text-[11px] font-semibold text-white/70 uppercase tracking-wider">{{ 'Đỉnh cao nhất' | t }}</div>
+              </div>
+              <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl px-5 py-3 text-center min-w-[110px]">
+                <div class="text-2xl font-black text-sky-300">{{occConfidence}}%</div>
+                <div class="text-[11px] font-semibold text-white/70 uppercase tracking-wider">Confidence</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Grid: Detection Area (8 cols) + Controls (4 cols) -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            <!-- LEFT: Camera + Canvas Detection View (8 Cols) -->
+            <div class="lg:col-span-8 bg-white dark:bg-slate-900 rounded-3xl p-6 border border-border-gray dark:border-slate-800 shadow-xs space-y-5">
+
+              <!-- Section Title -->
+              <div class="flex items-center justify-between pb-4 border-b border-border-gray dark:border-slate-800">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-2xl bg-emerald-600/10 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-black border border-emerald-600/20 dark:border-emerald-500/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  </div>
+                  <div>
+                    <h3 class="text-base font-black text-dark-text dark:text-white tracking-tight">{{ 'Khung hình Phát hiện Người (Person Detection)' | t }}</h3>
+                    <p class="text-xs text-text-muted dark:text-slate-400">COCO-SSD Lite MobileNet v2 • Bounding Box &amp; Confidence Overlay</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  @if (occDetectionRunning) {
+                    <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                      LIVE • {{occDetectionFps}} FPS
+                    </span>
+                  }
+                </div>
+              </div>
+
+              <!-- Camera Viewfinder with Canvas Overlay -->
+              <div class="relative bg-slate-900 rounded-2xl overflow-hidden aspect-video flex items-center justify-center">
+                @if (occCameraActive) {
+                  <video id="occ-detection-video" autoplay playsinline muted
+                         class="w-full h-full object-cover"></video>
+                  <canvas id="occ-detection-canvas"
+                          class="absolute inset-0 w-full h-full" style="pointer-events: none;"></canvas>
+                  <!-- Live Count Overlay -->
+                  <div class="absolute top-4 left-4 bg-black/70 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/20">
+                    <div class="text-3xl font-black text-emerald-400">{{occCurrentCount}}</div>
+                    <div class="text-[10px] font-bold text-white/70 uppercase tracking-wider">{{ 'Người phát hiện' | t }}</div>
+                  </div>
+                  @if (occSelectedSpace) {
+                    <div class="absolute top-4 right-4 bg-black/70 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/20 text-right">
+                      <div class="text-lg font-black" [class]="getOccupancyLevel().color">{{occCurrentCount}}/{{occSelectedSpace.capacity}}</div>
+                      <div class="text-[10px] font-bold text-white/70 uppercase">{{ 'Công suất' | t }}</div>
+                    </div>
+                  }
+                } @else {
+                  <!-- Placeholder -->
+                  <div class="text-center space-y-4 p-8">
+                    <div class="w-20 h-20 mx-auto rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-white/30"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </div>
+                    <p class="text-white/40 text-xs font-semibold max-w-xs mx-auto">{{ 'Chọn không gian và bấm "Bắt đầu nhận diện" để kích hoạt camera AI' | t }}</p>
+                    @if (occModelLoading) {
+                      <div class="flex items-center justify-center gap-2 text-emerald-400 text-xs font-bold">
+                        <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-20"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                        {{ 'Đang tải model COCO-SSD...' | t }}
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+
+              <!-- Error Display -->
+              @if (occModelError) {
+                <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-start gap-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                  <span>{{occModelError}}</span>
+                </div>
+              }
+
+              <!-- Action Buttons -->
+              <div class="flex items-center gap-3 flex-wrap">
+                @if (!occDetectionRunning) {
+                  <button (click)="startOccupancyDetection()"
+                          [disabled]="occModelLoading || !occSelectedSpace"
+                          class="px-5 py-2.5 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white transition-all cursor-pointer shadow-md disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    @if (occModelLoading) { {{ 'Đang tải Model AI...' | t }} } @else { {{ 'Bắt đầu Nhận diện' | t }} }
+                  </button>
+                } @else {
+                  <button (click)="stopOccupancyDetection()"
+                          class="px-5 py-2.5 rounded-xl text-xs font-black bg-rose-600 hover:bg-rose-700 text-white transition-all cursor-pointer shadow-md flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                    {{ 'Dừng Nhận diện' | t }}
+                  </button>
+                }
+                <button (click)="saveOccupancySnapshot()"
+                        [disabled]="!occDetectionRunning"
+                        class="px-4 py-2.5 rounded-xl text-xs font-bold bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 hover:bg-[#002D5C] text-white transition-all cursor-pointer shadow-xs disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  {{ 'Lưu Snapshot' | t }}
+                </button>
+              </div>
+            </div>
+
+            <!-- RIGHT: Controls & Space Selector (4 Cols) -->
+            <div class="lg:col-span-4 space-y-5">
+
+              <!-- Space Selector Card -->
+              <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-border-gray dark:border-slate-800 shadow-xs space-y-4">
+                <div class="flex items-center gap-2.5 pb-3 border-b border-border-gray dark:border-slate-800">
+                  <div class="w-8 h-8 rounded-xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-400 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg>
+                  </div>
+                  <h4 class="text-sm font-black text-dark-text dark:text-white">{{ 'Chọn Không gian Giám sát' | t }}</h4>
+                </div>
+
+                <div class="space-y-2 max-h-[340px] overflow-y-auto">
+                  @for (space of spaces; track space.id) {
+                    <button (click)="selectSpaceForDetection(space)"
+                            [class]="occSelectedSpace?.id === space.id ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 ring-1 ring-emerald-400' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                            class="w-full text-left p-3 rounded-2xl border transition-all cursor-pointer">
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <div class="text-xs font-black text-dark-text dark:text-white">{{ space.name | t }}</div>
+                          <div class="text-[10px] text-text-muted dark:text-slate-400 mt-0.5">{{ space.building | t }} • {{ space.floor | t }}</div>
+                        </div>
+                        <div class="text-right">
+                          <div class="text-xs font-bold text-uel-blue dark:text-sky-400">{{space.capacity}} {{ 'chỗ' | t }}</div>
+                          <div class="text-[10px] text-text-muted dark:text-slate-400">{{ space.type | t }}</div>
+                        </div>
+                      </div>
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Detection Stats Card -->
+              @if (occSelectedSpace) {
+                <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-border-gray dark:border-slate-800 shadow-xs space-y-4">
+                  <div class="flex items-center gap-2.5 pb-3 border-b border-border-gray dark:border-slate-800">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-600/10 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                    </div>
+                    <h4 class="text-sm font-black text-dark-text dark:text-white">{{ 'Thống kê Phát hiện' | t }}</h4>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3 rounded-2xl border" [ngClass]="getOccupancyLevel().bgColor">
+                      <div class="text-2xl font-black" [ngClass]="getOccupancyLevel().color">{{occCurrentCount}}</div>
+                      <div class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">{{ 'Hiện tại' | t }}</div>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800">
+                      <div class="text-2xl font-black text-sky-600 dark:text-sky-400">{{occAvgCount}}</div>
+                      <div class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">{{ 'Trung bình' | t }}</div>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800">
+                      <div class="text-2xl font-black text-amber-600 dark:text-amber-400">{{occPeakCount}}</div>
+                      <div class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">{{ 'Cao nhất' | t }}</div>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800">
+                      <div class="text-2xl font-black text-slate-700 dark:text-slate-200">{{occSelectedSpace.capacity}}</div>
+                      <div class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">{{ 'Sức chứa' | t }}</div>
+                    </div>
+                  </div>
+
+                  <!-- Occupancy Level Badge -->
+                  <div class="p-3 rounded-2xl border text-center" [ngClass]="getOccupancyLevel().bgColor">
+                    <div class="text-xs font-black uppercase tracking-wider" [ngClass]="getOccupancyLevel().color">
+                      {{ 'Mức công suất:' | t }} {{ getOccupancyLevel().label | t }}
+                    </div>
+                    @if (occSelectedSpace) {
+                      <div class="mt-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-500"
+                             [style.width.%]="occSelectedSpace.capacity > 0 ? Math.min((occCurrentCount / occSelectedSpace.capacity) * 100, 100) : 0"
+                             [ngClass]="(occCurrentCount / occSelectedSpace.capacity) > 1 ? 'bg-rose-500' : (occCurrentCount / occSelectedSpace.capacity) > 0.8 ? 'bg-orange-500' : (occCurrentCount / occSelectedSpace.capacity) > 0.5 ? 'bg-amber-500' : 'bg-emerald-500'"></div>
+                      </div>
+                      <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-1">
+                        {{occSelectedSpace.capacity > 0 ? ((occCurrentCount / occSelectedSpace.capacity) * 100).toFixed(0) : 0}}% {{ 'công suất' | t }}
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Model Info Card -->
+              <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-border-gray dark:border-slate-800 shadow-xs space-y-3">
+                <div class="flex items-center gap-2.5 pb-3 border-b border-border-gray dark:border-slate-800">
+                  <div class="w-8 h-8 rounded-xl bg-violet-600/10 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4z"/></svg>
+                  </div>
+                  <h4 class="text-sm font-black text-dark-text dark:text-white">{{ 'Thông tin Model AI' | t }}</h4>
+                </div>
+                <div class="space-y-2 text-xs">
+                  <div class="flex justify-between">
+                    <span class="text-text-muted dark:text-slate-400">Model:</span>
+                    <span class="font-bold text-dark-text dark:text-white">COCO-SSD (Lite)</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-text-muted dark:text-slate-400">Backbone:</span>
+                    <span class="font-bold text-dark-text dark:text-white">MobileNet v2</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-text-muted dark:text-slate-400">Runtime:</span>
+                    <span class="font-bold text-dark-text dark:text-white">TensorFlow.js (WebGL)</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-text-muted dark:text-slate-400">{{ 'Xử lý:' | t }}</span>
+                    <span class="font-bold text-emerald-600 dark:text-emerald-400">Client-side (GPU Browser)</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-text-muted dark:text-slate-400">{{ 'Trạng thái:' | t }}</span>
+                    @if (occModelLoaded) {
+                      <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ 'Sẵn sàng ✓' | t }}</span>
+                    } @else if (occModelLoading) {
+                      <span class="font-bold text-amber-600 dark:text-amber-400">{{ 'Đang tải...' | t }}</span>
+                    } @else {
+                      <span class="font-bold text-slate-400">{{ 'Chưa tải' | t }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- Detection History Table -->
+          @if (occHistory.length > 0) {
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-border-gray dark:border-slate-800 shadow-xs overflow-hidden">
+              <div class="px-6 py-4 border-b border-border-gray dark:border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  </div>
+                  <h3 class="text-sm font-black text-dark-text dark:text-white">{{ 'Lịch sử Nhận diện' | t }} ({{occHistory.length}} {{ 'mẫu' | t }})</h3>
+                </div>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-xs">
+                  <thead>
+                    <tr class="bg-slate-50 dark:bg-slate-800 text-text-muted dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                      <th class="px-4 py-3 text-left">{{ 'Thời gian' | t }}</th>
+                      <th class="px-4 py-3 text-left">{{ 'Không gian' | t }}</th>
+                      <th class="px-4 py-3 text-center">{{ 'Số người' | t }}</th>
+                      <th class="px-4 py-3 text-center">{{ 'Sức chứa' | t }}</th>
+                      <th class="px-4 py-3 text-center">{{ 'Tỷ lệ' | t }}</th>
+                      <th class="px-4 py-3 text-center">Confidence</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (snap of occHistory; track snap.timestamp; let i = $index) {
+                      @if (i < 20) {
+                        <tr class="border-t border-border-gray dark:border-slate-800 table-row-hover dark:hover:bg-slate-800">
+                          <td class="px-4 py-3 font-medium text-slate-600 dark:text-slate-300">{{snap.timestamp}}</td>
+                          <td class="px-4 py-3 font-bold text-dark-text dark:text-white">{{ snap.spaceName | t }}</td>
+                          <td class="px-4 py-3 text-center">
+                            <span class="font-black text-sm" [ngClass]="snap.occupancyRate > 100 ? 'text-rose-600 dark:text-rose-400' : snap.occupancyRate > 80 ? 'text-orange-600 dark:text-orange-400' : 'text-emerald-600 dark:text-emerald-400'">{{snap.detectedCount}}</span>
+                          </td>
+                          <td class="px-4 py-3 text-center text-slate-600 dark:text-slate-300 font-semibold">{{snap.capacity}}</td>
+                          <td class="px-4 py-3 text-center">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                                  [ngClass]="snap.occupancyRate > 100 ? 'bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300' : snap.occupancyRate > 80 ? 'bg-orange-100 dark:bg-orange-950/50 text-orange-700 dark:text-orange-400' : 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300'">
+                              {{snap.occupancyRate}}%
+                            </span>
+                          </td>
+                          <td class="px-4 py-3 text-center font-medium text-slate-500 dark:text-slate-400">{{snap.confidence}}%</td>
+                        </tr>
+                      }
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+
+        </div>
+
+      }
+
+    </main>
+
+  </div>
+
+  <!-- =========================================================================
+       MODAL 1: REJECTION REASON MODAL (F19 - F20)
+       ========================================================================= -->
+  @if (rejectModal.isOpen && rejectModal.booking) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-[fade-in_0.15s_ease-out]">
+      <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-border-gray dark:border-slate-800 space-y-5">
+        
+        <div class="flex items-center justify-between pb-3 border-b border-border-gray dark:border-slate-800">
+          <div>
+            <h3 class="text-base font-black text-rose-600 dark:text-rose-400 tracking-tight">{{ 'Từ chối Đơn đặt phòng' | t }}</h3>
+            <div class="text-xs text-text-muted dark:text-slate-400 mt-0.5">{{ 'Mã đơn:' | t }} <span class="font-bold text-dark-text dark:text-white">{{rejectModal.booking.code}}</span></div>
+          </div>
+          <button (click)="closeRejectModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-400 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <!-- Info summary -->
+        <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 text-xs space-y-1">
+          <div>{{ 'Người đặt:' | t }} <span class="font-bold text-slate-800 dark:text-white">{{rejectModal.booking.bookerName}}</span> ({{ rejectModal.booking.organization | t }})</div>
+          <div>{{ 'Không gian:' | t }} <span class="font-bold text-uel-blue dark:text-sky-400">{{ rejectModal.booking.spaceName | t }}</span></div>
+          <div>{{ 'Thời gian:' | t }} <span class="font-bold text-slate-700 dark:text-slate-200">{{rejectModal.booking.timeSlot}} - {{rejectModal.booking.date}}</span></div>
+        </div>
+
+        <!-- Preset Reasons Selection -->
+        <div class="space-y-2">
+          <label class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ 'Chọn nhanh lý do từ chối thường gặp:' | t }}</label>
+          <div class="space-y-1.5">
+            <button (click)="applySuggestedReason('Trùng lịch học chính khóa ưu tiên của nhà trường.')"
+                    class="w-full text-left text-[11px] px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-300 border border-transparent hover:border-rose-200 dark:hover:border-rose-800 transition-colors font-medium">
+              {{ '• Trùng lịch học chính khóa ưu tiên của nhà trường' | t }}
+            </button>
+            <button (click)="applySuggestedReason('Vượt quá công suất hoặc không phù hợp với mục đích sử dụng không gian.')"
+                    class="w-full text-left text-[11px] px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-300 border border-transparent hover:border-rose-200 dark:hover:border-rose-800 transition-colors font-medium">
+              {{ '• Vượt quá công suất hoặc không phù hợp mục đích sử dụng' | t }}
+            </button>
+            <button (click)="applySuggestedReason('Không gian đang bảo trì thiết bị âm thanh/máy chiếu trong khung giờ này.')"
+                    class="w-full text-left text-[11px] px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-300 border border-transparent hover:border-rose-200 dark:hover:border-rose-800 transition-colors font-medium">
+              {{ '• Không gian đang bảo trì thiết bị âm thanh/máy chiếu' | t }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Custom Reason Input -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ 'Lý do chi tiết gửi người dùng (Bắt buộc theo F19-F20):' | t }}</label>
+          <textarea [(ngModel)]="rejectModal.reason"
+                    rows="3"
+                    [placeholder]="'Nhập lý do từ chối cụ thể...' | t"
+                    class="w-full text-xs p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-border-gray dark:border-slate-700 outline-none focus:border-rose-400 focus:bg-white dark:focus:bg-slate-900 resize-none dark:text-white"></textarea>
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button (click)="closeRejectModal()"
+                  class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+            {{ 'Hủy bỏ' | t }}
+          </button>
+          <button (click)="confirmRejectBooking()"
+                  class="px-5 py-2.5 rounded-xl text-xs font-black bg-rose-600 hover:bg-rose-700 text-white transition-colors cursor-pointer shadow-md">
+            {{ 'Xác nhận Từ chối' | t }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- =========================================================================
+       MODAL 2: BOOKING DETAIL MODAL
+       ========================================================================= -->
+  @if (detailModal.isOpen && detailModal.booking) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-[fade-in_0.15s_ease-out]">
+      <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-border-gray dark:border-slate-800 space-y-5">
+        
+        <div class="flex items-center justify-between pb-3 border-b border-border-gray dark:border-slate-800">
+          <div>
+            <h3 class="text-base font-black text-dark-text dark:text-white tracking-tight">{{ 'Chi tiết Hồ sơ Đặt phòng' | t }}</h3>
+            <div class="text-xs text-text-muted dark:text-slate-400 mt-0.5">{{ 'Mã đơn:' | t }} <span class="font-bold text-uel-blue dark:text-sky-400">{{detailModal.booking.code}}</span></div>
+          </div>
+          <button (click)="closeDetailModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-400 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div class="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800">
+            <div>
+              <span class="text-text-muted dark:text-slate-400">{{ 'Không gian:' | t }}</span>
+              <div class="font-black text-dark-text dark:text-white text-sm">{{ detailModal.booking.spaceName | t }}</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400">{{ detailModal.booking.building | t }}</div>
+            </div>
+            <div>
+              <span class="text-text-muted dark:text-slate-400">{{ 'Khung giờ:' | t }}</span>
+              <div class="font-black text-uel-blue dark:text-sky-400 text-sm">{{detailModal.booking.timeSlot}}</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400">{{ 'Ngày:' | t }} {{detailModal.booking.date}}</div>
+            </div>
+          </div>
+
+          <div class="space-y-1.5 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800">
+            <div><span class="text-text-muted dark:text-slate-400">{{ 'Người đặt:' | t }}</span> <span class="font-bold text-dark-text dark:text-white">{{detailModal.booking.bookerName}}</span></div>
+            <div><span class="text-text-muted dark:text-slate-400">Email:</span> <span class="text-slate-700 dark:text-slate-200 font-medium">{{detailModal.booking.bookerEmail}}</span></div>
+            <div><span class="text-text-muted dark:text-slate-400">{{ 'Tổ chức / CLB:' | t }}</span> <span class="font-semibold text-slate-800 dark:text-white">{{ detailModal.booking.organization | t }}</span></div>
+            <div><span class="text-text-muted dark:text-slate-400">{{ 'Loại hoạt động:' | t }}</span> <span class="font-semibold text-slate-800 dark:text-white">{{ detailModal.booking.activityType | t }}</span></div>
+            <div><span class="text-text-muted dark:text-slate-400">{{ 'Số lượng tham dự:' | t }}</span> <span class="font-bold text-slate-900 dark:text-white">{{detailModal.booking.attendees}} {{ 'người' | t }}</span></div>
+          </div>
+
+          <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 space-y-1">
+            <span class="text-text-muted dark:text-slate-400 font-bold">{{ 'Mục đích sử dụng:' | t }}</span>
+            <p class="text-slate-800 dark:text-white leading-relaxed font-medium">{{ detailModal.booking.purpose | t }}</p>
+          </div>
+
+          @if (detailModal.booking.rejectionReason) {
+            <div class="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 space-y-1">
+              <span class="font-black">{{ 'Lý do từ chối:' | t }}</span>
+              <p class="text-[11px] font-medium">{{ detailModal.booking.rejectionReason | t }}</p>
+              <div class="text-[10px] text-rose-600 dark:text-rose-400 font-medium">{{ 'Xử lý bởi:' | t }} {{detailModal.booking.processedBy}} ({{detailModal.booking.processedAt}})</div>
+            </div>
+          }
+        </div>
+
+        <div class="flex items-center justify-end pt-2">
+          <button (click)="closeDetailModal()"
+                  class="px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer">
+            {{ 'Đóng' | t }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- =========================================================================
+       TOAST NOTIFICATION (Fixed Bottom Right)
+       ========================================================================= -->
+  @if (toast.show) {
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold text-white shadow-2xl animate-[fade-in-up_0.2s_ease-out]"
+         [ngClass]="toast.type === 'success' ? 'bg-emerald-600' : (toast.type === 'warning' ? 'bg-amber-600' : 'bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      <span>{{toast.message}}</span>
+    </div>
+  }
+
+  <!-- System Settings Modal -->
+  <app-settings-modal></app-settings-modal>
+
+</div>

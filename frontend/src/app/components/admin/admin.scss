@@ -1,0 +1,82 @@
+@use 'sass:color';
+
+.admin-layout {
+  font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  background-color: #F8FAFC;
+  color: #0F172A;
+}
+
+// Custom Admin Scrollbar
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 59, 113, 0.2);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 59, 113, 0.4);
+}
+
+// Glassmorphism and animations
+.glass-header {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.table-row-hover {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  &:hover {
+    background-color: #F1F5F9;
+    transform: translateY(-0.5px);
+  }
+}
+
+.pulse-badge {
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-ring {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+// QR Laser Scan Effect
+@keyframes laser-sweep {
+  0% {
+    top: 6%;
+    opacity: 0.6;
+  }
+  50% {
+    top: 92%;
+    opacity: 1;
+  }
+  100% {
+    top: 6%;
+    opacity: 0.6;
+  }
+}
+
+.laser-scanner-line {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #FF7900, #FFC72C, #FF7900, transparent);
+  box-shadow: 0 0 14px #FF7900, 0 0 28px rgba(255, 121, 0, 0.6);
+  animation: laser-sweep 2.2s ease-in-out infinite;
+  z-index: 10;
+}

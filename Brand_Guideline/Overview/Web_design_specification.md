@@ -165,61 +165,41 @@ Usage:
 
 ------------------------------------------------------------------------
 
-# 5. Typography
+# 5. Typography (Hệ thống Kiểu chữ UEL)
 
-## Font Family
+Theo **Cẩm nang Nhận diện Thương hiệu UEL (Trang 20)**, hệ thống font chữ được quy định chính thức như sau:
 
-Displayed design uses:
+## 5.1 Font chữ chính (Main typeface): ROBOTO
 
-**Be Vietnam Pro**
+**Roboto** là font chữ chính thức được sử dụng xuyên suốt trong hệ thống nhận diện thương hiệu của Trường Đại học Kinh tế - Luật (UEL). 
+Font Roboto được ưu tiên sử dụng cho tiêu đề chính và tiêu đề phụ trong các ấn phẩm chính thức của UEL; nội dung hiển thị trên hệ thống in ấn, biển hiệu, bảng chỉ dẫn, backdrop sự kiện, cũng như toàn bộ văn bản và giao diện hệ thống số hóa (Web/App).
 
-------------------------------------------------------------------------
+### Các biến thể chính:
+- **ROBOTO REGULAR (400):** Văn bản nội dung (body text), mô tả, bảng dữ liệu, form nhập liệu.
+- **ROBOTO ITALIC (400 Italic):** Chú thích, trích dẫn, trạng thái phụ.
+- **ROBOTO BOLD (700):** Tiêu đề mục (section headings), nhãn nút (buttons), điểm nhấn quan trọng.
+- **ROBOTO BLACK (900):** Tiêu đề lớn (hero banners, display titles), số liệu thống kê nổi bật.
 
-## Typography Hierarchy
+---
 
-### Large Heading
+## 5.2 Font chữ tiêu đề gợi ý (Themed Options)
 
-Usage:
+Để tối ưu hiệu ứng thị giác và nổi bật đặc thù cho từng tính chất sự kiện/chuyên mục, có thể sử dụng thêm **01 font phụ** cho tiêu đề chính (Headline) phối cùng Roboto:
 
--   Homepage hero title
--   Main marketing message
+| Nhóm chủ đề | Font phụ gợi ý | Đặc điểm / Mục đích sử dụng |
+| :--- | :--- | :--- |
+| **Học thuật, Truyền thống** | **Lora** | Sang trọng, chuẩn mực, phù hợp cho Lễ khai giảng, Hội nghị lớn, Báo cáo khoa học. |
+| **Công nghệ, Chuyển đổi số** | **Share Tech** | Hiện đại, tạo cảm giác số hóa; phù hợp cho Hội thảo khoa học, Fintech, Smart Campus. |
+| **Văn hóa, Đoàn thể** | **SVN-Aaron Script / Monte Carlo** | Tinh tế, uyển chuyển; phù hợp cho các sự kiện kỷ niệm, ngày lễ, phong trào. |
+| **Sự kiện Sinh viên, Năng động** | **Montserrat** | Trẻ trung, dễ đọc; phù hợp cho các hoạt động của sinh viên, CLB - Đội nhóm, Hackathon. |
 
-Style:
+---
 
--   Bold
--   Large size
--   High contrast
+## 5.3 Nguyên tắc phối hợp (Typography Rules)
 
-Example:
-
-"Find the right space. Use it smarter."
-
-------------------------------------------------------------------------
-
-### Section Heading
-
-Usage:
-
--   Content sections
--   Feature blocks
-
-Style:
-
--   Semibold/Bold
-
-------------------------------------------------------------------------
-
-### Body Text
-
-Usage:
-
--   Description
--   Supporting information
-
-Style:
-
--   Regular
--   Comfortable reading size
+- **Quy tắc 2-Font:** Trong một ấn phẩm/giao diện, không sử dụng quá 2 loại font chữ khác nhau để tránh gây rối mắt và phân tán sự chú ý.
+- **Khoảng cách dòng (Line spacing):** Giữ khoảng cách dòng từ **1.15 đến 1.3** để văn bản thông thoáng, dễ tiếp nhận trên màn hình LED, thiết bị di động và máy tính để bàn.
+- **Lưu ý cốt lõi:** Các font phối hợp chỉ áp dụng cho tiêu đề chính. **Toàn bộ nội dung còn lại phải giữ nguyên font Roboto** để đảm bảo tính nhận diện cốt lõi của UEL.
 
 ------------------------------------------------------------------------
 

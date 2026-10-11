@@ -2,41 +2,198 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
+/* UEL SPACE — Global Design System */
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,400;1,700&family=Montserrat:wght@500;600;700;800;900&family=Lora:ital,wght@0,500;0,600;0,700;1,400&family=Share+Tech&display=swap');
 @import 'leaflet/dist/leaflet.css';
 
+/* ── 1. CSS Design Tokens ───────────────────────────────────────────────── */
 :root {
-  --uel-blue: #003B71;
-  --uel-orange: #FF7900;
-  --sky-blue: #00A3E0;
+  --uel-blue:       #003B71;
+  --uel-blue-dark:  #002C57;
+  --uel-orange:     #FF7900;
+  --uel-orange-dark:#E06500;
+  --sky-blue:       #00A3E0;
+  --surface-page:    #F4F7FB;
+  --surface-card:    #FFFFFF;
+  --surface-overlay: #EEF3FA;
+  --text-primary:     #0D1B2E;
+  --text-secondary:   #2D4059;
+  --text-muted:       #637089;
+  --text-placeholder: #9AA5B4;
+  --border-default: #DDE5F0;
+  --border-light:   #EDF1F7;
+  --border-strong:  #C0CEDE;
+  --shadow-card:     0 2px 12px 0 rgba(0,59,113,0.08);
+  --shadow-hover:    0 8px 32px 0 rgba(0,59,113,0.14);
+  --shadow-dropdown: 0 8px 24px 0 rgba(0,59,113,0.12);
+  --shadow-blue:     0 4px 16px 0 rgba(0,59,113,0.24);
+  --shadow-orange:   0 4px 16px 0 rgba(255,121,0,0.28);
+  --transition-base: 200ms ease;
+  --radius-pill: 9999px;
+  --radius-card: 1.25rem;
 }
 
-body {
-  font-family: 'Be Vietnam Pro', sans-serif;
-  background-color: #F5F7FA;
-  color: #111827;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-}
+/* ── 2. Base ────────────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
 
-@layer components {
-  .btn-primary {
-    @apply bg-uel-blue text-white px-8 py-3 rounded-pill font-semibold text-base transition-all duration-300 inline-flex items-center justify-center gap-3 shadow-sm hover:bg-uel-orange hover:-translate-y-0.5 hover:shadow-md;
+  html { scroll-behavior: smooth; text-rendering: optimizeLegibility; }
+
+  body {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: var(--surface-page);
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
+
+  /* Dark mode overrides */
+  html.dark {
+    --surface-page:    #0B132B;
+    --surface-card:    #152238;
+    --surface-overlay: #1C2D4A;
+    --text-primary:    #F8FAFC;
+    --text-secondary:  #CBD5E1;
+    --text-muted:      #94A3B8;
+    --text-placeholder:#64748B;
+    --border-default:  #334155;
+    --border-light:    #1E293B;
+    --border-strong:   #475569;
+    --shadow-card:     0 4px 20px 0 rgba(0, 0, 0, 0.4);
+    --shadow-dropdown: 0 10px 30px 0 rgba(0, 0, 0, 0.6);
+    --shadow-hover:    0 8px 32px 0 rgba(0, 0, 0, 0.5);
+
+    body {
+      background-color: #070D18;
+      color: #F8FAFC;
+    }
+
+    .admin-layout {
+      background-color: #070D18 !important;
+    }
+
+    .glass-header {
+      background-color: rgba(11, 19, 43, 0.88) !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+  }
+
+  ::selection { background-color: rgba(0,59,113,0.15); color: var(--uel-blue); }
+
+  a { color: inherit; text-decoration: none; transition: color 200ms ease; }
+}
+
+/* ── 3. Components ──────────────────────────────────────────────────────── */
+@layer components {
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2.5 bg-uel-blue text-white px-6 py-2.5 rounded-pill font-semibold text-sm tracking-wide transition-all duration-200 hover:-translate-y-0.5 cursor-pointer focus-visible:outline-none;
+    box-shadow: var(--shadow-blue);
+  }
+  .btn-primary:hover { background-color: #002C57; box-shadow: var(--shadow-hover); }
 
   .btn-accent {
-    @apply bg-uel-orange text-white px-8 py-3 rounded-pill font-semibold text-base transition-all duration-300 hover:brightness-110 hover:-translate-y-0.5 hover:shadow-md;
+    @apply inline-flex items-center justify-center gap-2.5 text-white px-6 py-2.5 rounded-pill font-semibold text-sm tracking-wide transition-all duration-200 hover:-translate-y-0.5 cursor-pointer focus-visible:outline-none;
+    background-color: var(--uel-orange);
+    box-shadow: var(--shadow-orange);
   }
+  .btn-accent:hover { background-color: var(--uel-orange-dark); }
 
   .btn-outline {
-    @apply bg-transparent text-uel-blue border-2 border-uel-blue px-8 py-3 rounded-pill font-semibold transition-all duration-300 hover:bg-uel-blue hover:text-white;
+    @apply inline-flex items-center justify-center gap-2.5 bg-transparent border-2 border-uel-blue px-6 py-2.5 rounded-pill font-semibold text-sm tracking-wide transition-all duration-200 hover:bg-uel-blue hover:text-white hover:-translate-y-0.5 cursor-pointer focus-visible:outline-none;
+    color: var(--uel-blue);
   }
 
   .card {
-    @apply bg-white rounded-2xl p-8 shadow-sm border border-border-gray transition-all duration-300 hover:-translate-y-1 hover:shadow-md;
+    @apply bg-white rounded-card border border-border-gray transition-all duration-300;
+    box-shadow: var(--shadow-card);
   }
+  .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+
+  .card-flat { @apply bg-white rounded-card border border-border-gray; }
 
   .chip {
-    @apply px-5 py-2.5 rounded-pill text-sm font-semibold border border-border-gray text-text-muted bg-white cursor-pointer transition-all duration-200 hover:border-uel-blue hover:text-uel-blue hover:bg-[rgba(0,59,113,0.05)];
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-pill text-xs font-semibold border border-border-gray cursor-pointer transition-all duration-150;
+    color: var(--text-muted);
+    background: var(--surface-card);
   }
+  .chip:hover { border-color: var(--uel-blue); color: var(--uel-blue); background-color: rgba(0,59,113,0.05); }
+
+  .badge { @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold; }
+  .badge-blue { @apply badge; background: rgba(0,59,113,0.10); color: #003B71; }
+  .badge-orange { @apply badge; background: rgba(255,121,0,0.10); color: #FF7900; }
+  .badge-green { @apply badge; background: rgba(18,184,134,0.10); color: #12B886; }
+  .badge-red { @apply badge; background: rgba(250,82,82,0.10); color: #FA5252; }
+  .badge-gray { @apply badge; background: rgba(134,142,150,0.12); color: #637089; }
+
+  .input-field {
+    @apply w-full border border-border-gray rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-150 focus:outline-none hover:border-border-strong;
+    background-color: var(--surface-overlay);
+    color: var(--text-primary);
+    box-shadow: 0 1px 4px 0 rgba(0,59,113,0.04);
+  }
+  .input-field::placeholder { color: var(--text-placeholder); }
+  .input-field:focus { border-color: var(--uel-blue); box-shadow: 0 0 0 3px rgba(0,59,113,0.12); }
+
+  .section-label { @apply text-xs font-extrabold uppercase tracking-widest; color: var(--uel-orange); }
+
+  .dropdown-panel {
+    @apply absolute z-[9999] bg-white rounded-2xl border border-border-gray p-1.5;
+    box-shadow: var(--shadow-dropdown);
+    animation: fadeInUp 0.15s ease-out;
+  }
+
+  .dropdown-item {
+    @apply w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors duration-100 cursor-pointer;
+    color: var(--text-secondary);
+  }
+  .dropdown-item:hover { background-color: var(--surface-overlay); color: var(--uel-blue); }
+  .dropdown-item-active { font-weight: 800 !important; color: var(--uel-blue) !important; background-color: rgba(0,59,113,0.08) !important; }
+
+  .glass { @apply backdrop-blur-md border border-white/60; background: rgba(255,255,255,0.82); }
+  .glass-dark { @apply backdrop-blur-md border border-white/20; background: rgba(0,59,113,0.82); }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #003B71, #00A3E0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* ── 4. Keyframes ───────────────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── 5. Scrollbar ───────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: #EDF1F7; border-radius: 9999px; }
+::-webkit-scrollbar-thumb { background: rgba(0,59,113,0.28); border-radius: 9999px; border: 2px solid #EDF1F7; transition: background 0.2s ease; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,59,113,0.5); }
+* { scrollbar-width: thin; scrollbar-color: rgba(0,59,113,0.25) #EDF1F7; }
+
+/* ── 6. Layout ──────────────────────────────────────────────────────────── */
+.main-content { min-height: calc(100vh - 72px - 240px); }
+.leaflet-container { font-family: 'Roboto', sans-serif !important; }
+
+/* ── 7. Utilities ───────────────────────────────────────────────────────── */
+@layer utilities {
+  .line-clamp-2 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+  .line-clamp-3 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
 }

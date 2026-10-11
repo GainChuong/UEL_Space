@@ -1,0 +1,415 @@
+<div class="min-h-screen bg-[#F8FAFC] dark:bg-[#070D18] text-dark-text dark:text-white pb-24 overflow-x-hidden relative">
+
+  <!-- =========================================================================
+       TOP SCROLL PROGRESS BAR (ITB Club Inspiration)
+       ========================================================================= -->
+  <div class="fixed top-0 left-0 right-0 h-1 bg-slate-200/40 dark:bg-slate-700/40 z-50 pointer-events-none">
+    <div class="h-full bg-gradient-to-r from-uel-orange via-amber-400 to-uel-blue transition-all duration-100 ease-out"
+         [style.width.%]="scrollProgress"></div>
+  </div>
+
+  <!-- =========================================================================
+       HERO OPENING: FULL VIEWPORT & SỨ MỆNH
+       ========================================================================= -->
+  <section class="relative overflow-hidden bg-[#001D3D] text-white min-h-[calc(100vh-68px)] flex flex-col justify-center items-center py-16 px-6 lg:px-12">
+    <!-- Background Image: Sharp, Crisp & Clear (No Blur) -->
+    <div class="absolute inset-0 z-0">
+      <img [src]="server_images_link + 'homepage_banner.png'" alt="UEL Campus" class="w-full h-full object-cover opacity-50">
+      <div class="absolute inset-0 bg-gradient-to-b from-[#001D3D]/85 via-[#002B54]/75 to-[#001D3D]/92"></div>
+    </div>
+
+    <div class="relative z-10 max-w-[1200px] mx-auto text-center my-auto">
+      
+      <!-- Main Title: Rõ nét, không bị khuyết chữ, tương phản cao -->
+      <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-black tracking-normal leading-[1.25] mb-6 max-w-5xl mx-auto drop-shadow-lg">
+        {{ 'Hành Trình Kiến Tạo' | t }} <br>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-uel-orange via-[#FFA800] to-[#FFC72C] inline-block py-1.5 px-1 filter drop-shadow-[0_2px_12px_rgba(255,121,0,0.3)]">
+          {{ 'Không Gian Học Tập Thông Minh' | t }}
+        </span>
+      </h1>
+
+      <!-- Subtitle: 2 dòng thẳng hàng cân xứng hoàn hảo -->
+      <p class="text-base sm:text-lg text-slate-100 max-w-4xl mx-auto leading-relaxed font-normal drop-shadow">
+        {{ 'Câu chuyện đằng sau Smart Campus Space: Từ những bất cập thực tế tại giảng đường, thư viện' | t }}<br class="hidden md:inline">
+        {{ 'đến giải pháp quản trị số hóa dựa trên dữ liệu thời gian thực.' | t }}
+      </p>
+
+    </div>
+
+    <!-- Scroll Down Hint Indicator -->
+    <div class="relative z-10 pt-8 mt-auto flex flex-col items-center gap-1.5 text-xs text-slate-300 font-medium pointer-events-none">
+      <span class="tracking-wider uppercase text-[10px] text-slate-400">{{ 'Cuộn xuống khám phá' | t }}</span>
+      <svg class="w-4 h-4 text-uel-orange animate-bounce" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </div>
+  </section>
+
+
+  <!-- =========================================================================
+       MAIN STORYTELLING CONTAINER (4 CHAPTERS WITH STORYLINE ROUTE)
+       ========================================================================= -->
+  <main class="relative max-w-[1240px] mx-auto px-5 sm:px-8 lg:px-12 mt-12 sm:mt-16">
+    
+    <!-- Vertical Story Route Line (ITB Club Style Animation Track) -->
+    <div class="story-timeline-track hidden lg:block" aria-hidden="true">
+      <div class="timeline-traveler" [style.top.%]="scrollProgress"></div>
+    </div>
+
+    <div class="space-y-20 sm:space-y-32">
+
+      <!-- =======================================================================
+           CHAPTER 01 / XUẤT PHÁT ĐIỂM (THE ORIGIN)
+           ======================================================================= -->
+      <article id="chapter-1" class="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center scroll-mt-28">
+        
+        <!-- Left Content (6 cols) -->
+        <div class="lg:col-span-6 space-y-4">
+          <!-- Chapter Badge -->
+          <div class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-full bg-uel-orange text-white font-black text-xs flex items-center justify-center shadow-md shrink-0">
+              01
+            </span>
+            <span class="text-xs font-mono font-bold tracking-widest uppercase text-uel-orange">
+              {{ 'XUẤT PHÁT ĐIỂM' | t }}
+            </span>
+          </div>
+
+          <h2 class="text-2xl sm:text-4xl font-black text-uel-blue dark:text-sky-400 leading-tight [text-wrap:balance]">
+            {{ 'Nhu cầu lớn giữa lòng campus năng động.' | t }}
+          </h2>
+
+          <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-normal [text-wrap:balance]">
+            {{ 'Tại UEL, sinh viên, các câu lạc bộ và giảng viên mỗi ngày đều cần nhiều loại không gian: phòng học lý thuyết, phòng họp nhóm, thư viện và chòi tự học. Tuy nhiên, việc biết phòng nào còn trống tại một thời điểm cụ thể vẫn chưa thuận tiện, phải hỏi mượn thủ công qua nhiều kênh.' | t }}
+          </p>
+
+          <!-- Quote Block -->
+          <blockquote class="p-4 sm:p-5 rounded-2xl bg-uel-blue/5 dark:bg-sky-400/10 border border-uel-blue/15 dark:border-sky-400/20 text-xs sm:text-sm text-uel-blue dark:text-sky-300 font-bold italic leading-relaxed">
+            {{ '"Một khuôn viên đại học thông minh bắt đầu từ những không gian học tập luôn sẵn sàng và dễ dàng tiếp cận."' | t }}
+          </blockquote>
+
+          <div class="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2 pt-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF7900" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-uel-orange">
+              <circle cx="12" cy="12" r="10" stroke-width="2.2"/>
+              <line x1="12" y1="8" x2="12" y2="12" stroke-width="2.8"/>
+              <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="3.5"/>
+            </svg>
+            <span class="text-slate-600 dark:text-slate-400 font-medium">{{ 'Thực trạng ghi nhận từ khảo sát nhu cầu cơ sở vật chất học tập UEL' | t }}</span>
+          </div>
+        </div>
+
+        <!-- Right: Interactive Photo Archive (6 cols) -->
+        <div class="lg:col-span-6">
+          <div class="photo-archive-stage rounded-3xl overflow-hidden shadow-xl border border-border-gray dark:border-slate-800 relative aspect-video sm:aspect-[4/3]">
+            <img [src]="getCurrentPhoto('origin').src" 
+                 [alt]="getCurrentPhoto('origin').caption | t" 
+                 class="w-full h-full object-cover">
+            
+            <div class="absolute inset-0 bg-gradient-to-t from-[#001D3D]/90 via-[#001D3D]/25 to-transparent"></div>
+
+            <!-- Bottom Caption & Controls Bar (ITB Style) -->
+            <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between text-white gap-3">
+              <div>
+                <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-uel-orange text-white">
+                  {{getCurrentPhoto('origin').tag | t}}
+                </span>
+                <div class="text-sm font-black mt-1 leading-snug">{{getCurrentPhoto('origin').caption | t}}</div>
+                <div class="text-[11px] text-slate-300 font-medium">{{getCurrentPhoto('origin').subcaption | t}}</div>
+              </div>
+
+              <!-- Carousel Navigation Buttons & Dots -->
+              <div data-viewer-allowed class="flex flex-col items-end gap-1.5 shrink-0">
+                <div class="flex items-center gap-1.5 bg-black/50 backdrop-blur-md p-1 rounded-xl border border-white/20">
+                  <button (click)="prevPhoto('origin')" 
+                          class="w-7 h-7 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+                          [title]="'Ảnh trước' | t">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                  </button>
+                  <span class="text-[11px] font-mono font-bold px-1.5 text-slate-200">
+                    0{{chapterArchives['origin'].currentIndex + 1}} / 0{{chapterArchives['origin'].photos.length}}
+                  </span>
+                  <button (click)="nextPhoto('origin')" 
+                          class="w-7 h-7 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+                          [title]="'Ảnh tiếp' | t">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+                </div>
+
+                <!-- Slide Dots -->
+                <div class="flex items-center gap-1.5 pr-1">
+                  @for (photo of chapterArchives['origin'].photos; track $index) {
+                    <button (click)="setPhotoIndex('origin', $index)"
+                            class="h-1.5 rounded-full transition-all cursor-pointer"
+                            [ngClass]="$index === chapterArchives['origin'].currentIndex ? 'w-5 bg-uel-orange' : 'w-1.5 bg-white/40 hover:bg-white/70'"
+                            [attr.aria-label]="('Chuyển sang ảnh ' | t) + ($index + 1)"></button>
+                  }
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </article>
+
+
+      <!-- =======================================================================
+           CHAPTER 02 / ĐIỂM NÓNG THỰC TẾ (THE TENSION)
+           Zig-zag: Photo left, Text right
+           ======================================================================= -->
+      <article id="chapter-2" class="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center scroll-mt-28">
+        
+        <!-- Left: Interactive Photo Archive (6 cols) -->
+        <div class="lg:col-span-6 order-2 lg:order-1">
+          <div class="photo-archive-stage rounded-3xl overflow-hidden shadow-xl border border-border-gray dark:border-slate-800 relative aspect-video sm:aspect-[4/3]">
+            <img [src]="getCurrentPhoto('library').src" 
+                 [alt]="getCurrentPhoto('library').caption | t" 
+                 class="w-full h-full object-cover">
+            
+            <div class="absolute inset-0 bg-gradient-to-t from-[#001D3D]/90 via-[#001D3D]/25 to-transparent"></div>
+
+            <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between text-white gap-3">
+              <div>
+                <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-uel-blue text-white border border-white/20">
+                  {{getCurrentPhoto('library').tag | t}}
+                </span>
+                <div class="text-sm font-black mt-1 leading-snug">{{getCurrentPhoto('library').caption | t}}</div>
+                <div class="text-[11px] text-slate-300 font-medium">{{getCurrentPhoto('library').subcaption | t}}</div>
+              </div>
+
+              <!-- Carousel Navigation Buttons & Dots -->
+              <div data-viewer-allowed class="flex flex-col items-end gap-1.5 shrink-0">
+                <div class="flex items-center gap-1.5 bg-black/50 backdrop-blur-md p-1 rounded-xl border border-white/20">
+                  <button (click)="prevPhoto('library')" 
+                          class="w-7 h-7 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+                          [title]="'Ảnh trước' | t">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                  </button>
+                  <span class="text-[11px] font-mono font-bold px-1.5 text-slate-200">
+                    0{{chapterArchives['library'].currentIndex + 1}} / 0{{chapterArchives['library'].photos.length}}
+                  </span>
+                  <button (click)="nextPhoto('library')" 
+                          class="w-7 h-7 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+                          [title]="'Ảnh tiếp' | t">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+                </div>
+
+                <!-- Slide Dots -->
+                <div class="flex items-center gap-1.5 pr-1">
+                  @for (photo of chapterArchives['library'].photos; track $index) {
+                    <button (click)="setPhotoIndex('library', $index)"
+                            class="h-1.5 rounded-full transition-all cursor-pointer"
+                            [ngClass]="$index === chapterArchives['library'].currentIndex ? 'w-5 bg-uel-blue' : 'w-1.5 bg-white/40 hover:bg-white/70'"
+                            [attr.aria-label]="('Chuyển sang ảnh ' | t) + ($index + 1)"></button>
+                  }
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Right Content (6 cols) -->
+        <div class="lg:col-span-6 order-1 lg:order-2 space-y-4">
+          <div class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-full bg-uel-blue text-white font-black text-xs flex items-center justify-center shadow-md shrink-0">
+              02
+            </span>
+            <span class="text-xs font-mono font-bold tracking-widest uppercase text-uel-blue dark:text-sky-400">
+              {{ 'ĐIỂM NÓNG THỰC TẾ' | t }}
+            </span>
+          </div>
+
+          <h2 class="text-2xl sm:text-4xl font-black text-uel-blue dark:text-sky-400 leading-tight [text-wrap:balance]">
+            {{ 'Nghịch lý "Giữ chỗ ảo" tại Thư viện UEL.' | t }}
+          </h2>
+
+          <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-normal [text-wrap:balance]">
+            {{ 'Vào mùa ôn thi, sinh viên thường xuyên phát hiện thư viện hết chỗ sau khi đã di chuyển đến nơi. Đáng nói, nhiều vị trí chỉ có đồ dùng cá nhân được đặt để "giữ chỗ" hàng giờ liền mà không có người học, tước đi cơ hội của những bạn đang thực sự cần.' | t }}
+          </p>
+
+          <blockquote class="p-4 sm:p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800 text-xs sm:text-sm text-amber-950 dark:text-amber-200 font-bold italic leading-relaxed">
+            {{ '"Chiếc balo nằm trên bàn suốt 4 tiếng, trong khi ngoài sảnh nhiều bạn không tìm được một góc để ngồi học."' | t }}
+          </blockquote>
+
+          <div class="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2 pt-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF7900" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-uel-orange">
+              <circle cx="12" cy="12" r="10" stroke-width="2.2"/>
+              <line x1="12" y1="8" x2="12" y2="12" stroke-width="2.8"/>
+              <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="3.5"/>
+            </svg>
+            <span class="text-slate-600 dark:text-slate-400 font-medium">{{ 'Chủ đề thường xuyên được phản ánh trên các hội nhóm sinh viên UEL' | t }}</span>
+          </div>
+        </div>
+
+      </article>
+
+
+      <!-- =======================================================================
+           CHAPTER 03 / LỜI GIẢI CÔNG NGHỆ (THE BREAKTHROUGH)
+           ======================================================================= -->
+      <article id="chapter-3" class="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center scroll-mt-28">
+        
+        <!-- Left Content (6 cols) -->
+        <div class="lg:col-span-6 space-y-4">
+          <div class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-full bg-emerald-500 text-white font-black text-xs flex items-center justify-center shadow-md shrink-0">
+              03
+            </span>
+            <span class="text-xs font-mono font-bold tracking-widest uppercase text-emerald-600 dark:text-emerald-400">
+              {{ 'LỜI GIẢI CÔNG NGHỆ' | t }}
+            </span>
+          </div>
+
+          <h2 class="text-2xl sm:text-4xl font-black text-uel-blue dark:text-sky-400 leading-tight [text-wrap:balance]">
+            {{ 'Smart Campus Space — Khép lại khoảng cách.' | t }}
+          </h2>
+
+          <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-normal [text-wrap:balance]">
+            {{ 'Hệ thống đưa ra cơ chế quản lý tập trung dựa trên dữ liệu thực tế. Bằng việc kết hợp tìm kiếm đa tiêu chí với quy trình ' | t }}<strong class="text-uel-blue font-bold">QR Check-in / Check-out</strong>{{ ', nền tảng tự động phát hiện no-show và giải phóng phòng trống cho người khác.' | t }}
+          </p>
+
+          <blockquote class="p-4 sm:p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800 text-xs sm:text-sm text-emerald-950 dark:text-emerald-200 font-bold italic leading-relaxed">
+            {{ '"Không chỉ dừng ở việc đặt phòng — mục tiêu là đảm bảo ai thực sự cần cũng có được không gian học tập."' | t }}
+          </blockquote>
+
+          <div class="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2 pt-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF7900" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-uel-orange">
+              <circle cx="12" cy="12" r="10" stroke-width="2.2"/>
+              <line x1="12" y1="8" x2="12" y2="12" stroke-width="2.8"/>
+              <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="3.5"/>
+            </svg>
+            <span class="text-slate-600 dark:text-slate-400 font-medium">{{ 'Hệ thống kích hoạt cảnh báo no-show và tự động thu hồi phòng sau 15 phút' | t }}</span>
+          </div>
+
+          <!-- 4 Mini Pillars -->
+          <div class="grid grid-cols-2 gap-2.5 pt-2">
+            @for (pillar of keyPillars; track pillar.number) {
+              <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-border-gray dark:border-slate-800 shadow-2xs">
+                <div class="flex items-center justify-between text-xs font-black text-uel-blue dark:text-sky-400 mb-1">
+                  <span>{{pillar.number}}. {{pillar.title | t}}</span>
+                </div>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">{{pillar.desc | t}}</p>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Right: Interactive Photo Archive Solution (6 cols) -->
+        <div class="lg:col-span-6">
+          <div class="photo-archive-stage rounded-3xl overflow-hidden shadow-xl border border-border-gray dark:border-slate-800 relative aspect-video sm:aspect-[4/3]">
+            <img [src]="getCurrentPhoto('solution').src" 
+                 [alt]="getCurrentPhoto('solution').caption | t" 
+                 class="w-full h-full object-cover">
+            
+            <div class="absolute inset-0 bg-gradient-to-t from-[#001D3D]/90 via-[#001D3D]/25 to-transparent"></div>
+
+            <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between text-white gap-3">
+              <div>
+                <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-500 text-white">
+                  {{getCurrentPhoto('solution').tag | t}}
+                </span>
+                <div class="text-sm font-black mt-1 leading-snug">{{getCurrentPhoto('solution').caption | t}}</div>
+                <div class="text-[11px] text-slate-300 font-medium">{{getCurrentPhoto('solution').subcaption | t}}</div>
+              </div>
+
+              <!-- Carousel Navigation Buttons & Dots -->
+              <div data-viewer-allowed class="flex flex-col items-end gap-1.5 shrink-0">
+                <div class="flex items-center gap-1.5 bg-black/50 backdrop-blur-md p-1 rounded-xl border border-white/20">
+                  <button (click)="prevPhoto('solution')" 
+                          class="w-7 h-7 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+                          [title]="'Ảnh trước' | t">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                  </button>
+                  <span class="text-[11px] font-mono font-bold px-1.5 text-slate-200">
+                    0{{chapterArchives['solution'].currentIndex + 1}} / 0{{chapterArchives['solution'].photos.length}}
+                  </span>
+                  <button (click)="nextPhoto('solution')" 
+                          class="w-7 h-7 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+                          [title]="'Ảnh tiếp' | t">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+                </div>
+
+                <!-- Slide Dots -->
+                <div class="flex items-center gap-1.5 pr-1">
+                  @for (photo of chapterArchives['solution'].photos; track $index) {
+                    <button (click)="setPhotoIndex('solution', $index)"
+                            class="h-1.5 rounded-full transition-all cursor-pointer"
+                            [ngClass]="$index === chapterArchives['solution'].currentIndex ? 'w-5 bg-emerald-400' : 'w-1.5 bg-white/40 hover:bg-white/70'"
+                            [attr.aria-label]="('Chuyển sang ảnh ' | t) + ($index + 1)"></button>
+                  }
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </article>
+
+
+      <!-- =======================================================================
+           CHAPTER 04 / TẦM NHÌN DỮ LIỆU (THE VISION & ACTION)
+           ======================================================================= -->
+      <article id="chapter-4" class="relative text-center max-w-3xl mx-auto space-y-6 pt-6 scroll-mt-28">
+        
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-uel-orange/10 text-uel-orange text-xs font-mono font-bold uppercase tracking-wider">
+          <span>{{ '04 / TẦM NHÌN DỮ LIỆU' | t }}</span>
+        </div>
+
+        <h2 class="text-3xl sm:text-5xl font-black text-uel-blue dark:text-sky-400 leading-tight [text-wrap:balance]">
+          {{ 'Kiến tạo Campus Đại học Thông minh tại UEL.' | t }}
+        </h2>
+
+        <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-normal max-w-2xl mx-auto [text-wrap:balance]">
+          {{ 'Smart Campus Space không chỉ giải quyết nhu cầu mượn phòng thường ngày, mà còn cung cấp cơ sở dữ liệu thực tế giúp nhà trường nâng cao năng lực khai thác tài nguyên và bảo dưỡng cơ sở vật chất.' | t }}
+        </p>
+
+        <!-- CTA Box: Crisp, Sharp, High-Contrast Pro Max (Zero Blurry Texture) -->
+        <div class="bg-[radial-gradient(ellipse_at_top_right,_#004B8D_0%,_#001D3D_55%,_#000F24_100%)] rounded-3xl p-8 sm:p-12 text-white shadow-2xl relative overflow-hidden mt-8 border border-white/15">
+          <!-- Subtle Crisp Vector Pattern (Sharp & Clean) -->
+          <svg class="absolute inset-0 w-full h-full opacity-15 pointer-events-none" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="cta-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+                <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="0.75" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#cta-grid)" />
+          </svg>
+
+          <!-- Decorative Concentric Rings for Smart Space Motif (Crisp & Vector) -->
+          <div class="absolute -top-16 -right-16 w-80 h-80 rounded-full border border-white/10 pointer-events-none"></div>
+          <div class="absolute -top-8 -right-8 w-64 h-64 rounded-full border border-uel-orange/20 pointer-events-none"></div>
+          <div class="absolute -bottom-16 -left-16 w-80 h-80 rounded-full border border-white/10 pointer-events-none"></div>
+
+          <div class="relative z-10 space-y-5">
+            <h3 class="text-2xl sm:text-3xl md:text-4xl font-black leading-tight [text-wrap:balance] drop-shadow-sm">
+              {{ 'Khám phá không gian học tập của bạn ngay hôm nay' | t }}
+            </h3>
+            <p class="text-sm sm:text-base text-slate-200 font-normal max-w-xl mx-auto [text-wrap:balance] leading-relaxed">
+              {{ 'Tra cứu sơ đồ khuôn viên, kiểm tra mật độ thư viện và đặt phòng nhanh chóng theo thời gian thực.' | t }}
+            </p>
+
+            <div class="pt-2 flex flex-wrap items-center justify-center gap-3">
+              <a routerLink="/map" 
+                 class="px-8 py-4 rounded-2xl bg-uel-orange hover:bg-[#E66D00] text-white font-black text-xs sm:text-sm shadow-lg hover:shadow-orange-500/25 transition-all cursor-pointer flex items-center gap-2 group whitespace-nowrap active:scale-[0.98]">
+                <span>{{ 'Trải nghiệm Bản đồ & Đặt phòng' | t }}</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </a>
+              <a routerLink="/booking" 
+                 class="px-6 py-4 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/25 hover:border-white/40 transition-all cursor-pointer whitespace-nowrap active:scale-[0.98]">
+                {{ 'Lịch sử đặt phòng' | t }}
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </article>
+
+    </div>
+
+  </main>
+
+</div>

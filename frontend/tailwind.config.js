@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     "./src/**/*.{html,ts}",
   ],
@@ -20,7 +21,12 @@ module.exports = {
         'status-restricted': '#EF4444',
       },
       fontFamily: {
-        'be-vietnam': ['"Be Vietnam Pro"', 'sans-serif'],
+        sans: ['"Roboto"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'],
+        'roboto': ['"Roboto"', 'sans-serif'],
+        'montserrat': ['"Montserrat"', 'sans-serif'],
+        'share-tech': ['"Share Tech"', 'sans-serif'],
+        'lora': ['"Lora"', 'serif'],
+        'be-vietnam': ['"Roboto"', 'sans-serif'],
       },
       borderRadius: {
         'pill': '9999px',

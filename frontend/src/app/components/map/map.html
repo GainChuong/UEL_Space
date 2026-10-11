@@ -1,157 +1,873 @@
-<div class="pt-24 pb-8 px-6 max-w-[1600px] mx-auto h-screen flex flex-col">
+<div class="pt-3 pb-4 px-6 max-w-[1600px] mx-auto h-[calc(100vh-72px-16px)] flex flex-col dark:bg-[#070D18]">
   <div class="flex-1 flex gap-6 overflow-hidden">
     
     <!-- Left Panel: Categories -->
-    <aside class="w-72 bg-white rounded-3xl shadow-sm border border-border-gray p-6 flex flex-col flex-shrink-0 h-full overflow-y-auto custom-scrollbar">
-      <h2 class="text-xl font-bold text-uel-blue mb-6">Lọc không gian</h2>
+    <aside class="w-72 bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-border-gray dark:border-slate-800 p-6 flex flex-col flex-shrink-0 h-full overflow-y-auto custom-scrollbar">
+      <h2 class="text-xl font-bold text-uel-blue dark:text-sky-400 mb-6">{{ 'Lọc không gian' | t }}</h2>
       
       <div class="flex flex-col gap-2">
-        <button class="flex items-center gap-3 px-4 py-3 rounded-xl bg-uel-blue/5 text-uel-blue font-bold border border-uel-blue/20 transition-colors">
-          <span class="text-xl">🏢</span> Tất cả
+        <button (click)="filterByCategory('Tất cả')"
+                [ngClass]="activeCategory === 'Tất cả' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> {{ 'Tất cả' | t }}
         </button>
-        <button class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-bg-gray text-text-muted font-medium border border-transparent hover:border-border-gray transition-colors">
-          <span class="text-xl">🏛️</span> Giảng đường
+        <button (click)="filterByCategory('Giảng đường')"
+                [ngClass]="activeCategory === 'Giảng đường' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 3h20M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3m6 13v4m4-4v4m-4 0h4"></path></svg> {{ 'Giảng đường' | t }}
         </button>
-        <button class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-bg-gray text-text-muted font-medium border border-transparent hover:border-border-gray transition-colors">
-          <span class="text-xl">📚</span> Thư viện
+        <button (click)="filterByCategory('Thư viện')"
+                [ngClass]="activeCategory === 'Thư viện' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg> {{ 'Thư viện' | t }}
         </button>
-        <button class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-bg-gray text-text-muted font-medium border border-transparent hover:border-border-gray transition-colors">
-          <span class="text-xl">👨‍🏫</span> Phòng học
+        <button (click)="filterByCategory('Phòng học')"
+                [ngClass]="activeCategory === 'Phòng học' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg> {{ 'Phòng học' | t }}
         </button>
-        <button class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-bg-gray text-text-muted font-medium border border-transparent hover:border-border-gray transition-colors">
-          <span class="text-xl">👥</span> Phòng họp
+        <button (click)="filterByCategory('Phòng họp')"
+                [ngClass]="activeCategory === 'Phòng họp' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> {{ 'Phòng họp' | t }}
         </button>
-        <button class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-bg-gray text-text-muted font-medium border border-transparent hover:border-border-gray transition-colors">
-          <span class="text-xl">💻</span> Khu tự học
+        <button (click)="filterByCategory('Khu tự học')"
+                [ngClass]="activeCategory === 'Khu tự học' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="20" x2="22" y2="20"></line></svg> {{ 'Khu tự học' | t }}
         </button>
-        <button class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-bg-gray text-text-muted font-medium border border-transparent hover:border-border-gray transition-colors">
-          <span class="text-xl">🎯</span> CLB - Đội nhóm
+        <button (click)="filterByCategory('CLB - Đội nhóm')"
+                [ngClass]="activeCategory === 'CLB - Đội nhóm' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> {{ 'CLB - Đội nhóm' | t }}
         </button>
       </div>
       
       <div class="mt-auto pt-8">
-        <h3 class="text-sm font-bold text-text-muted uppercase tracking-wider mb-4">Trạng thái</h3>
-        <div class="flex flex-col gap-3">
-          <div class="flex items-center gap-3 text-sm font-medium text-dark-text"><span class="w-3 h-3 rounded-full bg-status-available shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span> Trống</div>
-          <div class="flex items-center gap-3 text-sm font-medium text-dark-text"><span class="w-3 h-3 rounded-full bg-status-in-use shadow-[0_0_8px_rgba(59,130,246,0.4)]"></span> Đang sử dụng</div>
-          <div class="flex items-center gap-3 text-sm font-medium text-dark-text"><span class="w-3 h-3 rounded-full bg-status-reserved shadow-[0_0_8px_rgba(245,158,11,0.4)]"></span> Đã đặt</div>
-          <div class="flex items-center gap-3 text-sm font-medium text-dark-text"><span class="w-3 h-3 rounded-full bg-status-maintenance shadow-[0_0_8px_rgba(156,163,175,0.4)]"></span> Bảo trì</div>
-          <div class="flex items-center gap-3 text-sm font-medium text-dark-text"><span class="w-3 h-3 rounded-full bg-status-restricted shadow-[0_0_8px_rgba(239,68,68,0.4)]"></span> Hạn chế</div>
+        <h3 class="text-sm font-bold text-text-muted dark:text-slate-400 uppercase tracking-wider mb-4">{{ 'Trạng thái' | t }}</h3>
+        <div class="flex flex-col gap-2">
+          @for (s of statuses; track s.code) {
+            <button (click)="filterByStatus(s)"
+                    [ngClass]="activeStatus === s.code ? 'bg-bg-gray dark:bg-slate-800 border-border-gray dark:border-slate-700 font-bold' : 'border-transparent hover:bg-bg-gray/60 dark:hover:bg-slate-800/60 font-medium'"
+                    class="flex items-center gap-3 text-sm text-dark-text dark:text-slate-200 px-3 py-2.5 rounded-xl border transition-all cursor-pointer w-full text-left">
+              <span class="w-3.5 h-3.5 rounded-full {{s.color}} {{s.shadow}} flex-shrink-0"></span>
+              {{s.text | t}}
+            </button>
+          }
         </div>
       </div>
+
+      <!-- Quick Timetable Action Card -->
+      <div class="mt-4 pt-4 border-t border-border-gray">
+        <button (click)="openTimetableModal()"
+                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-uel-blue text-white hover:bg-uel-blue/90 font-bold text-xs shadow-md transition-all cursor-pointer group">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-uel-orange">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            </div>
+            <div class="text-left">
+              <div class="font-black text-white text-xs">{{ 'Thời khóa biểu tuần' | t }}</div>
+              <div class="text-[10px] text-slate-300 font-medium">{{ 'Đối chiếu & Đặt nhanh' | t }}</div>
+            </div>
+          </div>
+          <svg class="w-4 h-4 text-uel-orange group-hover:translate-x-0.5 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </div>
+
     </aside>
   
-    <!-- Center Panel: Interactive Map -->
-    <main class="flex-1 bg-white rounded-3xl shadow-sm border border-border-gray relative overflow-hidden flex flex-col h-full">
-      <div class="w-full h-full" id="leafletMap">
-        <!-- Leaflet map goes here -->
-        <!-- Temporary placeholder for visual before leaflet loads -->
-        <div class="absolute inset-0 bg-bg-gray flex items-center justify-center -z-10">
-          <p class="text-text-muted font-medium">Bản đồ đang tải...</p>
+    <!-- Center Panel: Static Map Image -->
+    <main class="flex-1 bg-[#E8E8E8] dark:bg-slate-900 dark:border-slate-800 rounded-3xl shadow-sm border border-border-gray relative overflow-hidden flex flex-col h-full items-center justify-center p-4">
+      <div class="w-full h-full relative flex items-center justify-center">
+        <!-- Relative container that scales perfectly while maintaining aspect ratio -->
+        <div class="relative max-w-full max-h-full" style="aspect-ratio: 1253 / 768; height: 100%;">
+          <img [src]="server_images_link + 'main_map.png'" alt="Campus Map" class="w-full h-full object-contain pointer-events-none">
+          
+          <!-- Location Markers -->
+          @for (b of buildings; track b.id) {
+            <button class="absolute z-10 w-12 h-12 -translate-x-1/2 -translate-y-full flex flex-col items-center justify-center group cursor-pointer"
+                    [style.top]="b.top" [style.left]="b.left"
+                    (click)="selectBuilding(b)">
+              
+              <!-- Map Pin Icon (Orange) -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-11 h-11 text-uel-orange drop-shadow-md group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300">
+                <path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+              </svg>
+
+              <!-- Hover Tooltip -->
+              <div class="absolute top-[-30px] opacity-0 group-hover:opacity-100 group-hover:-translate-y-1 bg-dark-text/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg whitespace-nowrap pointer-events-none transition-all duration-200">
+                {{b.name | t}}
+                <!-- Triangle pointer -->
+                <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-dark-text/90 rotate-45"></div>
+              </div>
+              
+            </button>
+          }
         </div>
       </div>
       
       <!-- Empty State / Suggestion overlay -->
       @if (showEmptyState) {
-        <div class="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center p-6 z-[1000]">
-          <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-border-gray text-center animate-[fade-in-up_0.3s_ease-out]">
+        <div class="absolute inset-0 bg-white/60 dark:bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-6 z-[1000]">
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-md w-full shadow-2xl border border-border-gray dark:border-slate-800 text-center animate-[fade-in-up_0.3s_ease-out]">
             <div class="w-16 h-16 bg-uel-orange/10 text-uel-orange rounded-full flex items-center justify-center mx-auto mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
             </div>
-            <h3 class="text-xl font-bold text-dark-text mb-2">Không tìm thấy phòng phù hợp</h3>
-            <p class="text-text-muted mb-6">Hiện không có phòng 50 chỗ trống vào khung giờ này.</p>
+            <h3 class="text-xl font-bold text-dark-text dark:text-white mb-2">{{ 'Không tìm thấy phòng phù hợp' | t }}</h3>
+            <p class="text-text-muted dark:text-slate-400 mb-6">{{ 'Hiện không có phòng 50 chỗ trống vào khung giờ này.' | t }}</p>
             
-            <div class="text-left bg-bg-gray rounded-2xl p-4 mb-6">
-              <h4 class="text-sm font-bold text-dark-text mb-3">Gợi ý thay thế:</h4>
+            <div class="text-left bg-bg-gray dark:bg-slate-800 rounded-2xl p-4 mb-6">
+              <h4 class="text-sm font-bold text-dark-text dark:text-white mb-3">{{ 'Gợi ý thay thế:' | t }}</h4>
               <div class="flex flex-col gap-2">
-                <button class="w-full text-left px-4 py-3 rounded-xl bg-white border border-border-gray hover:border-uel-blue hover:text-uel-blue transition-colors text-sm font-medium">Phòng B1.104 (Sức chứa 40, Trống)</button>
-                <button class="w-full text-left px-4 py-3 rounded-xl bg-white border border-border-gray hover:border-uel-blue hover:text-uel-blue transition-colors text-sm font-medium">Phòng A2.201 (Sức chứa 50, Trống từ 15:00)</button>
+                <button class="w-full text-left px-4 py-3 rounded-xl bg-white dark:bg-slate-800 dark:border-slate-700 border border-border-gray hover:border-uel-blue dark:hover:border-sky-400 hover:text-uel-blue dark:hover:text-sky-300 transition-colors text-sm font-medium">{{ 'Phòng B1.104 (Sức chứa 40, Trống)' | t }}</button>
+                <button class="w-full text-left px-4 py-3 rounded-xl bg-white dark:bg-slate-800 dark:border-slate-700 border border-border-gray hover:border-uel-blue dark:hover:border-sky-400 hover:text-uel-blue dark:hover:text-sky-300 transition-colors text-sm font-medium">{{ 'Phòng A2.201 (Sức chứa 50, Trống từ 15:00)' | t }}</button>
               </div>
             </div>
-            <button class="btn-primary w-full" (click)="closeEmptyState()">Đã hiểu</button>
+            <button class="btn-primary w-full" (click)="closeEmptyState()">{{ 'Đã hiểu' | t }}</button>
           </div>
         </div>
       }
     </main>
-  
-    <!-- Right Panel: Space Details -->
-    <aside class="w-96 bg-white rounded-3xl shadow-sm border border-border-gray flex flex-col flex-shrink-0 h-full overflow-hidden">
-      @if (selectedSpace) {
-        <div class="flex flex-col h-full overflow-y-auto custom-scrollbar">
-          <!-- Space Image Header -->
-          <div class="h-56 bg-bg-gray relative shrink-0">
-            <!-- image placeholder -->
-            <img [src]="selectedSpace.image" alt="Room" class="w-full h-full object-cover">
-            <div class="absolute top-4 right-4 px-3 py-1.5 rounded-full text-xs font-bold bg-white/90 backdrop-blur-sm border border-white/50 shadow-sm flex items-center gap-2"
-                 [ngClass]="{
-                   'text-status-available': selectedSpace.status === 'available',
-                   'text-status-in-use': selectedSpace.status === 'in-use',
-                   'text-status-reserved': selectedSpace.status === 'reserved'
-                 }">
-              <span class="w-2 h-2 rounded-full"
-                    [ngClass]="{
-                      'bg-status-available': selectedSpace.status === 'available',
-                      'bg-status-in-use': selectedSpace.status === 'in-use',
-                      'bg-status-reserved': selectedSpace.status === 'reserved'
-                    }"></span>
-              {{selectedSpace.statusText}}
+    
+    <!-- Modal Popup cho Danh sách phòng -->
+    <!-- Building Room Selector Modal -->
+    @if (selectedBuilding) {
+      <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-[#001D3D]/60 backdrop-blur-sm transition-opacity" (click)="closeBuildingDetails()"></div>
+        
+        <!-- Modal Content Container -->
+        <div class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-[fade-in-up_0.25s_ease-out] border border-border-gray dark:border-slate-800">
+          
+          <!-- Header -->
+<div class="px-6 py-5 sm:px-8 sm:py-6 border-b border-border-gray/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between">
+              <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 flex items-center justify-center font-black text-lg border border-uel-blue/20 dark:border-sky-400/20">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9h1"/><path d="M9 13h1"/><path d="M9 17h1"/></svg>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="text-2xl font-black text-uel-blue dark:text-sky-400">{{selectedBuilding.name | t}}</h2>
+                  <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300">{{ 'Khuôn viên UEL' | t }}</span>
+                </div>
+                <p class="text-xs sm:text-sm font-semibold text-text-muted dark:text-slate-400 mt-0.5">{{ 'Sơ đồ và trạng thái phòng thời gian thực • Bấm vào phòng trống để đặt chỗ' | t }}</p>
+              </div>
             </div>
+
+            <button (click)="closeBuildingDetails()" 
+                    class="w-9 h-9 flex items-center justify-center rounded-full bg-bg-gray dark:bg-slate-800 hover:bg-border-gray dark:hover:bg-slate-700 text-dark-text dark:text-slate-200 transition-colors cursor-pointer"
+                    [title]="'Đóng' | t">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
           </div>
           
-          <div class="p-6 flex-1 flex flex-col">
-            <h2 class="text-2xl font-bold text-uel-blue mb-1">{{selectedSpace.name}}</h2>
-            <p class="text-text-muted text-sm font-medium flex items-center gap-1.5 mb-6">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-              {{selectedSpace.building}} - Tầng {{selectedSpace.floor}}
-            </p>
+          <!-- Body -->
+          <div class="p-6 sm:p-8 overflow-y-auto custom-scrollbar flex-1 bg-[#F8FAFC] dark:bg-[#0B1220]">
             
-            <div class="grid grid-cols-2 gap-3 mb-6">
-              <div class="bg-bg-gray rounded-2xl p-4 border border-border-gray/50">
-                <span class="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">Sức chứa</span>
-                <span class="block text-lg font-bold text-dark-text">{{selectedSpace.capacity}}</span>
+            <!-- Modern Legend Bar -->
+            <!-- Modern Minimal Legend Bar (Brand Guidelines Focused) -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-5 px-5 py-3 bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-border-gray dark:border-slate-800">
+              <div class="text-xs font-black text-uel-blue dark:text-sky-400 uppercase tracking-wider">
+                {{ 'Trạng thái phòng:' | t }}
               </div>
-              <div class="bg-bg-gray rounded-2xl p-4 border border-border-gray/50">
-                <span class="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">Loại</span>
-                <span class="block text-lg font-bold text-dark-text truncate">{{selectedSpace.type}}</span>
+              <div class="flex flex-wrap items-center gap-4 sm:gap-6 text-xs font-bold text-dark-text dark:text-slate-200">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-emerald-500 shadow-xs"></span>
+                  <span>{{ 'Khả dụng' | t }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-uel-blue shadow-xs"></span>
+                  <span>{{ 'Đang dùng' | t }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-uel-orange shadow-xs"></span>
+                  <span>{{ 'Đã đặt' | t }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-slate-400"></span>
+                  <span>{{ 'Bảo trì / Hạn chế' | t }}</span>
+                </div>
               </div>
             </div>
+
+            <!-- Minimalist Room Cards Grid (Super Clean & Modern) -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+              @for (room of selectedBuilding.rooms; track room.name) {
+                <div (click)="openRoomDetail(room)"
+                     class="rounded-2xl p-3.5 flex items-center justify-between border bg-white dark:bg-slate-900 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 cursor-pointer group"
+                     [ngClass]="{
+                       'border-emerald-300/90 dark:border-emerald-800 hover:border-emerald-500 dark:hover:border-emerald-600 bg-emerald-50/[0.12] dark:bg-emerald-950/20': room.status === 'available',
+                       'border-uel-blue/30 dark:border-sky-400/30 hover:border-uel-blue dark:hover:border-sky-400 bg-uel-blue/[0.03] dark:bg-sky-400/5': room.status === 'in-use',
+                       'border-uel-orange/35 dark:border-amber-700/40 hover:border-uel-orange dark:hover:border-amber-500 bg-uel-orange/[0.03] dark:bg-amber-950/20': room.status === 'reserved',
+                       'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-slate-50/80 dark:bg-slate-800/80 opacity-70': room.status === 'maintenance' || room.status === 'restricted'
+                     }"
+                     [title]="('Bấm để xem chi tiết phòng' | t) + ' ' + room.name">
+                  
+                  <!-- Room Number (Prominent & Clean) -->
+                  <div class="flex items-baseline gap-1">
+                    <span class="text-[10px] font-bold text-text-muted dark:text-slate-400 group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors">P.</span>
+                    <span class="text-base font-black text-dark-text dark:text-white group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors tracking-tight">
+                      {{room.name.replace('P.', '')}}
+                    </span>
+                  </div>
+
+                  <!-- Status Indicator Dot -->
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs"
+                          [ngClass]="{
+                            'bg-emerald-500 animate-pulse': room.status === 'available',
+                            'bg-uel-blue': room.status === 'in-use',
+                            'bg-uel-orange': room.status === 'reserved',
+                            'bg-slate-400': room.status === 'maintenance' || room.status === 'restricted'
+                          }"></span>
+                  </div>
+
+                </div>
+              }
+            </div>
+
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Detailed Room Information Modal (Pop-up on Room Click) -->
+    @if (selectedRoomDetail) {
+      <div class="fixed inset-0 z-[10001] flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-[#001D3D]/65 backdrop-blur-xs transition-opacity" (click)="closeRoomDetail()"></div>
+
+        <!-- Detail Modal Container -->
+        <div class="relative bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 max-w-xl w-full shadow-2xl border border-border-gray dark:border-slate-800 animate-[fade-in-up_0.2s_ease-out] flex flex-col max-h-[90vh] overflow-hidden">
+          
+          <!-- Header -->
+          <div class="flex items-start justify-between pb-4 border-b border-border-gray/70 dark:border-slate-800">
+            <div class="flex items-center gap-3.5">
+              <div class="w-12 h-12 rounded-2xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 flex items-center justify-center font-black border border-uel-blue/20 dark:border-sky-400/20 shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9h1"/><path d="M9 13h1"/><path d="M9 17h1"/>
+                </svg>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="text-2xl font-black text-uel-blue dark:text-sky-400">{{selectedRoomDetail.name}}</h3>
+                  <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300">
+                    {{selectedRoomDetail.floor | t}}
+                  </span>
+                </div>
+                <p class="text-xs text-text-muted dark:text-slate-400 font-medium mt-0.5">
+                  {{selectedBuilding?.name | t}} • {{ 'Khuôn viên UEL' | t }}
+                </p>
+              </div>
+            </div>
+
+            <button (click)="closeRoomDetail()" 
+                    class="w-8 h-8 rounded-full bg-bg-gray dark:bg-slate-800 hover:bg-border-gray dark:hover:bg-slate-700 text-dark-text dark:text-slate-200 flex items-center justify-center cursor-pointer transition-colors"
+                    [title]="'Đóng' | t">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+
+          <!-- Body Content (Scrollable) -->
+          <div class="py-4 space-y-4 overflow-y-auto custom-scrollbar flex-1">
             
-            <div class="mb-6">
-              <h3 class="text-sm font-bold text-dark-text mb-3">Thiết bị</h3>
-              <div class="flex flex-wrap gap-2">
-                @for (eq of selectedSpace.equipment; track eq) {
-                  <span class="px-3 py-1.5 rounded-lg bg-sky-blue/10 text-uel-blue text-xs font-semibold">{{eq}}</span>
+            <!-- Dynamic Status Banner -->
+            @if (selectedRoomDetail.status === 'available') {
+              <div class="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 flex items-center justify-between">
+                <div>
+                  <span class="font-bold text-sm">{{ 'Phòng đang trống (Khả dụng)' | t }}</span>
+                </div>
+                <span class="text-xs font-black text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2.5 py-1 rounded-md">
+                  {{ 'Sẵn sàng đặt' | t }}
+                </span>
+              </div>
+            } @else if (selectedRoomDetail.status === 'in-use') {
+              <div class="p-3.5 rounded-2xl bg-uel-blue/10 border border-uel-blue/20 text-uel-blue dark:text-sky-300 flex items-center justify-between">
+                <div>
+                  <span class="font-bold text-sm">{{ 'Đang có người sử dụng' | t }}</span>
+                </div>
+                <span class="text-xs font-bold text-uel-blue dark:text-sky-300 bg-white/70 dark:bg-slate-800/70 px-2 py-0.5 rounded-md border border-uel-blue/20">
+                  {{selectedRoomDetail.expectedFreeTime | t}}
+                </span>
+              </div>
+            } @else if (selectedRoomDetail.status === 'reserved') {
+              <div class="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-300 flex items-center justify-between">
+                <div>
+                  <span class="font-bold text-sm">{{ 'Phòng đã được đặt trước' | t }}</span>
+                </div>
+                <span class="text-xs font-bold text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 rounded-md">
+                  {{selectedRoomDetail.expectedFreeTime | t}}
+                </span>
+              </div>
+            } @else {
+              <div class="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                <div>
+                  <span class="font-bold text-sm">{{ 'Tạm khóa / Bảo trì định kỳ' | t }}</span>
+                </div>
+                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">{{ 'Tạm dừng tiếp nhận' | t }}</span>
+              </div>
+            }
+
+            <!-- Specs Grid (4 Key Metrics) -->
+            <div class="grid grid-cols-2 gap-2.5 text-xs">
+              <div class="p-3 rounded-xl bg-bg-gray dark:bg-slate-800 border border-border-gray/70 dark:border-slate-700">
+                <span class="text-text-muted dark:text-slate-400 block text-[11px] font-semibold mb-0.5">{{ 'Loại không gian' | t }}</span>
+                <span class="font-black text-dark-text dark:text-white text-sm">{{selectedRoomDetail.type | t}}</span>
+              </div>
+              <div class="p-3 rounded-xl bg-bg-gray dark:bg-slate-800 border border-border-gray/70 dark:border-slate-700">
+                <span class="text-text-muted dark:text-slate-400 block text-[11px] font-semibold mb-0.5">{{ 'Sức chứa tối đa' | t }}</span>
+                <span class="font-black text-uel-blue dark:text-sky-400 text-sm">{{selectedRoomDetail.capacity}} {{ 'chỗ ngồi' | t }}</span>
+              </div>
+              <div class="p-3 rounded-xl bg-bg-gray dark:bg-slate-800 border border-border-gray/70 dark:border-slate-700">
+                <span class="text-text-muted dark:text-slate-400 block text-[11px] font-semibold mb-0.5">{{ 'Vị trí' | t }}</span>
+                <span class="font-bold text-dark-text dark:text-white">{{selectedRoomDetail.floor | t}} • {{selectedBuilding?.name | t}}</span>
+              </div>
+              <div class="p-3 rounded-xl bg-bg-gray dark:bg-slate-800 border border-border-gray/70 dark:border-slate-700">
+                <span class="text-text-muted dark:text-slate-400 block text-[11px] font-semibold mb-0.5">{{ 'Hiện trạng' | t }}</span>
+                <span class="font-bold text-dark-text dark:text-white">{{selectedRoomDetail.statusText | t}}</span>
+              </div>
+            </div>
+
+            <!-- Facilities & Equipment -->
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-border-gray/80 dark:border-slate-800 shadow-2xs">
+              <h4 class="text-xs font-black text-uel-blue dark:text-sky-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                {{ 'Trang thiết bị & Tiện ích phòng' | t }}
+              </h4>
+              <div class="flex flex-wrap gap-2 text-xs">
+                @for (facility of selectedRoomDetail.facilities; track facility) {
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-bg-gray dark:bg-slate-800 text-dark-text dark:text-slate-200 font-semibold border border-border-gray/60 dark:border-slate-700 whitespace-nowrap">
+                    {{facility | t}}
+                  </span>
                 }
               </div>
             </div>
-            
-            <div class="mt-auto pt-6 border-t border-border-gray">
-              <h3 class="text-base font-bold text-dark-text mb-4">Đặt phòng</h3>
-              <div class="flex gap-3 mb-4">
-                <div class="flex-1">
-                  <label class="block text-xs font-semibold text-text-muted mb-1.5">Ngày</label>
-                  <input type="date" class="w-full bg-bg-gray border border-border-gray rounded-xl px-3 py-2.5 text-sm font-medium outline-none focus:border-uel-blue transition-colors">
+
+            <!-- Current Activity / Schedule Status Note -->
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-border-gray/80 dark:border-slate-800 shadow-2xs">
+              <h4 class="text-xs font-black text-uel-blue dark:text-sky-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {{ 'Tình trạng sử dụng hiện tại' | t }}
+              </h4>
+              <p class="text-xs text-text-muted dark:text-slate-400 font-medium leading-relaxed">
+                {{selectedRoomDetail.currentActivity | t}}
+              </p>
+            </div>
+
+            <!-- Today's Schedule Shifts (5 Shifts Overview) -->
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-border-gray/80 dark:border-slate-800 shadow-2xs">
+              <div class="flex items-center justify-between mb-2.5">
+                <h4 class="text-xs font-black text-uel-blue dark:text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                  {{ 'Lịch các ca trong ngày hôm nay' | t }}
+                </h4>
+                <button type="button" 
+                        (click)="openTimetableFromDetail(selectedRoomDetail)" 
+                        class="text-[11px] font-bold text-uel-blue dark:text-sky-400 hover:text-uel-orange transition-colors cursor-pointer">
+                  {{ 'Xem cả tuần →' | t }}
+                </button>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                @for (slot of selectedRoomDetail.todaySlots; track slot.period) {
+                  <div class="flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all"
+                       [ngClass]="{
+                         'border-emerald-200 dark:border-emerald-800 bg-emerald-50/40 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-300': slot.status === 'available',
+                         'border-uel-blue/20 bg-uel-blue/5 text-uel-blue dark:text-sky-300': slot.status === 'in-use',
+                         'border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30 text-amber-900 dark:text-amber-300': slot.status === 'reserved',
+                         'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400': slot.status === 'maintenance' || slot.status === 'restricted'
+                       }">
+                    <span class="font-bold text-[11px] whitespace-nowrap tracking-tight">{{slot.period | t}}</span>
+                    <span class="text-[10px] font-black px-2 py-0.5 rounded whitespace-nowrap shrink-0 ml-2"
+                          [ngClass]="{
+                            'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300': slot.status === 'available',
+                            'bg-uel-blue/20 text-uel-blue dark:text-sky-300': slot.status === 'in-use',
+                            'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300': slot.status === 'reserved',
+                            'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300': slot.status === 'maintenance' || slot.status === 'restricted'
+                          }">
+                      {{slot.text | t}}
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Actions Footer -->
+          <div class="pt-4 border-t border-border-gray/70 dark:border-slate-800 flex items-center gap-3">
+            <button type="button" 
+                    (click)="closeRoomDetail()" 
+                    class="flex-1 py-3 rounded-xl bg-bg-gray dark:bg-slate-800 hover:bg-border-gray dark:hover:bg-slate-700 font-bold text-dark-text dark:text-slate-200 transition-colors cursor-pointer text-sm text-center">
+              {{ 'Đóng' | t }}
+            </button>
+            <button type="button"
+                    (click)="proceedToBookingFromDetail()"
+                    [disabled]="selectedRoomDetail.status !== 'available'"
+                    class="flex-1 py-3 rounded-xl font-bold transition-all text-sm text-center shadow-md flex items-center justify-center gap-2"
+                    [ngClass]="{
+                      'bg-uel-blue hover:bg-[#00284D] dark:bg-sky-600 dark:hover:bg-sky-700 text-white cursor-pointer': selectedRoomDetail.status === 'available',
+                      'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-300 dark:border-slate-600 shadow-none': selectedRoomDetail.status !== 'available'
+                    }">
+              <span>{{ (selectedRoomDetail.status === 'available' ? 'Đặt phòng này' : 'Không khả dụng') | t }}</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    }
+
+    <!-- Quick Booking Modal with Student Schedule Cross-Reference Popup -->
+    @if (selectedRoomToBook) {
+      <div class="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-5">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-[#001D3D]/65 backdrop-blur-xs transition-opacity" (click)="closeBookingModal()"></div>
+        
+        <!-- Modal Card Container -->
+        <div class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-border-gray dark:border-slate-800 animate-[fade-in-up_0.25s_ease-out] w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden">
+          @if (!bookingSuccess) {
+            <!-- Modal Header -->
+            <div class="px-6 py-4 sm:px-7 sm:py-5 border-b border-border-gray/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 flex items-center justify-center font-bold border border-uel-blue/20 dark:border-sky-400/20 shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                    <line x1="16" x2="16" y1="2" y2="6"/>
+                    <line x1="8" x2="8" y1="2" y2="6"/>
+                    <line x1="3" x2="21" y1="10" y2="10"/>
+                    <path d="m9 16 2 2 4-4"/>
+                  </svg>
                 </div>
-                <div class="flex-1">
-                  <label class="block text-xs font-semibold text-text-muted mb-1.5">Thời gian</label>
-                  <input type="time" class="w-full bg-bg-gray border border-border-gray rounded-xl px-3 py-2.5 text-sm font-medium outline-none focus:border-uel-blue transition-colors">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-xl font-extrabold text-uel-blue dark:text-sky-400 leading-snug">{{ 'Đặt' | t }} {{selectedRoomToBook.name}}</h3>
+                    <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300">{{ 'Đối chiếu TKB' | t }}</span>
+                  </div>
+                  <p class="text-xs text-text-muted dark:text-slate-400 font-medium">{{selectedRoomToBook.type | t}} • {{ 'Sức chứa' | t }} {{selectedRoomToBook.capacity}} {{ 'chỗ ngồi' | t }} • {{ 'Khuôn viên UEL' | t }}</p>
                 </div>
               </div>
-              <button class="btn-primary w-full py-3.5">Xác nhận đặt phòng</button>
+
+              <button (click)="closeBookingModal()" 
+                      class="w-8 h-8 rounded-full bg-bg-gray dark:bg-slate-800 hover:bg-border-gray dark:hover:bg-slate-700 text-dark-text dark:text-slate-200 flex items-center justify-center cursor-pointer transition-colors" 
+                      [title]="'Đóng' | t">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+
+            <!-- Modal Body: 2 Columns (Booking Selector & Student Schedule) -->
+            <div class="p-5 sm:p-6 overflow-y-auto custom-scrollbar flex-1 bg-[#F8FAFC] dark:bg-[#0B1220]">
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
+                
+                <!-- Column 1: Room Details & Slot Selector (Left 7 cols) -->
+                <div class="lg:col-span-7 flex flex-col justify-between space-y-4">
+                  
+                  <!-- Slot Selector Section -->
+                  <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-border-gray dark:border-slate-800 shadow-xs">
+                    <div class="flex items-center justify-between mb-3">
+                      <label class="text-xs font-black text-uel-blue dark:text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        {{ 'Chọn khung giờ sử dụng:' | t }}
+                      </label>
+                      <span class="text-[11px] font-bold text-text-secondary dark:text-slate-300 bg-bg-gray dark:bg-slate-800 px-2 py-0.5 rounded-md">{{ 'Hôm nay' | t }}</span>
+                    </div>
+
+                    <!-- Slots Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      @for (slot of bookingSlots; track slot.id) {
+                        <button type="button"
+                                (click)="selectBookingSlot(slot)"
+                                class="text-left p-3 rounded-xl border transition-all cursor-pointer relative"
+                                [ngClass]="{
+                                  'border-uel-blue bg-uel-blue/5 dark:bg-sky-400/10 shadow-xs ring-2 ring-uel-blue/20': selectedSlot?.id === slot.id,
+                                  'border-border-gray dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300': selectedSlot?.id !== slot.id
+                                }">
+                          <div class="flex items-center justify-between text-xs font-bold mb-1">
+                            <span class="text-dark-text dark:text-white">{{slot.time}}</span>
+                            @if (isSlotConflicted(slot.id)) {
+                              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">
+                                {{ 'Trùng lịch' | t }}
+                              </span>
+                            } @else {
+                              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
+                                {{ 'Trống lịch' | t }}
+                              </span>
+                            }
+                          </div>
+                          <div class="text-[11px] text-text-muted dark:text-slate-400 font-medium">
+                            {{slot.period | t}}
+                          </div>
+                        </button>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Room Specs Summary -->
+                  <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-border-gray dark:border-slate-800 shadow-xs space-y-2.5 text-xs">
+                    <div class="flex items-center justify-between">
+                      <span class="text-text-muted dark:text-slate-400 font-semibold">{{ 'Trạng thái phòng:' | t }}</span>
+                      <span class="font-bold text-status-available">
+                        {{ 'Đang mở đặt chỗ' | t }}
+                      </span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-text-muted dark:text-slate-400 font-semibold">{{ 'Trang thiết bị:' | t }}</span>
+                      <span class="font-bold text-dark-text dark:text-white">{{ 'Máy chiếu, Điều hòa, Wifi UEL' | t }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-text-muted dark:text-slate-400 font-semibold">{{ 'Khung giờ chọn:' | t }}</span>
+                      <span class="font-black text-uel-blue dark:text-sky-400">{{selectedSlot?.time}} ({{selectedSlot?.period | t}})</span>
+                    </div>
+                  </div>
+
+                  <!-- Conflict / Validation Alert Banner -->
+                  @if (hasConflict) {
+                    <div class="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300/80 dark:border-amber-800 text-amber-900 dark:text-amber-300 flex items-start gap-3 animate-[fade-in-up_0.2s_ease-out]">
+                      <div class="w-6 h-6 rounded-full bg-amber-200 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 flex items-center justify-center shrink-0 mt-0.5 font-bold">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                      </div>
+                      <div class="text-xs">
+                        <div class="font-black text-amber-900 dark:text-amber-300">{{ 'Phát hiện xung đột lịch học!' | t }}</div>
+                        <div class="text-amber-800 dark:text-amber-300 font-semibold mt-0.5">{{conflictReason | t}}</div>
+                        <div class="text-[11px] text-amber-700 dark:text-amber-400 mt-1">
+                          {{ 'Hệ thống tạm khóa nút đặt nhằm tránh trùng ca học theo Quy chế Đào tạo UEL. Vui lòng chọn ca rảnh khác.' | t }}
+                        </div>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300/80 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 flex items-start gap-3 animate-[fade-in-up_0.2s_ease-out]">
+                      <div class="w-6 h-6 rounded-full bg-emerald-200 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 flex items-center justify-center shrink-0 mt-0.5 font-bold">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                      </div>
+                      <div class="text-xs">
+                        <div class="font-black text-emerald-900 dark:text-emerald-300">{{ 'Lịch học hoàn toàn hợp lệ!' | t }}</div>
+                        <div class="text-emerald-800 dark:text-emerald-300 font-semibold mt-0.5">{{ 'Bạn không có tiết học nào trong khung giờ' | t }} {{selectedSlot?.time}}. {{ 'Đủ điều kiện đăng ký phòng.' | t }}</div>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Actions -->
+                  <div class="flex items-center gap-3 pt-2">
+                    <button type="button"
+                            (click)="closeBookingModal()" 
+                            class="w-1/3 py-3 rounded-xl border border-border-gray dark:border-slate-700 font-bold text-text-muted dark:text-slate-400 hover:bg-bg-gray dark:hover:bg-slate-800 transition-colors cursor-pointer text-sm text-center">
+                      {{ 'Hủy' | t }}
+                    </button>
+                    
+                    <button type="button"
+                            (click)="confirmBooking()" 
+                            [disabled]="hasConflict"
+                            class="w-2/3 py-3 rounded-xl font-bold transition-all text-sm text-center shadow-md flex items-center justify-center gap-2"
+                            [ngClass]="{
+                              'bg-uel-orange text-white hover:brightness-110 cursor-pointer': !hasConflict,
+                              'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-300 dark:border-slate-600 shadow-none': hasConflict
+                            }">
+                      @if (hasConflict) {
+                        <span>{{ 'Trùng lịch (Không thể đặt)' | t }}</span>
+                      } @else {
+                        <span>{{ 'Xác nhận đặt phòng' | t }}</span>
+                      }
+                    </button>
+                  </div>
+
+                </div>
+
+                <!-- Column 2: Personal Student Schedule Today (Right 5 cols) -->
+                <div class="lg:col-span-5 bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-border-gray dark:border-slate-800 shadow-xs flex flex-col justify-between">
+                  <div>
+                    <!-- Student Schedule Card Header -->
+                    <div class="border-b border-border-gray/70 dark:border-slate-800 pb-3 mb-3.5">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                          <div class="w-8 h-8 rounded-xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 flex items-center justify-center font-bold text-xs">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+                          </div>
+                          <div>
+                            <h4 class="text-sm font-black text-uel-blue dark:text-sky-400">{{ 'Thời khóa biểu hôm nay' | t }}</h4>
+                            <p class="text-[11px] font-semibold text-text-muted dark:text-slate-400">{{studentInfo.name}} • {{studentInfo.id}}</p>
+                          </div>
+                        </div>
+                        <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                          {{ 'Đồng bộ UEL' | t }}
+                        </span>
+                      </div>
+                      <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <span class="text-[10px] text-text-muted dark:text-slate-400 font-medium">{{studentInfo.major}} • {{ 'Học kỳ' | t }} 1</span>
+                        <button type="button"
+                                (click)="openTimetableModal()"
+                                class="text-[11px] font-black text-uel-blue dark:text-sky-400 hover:text-uel-orange flex items-center gap-1 transition-colors cursor-pointer group">
+                          <span>{{ 'Xem TKB tuần chi tiết' | t }}</span>
+                          <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Schedule Timeline List -->
+                    <div class="space-y-2.5">
+                      @for (item of studentSchedule; track item.id) {
+                        <div class="rounded-xl p-3 border transition-colors text-xs"
+                             [ngClass]="{
+'border-l-4 border-l-amber-500 bg-amber-50/40 dark:bg-amber-950/20 border-amber-200/80 dark:border-amber-800/80': item.isBusy,
+                                'border-l-4 border-l-emerald-500 bg-emerald-50/30 dark:bg-emerald-950/20 border-emerald-200/80 dark:border-emerald-800/80': !item.isBusy
+                             }">
+                          <div class="flex items-center justify-between mb-1">
+                            <span class="font-black text-dark-text dark:text-white">{{item.time}}</span>
+                            @if (item.isBusy) {
+                              <span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">
+                                {{ 'BẬN HỌC' | t }}
+                              </span>
+                            } @else {
+                              <span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
+                                {{ 'TRỐNG LỊCH' | t }}
+                              </span>
+                            }
+                          </div>
+
+                          <div class="font-bold text-dark-text dark:text-white leading-snug">
+                            {{item.title | t}}
+                          </div>
+
+                          @if (item.isBusy) {
+                            <div class="text-[11px] text-text-muted dark:text-slate-400 font-medium mt-1 flex items-center gap-1.5">
+                              <span>{{ 'Phòng' | t }}: <strong class="text-uel-blue dark:text-sky-400">{{item.room}}</strong></span>
+                              <span>•</span>
+                              <span>{{item.lecturer}}</span>
+                            </div>
+                          } @else {
+                            <div class="text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold mt-1">
+                              {{ 'Thời gian phù hợp để đặt phòng học nhóm' | t }}
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Footer Notice inside Column 2 -->
+                  <div class="mt-4 pt-3 border-t border-border-gray/70 dark:border-slate-800 text-[11px] text-text-muted dark:text-slate-400 flex items-start gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 mt-0.5 text-uel-blue dark:text-sky-400"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    <span>{{ 'Dữ liệu thời khóa biểu được tự động đối chiếu từ Cổng Đào tạo tín chỉ UEL.' | t }}</span>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+          } @else {
+            <!-- Booking Success State -->
+            <div class="text-center py-10 px-6 sm:px-10">
+              <div class="w-16 h-16 bg-status-available/15 text-status-available rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              </div>
+              <h3 class="text-2xl font-black text-uel-blue dark:text-sky-400 mb-2">{{ 'Đặt phòng thành công!' | t }}</h3>
+              <p class="text-sm text-text-muted dark:text-slate-400 max-w-md mx-auto mb-3">
+                {{ 'Mã xác nhận:' | t }} <span class="font-extrabold text-uel-orange">UEL-88392</span>. {{ 'Bạn đã đặt thành công phòng' | t }} <strong class="text-uel-blue dark:text-sky-400">{{selectedRoomToBook.name}}</strong> {{ 'vào ca' | t }} <strong class="text-dark-text dark:text-white">{{selectedSlot?.time}}</strong>.
+              <div class="inline-flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                {{ 'Không trùng lịch học • Đã lưu vào lịch cá nhân UEL' | t }}
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Weekly Timetable Modal (Designed exactly as requested UI) -->
+    @if (showTimetableModal) {
+      <div class="fixed inset-0 z-[11000] flex items-center justify-center p-2 sm:p-5">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-[#001D3D]/70 backdrop-blur-xs transition-opacity" (click)="closeTimetableModal()"></div>
+        
+        <!-- Modal Card Container -->
+        <div class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-border-gray dark:border-slate-800 w-full max-w-[1440px] max-h-[94vh] flex flex-col overflow-hidden animate-[fade-in-up_0.25s_ease-out]">
+          
+          <!-- Modal Header -->
+          <div class="px-6 py-4 border-b border-border-gray/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-2xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 flex items-center justify-center font-bold border border-uel-blue/20 dark:border-sky-400/20 shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                  <line x1="16" x2="16" y1="2" y2="6"/>
+                  <line x1="8" x2="8" y1="2" y2="6"/>
+                  <line x1="3" x2="21" y1="10" y2="10"/>
+                  <path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/>
+                </svg>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="text-xl font-black text-uel-blue dark:text-sky-400">{{ 'Thời khóa biểu & Lịch phòng học UEL' | t }}</h3>
+                  <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300">{{ 'Học kỳ' | t }} 1</span>
+                </div>
+                <p class="text-xs text-text-muted dark:text-slate-400 font-medium mt-0.5">
+                  {{ 'Sinh viên' | t }}: <strong class="text-dark-text dark:text-white">{{studentInfo.name}} ({{studentInfo.id}})</strong> • {{studentInfo.major}}
+                </p>
+              </div>
+            </div>
+
+            <!-- Week Switcher Controls -->
+            <div class="flex items-center gap-2 bg-bg-gray dark:bg-slate-800 p-1.5 rounded-2xl border border-border-gray dark:border-slate-700">
+              <button class="px-3 py-1.5 rounded-xl text-xs font-bold text-dark-text dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 hover:shadow-2xs transition-all cursor-pointer">
+                ← {{ 'Tuần trước' | t }}
+              </button>
+              <div class="px-3.5 py-1.5 rounded-xl bg-uel-blue text-white text-xs font-black shadow-xs">
+                {{currentWeekText | t}}
+              </div>
+              <button class="px-3 py-1.5 rounded-xl text-xs font-bold text-dark-text dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 hover:shadow-2xs transition-all cursor-pointer">
+                {{ 'Tuần sau' | t }} →
+              </button>
             </div>
           </div>
-        </div>
-      } @else {
-        <div class="flex flex-col items-center justify-center h-full p-8 text-center bg-bg-gray/30">
-          <div class="w-20 h-20 bg-white rounded-full shadow-sm flex items-center justify-center text-3xl mb-6 text-uel-blue/50">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+
+          <!-- Quick Tip Bar -->
+          <div class="px-6 py-2.5 bg-emerald-50/70 dark:bg-emerald-950/30 border-b border-emerald-100 dark:border-emerald-800/50 flex flex-wrap items-center justify-between text-xs text-emerald-900 dark:text-emerald-300 gap-3">
+            <div class="flex items-center gap-2 font-semibold">
+              <span>{{ 'Bấm vào bất kỳ ô gạch ngang' | t }} <strong class="text-dark-text dark:text-white">(—)</strong> {{ 'trên thời khóa biểu để đăng ký mượn phòng học nhanh.' | t }}</span>
+            </div>
+            <div class="flex items-center gap-4 text-[11px] font-bold">
+              <div class="flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded bg-uel-orange"></span>
+                <span>{{ 'Hôm nay' | t }} ({{ 'Thứ 6' | t }})</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded bg-[#FFF8F3] border border-orange-200 border-l-[3px] border-l-[#C5221F]"></span>
+                <span>{{ 'Lớp học chính khóa' | t }}</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-slate-400 font-extrabold">—</span>
+                <span>{{ 'Khung giờ trống' | t }}</span>
+              </div>
+            </div>
           </div>
-          <h3 class="text-lg font-bold text-dark-text mb-2">Chưa chọn không gian</h3>
-          <p class="text-text-muted text-sm leading-relaxed mb-8">Click vào một điểm trên bản đồ hoặc chọn từ danh sách bên trái để xem chi tiết và đặt phòng.</p>
-          <button class="btn-outline w-full" (click)="triggerEmptyStateDemo()">Demo: Xem thử một phòng</button>
+
+          <!-- Table Content Container (Scrollable) -->
+          <div class="p-4 sm:p-6 overflow-auto custom-scrollbar flex-1 bg-[#F8FAFC] dark:bg-[#0B1220]">
+            <table class="w-full border-collapse border border-slate-300 dark:border-slate-700 text-center text-xs bg-white dark:bg-slate-900 rounded-xl shadow-xs overflow-hidden">
+              
+              <!-- Header Row -->
+              <thead>
+                <tr class="select-none">
+                  <!-- Phòng Header -->
+                  <th class="border border-slate-300 dark:border-slate-700 px-4 py-3 min-w-[130px] font-black bg-[#003B71] text-white sticky left-0 z-20 text-center">
+                    {{ 'Phòng' | t }}
+                  </th>
+
+                  <!-- Day Headers -->
+                  @for (day of weekDays; track day.key) {
+                    <th class="border border-slate-300 dark:border-slate-700 px-3 py-2.5 min-w-[170px]"
+                        [ngClass]="day.isToday ? 'bg-[#FF7900] text-white shadow-inner' : 'bg-[#003B71] text-white'">
+                      <div class="text-sm font-black">{{day.name | t}}</div>
+                      <div class="text-[11px] font-medium" [ngClass]="day.isToday ? 'text-amber-100 font-bold' : 'text-slate-200'">
+                        {{day.date}}
+                      </div>
+                    </th>
+                  }
+                </tr>
+              </thead>
+
+              <!-- Table Body -->
+              <tbody>
+                @for (row of timetableRows; track row.roomCode) {
+                  <tr class="border-b border-slate-300 dark:border-slate-700 hover:bg-slate-50/30 dark:hover:bg-slate-800/30 transition-colors">
+                    
+                    <!-- Room Column (Sticky Left) -->
+                    <td class="border border-slate-300 dark:border-slate-700 p-3 sticky left-0 z-10 bg-white dark:bg-slate-900 font-bold min-w-[130px] shadow-sm text-center">
+                      <div class="text-base font-black text-[#003B71] dark:text-sky-400">{{row.roomCode}}</div>
+                      <div class="text-[11px] text-text-muted dark:text-slate-400 font-bold">({{row.campus | t}})</div>
+                      <div class="text-[10px] text-slate-400 font-semibold mt-1">{{ 'Sức chứa' | t }}: {{row.capacity}}</div>
+                    </td>
+
+                    <!-- Day Columns -->
+                    @for (day of weekDays; track day.key) {
+                      <td class="border border-slate-300 dark:border-slate-700 p-2 align-middle h-full min-w-[170px] relative bg-white dark:bg-slate-900">
+                        
+                        <!-- If Empty Slot: Show dash like photo & allow 1-click booking -->
+                        @if (!row.schedule[day.key]) {
+                          <div class="min-h-[160px] flex flex-col items-center justify-center p-3 group cursor-pointer hover:bg-emerald-50/60 dark:hover:bg-emerald-950/30 rounded-xl transition-all border border-transparent hover:border-emerald-300 dark:hover:border-emerald-700"
+                               (click)="bookSlotFromTimetable(row.roomCode, day)"
+                               [title]="('Phòng' | t) + ' ' + row.roomCode + ' ' + ('trống vào' | t) + ' ' + (day.name | t) + ' - ' + ('Bấm để đặt phòng' | t)">
+                            <span class="text-slate-300 font-bold text-2xl group-hover:hidden select-none">—</span>
+                            <div class="hidden group-hover:flex flex-col items-center gap-1.5 animate-[fade-in-up_0.15s_ease-out]">
+                              <span class="text-xs font-black text-white bg-uel-orange px-3 py-1 rounded-lg shadow-sm flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                {{ 'Đặt phòng' | t }}
+                              </span>
+                              <span class="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">{{ 'Trống lịch ca này' | t }}</span>
+                            </div>
+                          </div>
+                        } @else {
+                          <!-- Class Card: Exact Style from Image with red course title and soft cream background -->
+                          <div class="min-h-[160px] p-2.5 rounded-lg bg-[#FFF8F3] dark:bg-amber-950/20 border border-orange-200/90 dark:border-orange-800/40 border-l-[4px] border-l-[#C5221F] shadow-xs text-center flex flex-col justify-between text-[11px] transition-all hover:shadow-md">
+                            
+                            <!-- Subject Name & Code (Red) -->
+                            <div class="text-[#C5221F] font-black text-xs leading-snug mb-1">
+                              {{row.schedule[day.key].subject | t}}<br>
+                              <span class="font-bold">({{row.schedule[day.key].code}})</span>
+                            </div>
+
+                            <!-- Class Details -->
+                            <div class="text-slate-600 dark:text-slate-400 font-medium space-y-0.5 text-[10px] leading-tight">
+                              <div>LHP: <span class="font-semibold text-slate-800 dark:text-slate-100">{{row.schedule[day.key].lhp}}</span></div>
+                              <div>{{ 'Phòng học' | t }}: <span class="font-semibold text-slate-800 dark:text-slate-100">{{row.schedule[day.key].room}}</span></div>
+                              <div class="text-slate-500 dark:text-slate-400 font-medium">{{row.schedule[day.key].campus | t}}</div>
+                              <div>{{ 'Số tiết' | t }}: <span class="font-semibold">{{row.schedule[day.key].periodsTotal}}</span></div>
+                              <div class="text-slate-500 dark:text-slate-400">{{row.schedule[day.key].periodRange | t}}</div>
+                              <div class="font-black text-dark-text dark:text-white mt-1 text-[11px]">{{ 'Giờ học' | t }}: {{row.schedule[day.key].time}}</div>
+                              <div class="text-slate-700 dark:text-slate-300 font-bold mt-0.5">{{ 'GV' | t }}: {{row.schedule[day.key].lecturer}}</div>
+                            </div>
+
+                            <!-- Language Tag (UEL Blue) -->
+                            <div class="font-black text-[#003B71] dark:text-sky-400 text-[11px] mt-1.5 pt-1 border-t border-orange-200/60 dark:border-orange-800/60">
+                              {{ 'Ngôn ngữ' | t }}: {{row.schedule[day.key].language | t}}
+                            </div>
+
+                          </div>
+                        }
+
+                      </td>
+                    }
+
+                  </tr>
+                }
+              </tbody>
+
+            </table>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="px-6 py-3 border-t border-border-gray/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between text-xs text-text-muted dark:text-slate-400">
+            <div class="flex items-center gap-2.5">
+              <div class="w-5 h-5 rounded-full bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 flex items-center justify-center font-bold shrink-0 border border-uel-blue/25 dark:border-sky-400/25" [title]="'Thông tin liên thông' | t">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              </div>
+              <span class="font-medium">{{ 'Dữ liệu thời khóa biểu được liên thông trực tiếp từ Hệ thống Quản lý Đào tạo Trường Đại học Kinh tế - Luật (UEL).' | t }}</span>
+            </div>
+
+            @if (previousRoomDetail) {
+              <div class="flex items-center gap-2">
+                <button (click)="returnToRoomDetail()" 
+                        class="px-4 py-2 rounded-xl bg-uel-blue text-white font-bold hover:bg-[#00284D] dark:bg-sky-600 dark:hover:bg-sky-700 transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+                  <span>{{ 'Quay lại' | t }} {{previousRoomDetail.name}}</span>
+                </button>
+                <button (click)="closeAllModals()" 
+                        class="px-4 py-2 rounded-xl bg-bg-gray dark:bg-slate-800 text-text-muted dark:text-slate-400 hover:text-dark-text dark:hover:text-white hover:bg-border-gray dark:hover:bg-slate-700 font-bold transition-colors cursor-pointer">
+                  {{ 'Đóng tất cả' | t }}
+                </button>
+              </div>
+            } @else {
+              <button (click)="closeTimetableModal()" 
+                      class="px-5 py-2 rounded-xl bg-uel-blue text-white font-bold hover:bg-uel-blue/90 dark:bg-sky-600 dark:hover:bg-sky-700 transition-colors cursor-pointer">
+                {{ 'Đóng bảng' | t }}
+              </button>
+            }
+          </div>
+
         </div>
-      }
-    </aside>
+      </div>
+    }
     
   </div>
 </div>

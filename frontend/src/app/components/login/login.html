@@ -1,0 +1,233 @@
+<div class="min-h-screen w-full flex flex-col lg:flex-row relative bg-[#001E3D] font-roboto overflow-hidden">
+  
+  <!-- LEFT SIDE: Interactive Campus Carousel & Brand Presentation -->
+  <div class="relative w-full lg:w-[58%] min-h-[380px] lg:min-h-screen overflow-hidden flex flex-col justify-between p-6 sm:p-10 lg:p-14 z-10">
+    
+    <!-- Dynamic Sliding Images with Smooth Ken-Burns Effect -->
+    <div class="absolute inset-0 z-0">
+      @for (img of carouselImages; track img; let idx = $index) {
+        <img [src]="img" 
+             [alt]="'UEL Campus ' + (idx + 1)"
+             class="absolute inset-0 w-full h-full object-cover transition-all duration-1000 ease-in-out"
+             [ngClass]="{
+               'opacity-100 scale-105 pointer-events-auto': currentImageIndex === idx,
+               'opacity-0 scale-100 pointer-events-none': currentImageIndex !== idx
+             }">
+      }
+      
+      <!-- Brand Premium Gradient Overlay (Deep UEL Blue Vignette) -->
+      <div class="absolute inset-0 bg-gradient-to-t from-[#001D3D]/95 via-[#002D5C]/55 to-[#001D3D]/40"></div>
+      <div class="absolute inset-0 bg-gradient-to-r from-[#001D3D]/80 via-transparent to-[#001D3D]/70 hidden lg:block"></div>
+    </div>
+
+    <!-- Top Left: Official Logo UEL (No container border, larger logo) -->
+    <div class="relative z-20 flex items-center">
+        <a routerLink="/" class="inline-block transition-transform hover:scale-105 duration-200 cursor-pointer" [title]="'Về trang chủ UEL SPACE' | t">
+          <img [src]="server_images_link + 'footer/logo_footer.png'" [alt]="'Đại học Kinh tế - Luật UEL' | t" class="h-14 sm:h-16 lg:h-20 w-auto object-contain drop-shadow-md">
+        </a>
+    </div>
+
+    <!-- Center/Bottom Left: Campus Highlights & Quotes -->
+    <div class="relative z-20 max-w-2xl text-white mt-auto pt-10">
+      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-[1.15] mb-4 drop-shadow-md">
+        {{ 'Find the right space.' | t }}<br>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 via-sky-200 to-white">{{ 'Use it smarter.' | t }}</span>
+      </h1>
+
+      <p class="text-white/90 text-sm sm:text-base leading-relaxed mb-6 font-medium max-w-xl drop-shadow-sm">
+        {{ 'Trải nghiệm đặt phòng học tập, giảng đường và khu vực tự học hiện đại, tiện nghi ngay tại khuôn viên Trường Đại học' | t }} <span class="whitespace-nowrap font-bold text-white">{{ 'Kinh tế - Luật' | t }}</span>.
+      </p>
+    </div>
+
+  </div>
+
+  <!-- RIGHT SIDE: Modern Curved Login Form Panel -->
+  <div class="relative w-full lg:w-[42%] flex flex-col justify-between p-6 sm:p-10 lg:p-14 bg-white dark:bg-slate-900 lg:rounded-l-[40px] shadow-2xl z-20 min-h-screen">
+    
+    <!-- Top Bar: Back to Home -->
+    <div class="flex items-center mb-8">
+      <a routerLink="/" class="inline-flex items-center gap-2 text-xs font-bold text-text-muted dark:text-slate-400 hover:text-uel-blue dark:hover:text-sky-400 transition-colors group">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="group-hover:-translate-x-1 transition-transform"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        {{ 'Quay lại Trang chủ' | t }}
+      </a>
+    </div>
+
+    <!-- Login Box Body -->
+    <div class="max-w-md w-full mx-auto my-auto">
+      
+      <!-- Header of Card -->
+      <div class="mb-6">
+        <h2 class="text-3xl font-black text-dark-text dark:text-white tracking-tight mb-2">{{ 'Đăng nhập' | t }}</h2>
+        <p class="text-sm font-medium text-text-muted dark:text-slate-400">{{ 'Truy cập không gian số UEL bằng tài khoản sinh viên hoặc giảng viên.' | t }}</p>
+      </div>
+
+      <!-- Portal Type Badge / Switcher -->
+      <div class="bg-bg-gray dark:bg-slate-800 p-1 rounded-2xl border border-border-gray dark:border-slate-700 flex items-center mb-6">
+        <button type="button" 
+                (click)="portalRole = 'student'"
+                [ngClass]="portalRole === 'student' ? 'bg-white dark:bg-slate-700 text-uel-blue dark:text-sky-300 shadow-xs font-black' : 'text-text-muted dark:text-slate-400 font-bold hover:text-dark-text dark:hover:text-white'"
+                class="flex-1 py-2 rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          {{ 'Portal - Sinh viên' | t }}
+        </button>
+        <button type="button" 
+                (click)="portalRole = 'lecturer'"
+                [ngClass]="portalRole === 'lecturer' ? 'bg-white dark:bg-slate-700 text-uel-blue dark:text-sky-300 shadow-xs font-black' : 'text-text-muted dark:text-slate-400 font-bold hover:text-dark-text dark:hover:text-white'"
+                class="flex-1 py-2 rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          {{ 'Giảng viên / CBVC' | t }}
+        </button>
+      </div>
+
+      <!-- Error Alert Box -->
+      @if (errorMessage) {
+        <div class="mb-5 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-xs font-semibold flex items-start gap-3 shadow-xs animate-fadeIn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="text-rose-600 dark:text-rose-400 shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+          <div class="flex-1 leading-relaxed">
+            {{ errorMessage }}
+          </div>
+          <button type="button" (click)="errorMessage = ''" class="text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 cursor-pointer text-sm font-bold">
+            ✕
+          </button>
+        </div>
+      }
+
+      <!-- Success Alert Box -->
+      @if (successMessage) {
+        <div class="mb-5 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-start gap-3 shadow-xs animate-fadeIn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <div class="flex-1 leading-relaxed">
+            {{ successMessage }}
+          </div>
+        </div>
+      }
+
+      <!-- Form Inputs -->
+      <form (ngSubmit)="handleLogin()" class="space-y-4">
+        
+        <!-- Username/Email Field -->
+        <div>
+          <label class="block text-xs font-bold text-dark-text dark:text-white mb-2 flex items-center justify-between">
+            <span class="flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="text-uel-blue dark:text-sky-400"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+              {{ 'Tên đăng nhập hoặc email trường' | t }}
+            </span>
+            <span class="text-[11px] font-normal text-text-muted dark:text-slate-400">({{ '@uel.edu.vn hoặc @st.uel.edu.vn' | t }})</span>
+          </label>
+          <div class="relative">
+            <input type="text"
+                   [(ngModel)]="username"
+                   name="username"
+                   required
+                    [placeholder]="'Nhập MSSV hoặc email @st.uel.edu.vn' | t"
+                   class="w-full bg-[#F8FAFC] dark:bg-slate-800 border border-[#CBD5E1] dark:border-slate-700 rounded-2xl px-4 py-3.5 text-sm font-semibold text-dark-text dark:text-white placeholder:text-[#94A3B8] dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:border-uel-blue focus:ring-2 focus:ring-uel-blue/20 transition-all shadow-xs">
+          </div>
+        </div>
+
+        <!-- Password Field -->
+        <div>
+          <label class="block text-xs font-bold text-dark-text dark:text-white mb-2 flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="text-uel-blue dark:text-sky-400"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            {{ 'Mật khẩu' | t }}
+          </label>
+          <div class="relative">
+            <input [type]="showPassword ? 'text' : 'password'"
+                   [(ngModel)]="password"
+                   name="password"
+                   required
+                    [placeholder]="'Nhập mật khẩu' | t"
+                   class="w-full bg-[#F8FAFC] dark:bg-slate-800 border border-[#CBD5E1] dark:border-slate-700 rounded-2xl pl-4 pr-11 py-3.5 text-sm font-semibold text-dark-text dark:text-white placeholder:text-[#94A3B8] dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:border-uel-blue focus:ring-2 focus:ring-uel-blue/20 transition-all shadow-xs">
+            <button type="button" 
+                    (click)="togglePasswordVisibility()" 
+                    class="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted dark:text-slate-400 hover:text-dark-text dark:hover:text-white transition-colors cursor-pointer">
+              @if (!showPassword) {
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+              } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              }
+            </button>
+          </div>
+        </div>
+
+        <!-- Options: Remember & Forgot -->
+        <div class="flex items-center justify-between text-xs pt-1 pb-2">
+          <label class="flex items-center gap-2 cursor-pointer select-none text-dark-text dark:text-white font-semibold">
+            <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe" class="w-4 h-4 rounded text-uel-blue accent-uel-blue border-border-gray dark:border-slate-600 cursor-pointer">
+            {{ 'Ghi nhớ đăng nhập' | t }}
+          </label>
+          <a href="#" class="font-bold text-uel-blue dark:text-sky-400 hover:text-uel-orange transition-colors">{{ 'Quên mật khẩu?' | t }}</a>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" 
+                [disabled]="isLoading"
+                class="w-full bg-uel-blue hover:bg-[#002D57] active:bg-[#002244] text-white font-black py-3.5 rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 text-sm">
+          @if (!isLoading) {
+            <span>{{ 'Đăng nhập' | t }}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
+          } @else {
+            <span class="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+            <span>{{ 'Đang xác thực với máy chủ...' | t }}</span>
+          }
+        </button>
+
+      </form>
+
+      <!-- Social / University SSO Divider -->
+      <div class="relative my-6">
+        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-border-gray dark:border-slate-700"></div></div>
+        <div class="relative flex justify-center text-[11px] font-bold uppercase tracking-wider text-text-muted dark:text-slate-400 bg-white dark:bg-slate-900 px-3">
+          {{ 'Hoặc đăng nhập với Google UEL' | t }}
+        </div>
+      </div>
+
+      <!-- Unified Google Sign-in Button with Custom UEL Premium Style -->
+      <button type="button" 
+              (click)="triggerGoogleLogin()"
+              [disabled]="isLoading"
+              class="w-full bg-white dark:bg-slate-800 hover:bg-[#F8FAFC] dark:hover:bg-slate-700 text-dark-text dark:text-white border-2 border-[#CBD5E1] dark:border-slate-700 hover:border-uel-blue font-bold py-3.5 px-4 rounded-2xl transition-all duration-200 flex items-center justify-center gap-3 cursor-pointer text-sm shadow-xs hover:shadow-md active:scale-[0.99] disabled:opacity-60 group">
+        <svg class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110 duration-200" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span>{{ 'Đăng nhập bằng tài khoản Google UEL' | t }}</span>
+      </button>
+
+      <!-- Quick Admin Fast Login -->
+      <div class="mt-4 p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800 flex items-center justify-between gap-3">
+        <div class="text-xs text-amber-900 dark:text-amber-200 leading-tight">
+          <div class="font-bold flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+            {{ 'Tài khoản Quản trị viên UEL' | t }}
+          </div>
+          <div class="text-[11px] text-amber-700 dark:text-amber-400 font-mono mt-0.5">admin@uel.edu.vn</div>
+        </div>
+        <button type="button"
+                (click)="fillAdminMockup()"
+                class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-xs">
+          {{ 'Đăng nhập Admin →' | t }}
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Bottom Contact Info (School Address & Hotline) -->
+    <div class="mt-8 pt-6 border-t border-border-gray/70 dark:border-slate-800 text-xs text-text-muted dark:text-slate-400 space-y-1.5">
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-uel-blue dark:text-sky-400 shrink-0"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>Số 669 Đỗ Mười, khu phố 3, P. Linh Xuân, TP.HCM</span>
+      </div>
+      <div class="flex items-center justify-between text-[11px] pt-1">
+        <span class="flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-uel-blue dark:text-sky-400"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          Hotline: 19001239
+        </span>
+        <span class="text-text-muted/80 dark:text-slate-500">© UEL SPACE 2026</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>

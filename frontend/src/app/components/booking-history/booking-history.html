@@ -1,0 +1,292 @@
+<div class="py-8 px-6 max-w-[1440px] mx-auto min-h-[calc(100vh-72px)] flex flex-col gap-8" (click)="closeAllDropdowns()">
+
+  <!-- Header Banner -->
+  <div class="bg-gradient-to-r from-uel-blue via-[#004b8d] to-sky-blue rounded-3xl p-8 text-white shadow-md relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div class="relative z-10 max-w-3xl">
+      <div class="inline-flex items-center px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold mb-3">
+        {{ 'UEL SPACE • Quản lý không gian thông minh' | t }}
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2">{{ 'Lịch sử đặt chỗ của bạn' | t }}</h1>
+      <p class="text-white/80 text-sm sm:text-base leading-relaxed">{{ 'Theo dõi, kiểm tra mã QR check-in và quản lý lịch sử đặt phòng học, khu tự học tại UEL.' | t }}</p>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="relative z-10 flex gap-3 flex-wrap">
+      <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-5 py-3.5 text-center flex-1 min-w-[100px]">
+        <div class="text-2xl font-black text-white">{{bookings.length}}</div>
+        <div class="text-xs font-semibold text-white/70 uppercase tracking-wider">{{ 'Tổng số lượt' | t }}</div>
+      </div>
+      <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-5 py-3.5 text-center flex-1 min-w-[100px]">
+        <div class="text-2xl font-black text-emerald-300">{{activeCount}}</div>
+        <div class="text-xs font-semibold text-white/70 uppercase tracking-wider">{{ 'Hiện tại / Sắp tới' | t }}</div>
+      </div>
+      <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-5 py-3.5 text-center flex-1 min-w-[100px]">
+        <div class="text-2xl font-black text-amber-300">{{completedCount}}</div>
+        <div class="text-xs font-semibold text-white/70 uppercase tracking-wider">{{ 'Hoàn thành' | t }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter & Search Toolbar -->
+  <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 md:p-6 shadow-sm border border-border-gray dark:border-slate-800 flex flex-col xl:flex-row items-center justify-between gap-4">
+    
+    <!-- Expanded Search Bar on Left -->
+    <div class="relative w-full xl:flex-1">
+      <input type="text"
+             [(ngModel)]="searchTerm"
+             [placeholder]="'Tìm kiếm theo tên phòng, mã đặt chỗ, tòa nhà, mục đích...' | t"
+             class="w-full bg-bg-gray dark:bg-slate-800 border border-border-gray dark:border-slate-700 rounded-2xl pl-11 pr-4 py-3 text-sm font-medium text-dark-text dark:text-white placeholder:text-text-muted dark:placeholder:text-slate-500 focus:outline-none focus:border-uel-blue focus:ring-2 focus:ring-uel-blue/20 transition-all shadow-xs">
+      <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted dark:text-slate-400 w-5 h-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+    </div>
+
+    <!-- Filters Group on Right -->
+    <div class="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end" (click)="$event.stopPropagation()">
+      
+      <!-- Custom Area Dropdown -->
+      <div class="relative flex-1 sm:flex-initial min-w-[170px]">
+        <button (click)="toggleAreaDropdown($event)"
+                class="w-full flex items-center justify-between gap-2 bg-bg-gray dark:bg-slate-800 hover:bg-border-gray/50 dark:hover:bg-slate-700 border border-border-gray dark:border-slate-700 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-dark-text dark:text-white transition-all cursor-pointer">
+          <div class="flex items-center gap-2 min-w-0">
+            <svg class="w-4 h-4 text-uel-orange flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span class="whitespace-nowrap">{{selectedArea === 'all' ? ('Tất cả khu vực' | t) : (selectedArea | t)}}</span>
+          </div>
+          <svg class="w-3.5 h-3.5 text-text-muted dark:text-slate-400 transition-transform duration-200 flex-shrink-0" [class.rotate-180]="openAreaDropdown" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+
+        @if (openAreaDropdown) {
+          <div class="absolute top-full left-0 right-0 mt-2 z-[999] bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-border-gray dark:border-slate-800 p-1.5 animate-[fade-in-up_0.15s_ease-out] min-w-[180px]">
+            @for (area of areas; track area) {
+              <button (click)="selectAreaOption(area)"
+                      [ngClass]="(selectedArea === 'all' && area === 'Tất cả khu vực') || selectedArea === area ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-extrabold' : 'text-dark-text dark:text-slate-200 hover:bg-bg-gray dark:hover:bg-slate-800 font-semibold'"
+                      class="w-full px-3.5 py-2.5 text-left text-xs rounded-xl transition-colors flex items-center justify-between cursor-pointer">
+                <span>{{area | t}}</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Custom Status Dropdown -->
+      <div class="relative flex-1 sm:flex-initial min-w-[160px]">
+        <button (click)="toggleStatusDropdown($event)"
+                class="w-full flex items-center justify-between gap-2 bg-bg-gray dark:bg-slate-800 hover:bg-border-gray/50 dark:hover:bg-slate-700 border border-border-gray dark:border-slate-700 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-dark-text dark:text-white transition-all cursor-pointer">
+          <div class="flex items-center gap-2 min-w-0">
+            <svg class="w-4 h-4 text-uel-blue flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            <span class="whitespace-nowrap">
+              {{selectedStatusFilter === 'all' ? ('Tất cả trạng thái' | t) : 
+                selectedStatusFilter === 'active' ? ('Đang sử dụng' | t) : 
+                selectedStatusFilter === 'upcoming' ? ('Sắp tới' | t) : 
+                selectedStatusFilter === 'completed' ? ('Đã hoàn thành' | t) : ('Đã hủy' | t)}}
+            </span>
+          </div>
+          <svg class="w-3.5 h-3.5 text-text-muted dark:text-slate-400 transition-transform duration-200 flex-shrink-0" [class.rotate-180]="openStatusDropdown" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+
+        @if (openStatusDropdown) {
+          <div class="absolute top-full left-0 right-0 mt-2 z-[999] bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-border-gray dark:border-slate-800 p-1.5 animate-[fade-in-up_0.15s_ease-out] min-w-[170px]">
+            @for (st of statusOptions; track st.value) {
+              <button (click)="selectStatusOption(st.value)"
+                      [ngClass]="selectedStatusFilter === st.value ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-extrabold' : 'text-dark-text dark:text-slate-200 hover:bg-bg-gray dark:hover:bg-slate-800 font-semibold'"
+                      class="w-full px-3.5 py-2.5 text-left text-xs rounded-xl transition-colors flex items-center justify-between cursor-pointer">
+                <span>{{st.label | t}}</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Custom Date Filter Dropdown -->
+      <div class="relative flex-1 sm:flex-initial min-w-[165px]">
+        <button (click)="toggleDateDropdown($event)"
+                class="w-full flex items-center justify-between gap-2 bg-bg-gray dark:bg-slate-800 hover:bg-border-gray/50 dark:hover:bg-slate-700 border border-border-gray dark:border-slate-700 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-dark-text dark:text-white transition-all cursor-pointer">
+          <div class="flex items-center gap-2 min-w-0">
+            <svg class="w-4 h-4 text-uel-blue flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            <span class="whitespace-nowrap">{{selectedDate ? formatDisplayDate(selectedDate) : ('Chọn ngày đặt' | t)}}</span>
+          </div>
+          <svg class="w-3.5 h-3.5 text-text-muted dark:text-slate-400 transition-transform duration-200 flex-shrink-0" [class.rotate-180]="openDateDropdown" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+
+        @if (openDateDropdown) {
+          <div class="absolute top-full right-0 sm:right-auto sm:left-0 mt-2 z-[999] bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-border-gray dark:border-slate-800 p-3.5 animate-[fade-in-up_0.15s_ease-out] w-72">
+            
+            <!-- Month Header with Previous / Next Arrows -->
+            <div class="flex items-center justify-between mb-3 px-1">
+              <button (click)="prevMonth($event)" class="w-7 h-7 rounded-lg hover:bg-bg-gray dark:hover:bg-slate-800 flex items-center justify-center text-uel-blue dark:text-sky-400 transition-colors cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+              </button>
+              
+               <span class="text-xs font-black text-uel-blue dark:text-sky-400 tracking-wide">{{ monthNames[currentMonth] | t }}, {{ currentYear }}</span>
+              
+              <button (click)="nextMonth($event)" class="w-7 h-7 rounded-lg hover:bg-bg-gray dark:hover:bg-slate-800 flex items-center justify-center text-uel-blue dark:text-sky-400 transition-colors cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            </div>
+
+            <!-- Days of Week Header -->
+            <div class="grid grid-cols-7 text-[10px] font-extrabold text-text-muted dark:text-slate-400 text-center mb-2">
+               <span>{{ 'T2' | t }}</span><span>{{ 'T3' | t }}</span><span>{{ 'T4' | t }}</span><span>{{ 'T5' | t }}</span><span>{{ 'T6' | t }}</span><span>{{ 'T7' | t }}</span><span>{{ 'CN' | t }}</span>
+            </div>
+
+            <!-- Calendar Days Grid -->
+            <div class="grid grid-cols-7 gap-1">
+              @for (day of calendarDaysList; track $index) {
+                @if (day) {
+                  <button (click)="selectBookingCalendarDay(day)"
+                          [ngClass]="selectedCalendarDay === day ? 'bg-uel-orange text-white font-extrabold shadow-sm' : 'text-dark-text dark:text-slate-200 hover:bg-bg-gray dark:hover:bg-slate-800 font-semibold'"
+                          class="h-8 w-8 rounded-xl text-xs flex items-center justify-center mx-auto transition-colors cursor-pointer">
+                    {{day}}
+                  </button>
+                } @else {
+                  <div class="h-8 w-8"></div>
+                }
+              }
+            </div>
+
+            @if (selectedDate) {
+              <button (click)="selectedDate = ''; selectedCalendarDay = null; openDateDropdown = false;" class="w-full mt-3 pt-2 border-t border-border-gray/60 dark:border-slate-800 text-center text-xs font-bold text-red-500 dark:text-red-400 hover:text-red-700 cursor-pointer">
+                {{ '✕ Xóa lọc ngày' | t }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Reset Filter Button -->
+      @if (selectedArea !== 'all' || selectedStatusFilter !== 'all' || selectedDate || searchTerm) {
+        <button (click)="resetFilters()" class="px-3.5 py-2.5 rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-950/60 font-bold text-xs transition-all flex items-center gap-1.5 whitespace-nowrap">
+          <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          {{ 'Đặt lại' | t }}
+        </button>
+      }
+
+    </div>
+
+  </div>
+
+  <!-- Booking Items Grid / List -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    @for (item of filteredBookings; track item.id) {
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-border-gray dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300 p-6 flex flex-col justify-between group">
+        
+        <div>
+          <!-- Card Top Info -->
+          <div class="flex items-center justify-between gap-3 mb-4 pb-4 border-b border-border-gray/60 dark:border-slate-800">
+            <div>
+              <span class="text-xs font-bold text-text-muted dark:text-slate-400 uppercase tracking-wider">{{ 'Mã đặt chỗ' | t }}</span>
+              <div class="text-base font-black text-uel-blue dark:text-sky-400">{{item.id}}</div>
+            </div>
+            
+            <!-- Status Badge -->
+            <div class="px-3 py-1 rounded-full text-xs font-extrabold text-center select-none"
+                 [ngClass]="{
+                   'bg-status-available/15 text-emerald-700 dark:text-emerald-400': item.status === 'active',
+                   'bg-status-in-use/15 text-blue-700 dark:text-blue-400': item.status === 'upcoming',
+                   'bg-status-reserved/15 text-amber-700 dark:text-amber-400': item.status === 'completed',
+                   'bg-status-restricted/15 text-red-700 dark:text-red-400': item.status === 'cancelled'
+                 }">
+              {{item.statusText | t}}
+            </div>
+          </div>
+
+          <!-- Room Title & Location -->
+          <h3 class="text-xl font-black text-dark-text dark:text-white group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors mb-1">{{item.roomName | t}}</h3>
+          <p class="text-xs font-semibold text-text-muted dark:text-slate-400 flex items-center gap-1 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5 text-uel-orange flex-shrink-0"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            {{item.building | t}}
+          </p>
+
+          <!-- Schedule Details -->
+          <div class="bg-bg-gray dark:bg-slate-800 rounded-2xl p-4 space-y-2.5 mb-5 text-xs font-medium">
+            <div class="flex items-center justify-between text-dark-text dark:text-white">
+              <span class="text-text-muted dark:text-slate-400 flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-uel-blue dark:text-sky-400 flex-shrink-0"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                {{ 'Ngày đặt:' | t }}
+              </span>
+              <span class="font-bold">{{item.date}}</span>
+            </div>
+            <div class="flex items-center justify-between text-dark-text dark:text-white">
+              <span class="text-text-muted dark:text-slate-400 flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-uel-blue dark:text-sky-400 flex-shrink-0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {{ 'Khung giờ:' | t }}
+              </span>
+              <span class="font-bold text-uel-blue dark:text-sky-400">{{item.timeSlot}}</span>
+            </div>
+            <div class="flex items-center justify-between text-dark-text dark:text-white">
+              <span class="text-text-muted dark:text-slate-400 flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-uel-blue dark:text-sky-400 flex-shrink-0"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                {{ 'Mục đích:' | t }}
+              </span>
+              <span class="font-semibold text-right max-w-[180px] truncate" [title]="item.purpose | t">{{item.purpose | t}}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Footer -->
+        <div class="pt-2 border-t border-border-gray/40 dark:border-slate-800 flex items-center gap-2">
+          @if (item.status === 'active' || item.status === 'upcoming') {
+            <button (click)="openQrModal(item)"
+                    class="flex-1 py-2.5 px-4 rounded-xl bg-uel-blue dark:bg-sky-600 text-white font-bold text-xs hover:bg-uel-orange transition-all flex items-center justify-center gap-2 shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 flex-shrink-0"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/></svg>
+              {{ 'Xem QR Check-in' | t }}
+            </button>
+            <button (click)="cancelBooking(item)"
+                    class="py-2.5 px-3 rounded-xl border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 font-bold text-xs transition-colors"
+                    [title]="'Hủy đặt chỗ' | t">
+              {{ 'Hủy' | t }}
+            </button>
+          } @else {
+            <button (click)="openQrModal(item)"
+                    class="flex-1 py-2.5 px-4 rounded-xl bg-bg-gray dark:bg-slate-800 hover:bg-border-gray dark:hover:bg-slate-700 text-dark-text dark:text-white font-bold text-xs transition-all flex items-center justify-center gap-2 border border-border-gray dark:border-slate-700">
+              {{ 'Chi tiết vé & QR' | t }}
+            </button>
+          }
+        </div>
+
+      </div>
+    } @empty {
+      <div class="col-span-full py-16 bg-white dark:bg-slate-900 rounded-3xl border border-border-gray dark:border-slate-800 text-center p-8">
+        <div class="w-16 h-16 bg-uel-blue/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-uel-blue/20">
+          <svg class="w-8 h-8 text-uel-blue dark:text-sky-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+        </div>
+          <h3 class="text-xl font-bold text-dark-text dark:text-white mb-2">{{ 'Không tìm thấy lượt đặt chỗ' | t }}</h3>
+          <p class="text-text-muted dark:text-slate-400 text-sm">{{ 'Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc ở trên.' | t }}</p>
+      </div>
+    }
+  </div>
+
+  <!-- Modal QR Check-in -->
+  @if (showQrModal && selectedBookingForQr) {
+    <div class="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/50 backdrop-blur-xs" (click)="closeQrModal()"></div>
+      <div class="relative bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 max-w-sm w-full shadow-2xl border border-border-gray dark:border-slate-800 text-center animate-[fade-in-up_0.2s_ease-out]">
+        
+        <button (click)="closeQrModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-bg-gray dark:bg-slate-800 hover:bg-border-gray dark:hover:bg-slate-700 text-dark-text dark:text-white flex items-center justify-center">✕</button>
+
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-uel-blue/10 text-uel-blue dark:text-sky-300 text-xs font-bold mb-4">
+          {{ 'MÃ ĐẶT CHỖ:' | t }} {{selectedBookingForQr.id}}
+        </div>
+
+        <h3 class="text-2xl font-black text-dark-text dark:text-white mb-1">{{selectedBookingForQr.roomName | t}}</h3>
+        <p class="text-xs font-semibold text-text-muted dark:text-slate-400 mb-6">{{selectedBookingForQr.building | t}}</p>
+
+        <!-- Simulated QR Code -->
+        <div class="bg-white p-4 rounded-2xl border-2 border-uel-blue/20 shadow-inner inline-block mx-auto mb-6 relative group">
+          <img [src]="'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + selectedBookingForQr.id" 
+               alt="QR Code Check-in"
+               class="w-44 h-44 object-contain mx-auto">
+            <div class="text-[10px] font-bold text-text-muted dark:text-slate-400 mt-2 tracking-widest uppercase">{{ 'Quét mã tại thiết bị cổng phòng' | t }}</div>
+        </div>
+
+          <div class="bg-bg-gray dark:bg-slate-800 rounded-2xl p-4 text-left text-xs space-y-2 mb-6">
+            <div class="flex justify-between"><span class="text-text-muted dark:text-slate-400">{{ 'Khung giờ:' | t }}</span> <span class="font-bold text-uel-blue dark:text-sky-400">{{selectedBookingForQr.timeSlot}}</span></div>
+            <div class="flex justify-between"><span class="text-text-muted dark:text-slate-400">{{ 'Ngày:' | t }}</span> <span class="font-bold text-dark-text dark:text-white">{{selectedBookingForQr.date}}</span></div>
+            <div class="flex justify-between"><span class="text-text-muted dark:text-slate-400">{{ 'Trạng thái:' | t }}</span> <span class="font-bold text-emerald-600 dark:text-emerald-400">{{selectedBookingForQr.statusText | t}}</span></div>
+          </div>
+
+        <button (click)="closeQrModal()" class="w-full btn-primary py-3">{{ 'Đóng' | t }}</button>
+
+      </div>
+    </div>
+  }
+
+</div>
