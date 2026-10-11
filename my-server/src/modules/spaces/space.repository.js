@@ -30,7 +30,7 @@ class SpaceRepository {
   update(id, patch) {
     return this.collection
       .findOneAndUpdate({ _id: id, deletedAt: null }, { $set: patch, $inc: { version: 1 } }, { returnDocument: 'after' })
-      .then((result) => result.value);
+      .then((result) => (result && result.value !== undefined ? result.value : result));
   }
 
   softDelete(id) {

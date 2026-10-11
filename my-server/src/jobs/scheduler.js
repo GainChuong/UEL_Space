@@ -26,11 +26,11 @@ function buildContext() {
   const usageService = new UsageService(usageRepository, {
     bookingRepository: {
       findById: (id) => collections.bookings.findOne({ _id: id }),
-      update: (id, patch) => collections.bookings.findOneAndUpdate({ _id: id }, { $set: patch, $inc: { version: 1 } }, { returnDocument: 'after' }).then((r) => r.value)
+      update: (id, patch) => collections.bookings.findOneAndUpdate({ _id: id }, { $set: patch, $inc: { version: 1 } }, { returnDocument: 'after' }).then((r) => (r && r.value !== undefined ? r.value : r))
     },
     spaceRepository: {
       findById: (id) => collections.spaces.findOne({ _id: id }),
-      update: (id, patch) => collections.spaces.findOneAndUpdate({ _id: id }, { $set: patch }, { returnDocument: 'after' }).then((r) => r.value)
+      update: (id, patch) => collections.spaces.findOneAndUpdate({ _id: id }, { $set: patch }, { returnDocument: 'after' }).then((r) => (r && r.value !== undefined ? r.value : r))
     },
     notificationService,
     spaceStatusSync: null

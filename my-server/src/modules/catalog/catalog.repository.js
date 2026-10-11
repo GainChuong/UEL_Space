@@ -23,7 +23,7 @@ class CatalogRepository {
   }
 
   updateBuilding(id, patch) {
-    return this.buildings.findOneAndUpdate({ _id: id }, { $set: patch }, { returnDocument: 'after' }).then((r) => r.value);
+    return this.buildings.findOneAndUpdate({ _id: id }, { $set: patch }, { returnDocument: 'after' }).then((r) => (r && r.value !== undefined ? r.value : r));
   }
 
   removeBuilding(id) {
@@ -44,7 +44,7 @@ class CatalogRepository {
   }
 
   updateFloor(id, patch) {
-    return this.floors.findOneAndUpdate({ _id: id }, { $set: patch }, { returnDocument: 'after' }).then((r) => r.value);
+    return this.floors.findOneAndUpdate({ _id: id }, { $set: patch }, { returnDocument: 'after' }).then((r) => (r && r.value !== undefined ? r.value : r));
   }
 
   removeFloor(id) {
@@ -64,7 +64,7 @@ class CatalogRepository {
   }
 
   updateCategory(id, patch) {
-    return this.categories.findOneAndUpdate({ _id: id }, { $set: patch }, { returnDocument: 'after' }).then((r) => r.value);
+    return this.categories.findOneAndUpdate({ _id: id }, { $set: patch }, { returnDocument: 'after' }).then((r) => (r && r.value !== undefined ? r.value : r));
   }
 
   listEquipment() {
@@ -80,7 +80,7 @@ class CatalogRepository {
   }
 
   updateEquipment(id, patch) {
-    return this.equipment.findOneAndUpdate({ _id: id }, { $set: patch }, { returnDocument: 'after' }).then((r) => r.value);
+    return this.equipment.findOneAndUpdate({ _id: id }, { $set: patch }, { returnDocument: 'after' }).then((r) => (r && r.value !== undefined ? r.value : r));
   }
 }
 

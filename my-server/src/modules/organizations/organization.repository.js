@@ -22,7 +22,7 @@ class OrganizationRepository {
   update(id, patch) {
     return this.collection
       .findOneAndUpdate({ _id: id }, { $set: patch }, { returnDocument: 'after' })
-      .then((result) => result.value);
+      .then((result) => (result && result.value !== undefined ? result.value : result));
   }
 }
 

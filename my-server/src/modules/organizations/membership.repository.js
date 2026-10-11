@@ -20,7 +20,7 @@ class MembershipRepository {
   }
 
   update(id, patch) {
-    return this.collection.findOneAndUpdate({ _id: id }, { $set: patch }, { returnDocument: 'after' }).then((r) => r.value);
+    return this.collection.findOneAndUpdate({ _id: id }, { $set: patch }, { returnDocument: 'after' }).then((r) => (r && r.value !== undefined ? r.value : r));
   }
 }
 

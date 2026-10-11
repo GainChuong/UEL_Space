@@ -1,7 +1,7 @@
 <div class="min-h-screen w-full flex flex-col lg:flex-row relative bg-[#001E3D] font-roboto overflow-hidden">
   
   <!-- LEFT SIDE: Interactive Campus Carousel & Brand Presentation -->
-  <div class="relative w-full lg:w-[58%] min-h-[380px] lg:min-h-screen overflow-hidden flex flex-col justify-between p-6 sm:p-10 lg:p-14 z-10">
+  <div class="relative w-full lg:w-[58%] min-h-[180px] sm:min-h-[280px] lg:min-h-screen overflow-hidden flex flex-col justify-between p-4 sm:p-8 lg:p-14 z-10">
     
     <!-- Dynamic Sliding Images with Smooth Ken-Burns Effect -->
     <div class="absolute inset-0 z-0">
@@ -23,18 +23,18 @@
     <!-- Top Left: Official Logo UEL (No container border, larger logo) -->
     <div class="relative z-20 flex items-center">
         <a routerLink="/" class="inline-block transition-transform hover:scale-105 duration-200 cursor-pointer" [title]="'Về trang chủ UEL SPACE' | t">
-          <img [src]="server_images_link + 'footer/logo_footer.png'" [alt]="'Đại học Kinh tế - Luật UEL' | t" class="h-14 sm:h-16 lg:h-20 w-auto object-contain drop-shadow-md">
+          <img [src]="server_images_link + 'footer/logo_footer.png'" [alt]="'Đại học Kinh tế - Luật UEL' | t" class="h-10 sm:h-14 lg:h-20 w-auto object-contain drop-shadow-md">
         </a>
     </div>
 
     <!-- Center/Bottom Left: Campus Highlights & Quotes -->
-    <div class="relative z-20 max-w-2xl text-white mt-auto pt-10">
-      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-[1.15] mb-4 drop-shadow-md">
+    <div class="relative z-20 max-w-2xl text-white mt-auto pt-6 lg:pt-10 hidden sm:block">
+      <h1 class="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-[1.15] mb-2 sm:mb-4 drop-shadow-md">
         {{ 'Find the right space.' | t }}<br>
         <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 via-sky-200 to-white">{{ 'Use it smarter.' | t }}</span>
       </h1>
 
-      <p class="text-white/90 text-sm sm:text-base leading-relaxed mb-6 font-medium max-w-xl drop-shadow-sm">
+      <p class="text-white/90 text-xs sm:text-base leading-relaxed mb-4 sm:mb-6 font-medium max-w-xl drop-shadow-sm">
         {{ 'Trải nghiệm đặt phòng học tập, giảng đường và khu vực tự học hiện đại, tiện nghi ngay tại khuôn viên Trường Đại học' | t }} <span class="whitespace-nowrap font-bold text-white">{{ 'Kinh tế - Luật' | t }}</span>.
       </p>
     </div>
@@ -42,7 +42,7 @@
   </div>
 
   <!-- RIGHT SIDE: Modern Curved Login Form Panel -->
-  <div class="relative w-full lg:w-[42%] flex flex-col justify-between p-6 sm:p-10 lg:p-14 bg-white dark:bg-slate-900 lg:rounded-l-[40px] shadow-2xl z-20 min-h-screen">
+  <div class="relative w-full lg:w-[42%] flex flex-col justify-between p-5 sm:p-8 lg:p-14 bg-white dark:bg-slate-900 lg:rounded-l-[40px] shadow-2xl z-20 min-h-[auto] lg:min-h-screen">
     
     <!-- Top Bar: Back to Home -->
     <div class="flex items-center mb-8">

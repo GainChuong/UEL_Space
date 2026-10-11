@@ -16,7 +16,7 @@ class NotificationRepository {
       { _id: id, userId },
       { $set: { isRead: true, readAt: new Date() } },
       { returnDocument: 'after' }
-    ).then((r) => r.value);
+    ).then((r) => (r && r.value !== undefined ? r.value : r));
   }
 
   markAllRead(userId) {

@@ -50,6 +50,8 @@ export class Map implements OnInit, AfterViewInit {
     { id: 'choi-3', name: 'Chòi tự học 3', top: '55%', left: '70%' }
   ];
 
+  isMobileFilterOpen: boolean = false;
+
   ngOnInit() {}
 
   ngAfterViewInit() {}

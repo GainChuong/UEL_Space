@@ -121,6 +121,7 @@ export class Admin implements OnInit, OnDestroy {
   activeTab: 'overview' | 'approvals' | 'exceptions' | 'spaces' | 'users' | 'audit' | 'qr-checkin' | 'occupancy-detection' = 'overview';
   searchFilter: string = '';
   selectedBuildingFilter: string = 'all';
+  isMobileSidebarOpen: boolean = false;
 
   // Toggle dropdowns
   toggleNotification(event: Event): void {

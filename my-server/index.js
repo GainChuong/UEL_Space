@@ -1,245 +1,258 @@
-const express = require("express");
-const app = express();
-const port = process.env.PORT || 3000;
-const morgan = require("morgan");
-app.use(morgan("combined"));
+/**
+ * UEL Space - Backend Server
+ * Express + MongoDB Atlas (Layered Architecture)
+ * Phục vụ RESTful API, Static Assets, Google OAuth 2.0 và Quản lý cơ sở vật chất
+ */
 
-const path = require("path");
-const fs = require("fs");
+const express = require('express');
+const cors = require('cors');
+const morgan = require('morgan');
+const path = require('path');
+const session = require('express-session');
 
-// Serve static assets from public directory (images, etc.)
-app.use(express.static(path.join(__dirname, "public")));
+const { env } = require('./src/config/env');
+const { connectToDb, getCollection } = require('./src/config/db');
+const { errorHandler } = require('./src/common/error-handler');
+const { startJobs } = require('./src/jobs/scheduler');
+const { toLegacySpace } = require('./src/common/presenters');
 
-const cors = require("cors");
-app.use(cors());
+// Import Modules Routes
+const { authRoutes } = require('./src/modules/auth/auth.routes');
+const { spaceRoutes } = require('./src/modules/spaces/space.routes');
+const { bookingRoutes } = require('./src/modules/bookings/booking.routes');
+const { catalogRoutes } = require('./src/modules/catalog/catalog.routes');
+const { organizationRoutes } = require('./src/modules/organizations/organization.routes');
+const { userRoutes } = require('./src/modules/users/user.routes');
+const { usageRoutes } = require('./src/modules/usage/usage.routes');
+const { occupancyRoutes } = require('./src/modules/occupancy/occupancy.routes');
+const { incidentRoutes } = require('./src/modules/incidents/incident.routes');
+const { feedbackRoutes } = require('./src/modules/feedback/feedback.routes');
+const { auditRoutes } = require('./src/modules/audit/audit.routes');
+const { analyticsRoutes } = require('./src/modules/analytics/analytics.routes');
+const { scheduleRoutes } = require('./src/modules/schedules/schedule.routes');
+const { notificationRoutes } = require('./src/modules/notifications/notification.routes');
 
-const bodyParser = require("body-parser");
-app.use(bodyParser.json({ limit: "50mb" }));
-app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
+// Import Repositories & Services để lắp ráp Dependency Injection
+const { CatalogRepository } = require('./src/modules/catalog/catalog.repository');
+const { BookingRepository } = require('./src/modules/bookings/booking.repository');
+const { ScheduleRepository } = require('./src/modules/schedules/schedule.repository');
+const { SpaceRepository } = require('./src/modules/spaces/space.repository');
+const { NotificationRepository } = require('./src/modules/notifications/notification.repository');
+const { NotificationService } = require('./src/modules/notifications/notification.service');
+const { OrganizationRepository } = require('./src/modules/organizations/organization.repository');
+const { MembershipRepository } = require('./src/modules/organizations/membership.repository');
+const { OrganizationService } = require('./src/modules/organizations/organization.service');
+const { UsageRepository } = require('./src/modules/usage/usage.repository');
+const { UserRepository } = require('./src/modules/users/user.repository');
+const { seed } = require('./src/seed/seed');
 
-// Default API
-app.get("/", (req, res) => {
-  res.send("UEL Space Restful API & Static Asset Server is running!");
-});
+async function bootstrap() {
+  const app = express();
+  const port = env.port || 3000;
 
-// Mock database for spaces
-let spacesDatabase = [
-  {
-    id: "b1-104",
-    name: "Phòng B1.104",
-    building: "Tòa nhà B1 - Tầng 1",
-    spaceType: "Giảng đường",
-    capacity: 50,
-    capacityText: "50 người",
-    areaSize: 60,
-    status: "available",
-    statusText: "Trống",
-    equipment: ["Máy chiếu", "Điều hòa", "Wifi tốc độ cao"],
-    image: "demo_space_card.png"
-  },
-  {
-    id: "a2-1",
-    name: "Phòng Họp A2.1",
-    building: "Tòa nhà A - Tầng 2",
-    spaceType: "Phòng họp",
-    capacity: 15,
-    capacityText: "15 người",
-    areaSize: 30,
-    status: "available",
-    statusText: "Trống",
-    equipment: ["Máy chiếu", "Điều hòa", "Bảng từ"],
-    image: "demo_space_card.png"
-  },
-  {
-    id: "thu-vien-2",
-    name: "Khu tự học Thư viện",
-    building: "Tòa nhà Thư viện - Tầng 2",
-    spaceType: "Khu tự học",
-    capacity: 120,
-    capacityText: "120 người",
-    areaSize: 200,
-    status: "available",
-    statusText: "Trống",
-    equipment: ["Wifi tốc độ cao", "Điều hòa", "Ổ cắm điện"],
-    image: "demo_space_card.png"
-  },
-  {
-    id: "a3-301",
-    name: "Giảng đường A3.301",
-    building: "Tòa nhà A3 - Tầng 3",
-    spaceType: "Giảng đường",
-    capacity: 80,
-    capacityText: "80 người",
-    areaSize: 95,
-    status: "available",
-    statusText: "Trống",
-    equipment: ["Máy chiếu", "Điều hòa", "Micro không dây"],
-    image: "demo_space_card.png"
-  },
-  {
-    id: "choi-1",
-    name: "Chòi tự học 1",
-    building: "Khuôn viên ngoài trời (Đường Thanh Niên)",
-    spaceType: "Khu tự học",
-    capacity: 8,
-    capacityText: "8 người",
-    areaSize: 15,
-    status: "available",
-    statusText: "Trống",
-    equipment: ["Quạt trần", "Bàn ghế gỗ", "Ổ cắm điện"],
-    image: "demo_space_card.png"
-  },
-  {
-    id: "b2-101",
-    name: "Phòng B2.101",
-    building: "Tòa nhà B2 - Tầng 1",
-    spaceType: "Phòng học",
-    capacity: 45,
-    capacityText: "45 người",
-    areaSize: 55,
-    status: "available",
-    statusText: "Trống",
-    equipment: ["Máy chiếu", "Điều hòa", "Wifi tốc độ cao"],
-    image: "demo_space_card.png"
-  }
-];
+  // 1. Logger & Middlewares
+  app.use(morgan('dev'));
+  app.use(
+    cors({
+      origin: [env.clientOrigin, 'http://localhost:4200', 'http://127.0.0.1:4200'],
+      credentials: true
+    })
+  );
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// API: Lấy danh sách không gian
-app.get("/spaces", (req, res) => {
-  res.json(spacesDatabase);
-});
+  // Phục vụ tài nguyên tĩnh (Hình ảnh phòng học, logo...)
+  app.use(express.static(path.join(__dirname, 'public')));
+  app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
-// API: Chi tiết không gian theo ID
-app.get("/spaces/:id", (req, res) => {
-  const id = req.params["id"];
-  const space = spacesDatabase.find((x) => x.id === id);
-  if (!space) {
-    return res.status(404).json({ message: "Không tìm thấy phòng!" });
-  }
-  res.json(space);
-});
-
-// ==========================================
-// AUTHENTICATION & GOOGLE OAUTH 2.0 API
-// ==========================================
-const ADMIN_EMAILS = [
-  "admin@uel.edu.vn",
-  "quantri@uel.edu.vn",
-  "system@uel.edu.vn"
-];
-
-app.post(["/api/auth/google", "/auth/google"], async (req, res) => {
-  try {
-    const { accessToken, idToken, email: devEmail, name: devName, picture: devPicture, isDevMock } = req.body;
-
-    let email = "";
-    let name = "Người dùng UEL";
-    let picture = "";
-
-    if (accessToken) {
-      // Xác thực access token từ Google OAuth 2.0 (Custom Button Flow)
-      const googleResponse = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
-
-      if (!googleResponse.ok) {
-        return res.status(401).json({
-          success: false,
-          error: "Phiên xác thực Google không hợp lệ hoặc đã hết hạn. Vui lòng thử lại!"
-        });
+  // Session middleware
+  app.use(
+    session({
+      secret: env.sessionSecret || 'uel-space-secret-key-2026',
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        httpOnly: true,
+        secure: env.isProduction,
+        sameSite: env.isProduction ? 'none' : 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 ngày
       }
+    })
+  );
 
-      const googlePayload = await googleResponse.json();
-      email = (googlePayload.email || "").trim().toLowerCase();
-      name = googlePayload.name || email.split("@")[0];
-      picture = googlePayload.picture || "";
-    } else if (idToken) {
-      // Xác thực token chính thức với Google API
-      const googleVerifyUrl = `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`;
-      const googleResponse = await fetch(googleVerifyUrl);
+  // 2. Kết nối MongoDB Atlas thật
+  console.log('[Bootstrap] Đang kết nối tới MongoDB Atlas...');
+  const db = await connectToDb();
+  console.log(`[Bootstrap] Đã kết nối cơ sở dữ liệu MongoDB Atlas: "${db.databaseName}"`);
 
-      if (!googleResponse.ok) {
-        return res.status(401).json({
-          success: false,
-          error: "Mã xác thực Google không hợp lệ hoặc đã hết hạn. Vui lòng thử lại!"
-        });
-      }
-
-      const googlePayload = await googleResponse.json();
-      email = (googlePayload.email || "").trim().toLowerCase();
-      name = googlePayload.name || email.split("@")[0];
-      picture = googlePayload.picture || "";
-    } else if (isDevMock && devEmail) {
-      // Chế độ mô phỏng / kiểm thử cho Developer
-      email = devEmail.trim().toLowerCase();
-      name = devName || email.split("@")[0];
-      picture = devPicture || "";
-    } else {
-      return res.status(400).json({
-        success: false,
-        error: "Yêu cầu không hợp lệ: Thiếu token hoặc thông tin xác thực Google!"
-      });
-    }
-
-    // Kiểm tra quy tắc domain email trường UEL (@uel.edu.vn hoặc @st.uel.edu.vn)
-    const isLecturerOrStaff = email.endsWith("@uel.edu.vn");
-    const isStudent = email.endsWith("@st.uel.edu.vn");
-
-    if (!isLecturerOrStaff && !isStudent) {
-      return res.status(403).json({
-        success: false,
-        error: `Tài khoản (${email}) bị từ chối! Hệ thống chỉ chấp nhận tài khoản Google thuộc Trường Đại học Kinh tế - Luật (@uel.edu.vn hoặc @st.uel.edu.vn).`
-      });
-    }
-
-    // Phân quyền (Role mapping):
-    // 1. @st.uel.edu.vn -> STUDENT
-    // 2. @uel.edu.vn -> LECTURER (hoặc ADMIN nếu nằm trong danh sách quản trị)
-    let role = "STUDENT";
-    let organization = "Sinh viên UEL";
-
-    if (ADMIN_EMAILS.includes(email) || email.startsWith("admin")) {
-      role = "ADMIN";
-      organization = "Ban Quản lý Hạ tầng & Cơ sở vật chất UEL";
-    } else if (isLecturerOrStaff) {
-      role = "LECTURER";
-      organization = "Giảng viên - Trường Đại học Kinh tế - Luật";
-    } else {
-      role = "STUDENT";
-      organization = "Trường Đại học Kinh tế - Luật (UEL)";
-    }
-
-    const userId = isStudent 
-      ? email.split("@")[0].toUpperCase() 
-      : (role === "ADMIN" ? "ADMIN-001" : "GV-" + email.split("@")[0].toUpperCase());
-
-    const userProfile = {
-      id: userId,
-      name: name,
-      email: email,
-      role: role,
-      avatar: picture,
-      organization: organization
-    };
-
-    return res.json({
-      success: true,
-      message: "Đăng nhập Google thành công!",
-      user: userProfile,
-      token: "uel-session-" + Buffer.from(email + ":" + Date.now()).toString("base64")
-    });
-
-  } catch (error) {
-    console.error("Lỗi xác thực Google:", error);
-    return res.status(500).json({
-      success: false,
-      error: "Đã xảy ra lỗi máy chủ trong quá trình xác thực tài khoản Google!"
-    });
+  // Tự động kiểm tra dữ liệu mẫu
+  const spacesCount = await db.collection('spaces').countDocuments();
+  if (spacesCount === 0) {
+    console.log('[Bootstrap] Database chưa có dữ liệu. Đang tự động chạy seed...');
+    await seed();
   }
-});
 
-// Start server
-app.listen(port, () => {
-  console.log(`UEL Space Server is listening on http://localhost:${port}`);
-  console.log(`Static image assets are served at http://localhost:${port}/images/`);
+  // 3. Khởi tạo Context Collections
+  const collections = {
+    users: getCollection('users'),
+    spaces: getCollection('spaces'),
+    bookings: getCollection('bookings'),
+    organizations: getCollection('organizations'),
+    memberships: getCollection('memberships'),
+    buildings: getCollection('buildings'),
+    floors: getCollection('floors'),
+    categories: getCollection('space_categories'),
+    equipment: getCollection('equipment'),
+    usageSessions: getCollection('usage_sessions'),
+    presenceRecords: getCollection('presence_records'),
+    releaseCases: getCollection('release_cases'),
+    notifications: getCollection('notifications'),
+    occupancyRecords: getCollection('occupancy_records'),
+    incidents: getCollection('incidents'),
+    feedback: getCollection('feedback'),
+    auditLogs: getCollection('audit_logs'),
+    schedules: getCollection('schedules')
+  };
+
+  // 4. Lắp ráp Services & Repositories dùng chung
+  const catalogRepository = new CatalogRepository({
+    buildings: collections.buildings,
+    floors: collections.floors,
+    categories: collections.categories,
+    equipment: collections.equipment
+  });
+  const bookingRepository = new BookingRepository(collections);
+  const scheduleRepository = new ScheduleRepository(collections.schedules);
+  const spaceRepository = new SpaceRepository(collections.spaces);
+  const notificationRepository = new NotificationRepository(collections.notifications);
+  const notificationService = new NotificationService(notificationRepository);
+  const organizationRepository = new OrganizationRepository(collections.organizations);
+  const membershipRepository = new MembershipRepository(collections.memberships);
+  const organizationService = new OrganizationService(organizationRepository, membershipRepository);
+  const usageRepository = new UsageRepository(collections);
+  const userRepository = new UserRepository(collections);
+
+  // 5. Mount API Routes
+  app.get('/', (req, res) => {
+    res.json({
+      status: 'ONLINE',
+      system: 'UEL Space RESTful API & Asset Server',
+      database: 'MongoDB Atlas Cloud',
+      connectedDb: db.databaseName,
+      time: new Date().toISOString()
+    });
+  });
+
+  // RESTful Modular API Routes
+  app.use('/api/auth', authRoutes({ users: collections.users, organizationService }));
+  app.use(
+    '/api/spaces',
+    spaceRoutes({
+      spaces: collections.spaces,
+      catalogRepository,
+      bookingRepository,
+      scheduleRepository
+    })
+  );
+  app.use(
+    '/api/bookings',
+    bookingRoutes({
+      ...collections,
+      spaceRepository,
+      scheduleRepository,
+      notificationService,
+      userRepository
+    })
+  );
+  app.use(
+    '/api/catalog',
+    catalogRoutes({
+      buildings: collections.buildings,
+      floors: collections.floors,
+      categories: collections.categories,
+      equipment: collections.equipment
+    })
+  );
+  app.use('/api/organizations', organizationRoutes(collections));
+  app.use('/api/users', userRoutes(collections));
+  app.use(
+    '/api/usage',
+    usageRoutes({
+      ...collections,
+      bookingRepository,
+      spaceRepository,
+      notificationService
+    })
+  );
+  app.use(
+    '/api/occupancy',
+    occupancyRoutes({
+      ...collections,
+      usageRepository,
+      spaceRepository
+    })
+  );
+  app.use(
+    '/api/incidents',
+    incidentRoutes({
+      ...collections,
+      spaceRepository,
+      notificationService
+    })
+  );
+  app.use(
+    '/api/feedback',
+    feedbackRoutes({
+      ...collections,
+      usageRepository,
+      spaceRepository
+    })
+  );
+  app.use('/api/audit', auditRoutes(collections));
+  app.use('/api/analytics', analyticsRoutes(collections));
+  app.use('/api/schedules', scheduleRoutes(collections));
+  app.use('/api/notifications', notificationRoutes({ ...collections, notificationService }));
+
+  // 6. LEGACY ROUTES (Tương thích ngược 100% với Frontend hiện tại)
+  // GET /spaces - Đọc trực tiếp từ MongoDB Atlas
+  app.get('/spaces', async (req, res, next) => {
+    try {
+      const rawSpaces = await collections.spaces.find({ deletedAt: null }).sort({ name: 1 }).toArray();
+      const legacySpaces = rawSpaces.map(toLegacySpace);
+      res.json(legacySpaces);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // GET /spaces/:id - Đọc chi tiết phòng từ MongoDB Atlas
+  app.get('/spaces/:id', async (req, res, next) => {
+    try {
+      const space = await collections.spaces.findOne({ _id: req.params.id, deletedAt: null });
+      if (!space) {
+        return res.status(404).json({ message: 'Không tìm thấy phòng trong cơ sở dữ liệu!' });
+      }
+      res.json(toLegacySpace(space));
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // 7. Global Error Handler
+  app.use(errorHandler);
+
+  // 8. Background Jobs (No-show, Presence, Occupancy Snapshot)
+  startJobs();
+
+  // 9. Lắng nghe trên cổng
+  app.listen(port, () => {
+    console.log(`🚀 UEL Space Server đang chạy tại: http://localhost:${port}`);
+    console.log(`📡 Cơ sở dữ liệu: MongoDB Atlas Cloud (${db.databaseName})`);
+    console.log(`🖼️ Static Images phục vụ tại: http://localhost:${port}/images/`);
+  });
+}
+
+bootstrap().catch((error) => {
+  console.error('❌ [FATAL] Lỗi khởi động UEL Space Server:', error);
+  process.exit(1);
 });

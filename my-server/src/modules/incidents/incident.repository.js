@@ -18,7 +18,7 @@ class IncidentRepository {
   update(id, patch) {
     return this.collection
       .findOneAndUpdate({ _id: id, deletedAt: null }, { $set: patch, $inc: { version: 1 } }, { returnDocument: 'after' })
-      .then((r) => r.value);
+      .then((r) => (r && r.value !== undefined ? r.value : r));
   }
 }
 

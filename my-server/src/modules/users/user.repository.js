@@ -15,7 +15,7 @@ class UserRepository {
   update(id, patch) {
     return this.collection
       .findOneAndUpdate({ _id: id }, { $set: patch, $inc: { version: 1 } }, { returnDocument: 'after' })
-      .then((r) => r.value);
+      .then((r) => (r && r.value !== undefined ? r.value : r));
   }
 
   async bookingsCount(userId) {

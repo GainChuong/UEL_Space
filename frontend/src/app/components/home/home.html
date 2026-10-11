@@ -1,4 +1,4 @@
-<div class="bg-[#F5F7F9] dark:bg-[#070D18] min-h-screen pb-20 transition-colors" (click)="closeDropdowns()">
+<div class="bg-[#F5F7F9] dark:bg-[#070D18] min-h-screen pb-28 lg:pb-20 transition-colors" (click)="closeDropdowns()">
   
   <!-- Full Screen Hero Section -->
   <div class="relative w-full min-h-[calc(100vh-72px)] overflow-visible z-20 flex flex-col justify-center pb-10">
@@ -12,29 +12,29 @@
     </div>
 
     <!-- Hero Content (Centered) -->
-    <div class="relative z-10 w-full max-w-[1440px] mx-auto px-6 lg:px-16 mt-6">
+    <div class="relative z-10 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-16 mt-4 sm:mt-6">
       <div class="max-w-2xl text-white">
         
-        <h1 class="text-[52px] font-black leading-[1.1] tracking-tight mb-6 drop-shadow-md">
+        <h1 class="text-3xl sm:text-4xl lg:text-[52px] font-black leading-[1.15] lg:leading-[1.1] tracking-tight mb-4 sm:mb-6 drop-shadow-md">
           Find the right space<br>
           Use it smarter
         </h1>
         
-        <p class="text-xl font-medium text-white/90 mb-10 max-w-[500px] leading-relaxed drop-shadow-sm">
+        <p class="text-sm sm:text-base lg:text-xl font-medium text-white/90 mb-6 sm:mb-10 max-w-[500px] leading-relaxed drop-shadow-sm">
           {{ 'Khám phá, đặt chỗ và sử dụng không gian trong khuôn viên UEL một cách thông minh và hiệu quả.' | t }}
         </p>
 
         <!-- Search & Filter Container -->
         <div class="w-full max-w-[840px]" (click)="$event.stopPropagation()">
           <!-- Main Search Input -->
-          <div class="bg-white dark:bg-slate-900 rounded-2xl h-[68px] flex items-center px-6 shadow-lg mb-4 border border-transparent dark:border-slate-800">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" class="shrink-0"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+          <div class="bg-white dark:bg-slate-900 rounded-2xl h-14 sm:h-[68px] flex items-center px-4 sm:px-6 shadow-lg mb-3 sm:mb-4 border border-transparent dark:border-slate-800">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" class="shrink-0"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
             <input type="text"
                    [(ngModel)]="searchQuery"
                    [placeholder]="'Tìm phòng, thư viện, khu vực...' | t"
-                   class="flex-1 bg-transparent border-none outline-none text-[#111827] dark:text-white placeholder:text-[#9CA3AF] dark:placeholder:text-slate-500 text-[17px] font-medium px-4 h-full">
+                   class="flex-1 bg-transparent border-none outline-none text-[#111827] dark:text-white placeholder:text-[#9CA3AF] dark:placeholder:text-slate-500 text-sm sm:text-[17px] font-medium px-3 sm:px-4 h-full">
             <button class="shrink-0 text-uel-blue dark:text-sky-400 hover:text-sky-blue transition-colors cursor-pointer" routerLink="/map">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
             </button>
           </div>
 

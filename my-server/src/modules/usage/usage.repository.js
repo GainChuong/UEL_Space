@@ -38,7 +38,7 @@ class UsageRepository {
   updateSession(id, patch) {
     return this.sessions
       .findOneAndUpdate({ _id: id }, { $set: patch, $inc: { version: 1 } }, { returnDocument: 'after' })
-      .then((r) => r.value);
+      .then((r) => (r && r.value !== undefined ? r.value : r));
   }
 
   insertPresence(doc) {
@@ -62,7 +62,7 @@ class UsageRepository {
   }
 
   updateReleaseCase(id, patch) {
-    return this.releaseCases.findOneAndUpdate({ _id: id }, { $set: patch }, { returnDocument: 'after' }).then((r) => r.value);
+    return this.releaseCases.findOneAndUpdate({ _id: id }, { $set: patch }, { returnDocument: 'after' }).then((r) => (r && r.value !== undefined ? r.value : r));
   }
 }
 
