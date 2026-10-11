@@ -802,32 +802,97 @@ export class Admin implements OnInit, OnDestroy {
     }
 
     try {
+      // 1. Release previous stream and wait for hardware lens release
       this.stopCamera();
+      await new Promise(r => setTimeout(r, 120));
 
-      // Mobile devices usually have front & back camera.
-      // Use facingMode: { ideal: ... } so it doesn't throw OverconstrainedError on devices with single camera.
-      const constraints: MediaStreamConstraints = {
-        video: {
-          facingMode: { ideal: this.cameraFacingMode },
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        },
-        audio: false
-      };
+      let stream: MediaStream | null = null;
 
-      let stream: MediaStream;
+      // 2. Hardware device enumeration: detect physical back camera on phone
       try {
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
-      } catch (errConstraint) {
-        console.warn('Fallback basic camera constraints:', errConstraint);
-        // Fallback to simple video: true if ideal facing mode or resolution fails
-        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(d => d.kind === 'videoinput');
+
+        if (videoDevices.length > 0) {
+          if (this.cameraFacingMode === 'environment') {
+            const backDevice = videoDevices.find(d => 
+              /back|rear|sau|environment|cam.*1|triple|ultra.*wide/i.test(d.label)
+            ) || (videoDevices.length > 1 ? videoDevices[videoDevices.length - 1] : videoDevices[0]);
+
+            if (backDevice && backDevice.deviceId) {
+              try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                  video: {
+                    deviceId: { exact: backDevice.deviceId },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                  },
+                  audio: false
+                });
+              } catch (eDev) {
+                console.warn('Direct deviceId selection failed:', eDev);
+              }
+            }
+          } else {
+            const frontDevice = videoDevices.find(d => 
+              /front|user|trước|face/i.test(d.label)
+            ) || videoDevices[0];
+
+            if (frontDevice && frontDevice.deviceId) {
+              try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                  video: {
+                    deviceId: { exact: frontDevice.deviceId },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                  },
+                  audio: false
+                });
+              } catch (eDev) {
+                console.warn('Front deviceId selection failed:', eDev);
+              }
+            }
+          }
+        }
+      } catch (eEnum) {
+        console.warn('enumerateDevices not available or blocked:', eEnum);
+      }
+
+      // 3. Fallback to exact facingMode
+      if (!stream) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { exact: this.cameraFacingMode },
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            },
+            audio: false
+          });
+        } catch (errExact) {
+          console.warn('Exact facingMode failed, falling back to ideal:', errExact);
+          // 4. Fallback to ideal facingMode
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({
+              video: {
+                facingMode: { ideal: this.cameraFacingMode },
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+              },
+              audio: false
+            });
+          } catch (errIdeal) {
+            console.warn('Ideal facingMode failed, falling back to basic video:', errIdeal);
+            // 5. Final fallback to any available video stream
+            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          }
+        }
       }
 
       this.videoStream = stream;
       this.cameraActive = true;
 
-      // Robust video element binding with retries for DOM mounting
+      // 6. Robust video element binding with playsinline for mobile
       let attempts = 0;
       const attachVideo = () => {
         attempts++;
@@ -851,7 +916,11 @@ export class Admin implements OnInit, OnDestroy {
       };
 
       setTimeout(attachVideo, 50);
-      this.showToast(this.i18n.t('Đã bật Camera quét mã QR!'), 'info');
+
+      const modeName = this.cameraFacingMode === 'environment' 
+        ? this.i18n.t('Camera sau (quét mã QR)') 
+        : this.i18n.t('Camera trước');
+      this.showToast(`${this.i18n.t('Đã bật')} ${modeName}!`, 'info');
     } catch (err: any) {
       console.warn('Camera access denied or unavailable:', err);
       this.cameraActive = false;
@@ -867,6 +936,13 @@ export class Admin implements OnInit, OnDestroy {
 
   stopCamera(): void {
     this.qrScanningRunning = false;
+    const videoEl = document.getElementById('qr-scanner-video') as HTMLVideoElement;
+    if (videoEl) {
+      try {
+        videoEl.pause();
+        videoEl.srcObject = null;
+      } catch {}
+    }
     if (this.videoStream) {
       this.videoStream.getTracks().forEach(track => {
         try { track.stop(); } catch {}
@@ -876,10 +952,10 @@ export class Admin implements OnInit, OnDestroy {
     this.cameraActive = false;
   }
 
-  toggleCameraFacing(): void {
+  async toggleCameraFacing(): Promise<void> {
     this.cameraFacingMode = this.cameraFacingMode === 'environment' ? 'user' : 'environment';
     if (this.cameraActive) {
-      this.startCamera();
+      await this.startCamera();
     }
   }
 
