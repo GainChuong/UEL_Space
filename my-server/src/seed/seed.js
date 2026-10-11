@@ -931,14 +931,15 @@ async function seed() {
   await auditCol.createIndex({ createdAt: -1 });
 
   console.log('✅ [HOÀN TẤT] 100% CƠ SỞ DỮ LIỆU ĐÃ ĐƯỢC XÂY DỰNG & NẠP LÊN MONGODB ATLAS CLOUD THÀNH CÔNG!');
-  await closeDb();
 }
 
 if (require.main === module) {
-  seed().catch((err) => {
-    console.error('❌ [SEEDER ERROR]:', err);
-    process.exit(1);
-  });
+  seed()
+    .then(() => closeDb())
+    .catch((err) => {
+      console.error('❌ [SEEDER ERROR]:', err);
+      process.exit(1);
+    });
 }
 
 module.exports = { seed };
