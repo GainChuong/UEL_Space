@@ -3,7 +3,7 @@ services:
     name: uel-space-api
     runtime: node
     plan: free
-    region: oregon
+    region: singapore
     rootDir: my-server
     buildCommand: npm install
     startCommand: node index.js

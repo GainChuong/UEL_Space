@@ -257,8 +257,8 @@ async function bootstrap() {
   // 8. Background Jobs (No-show, Presence, Occupancy Snapshot)
   startJobs();
 
-  // 9. Lắng nghe trên cổng
-  app.listen(port, () => {
+  // 9. Lắng nghe trên cổng (0.0.0.0 cho Render / Cloud Host)
+  app.listen(port, '0.0.0.0', () => {
     console.log(`🚀 UEL Space Server đang chạy tại: http://localhost:${port}`);
     console.log(`📡 Cơ sở dữ liệu: MongoDB Atlas Cloud (${db.databaseName})`);
     console.log(`🖼️ Static Images phục vụ tại: http://localhost:${port}/images/`);
