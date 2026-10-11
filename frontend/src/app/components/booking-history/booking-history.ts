@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '../../services/translate.pipe';
 import { I18nService } from '../../services/i18n.service';
+import { GoogleCalendarService } from '../../services/google-calendar.service';
 
 export interface BookingRecord {
   id: string;
@@ -27,6 +28,7 @@ export interface BookingRecord {
 })
 export class BookingHistory implements OnInit {
   private i18n = inject(I18nService);
+  private googleCalendarService = inject(GoogleCalendarService);
   searchTerm: string = '';
   selectedTab: string = 'all';
   selectedArea: string = 'all';
@@ -373,5 +375,31 @@ export class BookingHistory implements OnInit {
       booking.status = 'cancelled';
       booking.statusText = 'Đã hủy';
     }
+  }
+
+  addToGoogleCalendar(booking: BookingRecord) {
+    this.googleCalendarService.openGoogleCalendar({
+      title: `[UEL SPACE] Đặt phòng ${booking.roomName}`,
+      roomName: booking.roomName,
+      building: booking.building,
+      code: booking.id,
+      date: booking.date,
+      timeSlot: booking.timeSlot,
+      purpose: booking.purpose,
+      bookerName: 'Sinh viên UEL'
+    });
+  }
+
+  downloadIcs(booking: BookingRecord) {
+    this.googleCalendarService.downloadIcsFile({
+      title: `[UEL SPACE] Đặt phòng ${booking.roomName}`,
+      roomName: booking.roomName,
+      building: booking.building,
+      code: booking.id,
+      date: booking.date,
+      timeSlot: booking.timeSlot,
+      purpose: booking.purpose,
+      bookerName: 'Sinh viên UEL'
+    });
   }
 }

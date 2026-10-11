@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { SERVER_IMAGES_LINK } from '../../services/api-config';
 import { TranslatePipe } from '../../services/translate.pipe';
+import { GoogleCalendarService } from '../../services/google-calendar.service';
 
 export interface SpaceItem {
   id: string;
@@ -547,13 +548,54 @@ export class Home implements OnInit {
     }
   }
 
+  constructor(private googleCalendarService: GoogleCalendarService) {}
+
   confirmBooking() {
     if (this.selectedRoomDetail && this.selectedRoomDetail.status === 'available') {
       this.bookingSuccess = true;
-      setTimeout(() => {
-        this.selectedRoomDetail = null;
-        this.bookingSuccess = false;
-      }, 2200);
     }
+  }
+
+  addToGoogleCalendar(room?: any, slot?: any) {
+    const r = room || this.selectedRoomDetail;
+    const s = slot || this.selectedSlot;
+    this.googleCalendarService.openGoogleCalendar({
+      title: `[UEL SPACE] Đặt phòng ${r?.name || 'Học tập'}`,
+      roomName: r?.name || 'Phòng học UEL',
+      building: r?.building || 'Cơ sở chính UEL',
+      code: 'UEL-88392',
+      date: new Date().toLocaleDateString('vi-VN'),
+      timeSlot: s?.period || 'Ca 3 (13:00 - 15:00)',
+      purpose: 'Học tập & Thảo luận nhóm sinh viên',
+      bookerName: this.studentInfo.name
+    });
+  }
+
+  downloadIcs(room?: any, slot?: any) {
+    const r = room || this.selectedRoomDetail;
+    const s = slot || this.selectedSlot;
+    this.googleCalendarService.downloadIcsFile({
+      title: `[UEL SPACE] Đặt phòng ${r?.name || 'Học tập'}`,
+      roomName: r?.name || 'Phòng học UEL',
+      building: r?.building || 'Cơ sở chính UEL',
+      code: 'UEL-88392',
+      date: new Date().toLocaleDateString('vi-VN'),
+      timeSlot: s?.period || 'Ca 3 (13:00 - 15:00)',
+      purpose: 'Học tập & Thảo luận nhóm sinh viên',
+      bookerName: this.studentInfo.name
+    });
+  }
+
+  addCourseToGoogleCalendar(course: any, day: any) {
+    this.googleCalendarService.openGoogleCalendar({
+      title: `[Lớp học UEL] ${course.subject} (${course.code}) - Phòng ${course.room}`,
+      roomName: course.room,
+      building: course.campus,
+      code: course.lhp,
+      date: day.date,
+      timeSlot: course.time,
+      purpose: `Giảng viên: ${course.lecturer} | Số tiết: ${course.periodsTotal} (${course.periodRange})`,
+      details: `📚 Môn học: ${course.subject} (${course.code})\n🏛️ Phòng: ${course.room} - ${course.campus}\n👨‍🏫 Giảng viên: ${course.lecturer}\n⏰ Giờ học: ${course.time}\n🌐 Ngôn ngữ: ${course.language}`
+    });
   }
 }

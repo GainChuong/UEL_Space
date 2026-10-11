@@ -355,6 +355,25 @@ export class SettingsService {
     this.notificationsSubject.next(list);
   }
 
+  public addNotification(notification: {
+    title: string;
+    message: string;
+    type?: 'info' | 'success' | 'warning' | 'alert';
+    category?: 'system' | 'booking' | 'presence';
+  }): void {
+    const newNotif: AppNotification = {
+      id: 'notif-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      title: notification.title,
+      message: notification.message,
+      timeAgo: 'Vừa xong',
+      timestamp: new Date().toLocaleString('vi-VN'),
+      type: notification.type || 'info',
+      read: false,
+      category: notification.category || 'system'
+    };
+    this.notificationsSubject.next([newNotif, ...this.notificationsSubject.value]);
+  }
+
   public clearAllNotifications(): void {
     this.notificationsSubject.next([]);
   }

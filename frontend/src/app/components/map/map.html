@@ -685,16 +685,48 @@
             </div>
           } @else {
             <!-- Booking Success State -->
-            <div class="text-center py-10 px-6 sm:px-10">
-              <div class="w-16 h-16 bg-status-available/15 text-status-available rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+            <div class="text-center py-8 px-6 sm:px-10 space-y-4">
+              <div class="w-16 h-16 bg-status-available/15 text-status-available rounded-full flex items-center justify-center mx-auto animate-bounce">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
               </div>
-              <h3 class="text-2xl font-black text-uel-blue dark:text-sky-400 mb-2">{{ 'Đặt phòng thành công!' | t }}</h3>
-              <p class="text-sm text-text-muted dark:text-slate-400 max-w-md mx-auto mb-3">
-                {{ 'Mã xác nhận:' | t }} <span class="font-extrabold text-uel-orange">UEL-88392</span>. {{ 'Bạn đã đặt thành công phòng' | t }} <strong class="text-uel-blue dark:text-sky-400">{{selectedRoomToBook.name}}</strong> {{ 'vào ca' | t }} <strong class="text-dark-text dark:text-white">{{selectedSlot?.time}}</strong>.
-              <div class="inline-flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+              <div>
+                <h3 class="text-2xl font-black text-uel-blue dark:text-sky-400 mb-1.5">{{ 'Đặt phòng thành công!' | t }}</h3>
+                <p class="text-sm text-text-muted dark:text-slate-400 max-w-md mx-auto">
+                  {{ 'Mã xác nhận:' | t }} <span class="font-extrabold text-uel-orange">UEL-88392</span>. {{ 'Bạn đã đặt thành công phòng' | t }} <strong class="text-uel-blue dark:text-sky-400">{{selectedRoomToBook?.name}}</strong> {{ 'vào ca' | t }} <strong class="text-dark-text dark:text-white">{{selectedSlot?.time}}</strong>.
+                </p>
+              </div>
+
+              <div class="inline-flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-3.5 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-800">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                {{ 'Không trùng lịch học • Đã lưu vào lịch cá nhân UEL' | t }}
+                {{ 'Không trùng lịch học • Đã liên kết Lịch sinh viên UEL' | t }}
+              </div>
+
+              <!-- Google Calendar & Apple/Outlook Sync Actions -->
+              <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2.5">
+                <button type="button" 
+                        (click)="addToGoogleCalendar()"
+                        class="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border-2 border-slate-200 dark:border-slate-700 hover:border-uel-blue text-dark-text dark:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-98">
+                  <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                  </svg>
+                  <span>{{ 'Thêm vào Google Calendar 📅' | t }}</span>
+                </button>
+
+                <button type="button" 
+                        (click)="downloadIcs()"
+                        class="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span>{{ 'Tải file .ICS' | t }}</span>
+                </button>
+
+                <button type="button"
+                        (click)="closeBookingModal()"
+                        class="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-uel-blue dark:bg-sky-600 hover:bg-[#002D5C] text-white font-bold text-xs transition-colors cursor-pointer shadow-xs">
+                  {{ 'Hoàn tất & Đóng' | t }}
+                </button>
               </div>
             </div>
           }
@@ -845,9 +877,20 @@
                               <div class="text-slate-700 dark:text-slate-300 font-bold mt-0.5">{{ 'GV' | t }}: {{row.schedule[day.key].lecturer}}</div>
                             </div>
 
-                            <!-- Language Tag (UEL Blue) -->
-                            <div class="font-black text-[#003B71] dark:text-sky-400 text-[11px] mt-1.5 pt-1 border-t border-orange-200/60 dark:border-orange-800/60">
-                              {{ 'Ngôn ngữ' | t }}: {{row.schedule[day.key].language | t}}
+                            <!-- Language Tag (UEL Blue) & Google Calendar Sync -->
+                            <div class="font-black text-[#003B71] dark:text-sky-400 text-[11px] mt-1.5 pt-1 border-t border-orange-200/60 dark:border-orange-800/60 flex items-center justify-between">
+                              <span>{{ 'Ngôn ngữ' | t }}: {{row.schedule[day.key].language | t}}</span>
+                              <button type="button"
+                                      (click)="addCourseToGoogleCalendar(row.schedule[day.key], day); $event.stopPropagation()"
+                                      class="hover:scale-110 transition-transform p-0.5 rounded cursor-pointer"
+                                      [title]="'Lưu ca học này vào Google Calendar' | t">
+                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24">
+                                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                                </svg>
+                              </button>
                             </div>
 
                           </div>

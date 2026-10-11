@@ -42,6 +42,15 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
   showDevTestModal: boolean = false;
   testCustomEmail: string = '';
 
+  // Trạng thái thông báo từ chối tên miền email Google
+  domainAlert = {
+    isOpen: false,
+    email: '',
+    message: '',
+    toastVisible: false
+  };
+  private toastTimer: any;
+
   private settingsService = inject(SettingsService);
   private http = inject(HttpClient);
   private router = inject(Router);
@@ -64,6 +73,9 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnDestroy(): void {
     this.stopCarousel();
+    if (this.toastTimer) {
+      clearTimeout(this.toastTimer);
+    }
   }
 
   // --- Google Identity Services (GSI) ---
@@ -187,6 +199,60 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
     };
   }
 
+  // Kích hoạt thông báo cảnh báo tên miền không được cấp phép
+  triggerDomainRejectionNotice(email: string, customMessage?: string): void {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const message = customMessage || this.i18n.t(
+      `Tài khoản (${cleanEmail || 'không xác định'}) bị từ chối! Hệ thống UEL SPACE chỉ tiếp nhận tài khoản Google chính thức của Trường ĐH Kinh tế - Luật (@uel.edu.vn hoặc @st.uel.edu.vn).`
+    );
+
+    this.domainAlert = {
+      isOpen: true,
+      email: cleanEmail,
+      message: message,
+      toastVisible: true
+    };
+    this.errorMessage = message;
+
+    // Tự đóng toast sau 8 giây (modal vẫn hiển thị để người dùng đọc chi tiết)
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => {
+      this.domainAlert.toastVisible = false;
+    }, 8000);
+
+    // 1. Gửi thông báo Desktop Notification (nếu người dùng đã cấp quyền)
+    try {
+      this.settingsService.sendDesktopNotification(
+        'UEL SPACE - Đăng nhập bị từ chối',
+        `Tài khoản ${cleanEmail} không thuộc tên miền @uel.edu.vn hoặc @st.uel.edu.vn.`
+      );
+    } catch {
+      // Bỏ qua nếu môi trường không hỗ trợ Web Notification API
+    }
+
+    // 2. Thêm vào trung tâm thông báo hệ thống
+    this.settingsService.addNotification({
+      title: 'Đăng nhập Google bị từ chối',
+      message: `Tài khoản Google (${cleanEmail || 'vô danh'}) đã cố đăng nhập nhưng không thuộc tên miền quy định (@uel.edu.vn hoặc @st.uel.edu.vn).`,
+      type: 'alert',
+      category: 'system'
+    });
+  }
+
+  closeDomainAlert(): void {
+    this.domainAlert.isOpen = false;
+  }
+
+  closeDomainToast(): void {
+    this.domainAlert.toastVisible = false;
+  }
+
+  retryGoogleWithDifferentAccount(): void {
+    this.closeDomainAlert();
+    this.closeDomainToast();
+    this.triggerGoogleLogin();
+  }
+
   // Xác thực Access Token từ Google với Backend
   authenticateWithGoogleAccessToken(accessToken: string): void {
     this.isLoading = true;
@@ -198,11 +264,16 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
         if (res.success && res.user) {
           this.handleAuthSuccess(res.user);
         } else {
-          this.errorMessage = res.error || this.i18n.t('Đăng nhập không thành công.');
+          const errMsg = res.error?.message || res.error || this.i18n.t('Đăng nhập không thành công.');
+          this.errorMessage = typeof errMsg === 'string' ? errMsg : JSON.stringify(errMsg);
         }
       },
       error: (err) => {
-        // Fallback: Khi Backend Cloud chưa online hoặc mạng offline, lấy profile từ Google API
+        const serverErrorCode = err.error?.error?.code;
+        const serverErrorMsg = err.error?.error?.message || err.error?.message;
+        const isDomainRejected = serverErrorCode === 'EMAIL_DOMAIN_REJECTED' || err.status === 403;
+
+        // Fetch thông tin profile từ Google API để đối chiếu email
         fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: `Bearer ${accessToken}` }
         })
@@ -210,17 +281,21 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
           .then((googleUser) => {
             this.isLoading = false;
             const fallbackUser = this.createSmartFallbackUser(googleUser.email, googleUser.name, googleUser.picture);
-            if (fallbackUser) {
+            if (fallbackUser && !isDomainRejected) {
               this.handleAuthSuccess(fallbackUser);
             } else {
-              this.errorMessage = this.i18n.t(
-                `Tài khoản (${googleUser.email}) bị từ chối! Hệ thống chỉ chấp nhận tài khoản Google thuộc Trường ĐH Kinh tế - Luật (@uel.edu.vn hoặc @st.uel.edu.vn).`
-              );
+              // Gửi thông báo từ chối tên miền email trực tiếp cho user
+              this.triggerDomainRejectionNotice(googleUser.email, serverErrorMsg);
             }
           })
           .catch(() => {
             this.isLoading = false;
-            this.errorMessage = err.error?.error || this.i18n.t('Tài khoản bị từ chối! Hệ thống chỉ chấp nhận tài khoản Google thuộc Trường ĐH Kinh tế - Luật (@uel.edu.vn hoặc @st.uel.edu.vn).');
+            if (isDomainRejected) {
+              this.triggerDomainRejectionNotice('', serverErrorMsg);
+            } else {
+              const msg = serverErrorMsg || err.message || this.i18n.t('Tài khoản bị từ chối! Hệ thống chỉ chấp nhận tài khoản Google thuộc Trường ĐH Kinh tế - Luật (@uel.edu.vn hoặc @st.uel.edu.vn).');
+              this.errorMessage = typeof msg === 'string' ? msg : JSON.stringify(msg);
+            }
           });
       }
     });
@@ -237,6 +312,9 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
     this.errorMessage = '';
     this.successMessage = '';
 
+    const payload = this.decodeJwtPayload(response.credential);
+    const candidateEmail = payload?.email || '';
+
     // Gửi token xác thực lên Express Backend
     this.http.post<any>(AUTH_GOOGLE_URL, { idToken: response.credential }).subscribe({
       next: (res) => {
@@ -244,26 +322,34 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
         if (res.success && res.user) {
           this.handleAuthSuccess(res.user);
         } else {
-          this.errorMessage = res.error || this.i18n.t('Đăng nhập không thành công.');
+          const errMsg = res.error?.message || res.error || this.i18n.t('Đăng nhập không thành công.');
+          this.errorMessage = typeof errMsg === 'string' ? errMsg : JSON.stringify(errMsg);
         }
       },
       error: (err) => {
         this.isLoading = false;
-        // Smart Fallback: Giải mã Token Google trực tiếp
-        const payload = this.decodeJwtPayload(response.credential);
-        if (payload && payload.email) {
-          const fallbackUser = this.createSmartFallbackUser(payload.email, payload.name, payload.picture);
+        const serverErrorCode = err.error?.error?.code;
+        const serverErrorMsg = err.error?.error?.message || err.error?.message;
+
+        if (serverErrorCode === 'EMAIL_DOMAIN_REJECTED' || err.status === 403) {
+          this.triggerDomainRejectionNotice(candidateEmail, serverErrorMsg);
+          return;
+        }
+
+        // Smart Fallback khi Backend Cloud chưa kịp online
+        if (candidateEmail) {
+          const fallbackUser = this.createSmartFallbackUser(candidateEmail, payload?.name, payload?.picture);
           if (fallbackUser) {
             this.handleAuthSuccess(fallbackUser);
             return;
           } else {
-            this.errorMessage = this.i18n.t(
-              `Tài khoản (${payload.email}) bị từ chối! Hệ thống chỉ chấp nhận tài khoản Google thuộc Trường ĐH Kinh tế - Luật (@uel.edu.vn hoặc @st.uel.edu.vn).`
-            );
+            this.triggerDomainRejectionNotice(candidateEmail);
             return;
           }
         }
-        this.errorMessage = err.error?.error || this.i18n.t('Đăng nhập thất bại: Tài khoản không thỏa điều kiện của Trường ĐH Kinh tế - Luật!');
+
+        const fallbackMsg = serverErrorMsg || err.message || this.i18n.t('Đăng nhập thất bại: Tài khoản không thỏa điều kiện của Trường ĐH Kinh tế - Luật!');
+        this.errorMessage = typeof fallbackMsg === 'string' ? fallbackMsg : JSON.stringify(fallbackMsg);
       }
     });
   }
@@ -290,11 +376,18 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
       },
       error: (err) => {
         this.isLoading = false;
+        const serverErrorCode = err.error?.error?.code;
+        const serverErrorMsg = err.error?.error?.message || err.error?.message;
+        if (serverErrorCode === 'EMAIL_DOMAIN_REJECTED' || err.status === 403) {
+          this.triggerDomainRejectionNotice(email, serverErrorMsg);
+          return;
+        }
+
         const fallback = this.createSmartFallbackUser(email, name);
         if (fallback) {
           this.handleAuthSuccess(fallback);
         } else {
-          this.errorMessage = err.error?.error || this.i18n.t('Đăng nhập bị từ chối! Email không thuộc Trường ĐH Kinh tế - Luật.');
+          this.triggerDomainRejectionNotice(email, serverErrorMsg);
         }
       }
     });
@@ -356,12 +449,19 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
       },
       error: (err) => {
         this.isLoading = false;
+        const serverErrorCode = err.error?.error?.code;
+        const serverErrorMsg = err.error?.error?.message || err.error?.message;
+        if (serverErrorCode === 'EMAIL_DOMAIN_REJECTED' || err.status === 403) {
+          this.triggerDomainRejectionNotice(enteredEmail, serverErrorMsg);
+          return;
+        }
+
         // Fallback: Khi backend offline, kiểm tra domain hợp lệ để cho đăng nhập
         const fallback = this.createSmartFallbackUser(enteredEmail, displayName);
         if (fallback) {
           this.handleAuthSuccess(fallback);
         } else {
-          this.errorMessage = err.error?.error || this.i18n.t('Tài khoản không hợp lệ! Vui lòng sử dụng email đuôi @uel.edu.vn hoặc @st.uel.edu.vn.');
+          this.triggerDomainRejectionNotice(enteredEmail, serverErrorMsg);
         }
       }
     });

@@ -180,6 +180,7 @@ export class Admin implements OnInit, OnDestroy {
   scannerInputCode: string = '';
   isProcessingScan: boolean = false;
   cameraActive: boolean = false;
+  isStartingCamera: boolean = false;
   cameraFacingMode: 'user' | 'environment' = 'environment';
   isSwitchingCamera: boolean = false;
   videoStream: MediaStream | null = null;
@@ -191,6 +192,7 @@ export class Admin implements OnInit, OnDestroy {
   private barcodeDetector: any = null;
   private lastScannedCode: string = '';
   private lastScannedTime: number = 0;
+  private lastQrScanTimestamp: number = 0;
 
   // Scan Result Feedback State
   scanResult: {
@@ -248,6 +250,7 @@ export class Admin implements OnInit, OnDestroy {
   occModelLoading: boolean = false;
   occModelError: string = '';
   occCameraActive: boolean = false;
+  occStartingCamera: boolean = false;
   occVideoStream: MediaStream | null = null;
   occDetectionRunning: boolean = false;
   occCurrentCount: number = 0;
@@ -262,6 +265,9 @@ export class Admin implements OnInit, OnDestroy {
   private occLastFrameTime: number = 0;
   private occFrameCount: number = 0;
   private occFpsInterval: any = null;
+  private isDetectingOccFrame: boolean = false;
+  private lastOccDetectionTimestamp: number = 0;
+  private lastOccStatsUpdate: number = 0;
 
   // FlexSpace AI Core Differentiator State
   occActiveBooking: AdminBooking | null = null;
@@ -1023,10 +1029,16 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   async startCamera(): Promise<void> {
+    if (this.isStartingCamera || this.cameraActive) return;
+    this.isStartingCamera = true;
     this.cameraError = '';
+    this.cdr.detectChanges();
+
     if (!navigator?.mediaDevices?.getUserMedia) {
       this.cameraError = this.i18n.t('Trình duyệt không hỗ trợ WebRTC Camera API hoặc đang chạy không bảo mật (yêu cầu HTTPS/localhost).');
       this.cameraActive = false;
+      this.isStartingCamera = false;
+      this.cdr.detectChanges();
       return;
     }
 
@@ -1055,29 +1067,41 @@ export class Admin implements OnInit, OnDestroy {
           audio: false
         });
       } catch (errConstraint) {
-        console.warn('Lấy camera theo facingMode thất bại, fallback sang video cơ bản:', errConstraint);
-        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        console.warn('Lấy camera theo facingMode thất bại, fallback sang facingMode đơn giản:', errConstraint);
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: this.cameraFacingMode } },
+            audio: false
+          });
+        } catch {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        }
       }
 
       this.videoStream = stream;
+      this.isStartingCamera = false;
+      this.cdr.detectChanges();
 
       // 3. Gắn stream vào video element ngay lập tức
-      const videoEl = document.getElementById('qr-scanner-video') as HTMLVideoElement;
-      if (videoEl) {
-        videoEl.setAttribute('playsinline', 'true');
-        videoEl.setAttribute('webkit-playsinline', 'true');
-        videoEl.muted = true;
-        videoEl.srcObject = stream;
-        try {
-          await videoEl.play();
-        } catch (ePlay) {
-          console.warn('Video play retry needed:', ePlay);
+      setTimeout(() => {
+        const videoEl = document.getElementById('qr-scanner-video') as HTMLVideoElement;
+        if (videoEl && this.videoStream) {
+          videoEl.setAttribute('playsinline', 'true');
+          videoEl.setAttribute('webkit-playsinline', 'true');
           videoEl.muted = true;
-          await videoEl.play().catch(err2 => console.error('Final play retry failed:', err2));
+          videoEl.srcObject = this.videoStream;
+          videoEl.play().then(() => {
+            this.qrScanningRunning = true;
+            this.runQrScanningLoop(videoEl);
+          }).catch(ePlay => {
+            console.warn('Video play retry needed:', ePlay);
+            videoEl.muted = true;
+            videoEl.play().catch(err2 => console.error('Final play retry failed:', err2));
+            this.qrScanningRunning = true;
+            this.runQrScanningLoop(videoEl);
+          });
         }
-        this.qrScanningRunning = true;
-        this.runQrScanningLoop(videoEl);
-      }
+      }, 50);
 
       const modeName = this.cameraFacingMode === 'environment' 
         ? this.i18n.t('Camera sau') 
@@ -1086,6 +1110,7 @@ export class Admin implements OnInit, OnDestroy {
     } catch (err: any) {
       console.warn('Camera access denied or unavailable:', err);
       this.cameraActive = false;
+      this.isStartingCamera = false;
       if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
         this.cameraError = this.i18n.t('Quyền truy cập Camera bị từ chối. Vui lòng cấp quyền Camera trong cài đặt trình duyệt để tiếp tục.');
       } else if (err?.name === 'NotFoundError' || err?.name === 'DevicesNotFoundError') {
@@ -1099,6 +1124,7 @@ export class Admin implements OnInit, OnDestroy {
 
   stopCamera(): void {
     this.qrScanningRunning = false;
+    this.isStartingCamera = false;
     const videoEl = document.getElementById('qr-scanner-video') as HTMLVideoElement;
     if (videoEl) {
       try {
@@ -1156,6 +1182,9 @@ export class Admin implements OnInit, OnDestroy {
         // 2. Chuyển đổi trực tiếp luồng hiển thị trên video element
         const videoEl = document.getElementById('qr-scanner-video') as HTMLVideoElement;
         if (videoEl) {
+          videoEl.setAttribute('playsinline', 'true');
+          videoEl.setAttribute('webkit-playsinline', 'true');
+          videoEl.muted = true;
           videoEl.srcObject = newStream;
           videoEl.play().catch(e => console.warn('Lỗi play khi chuyển cam:', e));
         }
@@ -1190,9 +1219,34 @@ export class Admin implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.isScanningFrame && videoEl.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && videoEl.videoWidth > 0 && videoEl.videoHeight > 0) {
+    const now = performance.now();
+    // Giới hạn tần suất phân tích QR: mỗi ~80ms (thay vì 16ms) để đạt hiệu năng tối ưu trên điện thoại
+    if (!this.isScanningFrame && (now - this.lastQrScanTimestamp >= 80) &&
+        videoEl.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && 
+        videoEl.videoWidth > 0 && videoEl.videoHeight > 0) {
       this.isScanningFrame = true;
-      this.scanFrameWithJsQr(videoEl);
+      this.lastQrScanTimestamp = now;
+
+      // Ưu tiên Native BarcodeDetector (phần cứng tăng tốc NPU/GPU trên di động)
+      if ('BarcodeDetector' in window) {
+        try {
+          if (!this.barcodeDetector) {
+            this.barcodeDetector = new (window as any).BarcodeDetector({ formats: ['qr_code'] });
+          }
+          this.barcodeDetector.detect(videoEl).then((barcodes: any[]) => {
+            if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+              this.handleDetectedQrCode(barcodes[0].rawValue);
+            }
+            this.isScanningFrame = false;
+          }).catch(() => {
+            this.scanFrameWithJsQr(videoEl);
+          });
+        } catch {
+          this.scanFrameWithJsQr(videoEl);
+        }
+      } else {
+        this.scanFrameWithJsQr(videoEl);
+      }
     }
 
     if (this.qrScanningRunning) {
