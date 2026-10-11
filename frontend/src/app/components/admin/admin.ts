@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import jsQR from 'jsqr';
-import { SERVER_IMAGES_LINK } from '../../services/api-config';
+import { SERVER_BASE_URL, SERVER_IMAGES_LINK } from '../../services/api-config';
 import { SettingsService } from '../../services/settings.service';
 import { SettingsModalComponent } from '../common/settings-modal/settings-modal';
 import { TranslatePipe } from '../../services/translate.pipe';
@@ -181,6 +181,7 @@ export class Admin implements OnInit, OnDestroy {
   isProcessingScan: boolean = false;
   cameraActive: boolean = false;
   cameraFacingMode: 'user' | 'environment' = 'environment';
+  isSwitchingCamera: boolean = false;
   videoStream: MediaStream | null = null;
   cameraError: string = '';
   qrScanningRunning: boolean = false;
@@ -408,10 +409,10 @@ export class Admin implements OnInit, OnDestroy {
       spaceId: 'a-105',
       spaceName: 'Phòng A.105',
       building: 'Tòa A - Tầng 1',
-      bookerName: 'Nguyễn Văn An',
-      bookerEmail: 'annv@st.uel.edu.vn',
-      organization: 'Khoa Kinh tế Quốc tế',
-      purpose: 'Thảo luận bài tập nhóm PTWNC',
+      bookerName: 'Nguyễn Trần Kim Giang',
+      bookerEmail: 'giangnntk24411@st.uel.edu.vn',
+      organization: 'CLB ITB UEL (Chủ nhiệm)',
+      purpose: 'Thảo luận bài tập nhóm PTWNC & Lập trình Web nâng cao',
       activityType: 'Học nhóm',
       date: '11/10/2026',
       timeSlot: '14:00 - 16:00',
@@ -425,13 +426,13 @@ export class Admin implements OnInit, OnDestroy {
       code: 'UEL-88210',
       spaceId: 'choi-1',
       spaceName: 'Chòi tự học 1',
-      building: 'Đường Thanh Niên',
-      bookerName: 'Lê Thùy Dương',
-      bookerEmail: 'duonglt@st.uel.edu.vn',
-      organization: 'Khoa Tài chính - Ngân hàng',
-      purpose: 'Học cá nhân & làm đồ án tốt nghiệp',
+      building: 'Chòi tự học 1 - Đường Thanh Niên',
+      bookerName: 'Nguyễn Trần Kim Giang',
+      bookerEmail: 'giangnntk24411@st.uel.edu.vn',
+      organization: 'CLB ITB UEL (Chủ nhiệm)',
+      purpose: 'Học cá nhân & làm đồ án tốt nghiệp K24',
       activityType: 'Tự học',
-      date: '11/10/2026',
+      date: '12/10/2026',
       timeSlot: '09:00 - 11:30',
       attendees: 2,
       status: 'APPROVED',
@@ -444,12 +445,12 @@ export class Admin implements OnInit, OnDestroy {
       spaceId: 'a3-301',
       spaceName: 'Phòng A3.301',
       building: 'Tòa A3 - Tầng 3',
-      bookerName: 'Trần Hoàng Long',
-      bookerEmail: 'longth@st.uel.edu.vn',
-      organization: 'Khoa Luật',
-      purpose: 'Thảo luận đề tài nghiên cứu khoa học',
+      bookerName: 'Nguyễn Trần Kim Giang',
+      bookerEmail: 'giangnntk24411@st.uel.edu.vn',
+      organization: 'CLB ITB UEL (Chủ nhiệm)',
+      purpose: 'Thảo luận đề tài nghiên cứu khoa học NCKH',
       activityType: 'Học nhóm',
-      date: '12/10/2026',
+      date: '13/10/2026',
       timeSlot: '08:00 - 11:30',
       attendees: 8,
       status: 'APPROVED',
@@ -464,8 +465,8 @@ export class Admin implements OnInit, OnDestroy {
       building: 'Tòa B1 - Tầng 2',
       bookerName: 'Nguyễn Trần Kim Giang',
       bookerEmail: 'giangnntk24411@st.uel.edu.vn',
-      organization: 'CLB Tiếng Anh UEL',
-      purpose: 'Họp CLB Tiếng Anh UEL',
+      organization: 'CLB ITB UEL (Chủ nhiệm)',
+      purpose: 'Họp CLB Tiếng Anh UEL & Ban Chủ nhiệm ITB',
       activityType: 'Học nhóm',
       date: '11/10/2026',
       timeSlot: '13:00 - 17:00',
@@ -475,22 +476,60 @@ export class Admin implements OnInit, OnDestroy {
       processedAt: '10/10/2026 10:00'
     },
     {
+      id: 'UEL-88777',
+      code: 'UEL-88777',
+      spaceId: 'a2-1',
+      spaceName: 'Phòng Họp A2.1',
+      building: 'Tòa nhà A - Tầng 2',
+      bookerName: 'Nguyễn Trần Kim Giang',
+      bookerEmail: 'giangnntk24411@st.uel.edu.vn',
+      organization: 'CLB ITB UEL (Chủ nhiệm)',
+      purpose: 'Họp Ban tổ chức Cuộc thi Hackathon UEL 2026',
+      activityType: 'Họp chuyên môn',
+      date: '14/10/2026',
+      timeSlot: '15:00 - 17:30',
+      attendees: 15,
+      status: 'APPROVED',
+      processedBy: 'admin@uel.edu.vn',
+      processedAt: '11/10/2026 10:15'
+    },
+    {
+      id: 'UEL-88999',
+      code: 'UEL-88999',
+      spaceId: 'thu-vien-2',
+      spaceName: 'Khu tự học Thư viện (Tầng 2)',
+      building: 'Tòa nhà Thư viện - Tầng 2',
+      bookerName: 'Nguyễn Trần Kim Giang',
+      bookerEmail: 'giangnntk24411@st.uel.edu.vn',
+      organization: 'CLB ITB UEL (Chủ nhiệm)',
+      purpose: 'Học tập trung tại khu vực yên tĩnh Thư viện',
+      activityType: 'Tự học',
+      date: '11/10/2026',
+      timeSlot: '08:00 - 12:00',
+      attendees: 4,
+      status: 'IN_USE',
+      processedBy: 'admin@uel.edu.vn',
+      processedAt: '11/10/2026 07:45',
+      actualCheckInAt: '11/10/2026 08:05:00'
+    },
+    {
       id: 'UEL-87600',
       code: 'UEL-87600',
       spaceId: 'b2-101',
       spaceName: 'Phòng B2.101',
       building: 'Tòa B2 - Tầng 1',
-      bookerName: 'Vũ Đức Nam',
-      bookerEmail: 'namvd@st.uel.edu.vn',
-      organization: 'Khoa Kinh tế Quốc tế',
+      bookerName: 'Nguyễn Trần Kim Giang',
+      bookerEmail: 'giangnntk24411@st.uel.edu.vn',
+      organization: 'CLB ITB UEL (Chủ nhiệm)',
       purpose: 'Thuyết trình nhóm Kinh tế lượng',
       activityType: 'Thuyết trình',
-      date: '11/10/2026',
+      date: '10/10/2026',
       timeSlot: '10:00 - 12:00',
       attendees: 25,
-      status: 'PENDING',
+      status: 'COMPLETED',
       processedBy: 'admin@uel.edu.vn',
-      processedAt: '10/10/2026 11:30'
+      processedAt: '10/10/2026 11:30',
+      actualCheckInAt: '10/10/2026 10:02:15'
     },
     {
       id: 'UEL-87115',
@@ -498,10 +537,10 @@ export class Admin implements OnInit, OnDestroy {
       spaceId: 'choi-3',
       spaceName: 'Chòi tự học 3',
       building: 'Đường Thanh Niên',
-      bookerName: 'Lê Minh Tuấn',
-      bookerEmail: 'tuanlm@st.uel.edu.vn',
-      organization: 'Sinh viên UEL',
-      purpose: 'Ôn tập thi giữa kỳ',
+      bookerName: 'Nguyễn Trần Kim Giang',
+      bookerEmail: 'giangnntk24411@st.uel.edu.vn',
+      organization: 'CLB ITB UEL (Chủ nhiệm)',
+      purpose: 'Ôn tập thi giữa kỳ cùng các bạn trong CLB',
       activityType: 'Tự học',
       date: '11/10/2026',
       timeSlot: '08:00 - 11:00',
@@ -516,17 +555,35 @@ export class Admin implements OnInit, OnDestroy {
       spaceId: 'choi-2',
       spaceName: 'Chòi tự học 2',
       building: 'Đường Thanh Niên',
-      bookerName: 'Đỗ Thùy Linh',
-      bookerEmail: 'linhdt@st.uel.edu.vn',
-      organization: 'Sinh viên UEL',
-      purpose: 'Tự học và đọc tài liệu',
+      bookerName: 'Nguyễn Trần Kim Giang',
+      bookerEmail: 'giangnntk24411@st.uel.edu.vn',
+      organization: 'CLB ITB UEL (Chủ nhiệm)',
+      purpose: 'Tự học và đọc tài liệu chuyên đề Big Data',
       activityType: 'Tự học',
       date: '11/10/2026',
       timeSlot: '14:00 - 16:00',
       attendees: 6,
-      status: 'PENDING',
+      status: 'APPROVED',
       processedBy: 'admin@uel.edu.vn',
       processedAt: '10/10/2026 16:00'
+    },
+    {
+      id: 'BK-20261011-001',
+      code: 'BK-20261011-001',
+      spaceId: 'a-105',
+      spaceName: 'Phòng A.105',
+      building: 'Tòa A - Tầng 1',
+      bookerName: 'Nguyễn Trần Kim Giang',
+      bookerEmail: 'giangnntk24411@st.uel.edu.vn',
+      organization: 'CLB ITB UEL (Chủ nhiệm)',
+      purpose: 'Thảo luận đề tài Website Quản lý Không gian UEL Space',
+      activityType: 'Học nhóm',
+      date: '11/10/2026',
+      timeSlot: '08:00 - 11:30',
+      attendees: 5,
+      status: 'APPROVED',
+      processedBy: 'admin@uel.edu.vn',
+      processedAt: '11/10/2026 07:30'
     }
   ];
 
@@ -954,123 +1011,56 @@ export class Admin implements OnInit, OnDestroy {
     }
 
     try {
-      // 1. Release previous stream and wait for hardware lens release
-      this.stopCamera();
-      await new Promise(r => setTimeout(r, 120));
-
-      let stream: MediaStream | null = null;
-
-      // 2. Hardware device enumeration: detect physical back camera on phone
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(d => d.kind === 'videoinput');
-
-        if (videoDevices.length > 0) {
-          if (this.cameraFacingMode === 'environment') {
-            const backDevice = videoDevices.find(d => 
-              /back|rear|sau|environment|cam.*1|triple|ultra.*wide/i.test(d.label)
-            ) || (videoDevices.length > 1 ? videoDevices[videoDevices.length - 1] : videoDevices[0]);
-
-            if (backDevice && backDevice.deviceId) {
-              try {
-                stream = await navigator.mediaDevices.getUserMedia({
-                  video: {
-                    deviceId: { exact: backDevice.deviceId },
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                  },
-                  audio: false
-                });
-              } catch (eDev) {
-                console.warn('Direct deviceId selection failed:', eDev);
-              }
-            }
-          } else {
-            const frontDevice = videoDevices.find(d => 
-              /front|user|trước|face/i.test(d.label)
-            ) || videoDevices[0];
-
-            if (frontDevice && frontDevice.deviceId) {
-              try {
-                stream = await navigator.mediaDevices.getUserMedia({
-                  video: {
-                    deviceId: { exact: frontDevice.deviceId },
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                  },
-                  audio: false
-                });
-              } catch (eDev) {
-                console.warn('Front deviceId selection failed:', eDev);
-              }
-            }
-          }
-        }
-      } catch (eEnum) {
-        console.warn('enumerateDevices not available or blocked:', eEnum);
+      // 1. Dọn dẹp stream cũ nếu có (dừng trực tiếp không delay)
+      if (this.videoStream) {
+        this.videoStream.getTracks().forEach(track => {
+          try { track.stop(); } catch {}
+        });
+        this.videoStream = null;
       }
 
-      // 3. Fallback to exact facingMode
-      if (!stream) {
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-              facingMode: { exact: this.cameraFacingMode },
-              width: { ideal: 1280 },
-              height: { ideal: 720 }
-            },
-            audio: false
-          });
-        } catch (errExact) {
-          console.warn('Exact facingMode failed, falling back to ideal:', errExact);
-          // 4. Fallback to ideal facingMode
-          try {
-            stream = await navigator.mediaDevices.getUserMedia({
-              video: {
-                facingMode: { ideal: this.cameraFacingMode },
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
-              },
-              audio: false
-            });
-          } catch (errIdeal) {
-            console.warn('Ideal facingMode failed, falling back to basic video:', errIdeal);
-            // 5. Final fallback to any available video stream
-            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-          }
-        }
+      // Kích hoạt ngay cameraActive để Angular render thẻ <video> ngay lập tức
+      this.cameraActive = true;
+      this.cdr.detectChanges();
+
+      // 2. Yêu cầu quyền và lấy camera ngay lập tức với constraint lý tưởng
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: this.cameraFacingMode },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        });
+      } catch (errConstraint) {
+        console.warn('Lấy camera theo facingMode thất bại, fallback sang video cơ bản:', errConstraint);
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
       }
 
       this.videoStream = stream;
-      this.cameraActive = true;
 
-      // 6. Robust video element binding with playsinline for mobile
-      let attempts = 0;
-      const attachVideo = () => {
-        attempts++;
-        const videoEl = document.getElementById('qr-scanner-video') as HTMLVideoElement;
-        if (videoEl && this.videoStream) {
-          videoEl.setAttribute('playsinline', 'true');
-          videoEl.setAttribute('webkit-playsinline', 'true');
+      // 3. Gắn stream vào video element ngay lập tức
+      const videoEl = document.getElementById('qr-scanner-video') as HTMLVideoElement;
+      if (videoEl) {
+        videoEl.setAttribute('playsinline', 'true');
+        videoEl.setAttribute('webkit-playsinline', 'true');
+        videoEl.muted = true;
+        videoEl.srcObject = stream;
+        try {
+          await videoEl.play();
+        } catch (ePlay) {
+          console.warn('Video play retry needed:', ePlay);
           videoEl.muted = true;
-          videoEl.srcObject = this.videoStream;
-          videoEl.play().then(() => {
-            this.qrScanningRunning = true;
-            this.runQrScanningLoop(videoEl);
-          }).catch(e => {
-            console.warn('Video play error on mobile:', e);
-            videoEl.muted = true;
-            videoEl.play().catch(err2 => console.error('Final play retry failed:', err2));
-          });
-        } else if (this.cameraActive && attempts < 25) {
-          setTimeout(attachVideo, 60);
+          await videoEl.play().catch(err2 => console.error('Final play retry failed:', err2));
         }
-      };
-
-      setTimeout(attachVideo, 50);
+        this.qrScanningRunning = true;
+        this.runQrScanningLoop(videoEl);
+      }
 
       const modeName = this.cameraFacingMode === 'environment' 
-        ? this.i18n.t('Camera sau (quét mã QR)') 
+        ? this.i18n.t('Camera sau') 
         : this.i18n.t('Camera trước');
       this.showToast(`${this.i18n.t('Đã bật')} ${modeName}!`, 'info');
     } catch (err: any) {
@@ -1083,6 +1073,7 @@ export class Admin implements OnInit, OnDestroy {
       } else {
         this.cameraError = this.i18n.t('Không thể kết nối Camera: ') + (err?.message || this.i18n.t('Chưa cấp quyền hoặc thiết bị bận. Vui lòng thử lại hoặc dùng ô nhập mã bên dưới.'));
       }
+      this.cdr.detectChanges();
     }
   }
 
@@ -1102,12 +1093,71 @@ export class Admin implements OnInit, OnDestroy {
       this.videoStream = null;
     }
     this.cameraActive = false;
+    this.isSwitchingCamera = false;
+    this.cdr.detectChanges();
   }
 
   async toggleCameraFacing(): Promise<void> {
-    this.cameraFacingMode = this.cameraFacingMode === 'environment' ? 'user' : 'environment';
-    if (this.cameraActive) {
-      await this.startCamera();
+    if (!this.cameraActive || this.isSwitchingCamera) return;
+    if (!navigator?.mediaDevices?.getUserMedia) return;
+
+    this.isSwitchingCamera = true;
+    const nextFacingMode: 'user' | 'environment' = this.cameraFacingMode === 'environment' ? 'user' : 'environment';
+
+    try {
+      // 1. Lấy luồng camera mới TRƯỚC khi tắt luồng cũ để camera KHÔNG BỊ TẮT hay chớp tắt màn hình
+      let newStream: MediaStream | null = null;
+      try {
+        newStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { exact: nextFacingMode },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        });
+      } catch {
+        // Fallback ideal facingMode nếu exact không được hỗ trợ trên thiết bị
+        newStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: nextFacingMode },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        });
+      }
+
+      if (newStream) {
+        const oldStream = this.videoStream;
+        this.videoStream = newStream;
+        this.cameraFacingMode = nextFacingMode;
+
+        // 2. Chuyển đổi trực tiếp luồng hiển thị trên video element
+        const videoEl = document.getElementById('qr-scanner-video') as HTMLVideoElement;
+        if (videoEl) {
+          videoEl.srcObject = newStream;
+          videoEl.play().catch(e => console.warn('Lỗi play khi chuyển cam:', e));
+        }
+
+        // 3. Tắt các track của luồng cũ ở chế độ nền (mượt mà, không gián đoạn viewfinder)
+        if (oldStream) {
+          oldStream.getTracks().forEach(track => {
+            try { track.stop(); } catch {}
+          });
+        }
+
+        const modeName = this.cameraFacingMode === 'environment' 
+          ? this.i18n.t('Camera sau') 
+          : this.i18n.t('Camera trước');
+        this.showToast(`${this.i18n.t('Đã chuyển sang')} ${modeName}!`, 'info');
+      }
+    } catch (err: any) {
+      console.warn('Lỗi khi đổi camera:', err);
+      this.showToast(this.i18n.t('Thiết bị chỉ có 1 camera hoặc không thể chuyển đổi.'), 'warning');
+    } finally {
+      this.isSwitchingCamera = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -1245,7 +1295,7 @@ export class Admin implements OnInit, OnDestroy {
     );
 
     // If no pre-existing match in mock list,
-    // dynamically generate an active approved booking so scanning ANY QR code will verify successfully!
+    // dynamically generate an active booking linked to student Nguyen Tran Kim Giang
     if (!matched) {
       const dynamicBooking: AdminBooking = {
         id: code,
@@ -1253,14 +1303,14 @@ export class Admin implements OnInit, OnDestroy {
         spaceId: 'a-105',
         spaceName: 'Phòng A.105',
         building: 'Tòa A - Tầng 1',
-        bookerName: 'Sinh viên UEL',
-        bookerEmail: 'sinhvien@st.uel.edu.vn',
-        organization: 'Sinh viên UEL',
+        bookerName: 'Nguyễn Trần Kim Giang',
+        bookerEmail: 'giangnntk24411@st.uel.edu.vn',
+        organization: 'CLB ITB UEL (Chủ nhiệm)',
         purpose: 'Xác thực hiện diện phòng học qua mã QR',
-        activityType: 'Tự học',
+        activityType: 'Học nhóm',
         date: new Date().toLocaleDateString('vi-VN'),
         timeSlot: '08:00 - 11:30',
-        attendees: 1,
+        attendees: 5,
         status: 'PENDING'
       };
       this.bookings.unshift(dynamicBooking);
@@ -1293,7 +1343,7 @@ export class Admin implements OnInit, OnDestroy {
       return;
     }
 
-    // Check-in Success & Auto Approval
+    // Check-in Success & Auto Approval -> Transition status directly to IN_USE
     const now = new Date();
     const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const dateStr = now.toLocaleDateString('vi-VN');
@@ -1353,6 +1403,36 @@ export class Admin implements OnInit, OnDestroy {
 
     this.showToast(`${this.i18n.t('Check-in thành công:')} ${matched.bookerName} ${this.i18n.t('đã vào')} ${matched.spaceName}!`, 'success');
     this.cdr.detectChanges();
+
+    // Directly update status to MongoDB Atlas via Backend API
+    try {
+      fetch(`${SERVER_BASE_URL}/api/bookings/qr-checkin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          code: code,
+          actor: this.adminUser.email
+        })
+      })
+        .then(res => res.json())
+        .then(apiRes => {
+          if (apiRes && apiRes.success && apiRes.booking) {
+            console.log('[Admin Station] Đã đồng bộ trạng thái IN_USE lên DB Atlas thành công:', apiRes.booking);
+            if (apiRes.booking.bookerName) matched.bookerName = apiRes.booking.bookerName;
+            if (apiRes.booking.bookerEmail) matched.bookerEmail = apiRes.booking.bookerEmail;
+            if (apiRes.booking.spaceName) matched.spaceName = apiRes.booking.spaceName;
+            matched.status = 'IN_USE';
+            this.cdr.detectChanges();
+          }
+        })
+        .catch(fetchErr => {
+          console.warn('[Admin Station] Ghi nhận check-in local, API backend offline:', fetchErr);
+        });
+    } catch (e) {
+      console.warn('[Admin Station] Call API checkin error:', e);
+    }
   }
 
   adminOverrideCheckIn(): void {
@@ -1393,6 +1473,20 @@ export class Admin implements OnInit, OnDestroy {
     };
 
     this.showToast(`${this.i18n.t('Admin Override thành công cho')} ${b.bookerName}!`, 'success');
+
+    // Sync override status to MongoDB Atlas
+    try {
+      fetch(`${SERVER_BASE_URL}/api/bookings/qr-checkin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          code: b.code,
+          actor: `${this.adminUser.email} (Override)`
+        })
+      }).catch(() => {});
+    } catch {}
   }
 
   resetScanResult(): void {

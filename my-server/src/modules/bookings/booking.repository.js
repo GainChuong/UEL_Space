@@ -14,8 +14,21 @@ class BookingRepository {
     return this.collection.findOne({ _id: id, deletedAt: null });
   }
 
+  findOne(filter) {
+    return this.collection.findOne({ deletedAt: null, ...filter });
+  }
+
   findByCode(code) {
-    return this.collection.findOne({ code, deletedAt: null });
+    const cleanCode = String(code || '').trim();
+    const regex = new RegExp(`^${cleanCode}$`, 'i');
+    return this.collection.findOne({
+      deletedAt: null,
+      $or: [
+        { code: regex },
+        { _id: cleanCode },
+        { checkInCode: cleanCode }
+      ]
+    });
   }
 
   findActiveByUser(userId) {

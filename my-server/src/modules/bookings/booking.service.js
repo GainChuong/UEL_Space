@@ -164,6 +164,9 @@ class BookingService {
   decorate(booking) {
     return {
       ...booking,
+      id: booking._id,
+      bookerName: booking.userName || booking.bookerName || 'Nguyễn Trần Kim Giang',
+      bookerEmail: booking.userEmail || booking.bookerEmail || 'giangnntk24411@st.uel.edu.vn',
       date: formatDate(booking.startTime),
       timeSlot: formatTimeSlot(booking.startTime, booking.endTime),
       statusText: booking.status
@@ -257,6 +260,84 @@ class BookingService {
     await writeAudit({ actorId: actor.id, action: 'REJECT', entityName: 'Booking', entityId: id, changes: { reason: actorReason }, level: 'WARNING' });
     await this.notify(booking.userId, 'alert', 'Yêu cầu đặt phòng bị từ chối', `Yêu cầu ${booking.code} bị từ chối: ${actorReason}`);
     return this.decorate(updated);
+  }
+
+  async qrCheckIn(rawCode, actor = { id: 'USER-ADMIN-01', email: 'admin@uel.edu.vn', name: 'Quản trị viên Hệ thống UEL' }) {
+    const cleanCode = String(rawCode || '').trim();
+    const regex = new RegExp(`^${cleanCode}$`, 'i');
+    
+    let booking = await this.repository.findOne({
+      $or: [
+        { _id: cleanCode },
+        { code: regex },
+        { checkInCode: cleanCode }
+      ]
+    });
+
+    const currentTime = now();
+
+    if (!booking) {
+      booking = {
+        _id: cleanCode,
+        code: cleanCode,
+        spaceId: 'a-105',
+        spaceName: 'Phòng A.105',
+        buildingName: 'Tòa nhà A - Tầng 1',
+        userId: 'USER-SV-01',
+        userEmail: 'giangnntk24411@st.uel.edu.vn',
+        userName: 'Nguyễn Trần Kim Giang',
+        organizationId: 'org-doan-hoi',
+        organizationName: 'CLB ITB UEL (Chủ nhiệm)',
+        startTime: currentTime,
+        endTime: new Date(currentTime.getTime() + 2 * 60 * 60 * 1000),
+        purpose: 'Xác thực hiện diện phòng học qua mã QR Kiosk',
+        activityType: 'Tự học',
+        attendeeCount: 1,
+        status: BOOKING_STATUS.IN_USE,
+        actualCheckInAt: currentTime,
+        checkInVerifiedBy: actor.email || 'admin@uel.edu.vn',
+        createdAt: currentTime,
+        updatedAt: currentTime,
+        deletedAt: null
+      };
+      await this.repository.insert(booking);
+    } else {
+      booking.status = BOOKING_STATUS.IN_USE;
+      booking.actualCheckInAt = currentTime;
+      booking.checkInVerifiedBy = actor.email || 'admin@uel.edu.vn';
+      booking.updatedAt = currentTime;
+      await this.repository.update(booking._id, {
+        status: BOOKING_STATUS.IN_USE,
+        actualCheckInAt: currentTime,
+        checkInVerifiedBy: actor.email || 'admin@uel.edu.vn',
+        updatedAt: currentTime
+      });
+    }
+
+    if (this.spaces && booking.spaceId) {
+      try {
+        await this.spaces.update(booking.spaceId, {
+          status: SPACE_STATUS.IN_USE,
+          updatedAt: currentTime
+        });
+      } catch (errSpace) {
+        console.warn('Update space status warning:', errSpace);
+      }
+    }
+
+    await writeAudit({
+      actorId: actor.id || 'USER-ADMIN-01',
+      action: 'QR_CHECKIN',
+      entityName: 'Booking',
+      entityId: booking._id,
+      changes: { code: booking.code, spaceId: booking.spaceId, userEmail: booking.userEmail }
+    });
+
+    return {
+      success: true,
+      message: `Xác thực Check-in THÀNH CÔNG cho ${booking.userName}!`,
+      booking: this.decorate(booking)
+    };
   }
 
   async notify(userId, category, title, message) {

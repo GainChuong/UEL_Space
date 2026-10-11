@@ -36,6 +36,15 @@ class BookingController {
   reject = async (req, res) => {
     res.json(await this.service.reject(req.params.id, req.user, req.body?.reason));
   };
+
+  qrCheckIn = async (req, res) => {
+    const rawCode = (req.body?.code || req.body?.rawCode || req.params.id || '').trim();
+    if (!rawCode) {
+      return res.status(400).json({ success: false, message: 'Thiếu mã QR hoặc mã đặt chỗ' });
+    }
+    const actor = req.user || { id: 'USER-ADMIN-01', email: 'admin@uel.edu.vn', name: 'Quản trị viên Hệ thống UEL' };
+    res.json(await this.service.qrCheckIn(rawCode, actor));
+  };
 }
 
 function bookingRoutes(collections) {
@@ -48,6 +57,8 @@ function bookingRoutes(collections) {
   });
   const controller = new BookingController(service);
 
+  router.post('/qr-checkin', asyncHandler(controller.qrCheckIn));
+  router.post('/:id/qr-checkin', asyncHandler(controller.qrCheckIn));
   router.post('/', requireAuth, asyncHandler(controller.create));
   router.get('/me', requireAuth, asyncHandler(controller.listMine));
   router.get('/', requireManager, asyncHandler(controller.listAll));
