@@ -1,12 +1,14 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as L from 'leaflet';
 import { SERVER_IMAGES_LINK, SERVER_BASE_URL } from '../../services/api-config';
 import { TranslatePipe } from '../../services/translate.pipe';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
 
 @Component({
-  imports: [CommonModule, TranslatePipe],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   selector: 'app-map',
   styleUrl: './map.scss',
   templateUrl: './map.html',
@@ -53,7 +55,9 @@ export class Map implements OnInit, AfterViewInit {
 
   isMobileFilterOpen: boolean = false;
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.suggestedGoogleSlots = this.googleCalendarService.getSuggestedSlots();
+  }
 
   ngAfterViewInit() {}
 
@@ -236,54 +240,111 @@ export class Map implements OnInit, AfterViewInit {
     }
   ];
 
+  // Google Calendar Integration State
+  calendarViewMode: 'picker' | 'embed' = 'picker';
+  customBookingDate: string = new Date().toISOString().split('T')[0];
+  customStartTime: string = '13:00';
+  customEndTime: string = '15:00';
+  customDurationHours: number = 2;
+  googleEmbedSafeUrl: SafeResourceUrl | null = null;
+  suggestedGoogleSlots: any[] = [];
+
   openBookingModal(room: any) {
     if (room.status === 'available' || room.status === 'reserved') {
       this.selectedRoomToBook = room;
       this.bookingSuccess = false;
-      // Default to slot 3 (13:00 - 15:00) which is free
-      this.selectedSlot = this.bookingSlots[2];
-      this.checkConflict();
+      this.customBookingDate = new Date().toISOString().split('T')[0];
+      this.customStartTime = '13:00';
+      this.customEndTime = '15:00';
+      this.customDurationHours = 2;
+      const rawUrl = this.googleCalendarService.generateEmbedUrl(room.name, 'AGENDA');
+      this.googleEmbedSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl);
+      this.onTimeOrDateChange();
     }
   }
 
-  selectBookingSlot(slot: any) {
-    this.selectedSlot = slot;
+  onTimeOrDateChange(): void {
+    this.customDurationHours = this.googleCalendarService.calculateDuration(this.customStartTime, this.customEndTime);
+    if (this.selectedRoomToBook) {
+      this.selectedRoomToBook.totalPrice = (this.selectedRoomToBook.hourlyPrice || 60000) * this.customDurationHours;
+    }
+    this.selectedSlot = {
+      id: 'custom-slot',
+      time: `${this.customStartTime} - ${this.customEndTime}`,
+      period: `${this.customDurationHours} giờ`,
+      date: this.customBookingDate
+    };
     this.checkConflict();
   }
 
+  selectGooglePresetSlot(slot: any): void {
+    this.customStartTime = slot.start;
+    this.customEndTime = slot.end;
+    this.customDurationHours = slot.hours;
+    this.onTimeOrDateChange();
+  }
+
+  openGoogleCalendarExternal(room?: any): void {
+    const r = room || this.selectedRoomToBook || this.selectedRoomDetail;
+    if (!r) return;
+    this.googleCalendarService.openGoogleCalendar({
+      title: `[UEL SPACE] Đặt phòng ${r.name || 'Học tập'}`,
+      roomName: r.name || 'Phòng học UEL',
+      building: r.building || this.selectedBuilding?.name || 'Cơ sở chính UEL',
+      code: 'UEL-88392',
+      date: this.customBookingDate,
+      timeSlot: `${this.customStartTime} - ${this.customEndTime}`,
+      purpose: 'Học tập & Thảo luận nhóm sinh viên',
+      bookerName: this.studentInfo.name
+    });
+  }
+
   checkConflict() {
-    if (!this.selectedSlot) {
+    if (!this.customStartTime || !this.customEndTime) {
       this.hasConflict = false;
       this.conflictReason = '';
       return;
     }
 
-    const busyItem = this.studentSchedule.find(
-      item => item.isBusy && item.conflictsWith.includes(this.selectedSlot.id)
-    );
+    const busyClasses = [
+      { start: '07:30', end: '11:45', title: 'Kinh tế lượng ứng dụng', room: 'B1.202' },
+      { start: '15:15', end: '17:15', title: 'Pháp luật đại cương', room: 'A1.305' }
+    ];
 
-    if (busyItem) {
+    const toMinutes = (timeStr: string) => {
+      const [h, m] = timeStr.split(':').map(Number);
+      return (h || 0) * 60 + (m || 0);
+    };
+
+    const selStart = toMinutes(this.customStartTime);
+    const selEnd = toMinutes(this.customEndTime);
+
+    const conflict = busyClasses.find(c => {
+      const cStart = toMinutes(c.start);
+      const cEnd = toMinutes(c.end);
+      return Math.max(selStart, cStart) < Math.min(selEnd, cEnd);
+    });
+
+    if (conflict) {
       this.hasConflict = true;
-      this.conflictReason = `Trùng giờ học "${busyItem.title}" (${busyItem.time}) tại ${busyItem.room}`;
+      this.conflictReason = `Trùng giờ học "${conflict.title}" (${conflict.start} - ${conflict.end}) tại ${conflict.room}`;
     } else {
       this.hasConflict = false;
       this.conflictReason = '';
     }
   }
 
-  isSlotConflicted(slotId: string): boolean {
-    return this.studentSchedule.some(
-      item => item.isBusy && item.conflictsWith.includes(slotId)
-    );
-  }
-
-  constructor(private googleCalendarService: GoogleCalendarService) {}
+  constructor(
+    private googleCalendarService: GoogleCalendarService,
+    private sanitizer: DomSanitizer
+  ) {}
 
   confirmBooking() {
     if (this.selectedRoomToBook && !this.hasConflict) {
       this.selectedRoomToBook.status = 'in-use';
       this.selectedRoomToBook.statusText = 'Đang sử dụng';
       this.bookingSuccess = true;
+      this.addToGoogleCalendar(this.selectedRoomToBook, this.selectedSlot);
     }
   }
 
@@ -293,10 +354,10 @@ export class Map implements OnInit, AfterViewInit {
     this.googleCalendarService.openGoogleCalendar({
       title: `[UEL SPACE] Đặt phòng ${r?.name || 'Học tập'}`,
       roomName: r?.name || 'Phòng học UEL',
-      building: r?.building || 'Cơ sở chính UEL',
+      building: r?.building || this.selectedBuilding?.name || 'Cơ sở chính UEL',
       code: 'UEL-88392',
-      date: new Date().toLocaleDateString('vi-VN'),
-      timeSlot: s?.time || '13:00 - 15:00',
+      date: this.customBookingDate,
+      timeSlot: s?.time || `${this.customStartTime} - ${this.customEndTime}`,
       purpose: 'Học tập & Thảo luận nhóm sinh viên',
       bookerName: this.studentInfo.name
     });
@@ -308,208 +369,13 @@ export class Map implements OnInit, AfterViewInit {
     this.googleCalendarService.downloadIcsFile({
       title: `[UEL SPACE] Đặt phòng ${r?.name || 'Học tập'}`,
       roomName: r?.name || 'Phòng học UEL',
-      building: r?.building || 'Cơ sở chính UEL',
+      building: r?.building || this.selectedBuilding?.name || 'Cơ sở chính UEL',
       code: 'UEL-88392',
-      date: new Date().toLocaleDateString('vi-VN'),
-      timeSlot: s?.time || '13:00 - 15:00',
+      date: this.customBookingDate,
+      timeSlot: s?.time || `${this.customStartTime} - ${this.customEndTime}`,
       purpose: 'Học tập & Thảo luận nhóm sinh viên',
       bookerName: this.studentInfo.name
     });
-  }
-
-  addCourseToGoogleCalendar(course: any, day: any) {
-    this.googleCalendarService.openGoogleCalendar({
-      title: `[Lớp học UEL] ${course.subject} (${course.code}) - Phòng ${course.room}`,
-      roomName: course.room,
-      building: course.campus,
-      code: course.lhp,
-      date: day.date,
-      timeSlot: course.time,
-      purpose: `Giảng viên: ${course.lecturer} | Số tiết: ${course.periodsTotal} (${course.periodRange})`,
-      details: `📚 Môn học: ${course.subject} (${course.code})\n🏛️ Phòng: ${course.room} - ${course.campus}\n👨‍🏫 Giảng viên: ${course.lecturer}\n⏰ Giờ học: ${course.time}\n🌐 Ngôn ngữ: ${course.language}`
-    });
-  }
-
-  // Timetable State & Data
-  showTimetableModal: boolean = false;
-  previousRoomDetail: any = null;
-  currentWeekText: string = 'Tuần 06 (05/10/2026 - 11/10/2026)';
-  timetableFilterCampus: string = 'all';
-
-  weekDays = [
-    { key: 't2', name: 'Thứ 2', date: '05/10/2026', isToday: false },
-    { key: 't3', name: 'Thứ 3', date: '06/10/2026', isToday: false },
-    { key: 't4', name: 'Thứ 4', date: '07/10/2026', isToday: false },
-    { key: 't5', name: 'Thứ 5', date: '08/10/2026', isToday: false },
-    { key: 't6', name: 'Thứ 6', date: '09/10/2026', isToday: true },
-    { key: 't7', name: 'Thứ 7', date: '10/10/2026', isToday: false },
-    { key: 'cn', name: 'Chủ Nhật', date: '11/10/2026', isToday: false }
-  ];
-
-  timetableRows: Array<{
-    roomCode: string;
-    campus: string;
-    capacity: number;
-    schedule: { [key: string]: any };
-  }> = [
-    {
-      roomCode: 'A.707',
-      campus: 'Cơ sở chính',
-      capacity: 65,
-      schedule: {
-        t2: null,
-        t3: {
-          subject: 'Tư duy lập trình',
-          code: 'EIMT049',
-          lhp: '261EIMT04901',
-          room: 'A.707',
-          campus: 'Cơ sở chính',
-          periodsTotal: '4.5',
-          periodRange: 'Tiết: 1-4.5',
-          time: '07:00 -> 11h00',
-          lecturer: 'TS. Trần Duy Thanh',
-          language: 'Tiếng Anh'
-        },
-        t4: null,
-        t5: null,
-        t6: {
-          subject: 'Kinh tế lượng ứng dụng',
-          code: 'ECO023',
-          lhp: '261ECO02302',
-          room: 'A.707',
-          campus: 'Cơ sở chính',
-          periodsTotal: '4.5',
-          periodRange: 'Tiết: 1-4.5',
-          time: '07:00 -> 11h00',
-          lecturer: 'TS. Nguyễn Thị Yến',
-          language: 'Tiếng Việt'
-        },
-        t7: null,
-        cn: null
-      }
-    },
-    {
-      roomCode: 'B1.202',
-      campus: 'Cơ sở chính',
-      capacity: 70,
-      schedule: {
-        t2: null,
-        t3: null,
-        t4: {
-          subject: 'Thương mại điện tử',
-          code: 'ECOM012',
-          lhp: '261ECOM01201',
-          room: 'B1.202',
-          campus: 'Cơ sở chính',
-          periodsTotal: '4.0',
-          periodRange: 'Tiết: 6-9.5',
-          time: '13:00 -> 17h00',
-          lecturer: 'ThS. Lê Hoàng Minh',
-          language: 'Tiếng Việt'
-        },
-        t5: null,
-        t6: {
-          subject: 'Pháp luật đại cương',
-          code: 'LAW001',
-          lhp: '261LAW00104',
-          room: 'B1.202',
-          campus: 'Cơ sở chính',
-          periodsTotal: '2.5',
-          periodRange: 'Tiết: 8-10',
-          time: '15:15 -> 17h15',
-          lecturer: 'ThS. Trần Thị Mai',
-          language: 'Tiếng Việt'
-        },
-        t7: null,
-        cn: null
-      }
-    },
-    {
-      roomCode: 'A2.301',
-      campus: 'Cơ sở chính',
-      capacity: 50,
-      schedule: {
-        t2: null,
-        t3: null,
-        t4: null,
-        t5: {
-          subject: 'Marketing căn bản',
-          code: 'MKT005',
-          lhp: '261MKT00503',
-          room: 'A2.301',
-          campus: 'Cơ sở chính',
-          periodsTotal: '4.5',
-          periodRange: 'Tiết: 1-4.5',
-          time: '07:30 -> 11h30',
-          lecturer: 'TS. Phạm Hải Nam',
-          language: 'Tiếng Việt'
-        },
-        t6: null,
-        t7: null,
-        cn: null
-      }
-    },
-    {
-      roomCode: 'B2.104',
-      campus: 'Khu tự học',
-      capacity: 45,
-      schedule: {
-        t2: null,
-        t3: null,
-        t4: null,
-        t5: null,
-        t6: null,
-        t7: null,
-        cn: null
-      }
-    }
-  ];
-
-  openTimetableModal() {
-    this.previousRoomDetail = null;
-    this.showTimetableModal = true;
-  }
-
-  openTimetableFromDetail(room: any) {
-    this.previousRoomDetail = room;
-    this.selectedRoomDetail = null;
-    this.showTimetableModal = true;
-  }
-
-  returnToRoomDetail() {
-    if (this.previousRoomDetail) {
-      this.selectedRoomDetail = this.previousRoomDetail;
-      this.previousRoomDetail = null;
-    }
-    this.showTimetableModal = false;
-  }
-
-  closeTimetableModal() {
-    if (this.previousRoomDetail) {
-      this.selectedRoomDetail = this.previousRoomDetail;
-      this.previousRoomDetail = null;
-    }
-    this.showTimetableModal = false;
-  }
-
-  closeAllModals() {
-    this.previousRoomDetail = null;
-    this.selectedRoomDetail = null;
-    this.showTimetableModal = false;
-  }
-
-  bookSlotFromTimetable(roomCode: string, day: any) {
-    this.previousRoomDetail = null;
-    this.showTimetableModal = false;
-    this.selectedRoomToBook = {
-      name: roomCode,
-      capacity: 50,
-      type: 'Phòng học lý thuyết',
-      status: 'available',
-      statusText: 'Trống'
-    };
-    this.selectedSlot = this.bookingSlots[2];
-    this.checkConflict();
   }
 
   openRoomDetail(room: any) {
@@ -562,9 +428,9 @@ export class Map implements OnInit, AfterViewInit {
     const targetSlot = slot || this.selectedSlot;
     if (!targetRoom) return;
 
-    const hours = 2; // Ca học tiêu chuẩn 2 giờ
+    const hours = this.customDurationHours || 2;
     const hourlyPrice = targetRoom.hourlyPrice || 60000;
-    const totalAmount = hourlyPrice * hours;
+    const totalAmount = Math.round(hourlyPrice * hours);
 
     this.momoModal = {
       isOpen: true,
@@ -573,7 +439,7 @@ export class Map implements OnInit, AfterViewInit {
       orderId: '',
       amount: totalAmount,
       roomName: targetRoom.name,
-      slotText: targetSlot?.time || targetSlot?.period || 'Ca 2 tiếng',
+      slotText: targetSlot?.time || `${this.customBookingDate} (${this.customStartTime} - ${this.customEndTime})`,
       loading: true
     };
 
@@ -622,6 +488,7 @@ export class Map implements OnInit, AfterViewInit {
       if (this.selectedRoomToBook) {
         this.selectedRoomToBook.status = 'in-use';
         this.selectedRoomToBook.statusText = 'Đang sử dụng';
+        this.addToGoogleCalendar(this.selectedRoomToBook, this.selectedSlot);
       }
       this.bookingSuccess = true;
       this.momoModal.isOpen = false;
@@ -644,6 +511,7 @@ export class Map implements OnInit, AfterViewInit {
         if (this.selectedRoomToBook) {
           this.selectedRoomToBook.status = 'in-use';
           this.selectedRoomToBook.statusText = 'Đang sử dụng';
+          this.addToGoogleCalendar(this.selectedRoomToBook, this.selectedSlot);
         }
         this.bookingSuccess = true;
         this.momoModal.isOpen = false;
@@ -655,6 +523,7 @@ export class Map implements OnInit, AfterViewInit {
       if (this.selectedRoomToBook) {
         this.selectedRoomToBook.status = 'in-use';
         this.selectedRoomToBook.statusText = 'Đang sử dụng';
+        this.addToGoogleCalendar(this.selectedRoomToBook, this.selectedSlot);
       }
       this.bookingSuccess = true;
       this.momoModal.isOpen = false;

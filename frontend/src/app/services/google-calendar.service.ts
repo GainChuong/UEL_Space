@@ -55,6 +55,47 @@ export class GoogleCalendarService {
   }
 
   /**
+   * Tạo URL nhúng trực tiếp Google Calendar View
+   */
+  generateEmbedUrl(roomName?: string, mode: 'AGENDA' | 'WEEK' | 'MONTH' = 'AGENDA'): string {
+    const cleanRoom = (roomName || 'UEL').replace(/\s+/g, '_');
+    const calendarId = `uel_space_${cleanRoom.toLowerCase()}@group.calendar.google.com`;
+    // Sử dụng URL nhúng chính thức của Google Calendar
+    return `https://calendar.google.com/calendar/embed?src=vi.vietnamese%23holiday%40group.v.calendar.google.com&ctz=Asia%2FHo_Chi_Minh&mode=${mode}&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=1&showCalendars=0&showTz=0`;
+  }
+
+  /**
+   * Tính số giờ thuê thực tế giữa 2 mốc thời gian (VD: "08:00" đến "11:30" => 3.5 giờ)
+   */
+  calculateDuration(startTime: string, endTime: string): number {
+    try {
+      const [sH, sM] = startTime.split(':').map(Number);
+      const [eH, eM] = endTime.split(':').map(Number);
+      const startMin = sH * 60 + (sM || 0);
+      const endMin = eH * 60 + (eM || 0);
+      if (endMin <= startMin) return 1; // Tối thiểu 1 giờ
+      const diffHours = (endMin - startMin) / 60;
+      return Math.round(diffHours * 10) / 10;
+    } catch {
+      return 2;
+    }
+  }
+
+  /**
+   * Danh sách khung giờ chuẩn gợi ý đồng bộ Google Calendar
+   */
+  getSuggestedSlots() {
+    return [
+      { label: 'Sáng sớm', period: '07:30 - 09:30', start: '07:30', end: '09:30', hours: 2 },
+      { label: 'Giữa sáng', period: '09:45 - 11:45', start: '09:45', end: '11:45', hours: 2 },
+      { label: 'Đầu chiều', period: '13:00 - 15:00', start: '13:00', end: '15:00', hours: 2 },
+      { label: 'Cuối chiều', period: '15:15 - 17:15', start: '15:15', end: '17:15', hours: 2 },
+      { label: 'Đầu tối', period: '17:30 - 19:30', start: '17:30', end: '19:30', hours: 2 },
+      { label: 'Đêm muộn', period: '19:30 - 21:30', start: '19:30', end: '21:30', hours: 2 }
+    ];
+  }
+
+  /**
    * Mở trực tiếp Google Calendar trong tab mới
    */
   openGoogleCalendar(event: CalendarEventData): void {

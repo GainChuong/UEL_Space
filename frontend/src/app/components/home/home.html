@@ -400,64 +400,149 @@
               </p>
             </div>
 
-            <!-- Today's Schedule Shifts (5 Shifts Overview) -->
-            <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-border-gray/80 dark:border-slate-800 shadow-2xs">
-              <div class="flex items-center justify-between mb-2.5">
-                <h4 class="text-xs font-black text-uel-blue dark:text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-                  {{ 'Lịch các ca trong ngày hôm nay' | t }}
-                </h4>
-                <button type="button" 
-                        (click)="openTimetableFromDetail(selectedRoomDetail)" 
-                        class="text-[11px] font-bold text-uel-blue dark:text-sky-400 hover:text-uel-orange transition-colors cursor-pointer">
-                  {{ 'Xem cả tuần' | t }} →
-                </button>
+            <!-- Google Calendar Live Integration Panel -->
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-border-gray/80 dark:border-slate-800 shadow-2xs space-y-3">
+              
+              <!-- Header with Google 4-color Branding & View Switcher -->
+              <div class="flex items-center justify-between pb-2 border-b border-border-gray/60 dark:border-slate-800">
+                <div class="flex items-center gap-2">
+                  <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                  </svg>
+                  <div>
+                    <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">
+                      Google Calendar
+                    </h4>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
+                      {{ 'Lựa chọn ngày & khung giờ trực tiếp' | t }}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- View Mode Switcher -->
+                <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <button type="button" 
+                          (click)="calendarViewMode = 'picker'"
+                          [class.bg-white]="calendarViewMode === 'picker'"
+                          [class.dark:bg-slate-700]="calendarViewMode === 'picker'"
+                          [class.shadow-2xs]="calendarViewMode === 'picker'"
+                          [class.text-uel-blue]="calendarViewMode === 'picker'"
+                          [class.dark:text-sky-400]="calendarViewMode === 'picker'"
+                          class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer">
+                    {{ 'Chọn giờ' | t }}
+                  </button>
+                  <button type="button" 
+                          (click)="calendarViewMode = 'embed'"
+                          [class.bg-white]="calendarViewMode === 'embed'"
+                          [class.dark:bg-slate-700]="calendarViewMode === 'embed'"
+                          [class.shadow-2xs]="calendarViewMode === 'embed'"
+                          [class.text-uel-blue]="calendarViewMode === 'embed'"
+                          [class.dark:text-sky-400]="calendarViewMode === 'embed'"
+                          class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer">
+                    {{ 'Xem Lịch Google' | t }}
+                  </button>
+                </div>
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                @for (slot of selectedRoomDetail.todaySlots; track slot.period) {
-                  <button type="button"
-                          (click)="selectSlot(slot)"
-                          [disabled]="slot.status !== 'available'"
-                          class="flex items-center justify-between p-2 rounded-xl border text-left transition-all"
-                          [ngClass]="{
-                            'ring-2 ring-uel-blue border-uel-blue bg-uel-blue/10': selectedSlot?.period === slot.period,
-                            'border-emerald-200 dark:border-emerald-800 bg-emerald-50/40 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-300 hover:border-emerald-400 cursor-pointer': slot.status === 'available' && selectedSlot?.period !== slot.period,
-                            'border-uel-blue/20 bg-uel-blue/5 text-uel-blue dark:text-sky-300 cursor-not-allowed opacity-80': slot.status === 'in-use',
-                            'border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30 text-amber-900 dark:text-amber-300 cursor-not-allowed opacity-80': slot.status === 'reserved',
-                            'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed opacity-60': slot.status === 'maintenance' || slot.status === 'restricted'
-                          }">
-                    <span class="font-bold text-[11px]">{{ slot.period | t }}</span>
-                    <span class="text-[10px] font-black px-1.5 py-0.5 rounded"
-                          [ngClass]="{
-                            'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300': slot.status === 'available',
-                            'bg-uel-blue/20 text-uel-blue dark:text-sky-300': slot.status === 'in-use',
-                            'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300': slot.status === 'reserved',
-                            'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300': slot.status === 'maintenance' || slot.status === 'restricted'
-                          }">
-                      {{ slot.text | t }}
-                    </span>
-                  </button>
-                }
-              </div>
+              <!-- VIEW 1: Interactive Google Calendar Time Range Selector -->
+              @if (calendarViewMode === 'picker') {
+                <div class="space-y-3">
+                  <!-- Date & Time Pickers Row -->
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div>
+                      <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
+                        {{ 'Ngày sử dụng:' | t }}
+                      </label>
+                      <input type="date"
+                             [(ngModel)]="customBookingDate"
+                             (change)="onTimeOrDateChange()"
+                             class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-semibold text-slate-800 dark:text-white focus:outline-none focus:border-uel-blue">
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
+                        {{ 'Giờ bắt đầu:' | t }}
+                      </label>
+                      <input type="time"
+                             [(ngModel)]="customStartTime"
+                             (change)="onTimeOrDateChange()"
+                             class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-semibold text-slate-800 dark:text-white focus:outline-none focus:border-uel-blue">
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
+                        {{ 'Giờ kết thúc:' | t }}
+                      </label>
+                      <input type="time"
+                             [(ngModel)]="customEndTime"
+                             (change)="onTimeOrDateChange()"
+                             class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-semibold text-slate-800 dark:text-white focus:outline-none focus:border-uel-blue">
+                    </div>
+                  </div>
+
+                  <!-- Quick Preset Slots (1-Click selection) -->
+                  <div>
+                    <div class="text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center justify-between">
+                      <span>{{ 'Khung giờ gợi ý trên Lịch Google:' | t }}</span>
+                      <button type="button" 
+                              (click)="openGoogleCalendarExternal()" 
+                              class="text-uel-blue dark:text-sky-400 hover:underline flex items-center gap-1 cursor-pointer">
+                        <span>{{ 'Mở App Google Calendar' | t }}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                      </button>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                      @for (preset of suggestedGoogleSlots; track preset.period) {
+                        <button type="button"
+                                (click)="selectGooglePresetSlot(preset)"
+                                class="p-2 rounded-xl border text-left transition-all cursor-pointer"
+                                [ngClass]="{
+                                  'ring-2 ring-uel-blue border-uel-blue bg-uel-blue/10 dark:bg-sky-950/40': customStartTime === preset.start && customEndTime === preset.end,
+                                  'border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 hover:border-uel-blue/50': customStartTime !== preset.start || customEndTime !== preset.end
+                                }">
+                          <div class="font-bold text-[11px] text-slate-800 dark:text-slate-100">{{ preset.label | t }}</div>
+                          <div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">{{ preset.period }}</div>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                </div>
+              } @else {
+                <!-- VIEW 2: Google Calendar Direct Embed Iframe -->
+                <div class="space-y-2">
+                  <div class="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 aspect-video sm:aspect-[16/9] min-h-[220px] max-h-[320px]">
+                    <iframe [src]="googleEmbedSafeUrl" 
+                            class="w-full h-full border-0" 
+                            loading="lazy"></iframe>
+                  </div>
+                  <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                    <span>* {{ 'Lịch hiển thị trực tiếp từ Google Calendar cơ sở UEL' | t }}</span>
+                    <button type="button" (click)="openGoogleCalendarExternal()" class="font-bold text-uel-blue dark:text-sky-400 hover:underline cursor-pointer">
+                      {{ 'Mở tab Google Calendar →' | t }}
+                    </button>
+                  </div>
+                </div>
+              }
+
             </div>
 
-            <!-- Pricing Summary Card -->
+            <!-- Dynamic Pricing & Time Confirmation Card -->
             <div class="p-3.5 rounded-2xl bg-gradient-to-r from-pink-50/80 via-amber-50/60 to-pink-50/80 dark:from-pink-950/30 dark:via-amber-950/20 dark:to-pink-950/30 border border-pink-200/80 dark:border-pink-800/60 flex items-center justify-between text-xs">
               <div>
                 <span class="text-[11px] font-black text-[#a50064] dark:text-pink-300 uppercase tracking-wider block">
-                  {{ 'Chi phí thuê không gian (MoMo QR):' | t }}
+                  {{ 'Thời gian & Phí đặt chỗ (MoMo QR):' | t }}
                 </span>
                 <span class="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
-                  {{ (selectedRoomDetail.hourlyPrice || 60000) | number }}đ / giờ × 2 giờ ({{ selectedSlot?.period || 'Ca 2 tiếng' }})
+                  {{ (selectedRoomDetail.hourlyPrice || 60000) | number }}đ/giờ × {{ customDurationHours }} giờ ({{ customBookingDate }}: {{ customStartTime }} - {{ customEndTime }})
                 </span>
               </div>
               <div class="text-right">
                 <span class="text-base font-black text-[#a50064] dark:text-pink-400 block">
-                  {{ ((selectedRoomDetail.hourlyPrice || 60000) * 2) | number }} VNĐ
+                  {{ selectedRoomDetail.totalPrice | number }} VNĐ
                 </span>
-                <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
-                  ✓ MoMo Sandbox
+                <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center justify-end gap-1">
+                  <span>✓</span> {{ 'Đồng bộ Google Calendar' | t }}
                 </span>
               </div>
             </div>
@@ -522,7 +607,7 @@
                 <span>{{ 'Tải file .ICS' | t }}</span>
               </button>
 
-              <button type="button"
+              <button type="button" 
                       (click)="closeBookingModal()"
                       class="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-uel-blue dark:bg-sky-600 hover:bg-[#002D5C] text-white font-bold text-xs transition-colors cursor-pointer shadow-xs">
                 {{ 'Hoàn tất & Đóng' | t }}
@@ -530,213 +615,6 @@
             </div>
           </div>
         }
-
-      </div>
-    </div>
-  }
-
-  <!-- Timetable Weekly Overview Modal -->
-  @if (showTimetableModal) {
-    <div class="fixed inset-0 z-[10002] flex items-center justify-center p-2 sm:p-4">
-      <!-- Backdrop -->
-      <div class="absolute inset-0 bg-[#001D3D]/70 backdrop-blur-xs transition-opacity" (click)="closeTimetableModal()"></div>
-
-      <!-- Timetable Modal Container -->
-      <div class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-border-gray dark:border-slate-800 animate-[fade-in-up_0.25s_ease-out] w-full max-w-6xl max-h-[94vh] flex flex-col overflow-hidden">
-        
-        <!-- Modal Header -->
-        <div class="px-6 py-4 border-b border-border-gray/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-wrap items-center justify-between gap-4">
-          <div class="flex items-center gap-3">
-            <div class="w-11 h-11 rounded-2xl bg-uel-blue/10 text-uel-blue dark:text-sky-400 flex items-center justify-center font-bold border border-uel-blue/20 shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
-                <line x1="16" x2="16" y1="2" y2="6"/>
-                <line x1="8" x2="8" y1="2" y2="6"/>
-                <line x1="3" x2="21" y1="10" y2="10"/>
-                <path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/>
-              </svg>
-            </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <h3 class="text-xl font-black text-uel-blue dark:text-sky-400">{{ 'Thời khóa biểu & Lịch phòng học UEL' | t }}</h3>
-                <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-uel-blue/10 text-uel-blue dark:text-sky-300">{{ 'Học kỳ 1' | t }}</span>
-              </div>
-              <p class="text-xs text-text-muted dark:text-slate-400 font-medium mt-0.5">
-                {{ 'Sinh viên:' | t }} <strong class="text-dark-text dark:text-white">{{studentInfo.name}} ({{studentInfo.id}})</strong> • {{ studentInfo.major | t }}
-              </p>
-            </div>
-          </div>
-
-          <!-- Week Switcher Controls -->
-          <div class="flex items-center gap-2 bg-bg-gray dark:bg-slate-800 p-1.5 rounded-2xl border border-border-gray dark:border-slate-700">
-            <button class="px-3 py-1.5 rounded-xl text-xs font-bold text-dark-text dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 hover:shadow-2xs transition-all cursor-pointer">
-              ← {{ 'Tuần trước' | t }}
-            </button>
-            <div class="px-3.5 py-1.5 rounded-xl bg-uel-blue dark:bg-sky-600 text-white text-xs font-black shadow-xs">
-              {{ currentWeekText | t }}
-            </div>
-            <button class="px-3 py-1.5 rounded-xl text-xs font-bold text-dark-text dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 hover:shadow-2xs transition-all cursor-pointer">
-              {{ 'Tuần sau' | t }} →
-            </button>
-          </div>
-        </div>
-
-        <!-- Quick Tip Bar -->
-        <div class="px-6 py-2.5 bg-emerald-50/70 dark:bg-emerald-950/30 border-b border-emerald-100 dark:border-emerald-900/50 flex flex-wrap items-center justify-between text-xs text-emerald-900 dark:text-emerald-300 gap-3">
-          <div class="flex items-center gap-2 font-semibold">
-            <span>{{ 'Bấm vào bất kỳ ô gạch ngang' | t }} <strong class="text-dark-text dark:text-white">(—)</strong> {{ 'trên thời khóa biểu để đăng ký mượn phòng học nhanh.' | t }}</span>
-          </div>
-          <div class="flex items-center gap-4 text-[11px] font-bold">
-            <div class="flex items-center gap-1.5">
-              <span class="w-3 h-3 rounded bg-uel-orange"></span>
-              <span>{{ 'Hôm nay' | t }} ({{ 'Thứ 6' | t }})</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <span class="w-3 h-3 rounded bg-[#FFF8F3] dark:bg-slate-800 border border-orange-200 border-l-[3px] border-l-[#C5221F]"></span>
-              <span>{{ 'Lớp học chính khóa' | t }}</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <span class="text-slate-400 font-extrabold">—</span>
-              <span>{{ 'Khung giờ trống' | t }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Table Content Container (Scrollable) -->
-        <div class="p-4 sm:p-6 overflow-auto custom-scrollbar flex-1 bg-[#F8FAFC] dark:bg-slate-950">
-          <table class="w-full border-collapse border border-slate-300 dark:border-slate-700 text-center text-xs bg-white dark:bg-slate-900 rounded-xl shadow-xs overflow-hidden">
-            
-            <!-- Header Row -->
-            <thead>
-              <tr class="select-none">
-                <!-- Phòng Header -->
-                <th class="border border-slate-300 dark:border-slate-700 px-4 py-3 min-w-[130px] font-black bg-[#003B71] text-white sticky left-0 z-20 text-center">
-                  {{ 'Phòng' | t }}
-                </th>
-
-                <!-- Day Headers -->
-                @for (day of weekDays; track day.key) {
-                  <th class="border border-slate-300 dark:border-slate-700 px-3 py-2.5 min-w-[170px]"
-                      [ngClass]="day.isToday ? 'bg-[#FF7900] text-white shadow-inner' : 'bg-[#003B71] text-white'">
-                    <div class="text-sm font-black">{{ day.name | t }}</div>
-                    <div class="text-[11px] font-medium" [ngClass]="day.isToday ? 'text-amber-100 font-bold' : 'text-slate-200'">
-                      {{day.date}}
-                    </div>
-                  </th>
-                }
-              </tr>
-            </thead>
-
-            <!-- Table Body -->
-            <tbody>
-              @for (row of timetableRows; track row.roomCode) {
-                <tr class="border-b border-slate-300 dark:border-slate-700 hover:bg-slate-50/30 dark:hover:bg-slate-800/30 transition-colors">
-                  
-                  <!-- Room Column (Sticky Left) -->
-                  <td class="border border-slate-300 dark:border-slate-700 p-3 sticky left-0 z-10 bg-white dark:bg-slate-900 font-bold min-w-[130px] shadow-sm text-center">
-                    <div class="text-base font-black text-[#003B71] dark:text-sky-400">{{row.roomCode}}</div>
-                    <div class="text-[11px] text-text-muted dark:text-slate-400 font-bold">({{ row.campus | t }})</div>
-                    <div class="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-1">{{ 'Sức chứa:' | t }} {{row.capacity}}</div>
-                  </td>
-
-                  <!-- Day Columns -->
-                  @for (day of weekDays; track day.key) {
-                    <td class="border border-slate-300 dark:border-slate-700 p-2 align-middle h-full min-w-[170px] relative bg-white dark:bg-slate-900">
-                      
-                      <!-- If Empty Slot: Show dash like photo & allow 1-click booking -->
-                      @if (!row.schedule[day.key]) {
-                        <div class="min-h-[160px] flex flex-col items-center justify-center p-3 group cursor-pointer hover:bg-emerald-50/60 dark:hover:bg-emerald-950/30 rounded-xl transition-all border border-transparent hover:border-emerald-300 dark:hover:border-emerald-800"
-                             (click)="bookSlotFromTimetable(row.roomCode, day)"
-                             [title]="('Phòng' | t) + ' ' + row.roomCode + ' ' + ('trống vào' | t) + ' ' + (day.name | t) + ' - ' + ('Bấm để đặt phòng' | t)">
-                          <span class="text-slate-300 dark:text-slate-600 font-bold text-2xl group-hover:hidden select-none">—</span>
-                          <div class="hidden group-hover:flex flex-col items-center gap-1.5 animate-[fade-in-up_0.15s_ease-out]">
-                            <span class="text-xs font-black text-white bg-uel-orange px-3 py-1 rounded-lg shadow-sm flex items-center gap-1">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                              {{ 'Đặt phòng' | t }}
-                            </span>
-                            <span class="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">{{ 'Trống lịch ca này' | t }}</span>
-                          </div>
-                        </div>
-                      } @else {
-                        <!-- Class Card: Exact Style from Image with red course title and soft cream background -->
-                        <div class="min-h-[160px] p-2.5 rounded-lg bg-[#FFF8F3] dark:bg-slate-800 border border-orange-200/90 dark:border-slate-700 border-l-[4px] border-l-[#C5221F] shadow-xs text-center flex flex-col justify-between text-[11px] transition-all hover:shadow-md">
-                          
-                          <!-- Subject Name & Code (Red) -->
-                          <div class="text-[#C5221F] dark:text-rose-400 font-black text-xs leading-snug mb-1">
-                            {{ row.schedule[day.key].subject | t }}<br>
-                            <span class="font-bold">({{row.schedule[day.key].code}})</span>
-                          </div>
-
-                          <!-- Class Details -->
-                          <div class="text-slate-600 dark:text-slate-300 font-medium space-y-0.5 text-[10px] leading-tight">
-                            <div>LHP: <span class="font-semibold text-slate-800 dark:text-slate-100">{{row.schedule[day.key].lhp}}</span></div>
-                            <div>{{ 'Phòng học:' | t }} <span class="font-semibold text-slate-800 dark:text-slate-100">{{row.schedule[day.key].room}}</span></div>
-                            <div class="text-slate-500 dark:text-slate-400 font-medium">{{ row.schedule[day.key].campus | t }}</div>
-                            <div>{{ 'Số tiết:' | t }} <span class="font-semibold">{{row.schedule[day.key].periodsTotal}}</span></div>
-                            <div class="text-slate-500 dark:text-slate-400">{{ row.schedule[day.key].periodRange | t }}</div>
-                            <div class="font-black text-dark-text dark:text-white mt-1 text-[11px]">{{ 'Giờ học:' | t }} {{row.schedule[day.key].time}}</div>
-                            <div class="text-slate-700 dark:text-slate-300 font-bold mt-0.5">{{ 'GV:' | t }} {{row.schedule[day.key].lecturer}}</div>
-                          </div>
-
-                          <!-- Language Tag (UEL Blue) & Google Calendar Sync -->
-                          <div class="font-black text-[#003B71] dark:text-sky-400 text-[11px] mt-1.5 pt-1 border-t border-orange-200/60 dark:border-slate-700 flex items-center justify-between">
-                            <span>{{ 'Ngôn ngữ:' | t }} {{ row.schedule[day.key].language | t }}</span>
-                            <button type="button"
-                                    (click)="addCourseToGoogleCalendar(row.schedule[day.key], day); $event.stopPropagation()"
-                                    class="hover:scale-110 transition-transform p-0.5 rounded cursor-pointer"
-                                    [title]="'Lưu ca học này vào Google Calendar' | t">
-                              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24">
-                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                              </svg>
-                            </button>
-                          </div>
-
-                        </div>
-                      }
-
-                    </td>
-                  }
-
-                </tr>
-              }
-            </tbody>
-
-          </table>
-        </div>
-
-        <!-- Modal Footer -->
-        <div class="px-6 py-3 border-t border-border-gray/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between text-xs text-text-muted dark:text-slate-400">
-          <div class="flex items-center gap-2.5">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#003B71" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-uel-blue dark:text-sky-400" [title]="'Thông tin liên thông' | t">
-              <circle cx="12" cy="12" r="10" stroke-width="2.2"/>
-              <line x1="12" y1="8" x2="12" y2="12" stroke-width="2.8"/>
-              <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="3.5"/>
-            </svg>
-            <span class="font-medium">{{ 'Dữ liệu thời khóa biểu được liên thông trực tiếp từ Hệ thống Quản lý Đào tạo Trường Đại học Kinh tế - Luật (UEL).' | t }}</span>
-          </div>
-
-          @if (previousRoomDetail) {
-            <div class="flex items-center gap-2">
-              <button (click)="returnToRoomDetail()" 
-                      class="px-4 py-2 rounded-xl bg-uel-blue dark:bg-sky-600 text-white font-bold hover:bg-[#00284D] dark:hover:bg-sky-700 transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
-                <span>{{ 'Quay lại' | t }} {{previousRoomDetail.name}}</span>
-              </button>
-              <button (click)="closeAllModals()" 
-                      class="px-4 py-2 rounded-xl bg-bg-gray dark:bg-slate-800 text-text-muted dark:text-slate-300 hover:text-dark-text dark:hover:text-white hover:bg-border-gray dark:hover:bg-slate-700 font-bold transition-colors cursor-pointer">
-                {{ 'Đóng tất cả' | t }}
-              </button>
-            </div>
-          } @else {
-            <button (click)="closeTimetableModal()" 
-                    class="px-5 py-2 rounded-xl bg-uel-blue dark:bg-sky-600 text-white font-bold hover:bg-uel-blue/90 dark:hover:bg-sky-700 transition-colors cursor-pointer">
-              {{ 'Đóng bảng' | t }}
-            </button>
-          }
-        </div>
 
       </div>
     </div>
