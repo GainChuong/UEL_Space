@@ -1368,27 +1368,18 @@ export class Admin implements OnInit, OnDestroy {
       normalized.includes(b.code.toUpperCase())
     );
 
-    // If no pre-existing match in mock list,
-    // dynamically generate an active booking linked to student Nguyen Tran Kim Giang
+    // If no pre-existing match, the booking is not in the upcoming (Sắp tới) state
     if (!matched) {
-      const dynamicBooking: AdminBooking = {
-        id: code,
-        code: code.length > 25 ? (code.slice(0, 20) + '...') : code,
-        spaceId: 'a-105',
-        spaceName: 'Phòng A.105',
-        building: 'Tòa A - Tầng 1',
-        bookerName: 'Nguyễn Trần Kim Giang',
-        bookerEmail: 'giangnntk24411@st.uel.edu.vn',
-        organization: 'CLB ITB UEL (Chủ nhiệm)',
-        purpose: 'Xác thực hiện diện phòng học qua mã QR',
-        activityType: 'Học nhóm',
-        date: new Date().toLocaleDateString('vi-VN'),
-        timeSlot: '08:00 - 11:30',
-        attendees: 5,
-        status: 'PENDING'
+      this.scanResult = {
+        status: 'ERROR',
+        message: `${this.i18n.t('Không tìm thấy lượt đặt ở trạng thái Sắp tới khớp với mã')} ${code}!`,
+        booking: null,
+        isOverrideAllowed: true,
+        reason: this.i18n.t('Chỉ lượt đặt đã được duyệt (Sắp tới) mới được quét QR check-in.')
       };
-      this.bookings.unshift(dynamicBooking);
-      matched = dynamicBooking;
+      this.showToast(this.i18n.t('Không tìm thấy lượt đặt Sắp tới!'), 'warning');
+      this.cdr.detectChanges();
+      return;
     }
 
     if (matched.status === 'REJECTED') {
@@ -1413,6 +1404,46 @@ export class Admin implements OnInit, OnDestroy {
         reason: this.i18n.t('Sinh viên đã chủ động hủy lịch trước giờ diễn ra.')
       };
       this.showToast(this.i18n.t('Đơn này đã bị hủy!'), 'warning');
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // Chỉ lượt đặt ở trạng thái Sắp tới (đã duyệt) mới được quét QR sang Đang sử dụng
+    if (matched.status === 'PENDING') {
+      this.scanResult = {
+        status: 'ERROR',
+        message: `${this.i18n.t('Đơn đặt chỗ')} ${matched.code} ${this.i18n.t('đang chờ duyệt! Chỉ lượt đặt ở trạng thái Sắp tới mới được quét QR check-in.')}`,
+        booking: matched,
+        isOverrideAllowed: true,
+        reason: this.i18n.t('Đơn đang chờ Admin duyệt, chưa thể check-in.')
+      };
+      this.showToast(this.i18n.t('Đơn đang chờ duyệt, chưa thể check-in!'), 'warning');
+      this.cdr.detectChanges();
+      return;
+    }
+
+    if (matched.status === 'IN_USE') {
+      this.scanResult = {
+        status: 'ERROR',
+        message: `${this.i18n.t('Lượt đặt')} ${matched.code} ${this.i18n.t('đang sử dụng! Không thể quét QR check-in lại.')}`,
+        booking: matched,
+        isOverrideAllowed: true,
+        reason: this.i18n.t('Sinh viên đã check-in và đang sử dụng phòng.')
+      };
+      this.showToast(this.i18n.t('Lượt đặt đang sử dụng!'), 'warning');
+      this.cdr.detectChanges();
+      return;
+    }
+
+    if (matched.status === 'COMPLETED') {
+      this.scanResult = {
+        status: 'ERROR',
+        message: `${this.i18n.t('Lượt đặt')} ${matched.code} ${this.i18n.t('đã hoàn thành! Không thể quét QR check-in lại.')}`,
+        booking: matched,
+        isOverrideAllowed: true,
+        reason: this.i18n.t('Thời gian sử dụng đã kết thúc, lượt đặt đã chuyển sang trạng thái Đã hoàn thành.')
+      };
+      this.showToast(this.i18n.t('Lượt đặt đã hoàn thành!'), 'warning');
       this.cdr.detectChanges();
       return;
     }

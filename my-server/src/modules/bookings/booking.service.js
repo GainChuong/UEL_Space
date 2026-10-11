@@ -264,9 +264,10 @@ class BookingService {
 
   async qrCheckIn(rawCode, actor = { id: 'USER-ADMIN-01', email: 'admin@uel.edu.vn', name: 'Quản trị viên Hệ thống UEL' }) {
     const cleanCode = String(rawCode || '').trim();
+    if (!cleanCode) throw AppError.badRequest('Thiếu mã QR hoặc mã đặt chỗ');
     const regex = new RegExp(`^${cleanCode}$`, 'i');
-    
-    let booking = await this.repository.findOne({
+
+    const booking = await this.repository.findOne({
       $or: [
         { _id: cleanCode },
         { code: regex },
@@ -274,50 +275,36 @@ class BookingService {
       ]
     });
 
-    const currentTime = now();
-
     if (!booking) {
-      booking = {
-        _id: cleanCode,
-        code: cleanCode,
-        spaceId: 'a-105',
-        spaceName: 'Phòng A.105',
-        buildingName: 'Tòa nhà A - Tầng 1',
-        userId: 'USER-SV-01',
-        userEmail: 'giangnntk24411@st.uel.edu.vn',
-        userName: 'Nguyễn Trần Kim Giang',
-        organizationId: 'org-doan-hoi',
-        organizationName: 'CLB ITB UEL (Chủ nhiệm)',
-        startTime: currentTime,
-        endTime: new Date(currentTime.getTime() + 2 * 60 * 60 * 1000),
-        purpose: 'Xác thực hiện diện phòng học qua mã QR Kiosk',
-        activityType: 'Tự học',
-        attendeeCount: 1,
-        status: BOOKING_STATUS.IN_USE,
-        actualCheckInAt: currentTime,
-        checkInVerifiedBy: actor.email || 'admin@uel.edu.vn',
-        createdAt: currentTime,
-        updatedAt: currentTime,
-        deletedAt: null
-      };
-      await this.repository.insert(booking);
-    } else {
-      booking.status = BOOKING_STATUS.IN_USE;
-      booking.actualCheckInAt = currentTime;
-      booking.checkInVerifiedBy = actor.email || 'admin@uel.edu.vn';
-      booking.updatedAt = currentTime;
-      await this.repository.update(booking._id, {
-        status: BOOKING_STATUS.IN_USE,
-        actualCheckInAt: currentTime,
-        checkInVerifiedBy: actor.email || 'admin@uel.edu.vn',
-        updatedAt: currentTime
-      });
+      throw AppError.notFound('Không tìm thấy lượt đặt chỗ khớp với mã QR', 'BOOKING_NOT_FOUND');
     }
 
-    if (this.spaces && booking.spaceId) {
+    if (booking.status !== BOOKING_STATUS.APPROVED) {
+      throw AppError.conflict(
+        `Chỉ lượt đặt ở trạng thái Sắp tới (đã duyệt) mới được quét QR check-in. Trạng thái hiện tại: ${booking.status}`,
+        'INVALID_BOOKING_STATE'
+      );
+    }
+
+    const currentTime = now();
+    const updated = await this.repository.update(booking._id, {
+      status: BOOKING_STATUS.IN_USE,
+      actualCheckInAt: currentTime,
+      checkInVerifiedBy: actor.email || 'admin@uel.edu.vn',
+      updatedAt: currentTime
+    });
+    const result = updated || {
+      ...booking,
+      status: BOOKING_STATUS.IN_USE,
+      actualCheckInAt: currentTime,
+      checkInVerifiedBy: actor.email || 'admin@uel.edu.vn',
+      updatedAt: currentTime
+    };
+
+    if (this.spaces && result.spaceId) {
       try {
-        await this.spaces.update(booking.spaceId, {
-          status: SPACE_STATUS.IN_USE,
+        await this.spaces.update(result.spaceId, {
+          status: SPACE_STATUS.OCCUPIED,
           updatedAt: currentTime
         });
       } catch (errSpace) {
@@ -329,14 +316,14 @@ class BookingService {
       actorId: actor.id || 'USER-ADMIN-01',
       action: 'QR_CHECKIN',
       entityName: 'Booking',
-      entityId: booking._id,
-      changes: { code: booking.code, spaceId: booking.spaceId, userEmail: booking.userEmail }
+      entityId: result._id,
+      changes: { code: result.code, spaceId: result.spaceId, userEmail: result.userEmail }
     });
 
     return {
       success: true,
-      message: `Xác thực Check-in THÀNH CÔNG cho ${booking.userName}!`,
-      booking: this.decorate(booking)
+      message: `Xác thực Check-in THÀNH CÔNG cho ${result.userName}!`,
+      booking: this.decorate(result)
     };
   }
 

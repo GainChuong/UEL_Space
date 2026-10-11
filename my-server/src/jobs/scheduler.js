@@ -157,6 +157,74 @@ async function monitorPresence(ctx) {
   }
 }
 
+async function completeExpiredSessions(ctx) {
+  const { collections, notificationService } = ctx;
+  const currentTime = now();
+  const active = await collections.usageSessions
+    .find({ status: { $in: [SESSION_STATUS.ACTIVE, SESSION_STATUS.WARNING] } })
+    .toArray();
+
+  let completed = 0;
+  for (const session of active) {
+    let endTime = null;
+    if (session.bookingId) {
+      const booking = await collections.bookings.findOne({ _id: session.bookingId });
+      if (booking) endTime = new Date(booking.endTime);
+    }
+    if (!endTime) {
+      const checkIn = new Date(session.checkInTime);
+      const minutes = session.reservedDurationMinutes || DEFAULT_POLICY.maxUsageMinutes;
+      endTime = new Date(checkIn.getTime() + minutes * 60000);
+    }
+    if (currentTime < endTime) continue;
+
+    const actualDurationMinutes = Math.round((currentTime - new Date(session.checkInTime)) / 60000);
+    await collections.usageSessions.updateOne(
+      { _id: session._id },
+      {
+        $set: {
+          status: SESSION_STATUS.COMPLETED,
+          checkOutTime: currentTime,
+          checkOutMethod: 'AUTO',
+          actualDurationMinutes,
+          totalAwayMinutes: session.totalAwayMinutes || 0,
+          endReason: 'DURATION_EXPIRED',
+          updatedAt: currentTime
+        },
+        $inc: { version: 1 }
+      }
+    );
+    if (session.bookingId) {
+      await collections.bookings.updateOne(
+        { _id: session.bookingId },
+        { $set: { status: BOOKING_STATUS.COMPLETED, updatedAt: currentTime } }
+      );
+    }
+    await writeAudit({ action: 'AUTO_COMPLETE', entityName: 'UsageSession', entityId: session._id, changes: { actualDurationMinutes }, level: 'INFO' });
+    await notificationService.create({
+      userId: session.userId,
+      category: 'booking',
+      title: 'Đã hết thời gian sử dụng',
+      message: `Lượt sử dụng ${session.spaceName} đã tự động hoàn thành do hết thời gian đặt trước.`
+    });
+    if (collections.spaces) {
+      const space = await collections.spaces.findOne({ _id: session.spaceId });
+      if (space) {
+        const remaining = await collections.usageSessions.countDocuments({
+          spaceId: session.spaceId,
+          status: { $in: [SESSION_STATUS.ACTIVE, SESSION_STATUS.WARNING] }
+        });
+        await collections.spaces.updateOne(
+          { _id: session.spaceId },
+          { $set: { currentOccupants: remaining > 0 ? space.currentOccupants : 0, status: remaining > 0 ? space.status : 'AVAILABLE' } }
+        );
+      }
+    }
+    completed += 1;
+  }
+  if (completed) console.log(`[jobs] auto-completed ${completed} expired session(s)`);
+}
+
 async function occupancySnapshot(ctx) {
   const docs = await ctx.occupancyService.snapshot();
   console.log(`[jobs] occupancy snapshot saved ${docs.length} record(s)`);
@@ -175,11 +243,12 @@ function startJobs() {
 
   const noShowTimer = setInterval(run(detectNoShows, 'no-show'), env.noShowIntervalMs);
   const presenceTimer = setInterval(run(monitorPresence, 'presence'), Math.min(env.noShowIntervalMs, 60000));
+  const completeTimer = setInterval(run(completeExpiredSessions, 'auto-complete'), Math.min(env.noShowIntervalMs, 60000));
   const snapshotTimer = setInterval(run(occupancySnapshot, 'occupancy'), env.occupancySnapshotIntervalMs);
-  timers.push(noShowTimer, presenceTimer, snapshotTimer);
+  timers.push(noShowTimer, presenceTimer, completeTimer, snapshotTimer);
 
   console.log('[jobs] background scheduler started');
   return () => timers.forEach((timer) => clearInterval(timer));
 }
 
-module.exports = { startJobs, detectNoShows, monitorPresence, occupancySnapshot };
+module.exports = { startJobs, detectNoShows, monitorPresence, completeExpiredSessions, occupancySnapshot };
