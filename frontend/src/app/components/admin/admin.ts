@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, NgZone, HostListener, inject } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import jsQR from 'jsqr';
 import { SERVER_IMAGES_LINK } from '../../services/api-config';
 import { SettingsService } from '../../services/settings.service';
 import { SettingsModalComponent } from '../common/settings-modal/settings-modal';
@@ -109,6 +110,11 @@ export class Admin implements OnInit, OnDestroy {
   private router = inject(Router);
   private i18n = inject(I18nService);
 
+  ngOnDestroy(): void {
+    this.stopCamera();
+    this.stopOccupancyDetection();
+  }
+
   server_images_link = SERVER_IMAGES_LINK;
   Math = Math;
 
@@ -177,6 +183,11 @@ export class Admin implements OnInit, OnDestroy {
   cameraFacingMode: 'user' | 'environment' = 'environment';
   videoStream: MediaStream | null = null;
   cameraError: string = '';
+  qrScanningRunning: boolean = false;
+  private qrCanvas: HTMLCanvasElement | null = null;
+  private barcodeDetector: any = null;
+  private lastScannedCode: string = '';
+  private lastScannedTime: number = 0;
 
   // Scan Result Feedback State
   scanResult: {
@@ -773,12 +784,6 @@ export class Admin implements OnInit, OnDestroy {
     }, 3800);
   }
 
-  // Lifecycle
-  ngOnDestroy(): void {
-    this.stopCamera();
-    this.stopOccupancyDetection();
-  }
-
   // QR Station & Scanner Actions (F09/F38)
   openQuickScanModal(): void {
     this.activeTab = 'qr-checkin';
@@ -787,36 +792,83 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   async startCamera(): Promise<void> {
+    this.cameraError = '';
+    if (!navigator?.mediaDevices?.getUserMedia) {
+      this.cameraError = this.i18n.t('Trình duyệt không hỗ trợ WebRTC Camera API hoặc đang chạy không bảo mật (yêu cầu HTTPS/localhost).');
+      this.cameraActive = false;
+      return;
+    }
+
     try {
-      this.cameraError = '';
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        this.cameraError = this.i18n.t('Trình duyệt không hỗ trợ WebRTC Camera API.');
-        this.cameraActive = false;
-        return;
-      }
       this.stopCamera();
+
+      // Mobile devices usually have front & back camera.
+      // Use facingMode: { ideal: ... } so it doesn't throw OverconstrainedError on devices with single camera.
       const constraints: MediaStreamConstraints = {
-        video: { facingMode: this.cameraFacingMode }
+        video: {
+          facingMode: { ideal: this.cameraFacingMode },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
       };
-      this.videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (errConstraint) {
+        console.warn('Fallback basic camera constraints:', errConstraint);
+        // Fallback to simple video: true if ideal facing mode or resolution fails
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      }
+
+      this.videoStream = stream;
       this.cameraActive = true;
-      setTimeout(() => {
+
+      // Robust video element binding with retries for DOM mounting
+      let attempts = 0;
+      const attachVideo = () => {
+        attempts++;
         const videoEl = document.getElementById('qr-scanner-video') as HTMLVideoElement;
         if (videoEl && this.videoStream) {
+          videoEl.setAttribute('playsinline', 'true');
+          videoEl.setAttribute('webkit-playsinline', 'true');
+          videoEl.muted = true;
           videoEl.srcObject = this.videoStream;
-          videoEl.play().catch(e => console.warn('Video play error:', e));
+          videoEl.play().then(() => {
+            this.qrScanningRunning = true;
+            this.runQrScanningLoop(videoEl);
+          }).catch(e => {
+            console.warn('Video play error on mobile:', e);
+            videoEl.muted = true;
+            videoEl.play().catch(err2 => console.error('Final play retry failed:', err2));
+          });
+        } else if (this.cameraActive && attempts < 25) {
+          setTimeout(attachVideo, 60);
         }
-      }, 150);
+      };
+
+      setTimeout(attachVideo, 50);
+      this.showToast(this.i18n.t('Đã bật Camera quét mã QR!'), 'info');
     } catch (err: any) {
       console.warn('Camera access denied or unavailable:', err);
       this.cameraActive = false;
-      this.cameraError = this.i18n.t('Không thể kết nối Camera (Chưa cấp quyền hoặc thiết bị không có webcam). Vui lòng dùng máy quét USB hoặc ô nhập mã bên dưới.');
+      if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
+        this.cameraError = this.i18n.t('Quyền truy cập Camera bị từ chối. Vui lòng cấp quyền Camera trong cài đặt trình duyệt để tiếp tục.');
+      } else if (err?.name === 'NotFoundError' || err?.name === 'DevicesNotFoundError') {
+        this.cameraError = this.i18n.t('Không tìm thấy thiết bị Camera/Webcam trên thiết bị này.');
+      } else {
+        this.cameraError = this.i18n.t('Không thể kết nối Camera: ') + (err?.message || this.i18n.t('Chưa cấp quyền hoặc thiết bị bận. Vui lòng thử lại hoặc dùng ô nhập mã bên dưới.'));
+      }
     }
   }
 
   stopCamera(): void {
+    this.qrScanningRunning = false;
     if (this.videoStream) {
-      this.videoStream.getTracks().forEach(track => track.stop());
+      this.videoStream.getTracks().forEach(track => {
+        try { track.stop(); } catch {}
+      });
       this.videoStream = null;
     }
     this.cameraActive = false;
@@ -829,11 +881,123 @@ export class Admin implements OnInit, OnDestroy {
     }
   }
 
+  private runQrScanningLoop(videoEl: HTMLVideoElement): void {
+    if (!this.qrScanningRunning || !this.cameraActive) return;
+
+    if (videoEl.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && videoEl.videoWidth > 0 && videoEl.videoHeight > 0) {
+      // 1. Check native BarcodeDetector if supported by browser (modern Chrome/Edge/Android)
+      if ('BarcodeDetector' in window) {
+        try {
+          if (!this.barcodeDetector) {
+            this.barcodeDetector = new (window as any).BarcodeDetector({ formats: ['qr_code'] });
+          }
+          this.barcodeDetector.detect(videoEl).then((barcodes: any[]) => {
+            if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+              this.handleDetectedQrCode(barcodes[0].rawValue);
+            } else {
+              this.scanFrameWithJsQr(videoEl);
+            }
+          }).catch(() => {
+            this.scanFrameWithJsQr(videoEl);
+          });
+        } catch {
+          this.scanFrameWithJsQr(videoEl);
+        }
+      } else {
+        // 2. Fallback to pure JavaScript jsQR (works everywhere including iOS Safari)
+        this.scanFrameWithJsQr(videoEl);
+      }
+    }
+
+    if (this.qrScanningRunning) {
+      requestAnimationFrame(() => this.runQrScanningLoop(videoEl));
+    }
+  }
+
+  private scanFrameWithJsQr(videoEl: HTMLVideoElement): void {
+    try {
+      if (!this.qrCanvas) {
+        this.qrCanvas = document.createElement('canvas');
+      }
+      // Scale down canvas for optimal real-time performance on mobile devices (max 640px)
+      const width = Math.min(videoEl.videoWidth, 640);
+      const height = Math.round((videoEl.videoHeight / videoEl.videoWidth) * width);
+      this.qrCanvas.width = width;
+      this.qrCanvas.height = height;
+
+      const ctx = this.qrCanvas.getContext('2d', { willReadFrequently: true });
+      if (ctx) {
+        ctx.drawImage(videoEl, 0, 0, width, height);
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const qrCode = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: 'dontInvert'
+        });
+        if (qrCode && qrCode.data) {
+          this.handleDetectedQrCode(qrCode.data);
+        }
+      }
+    } catch {
+      // Canvas read security or context error
+    }
+  }
+
+  private handleDetectedQrCode(rawCode: string): void {
+    if (!rawCode || !rawCode.trim()) return;
+    const cleanCode = rawCode.trim();
+    const now = Date.now();
+
+    // Prevent duplicate triggers within 3 seconds for same code
+    if (cleanCode === this.lastScannedCode && (now - this.lastScannedTime) < 3000) {
+      return;
+    }
+
+    this.lastScannedCode = cleanCode;
+    this.lastScannedTime = now;
+
+    this.playScanBeep();
+
+    this.ngZone.run(() => {
+      this.processQrCode(cleanCode, 'CAMERA');
+    });
+  }
+
+  private playScanBeep(): void {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioCtx) {
+        const audioCtx = new AudioCtx();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // 880Hz A5
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.15);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.16);
+      }
+    } catch {}
+  }
+
   processQrCode(rawCode?: string, scanType: 'CAMERA' | 'USB_SCANNER' | 'MANUAL' | 'OVERRIDE' = 'MANUAL'): void {
-    const code = (rawCode || this.scannerInputCode || '').trim();
+    let code = (rawCode || this.scannerInputCode || '').trim();
     if (!code) {
       this.showToast(this.i18n.t('Vui lòng quét hoặc nhập mã đặt chỗ QR.'), 'warning');
       return;
+    }
+
+    // Extract booking ID/code if URL or JSON format
+    if (code.startsWith('http://') || code.startsWith('https://')) {
+      try {
+        const url = new URL(code);
+        code = url.searchParams.get('code') || url.searchParams.get('id') || url.pathname.split('/').filter(Boolean).pop() || code;
+      } catch {}
+    } else if (code.startsWith('{') && code.endsWith('}')) {
+      try {
+        const parsed = JSON.parse(code);
+        code = parsed.code || parsed.id || parsed.bookingId || code;
+      } catch {}
     }
 
     this.isProcessingScan = true;
