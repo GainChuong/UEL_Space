@@ -284,6 +284,30 @@ export class Admin implements OnInit, OnDestroy {
     booking: null
   };
 
+  // Instant Check-in & Auto-Approval Success Modal
+  scanSuccessModal: {
+    isOpen: boolean;
+    booking: AdminBooking | null;
+  } = {
+    isOpen: false,
+    booking: null
+  };
+
+  closeScanSuccessModal(): void {
+    this.scanSuccessModal.isOpen = false;
+    this.scanSuccessModal.booking = null;
+  }
+
+  viewApprovalsTab(): void {
+    this.scanSuccessModal.isOpen = false;
+    this.activeTab = 'approvals';
+  }
+
+  viewSpacesTab(): void {
+    this.scanSuccessModal.isOpen = false;
+    this.activeTab = 'spaces';
+  }
+
   // Data: Bookings
   bookings: AdminBooking[] = [
     {
@@ -427,6 +451,78 @@ export class Admin implements OnInit, OnDestroy {
       status: 'APPROVED',
       processedBy: 'admin@uel.edu.vn',
       processedAt: '11/10/2026 07:15'
+    },
+    {
+      id: 'UEL-87941',
+      code: 'UEL-87941',
+      spaceId: 'b1-202',
+      spaceName: 'Phòng B1.202',
+      building: 'Tòa B1 - Tầng 2',
+      bookerName: 'Nguyễn Trần Kim Giang',
+      bookerEmail: 'giangnntk24411@st.uel.edu.vn',
+      organization: 'CLB Tiếng Anh UEL',
+      purpose: 'Họp CLB Tiếng Anh UEL',
+      activityType: 'Học nhóm',
+      date: '11/10/2026',
+      timeSlot: '13:00 - 17:00',
+      attendees: 60,
+      status: 'PENDING',
+      processedBy: 'admin@uel.edu.vn',
+      processedAt: '10/10/2026 10:00'
+    },
+    {
+      id: 'UEL-87600',
+      code: 'UEL-87600',
+      spaceId: 'b2-101',
+      spaceName: 'Phòng B2.101',
+      building: 'Tòa B2 - Tầng 1',
+      bookerName: 'Vũ Đức Nam',
+      bookerEmail: 'namvd@st.uel.edu.vn',
+      organization: 'Khoa Kinh tế Quốc tế',
+      purpose: 'Thuyết trình nhóm Kinh tế lượng',
+      activityType: 'Thuyết trình',
+      date: '11/10/2026',
+      timeSlot: '10:00 - 12:00',
+      attendees: 25,
+      status: 'PENDING',
+      processedBy: 'admin@uel.edu.vn',
+      processedAt: '10/10/2026 11:30'
+    },
+    {
+      id: 'UEL-87115',
+      code: 'UEL-87115',
+      spaceId: 'choi-3',
+      spaceName: 'Chòi tự học 3',
+      building: 'Đường Thanh Niên',
+      bookerName: 'Lê Minh Tuấn',
+      bookerEmail: 'tuanlm@st.uel.edu.vn',
+      organization: 'Sinh viên UEL',
+      purpose: 'Ôn tập thi giữa kỳ',
+      activityType: 'Tự học',
+      date: '11/10/2026',
+      timeSlot: '08:00 - 11:00',
+      attendees: 10,
+      status: 'PENDING',
+      processedBy: 'admin@uel.edu.vn',
+      processedAt: '10/10/2026 15:00'
+    },
+    {
+      id: 'UEL-86902',
+      code: 'UEL-86902',
+      spaceId: 'choi-2',
+      spaceName: 'Chòi tự học 2',
+      building: 'Đường Thanh Niên',
+      bookerName: 'Đỗ Thùy Linh',
+      bookerEmail: 'linhdt@st.uel.edu.vn',
+      organization: 'Sinh viên UEL',
+      purpose: 'Tự học và đọc tài liệu',
+      activityType: 'Tự học',
+      date: '11/10/2026',
+      timeSlot: '14:00 - 16:00',
+      attendees: 6,
+      status: 'PENDING',
+      processedBy: 'admin@uel.edu.vn',
+      processedAt: '10/10/2026 16:00'
     }
   ];
 
@@ -528,7 +624,59 @@ export class Admin implements OnInit, OnDestroy {
       floor: 'Khuôn viên ngoài trời',
       type: 'Khu tự học ngoài trời',
       capacity: 6,
-      status: 'MAINTENANCE',
+      status: 'AVAILABLE',
+      currentOccupants: 0,
+      equipment: ['Ổ cắm sạc chống nước', 'Đèn LED chiếu sáng', 'Wifi UEL Outdoor'],
+      autoCheckoutMinutes: 15,
+      awayWarningMinutes: 8
+    },
+    {
+      id: 'a-105',
+      name: 'Phòng A.105',
+      building: 'Tòa nhà A',
+      floor: 'Tầng 1',
+      type: 'Phòng học',
+      capacity: 35,
+      status: 'AVAILABLE',
+      currentOccupants: 0,
+      equipment: ['Máy chiếu Laser', 'Điều hòa 2 chiều', 'Wifi UEL HighSpeed'],
+      autoCheckoutMinutes: 15,
+      awayWarningMinutes: 10
+    },
+    {
+      id: 'b1-202',
+      name: 'Phòng B1.202',
+      building: 'Tòa nhà B1',
+      floor: 'Tầng 2',
+      type: 'Giảng đường',
+      capacity: 60,
+      status: 'AVAILABLE',
+      currentOccupants: 0,
+      equipment: ['Âm thanh không dây', 'Máy chiếu', 'Điều hòa', 'Wifi HighSpeed'],
+      autoCheckoutMinutes: 20,
+      awayWarningMinutes: 10
+    },
+    {
+      id: 'choi-2',
+      name: 'Chòi tự học 2',
+      building: 'Đường Thanh Niên',
+      floor: 'Khuôn viên ngoài trời',
+      type: 'Khu tự học ngoài trời',
+      capacity: 6,
+      status: 'AVAILABLE',
+      currentOccupants: 0,
+      equipment: ['Ổ cắm sạc chống nước', 'Đèn LED chiếu sáng', 'Wifi UEL Outdoor'],
+      autoCheckoutMinutes: 15,
+      awayWarningMinutes: 8
+    },
+    {
+      id: 'choi-3',
+      name: 'Chòi tự học 3',
+      building: 'Đường Thanh Niên',
+      floor: 'Khuôn viên ngoài trời',
+      type: 'Khu tự học ngoài trời',
+      capacity: 10,
+      status: 'AVAILABLE',
       currentOccupants: 0,
       equipment: ['Ổ cắm sạc chống nước', 'Đèn LED chiếu sáng', 'Wifi UEL Outdoor'],
       autoCheckoutMinutes: 15,
@@ -1120,39 +1268,27 @@ export class Admin implements OnInit, OnDestroy {
         normalized.includes(b.code.toUpperCase())
       );
 
-      // If scanned via Camera and no pre-existing match in mock list,
+      // If no pre-existing match in mock list,
       // dynamically generate an active approved booking so scanning ANY QR code will verify successfully!
-      if (!matched && scanType === 'CAMERA') {
+      if (!matched) {
         const dynamicBooking: AdminBooking = {
           id: code,
           code: code.length > 25 ? (code.slice(0, 20) + '...') : code,
-          spaceId: 'live-kiosk-space',
-          spaceName: 'Phòng A.105 (Xác thực Trực tiếp)',
+          spaceId: 'a-105',
+          spaceName: 'Phòng A.105',
           building: 'Tòa A - Tầng 1',
-          bookerName: 'Sinh viên UEL (Xác thực Camera)',
-          bookerEmail: 'sinhvien.kiosk@st.uel.edu.vn',
+          bookerName: 'Sinh viên UEL',
+          bookerEmail: 'sinhvien@st.uel.edu.vn',
           organization: 'Sinh viên UEL',
-          purpose: 'Xác thực hiện diện phòng học qua QR Kiosk',
+          purpose: 'Xác thực hiện diện phòng học qua mã QR',
           activityType: 'Tự học',
           date: new Date().toLocaleDateString('vi-VN'),
-          timeSlot: 'Khung giờ hiện tại',
+          timeSlot: '08:00 - 11:30',
           attendees: 1,
-          status: 'APPROVED'
+          status: 'PENDING'
         };
         this.bookings.unshift(dynamicBooking);
         matched = dynamicBooking;
-      }
-
-      if (!matched) {
-        this.scanResult = {
-          status: 'ERROR',
-          message: `${this.i18n.t('Mã đặt chỗ')} "${code}" ${this.i18n.t('không tồn tại trên hệ thống UEL Space!')}`,
-          booking: null,
-          isOverrideAllowed: false,
-          reason: this.i18n.t('Mã QR không khớp với bất kỳ dữ liệu đặt phòng nào được ghi nhận.')
-        };
-        this.showToast(this.i18n.t('Mã đặt chỗ không tồn tại!'), 'warning');
-        return;
       }
 
       if (matched.status === 'REJECTED') {
@@ -1179,13 +1315,26 @@ export class Admin implements OnInit, OnDestroy {
         return;
       }
 
-      // Check-in Success
+      // Check-in Success & Auto Approval
       const now = new Date();
       const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       const dateStr = now.toLocaleDateString('vi-VN');
 
       matched.status = 'IN_USE';
       matched.actualCheckInAt = `${dateStr} ${timeStr}`;
+      matched.processedBy = this.adminUser.email;
+      matched.processedAt = `${dateStr} ${timeStr}`;
+
+      // Update room in spaces array to IN_USE
+      const targetSpace = this.spaces.find(s => 
+        (matched && s.id === matched.spaceId) || 
+        (matched && s.name.toLowerCase().includes(matched.spaceName.toLowerCase())) ||
+        (matched && matched.spaceName.toLowerCase().includes(s.name.toLowerCase()))
+      );
+      if (targetSpace) {
+        targetSpace.status = 'IN_USE';
+        targetSpace.currentOccupants = Math.max(targetSpace.currentOccupants + (matched.attendees || 1), 1);
+      }
 
       // Clear any pending no-show exception for this room/user
       this.releaseCases = this.releaseCases.filter(rc => rc.spaceName !== matched.spaceName && rc.userEmail !== matched.bookerEmail);
@@ -1215,6 +1364,12 @@ export class Admin implements OnInit, OnDestroy {
       this.scanResult = {
         status: 'SUCCESS',
         message: `${this.i18n.t('Xác thực Check-in THÀNH CÔNG cho')} ${matched.bookerName}!`,
+        booking: matched
+      };
+
+      // Open Instant Verification Modal
+      this.scanSuccessModal = {
+        isOpen: true,
         booking: matched
       };
 
