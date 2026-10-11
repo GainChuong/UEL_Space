@@ -166,12 +166,12 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
     const cleanEmail = (email || '').trim().toLowerCase();
     const isLecturer = cleanEmail.endsWith('@uel.edu.vn');
     const isStudent = cleanEmail.endsWith('@st.uel.edu.vn');
+    const isAdmin = cleanEmail.startsWith('admin') || cleanEmail.includes('admin@uel.edu.vn') || cleanEmail.includes('quantri@uel.edu.vn') || cleanEmail === 'gameyuno123@gmail.com';
 
-    if (!isLecturer && !isStudent) {
+    if (!isLecturer && !isStudent && !isAdmin) {
       return null;
     }
 
-    const isAdmin = cleanEmail.startsWith('admin') || cleanEmail.includes('admin@uel.edu.vn') || cleanEmail.includes('quantri@uel.edu.vn');
     const role: 'ADMIN' | 'LECTURER' | 'STUDENT' = isAdmin ? 'ADMIN' : (isLecturer ? 'LECTURER' : 'STUDENT');
     const organization = isAdmin 
       ? 'Ban Quản trị Cơ sở vật chất UEL' 

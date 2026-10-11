@@ -34,7 +34,11 @@ class AuthService {
   }
 
   assertAllowedDomain(email) {
-    if (!ALLOWED_DOMAIN_REGEX.test(email)) {
+    const normalized = (email || '').trim().toLowerCase();
+    if (env.adminEmails.includes(normalized)) {
+      return;
+    }
+    if (!ALLOWED_DOMAIN_REGEX.test(normalized)) {
       throw new AppError(
         403,
         'EMAIL_DOMAIN_REJECTED',

@@ -1447,16 +1447,16 @@
 
         <div class="space-y-6 animate-[fade-in_0.2s_ease-out]">
 
-          <!-- Top Banner: AI Vision Hub -->
-          <div class="bg-gradient-to-r from-[#064E3B] via-[#065F46] to-[#047857] rounded-3xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 border border-white/10">
+          <!-- Top Banner: FlexSpace AI Vision Hub -->
+          <div class="bg-gradient-to-r from-[#002D5C] via-[#003B71] to-[#00509E] rounded-3xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 border border-white/10">
             <div class="relative z-10 max-w-2xl">
-              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-300/20 border border-emerald-300/30 text-xs font-black text-emerald-200 mb-3 tracking-wide uppercase">
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-400/20 border border-sky-400/30 text-xs font-black text-sky-200 mb-3 tracking-wide uppercase">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                {{ 'AI Computer Vision • Nhận diện Công suất Thời gian thực' | t }}
+                {{ 'FlexSpace AI • Giám sát Không gian & Tối ưu Doanh thu' | t }}
               </div>
-              <h2 class="text-2xl sm:text-3xl font-black tracking-tight mb-2">{{ 'Đếm & Nhận diện Số người trong Phòng' | t }}</h2>
+              <h2 class="text-2xl sm:text-3xl font-black tracking-tight mb-2">{{ 'AI Occupancy Detection & Tối ưu Khai thác' | t }}</h2>
               <p class="text-white/80 text-xs sm:text-sm leading-relaxed">
-                {{ 'Sử dụng model ' | t }}<strong class="text-emerald-200">TensorFlow.js COCO-SSD (MobileNet v2)</strong>{{ ' chạy hoàn toàn trên trình duyệt để nhận diện và đếm số lượng người trong khung hình camera theo thời gian thực. Model chạy client-side, không cần server AI riêng.' | t }}
+                {{ 'Đối chiếu sĩ số thực tế với đơn đặt phòng, cảnh báo vượt số lượng cho phép, phát hiện sử dụng quá giờ (Overtime) để áp dụng phụ phí và tự động nhận diện trả phòng sớm nhằm giải phóng khung giờ tái khai thác trên sàn Marketplace.' | t }}
               </p>
             </div>
 
@@ -1464,12 +1464,14 @@
             <div class="relative z-10 flex gap-3 flex-wrap">
               <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl px-5 py-3 text-center min-w-[110px]">
                 <div class="text-3xl font-black" [class]="occCurrentCount > 0 ? 'text-emerald-300' : 'text-white/50'">{{occCurrentCount}}</div>
-                <div class="text-[11px] font-semibold text-white/70 uppercase tracking-wider">{{ 'Người hiện tại' | t }}</div>
+                <div class="text-[11px] font-semibold text-white/70 uppercase tracking-wider">{{ 'Người thực tế' | t }}</div>
               </div>
-              <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl px-5 py-3 text-center min-w-[110px]">
-                <div class="text-2xl font-black text-amber-300">{{occPeakCount}}</div>
-                <div class="text-[11px] font-semibold text-white/70 uppercase tracking-wider">{{ 'Đỉnh cao nhất' | t }}</div>
-              </div>
+              @if (occActiveBooking) {
+                <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl px-5 py-3 text-center min-w-[110px]">
+                  <div class="text-2xl font-black text-amber-300">{{occActiveBooking.attendees}}</div>
+                  <div class="text-[11px] font-semibold text-white/70 uppercase tracking-wider">{{ 'Đăng ký vé' | t }}</div>
+                </div>
+              }
               <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl px-5 py-3 text-center min-w-[110px]">
                 <div class="text-2xl font-black text-sky-300">{{occConfidence}}%</div>
                 <div class="text-[11px] font-semibold text-white/70 uppercase tracking-wider">Confidence</div>
@@ -1477,25 +1479,31 @@
             </div>
           </div>
 
-          <!-- Main Grid: Detection Area (8 cols) + Controls (4 cols) -->
+          <!-- Main Grid: Detection Area (8 cols) + Controls & Verification (4 cols) -->
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
             <!-- LEFT: Camera + Canvas Detection View (8 Cols) -->
             <div class="lg:col-span-8 bg-white dark:bg-slate-900 rounded-3xl p-6 border border-border-gray dark:border-slate-800 shadow-xs space-y-5">
 
-              <!-- Section Title -->
+              <!-- Section Title & Camera Switcher -->
               <div class="flex items-center justify-between pb-4 border-b border-border-gray dark:border-slate-800">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-2xl bg-emerald-600/10 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-black border border-emerald-600/20 dark:border-emerald-500/20">
+                  <div class="w-10 h-10 rounded-2xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-400 flex items-center justify-center font-black border border-uel-blue/20 dark:border-sky-400/20">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                   </div>
                   <div>
-                    <h3 class="text-base font-black text-dark-text dark:text-white tracking-tight">{{ 'Khung hình Phát hiện Người (Person Detection)' | t }}</h3>
-                    <p class="text-xs text-text-muted dark:text-slate-400">COCO-SSD Lite MobileNet v2 • Bounding Box &amp; Confidence Overlay</p>
+                    <h3 class="text-base font-black text-dark-text dark:text-white tracking-tight">{{ 'Khung hình Giám sát Camera IoT' | t }}</h3>
+                    <p class="text-xs text-text-muted dark:text-slate-400">Computer Vision Edge AI • Mobile/Webcam IoT Node</p>
                   </div>
                 </div>
                 <div class="flex items-center gap-2">
-                  @if (occDetectionRunning) {
+                  @if (occCameraActive) {
+                    <button (click)="toggleOccCameraFacing()" 
+                            [disabled]="occIsSwitchingFacing"
+                            class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" [class.animate-spin]="occIsSwitchingFacing"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                      <span>{{ occFacingMode === 'environment' ? ('Cam sau' | t) : ('Cam trước' | t) }}</span>
+                    </button>
                     <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
                       <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                       LIVE • {{occDetectionFps}} FPS
@@ -1505,75 +1513,235 @@
               </div>
 
               <!-- Camera Viewfinder with Canvas Overlay -->
-              <div class="relative bg-slate-900 rounded-2xl overflow-hidden aspect-video flex items-center justify-center">
+              <div class="relative bg-slate-900 rounded-2xl overflow-hidden aspect-video flex items-center justify-center border-2 border-slate-700/80 shadow-inner">
                 @if (occCameraActive) {
                   <video id="occ-detection-video" autoplay playsinline muted
                          class="w-full h-full object-cover"></video>
                   <canvas id="occ-detection-canvas"
                           class="absolute inset-0 w-full h-full" style="pointer-events: none;"></canvas>
-                  <!-- Live Count Overlay -->
-                  <div class="absolute top-4 left-4 bg-black/70 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/20">
+                  
+                  <!-- Live Count Overlay (Top Left) -->
+                  <div class="absolute top-4 left-4 bg-black/75 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/20">
                     <div class="text-3xl font-black text-emerald-400">{{occCurrentCount}}</div>
                     <div class="text-[10px] font-bold text-white/70 uppercase tracking-wider">{{ 'Người phát hiện' | t }}</div>
                   </div>
-                  @if (occSelectedSpace) {
-                    <div class="absolute top-4 right-4 bg-black/70 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/20 text-right">
-                      <div class="text-lg font-black" [class]="getOccupancyLevel().color">{{occCurrentCount}}/{{occSelectedSpace.capacity}}</div>
-                      <div class="text-[10px] font-bold text-white/70 uppercase">{{ 'Công suất' | t }}</div>
+
+                  <!-- Live Agreement Status Overlay (Top Right) -->
+                  @if (occActiveBooking) {
+                    <div class="absolute top-4 right-4 bg-black/75 backdrop-blur-md rounded-2xl px-4 py-3 border text-right"
+                         [class]="occIsOverCapacity ? 'border-rose-400/80 text-rose-300' : (occIsOvertime ? 'border-amber-400/80 text-amber-300' : 'border-emerald-400/80 text-emerald-300')">
+                      <div class="text-lg font-black">
+                        {{occCurrentCount}} / {{occActiveBooking.attendees}}
+                      </div>
+                      <div class="text-[10px] font-bold uppercase">
+                        {{ occIsOverCapacity ? ('Vượt sĩ số' | t) : ('Sĩ số đăng ký' | t) }}
+                      </div>
                     </div>
                   }
+
+                  <!-- Live Watermark (Bottom Right) -->
+                  <div class="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/60 text-white/80 text-[10px] font-bold backdrop-blur-xs flex items-center gap-1.5 pointer-events-none">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>IoT Webcam • {{ occFacingMode === 'environment' ? 'Rear' : 'Front' }}</span>
+                  </div>
                 } @else {
-                  <!-- Placeholder -->
+                  <!-- Standby Placeholder -->
                   <div class="text-center space-y-4 p-8">
                     <div class="w-20 h-20 mx-auto rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center">
                       <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-white/30"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                     </div>
-                    <p class="text-white/40 text-xs font-semibold max-w-xs mx-auto">{{ 'Chọn không gian và bấm "Bắt đầu nhận diện" để kích hoạt camera AI' | t }}</p>
+                    <div class="text-white text-sm font-bold">{{ 'Camera IoT đang ở chế độ chờ' | t }}</div>
+                    <p class="text-white/50 text-xs font-semibold max-w-xs mx-auto">
+                      {{ 'Bấm "Kích hoạt Camera IoT" để bắt đầu quét đối chiếu người thực tế và tối ưu không gian.' | t }}
+                    </p>
                     @if (occModelLoading) {
-                      <div class="flex items-center justify-center gap-2 text-emerald-400 text-xs font-bold">
+                      <div class="flex items-center justify-center gap-2 text-sky-400 text-xs font-bold">
                         <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-20"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
-                        {{ 'Đang tải model COCO-SSD...' | t }}
+                        {{ 'Đang tự tải ngầm model AI...' | t }}
                       </div>
                     }
                   </div>
                 }
               </div>
 
-              <!-- Error Display -->
-              @if (occModelError) {
-                <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-start gap-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                  <span>{{occModelError}}</span>
+              <!-- Action Buttons -->
+              <div class="flex items-center justify-between gap-3 flex-wrap pt-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                  @if (!occDetectionRunning) {
+                    <button (click)="startOccupancyDetection()"
+                            class="px-5 py-2.5 rounded-xl text-xs font-black bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 hover:bg-[#002D5C] text-white transition-all cursor-pointer shadow-md flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                      {{ 'Kích hoạt Camera IoT' | t }}
+                    </button>
+                  } @else {
+                    <button (click)="stopOccupancyDetection()"
+                            class="px-5 py-2.5 rounded-xl text-xs font-black bg-rose-600 hover:bg-rose-700 text-white transition-all cursor-pointer shadow-md flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                      {{ 'Dừng Nhận diện' | t }}
+                    </button>
+                  }
+                  <button (click)="saveOccupancySnapshot()"
+                          [disabled]="!occDetectionRunning"
+                          class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-all cursor-pointer shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    {{ 'Lưu Snapshot' | t }}
+                  </button>
+                </div>
+
+                <!-- Simulation Toggle Button for Demo Presentation -->
+                <button (click)="toggleSimulateOvertime()"
+                        class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5"
+                        [class]="occSimulateOvertimeActive ? 'bg-amber-500 text-white border-amber-600 shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <span>{{ occSimulateOvertimeActive ? ('Đang mô phỏng Quá giờ (+25p)' | t) : ('Test Giả lập Quá giờ' | t) }}</span>
+                </button>
+              </div>
+
+              <!-- AI SMART DECISION BANNERS (Real-time Business Value Differentiators) -->
+              
+              <!-- 1. Overcapacity Alert -->
+              @if (occIsOverCapacity) {
+                <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-[fade-in_0.3s]">
+                  <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 font-black">!</div>
+                    <div>
+                      <div class="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                        {{ 'Cảnh báo Vượt số lượng cho phép' | t }} (+{{occOverCapacityCount}} {{ 'người' | t }})
+                      </div>
+                      <div class="text-[11px] font-medium text-amber-800/90 dark:text-amber-200/90">
+                        {{ 'Đơn đặt đăng ký ' | t }}<strong>{{occActiveBooking?.attendees}} {{ 'người' | t }}</strong>{{ ', nhưng AI phát hiện ' | t }}<strong class="text-rose-600 dark:text-rose-400">{{occCurrentCount}} {{ 'người' | t }}</strong>{{ ' trong phòng. Vi phạm thỏa thuận sử dụng không gian.' | t }}
+                      </div>
+                    </div>
+                  </div>
+                  @if (!occOvercapacityHandled) {
+                    <button (click)="handleOvercapacityWarning()"
+                            class="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all cursor-pointer shrink-0 shadow-xs">
+                      {{ 'Áp dụng Phụ thu Vượt sĩ số' | t }} (+{{(occOverCapacityCount * 30000) | number}}đ)
+                    </button>
+                  } @else {
+                    <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 px-3 py-1 bg-emerald-100 dark:bg-emerald-950/40 rounded-lg">
+                      ✓ {{ 'Đã ghi nhận phụ phí' | t }}
+                    </span>
+                  }
                 </div>
               }
 
-              <!-- Action Buttons -->
-              <div class="flex items-center gap-3 flex-wrap">
-                @if (!occDetectionRunning) {
-                  <button (click)="startOccupancyDetection()"
-                          [disabled]="occModelLoading || !occSelectedSpace"
-                          class="px-5 py-2.5 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white transition-all cursor-pointer shadow-md disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                    @if (occModelLoading) { {{ 'Đang tải Model AI...' | t }} } @else { {{ 'Bắt đầu Nhận diện' | t }} }
+              <!-- 2. Overtime Alert & Surcharge Application -->
+              @if (occIsOvertime) {
+                <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-[fade-in_0.3s]">
+                  <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 font-black">⏰</div>
+                    <div>
+                      <div class="text-xs font-black uppercase tracking-wider text-rose-700 dark:text-rose-300">
+                        {{ 'Cảnh báo Quá giờ (Overtime Detected)' | t }} (+{{occOvertimeMinutes}} {{ 'phút' | t }})
+                      </div>
+                      <div class="text-[11px] font-medium text-rose-800/90 dark:text-rose-200/90">
+                        {{ 'Đơn đặt đã hết giờ nhưng AI nhận diện vẫn còn ' | t }}<strong>{{occCurrentCount}} {{ 'người trong phòng' | t }}</strong>. {{ 'Gợi ý phụ phí theo chính sách:' | t }} <strong class="text-rose-600 dark:text-rose-300">+{{occSuggestedSurcharge | number}} VNĐ</strong> ({{ 'block 30 phút' | t }}).
+                      </div>
+                    </div>
+                  </div>
+                  @if (!occSurchargeApplied) {
+                    <button (click)="applyOvertimeSurcharge()"
+                            class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition-all cursor-pointer shrink-0 shadow-md flex items-center gap-1.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                      {{ 'Xác minh & Áp dụng Phụ phí' | t }} (+{{occSuggestedSurcharge | number}}đ)
+                    </button>
+                  } @else {
+                    <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 px-3 py-1 bg-emerald-100 dark:bg-emerald-950/40 rounded-lg">
+                      ✓ {{ 'Đã áp dụng phụ phí vào hóa đơn' | t }}
+                    </span>
+                  }
+                </div>
+              }
+
+              <!-- 3. Early Checkout & Slot Release Differentiator -->
+              @if (occIsEarlyCheckoutSuggested && !occEarlyCheckoutDone) {
+                <div class="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 dark:from-emerald-950/40 dark:via-teal-950/40 dark:to-sky-950/40 border border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-[fade-in_0.3s]">
+                  <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 font-black">⚡</div>
+                    <div>
+                      <div class="text-xs font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+                        <span>{{ 'Phát hiện Khách đã Rời phòng Sớm (Early Checkout)' | t }}</span>
+                        <span class="px-2 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-100 text-[10px]">Tối ưu Doanh thu</span>
+                      </div>
+                      <div class="text-[11px] font-medium text-emerald-800/90 dark:text-emerald-200/90">
+                        {{ 'AI phát hiện phòng đang trống 0 người khi đơn đặt vẫn còn hạn. Giải phóng khung giờ còn dư đưa trở lại sàn Marketplace cho khách khác đặt ngay.' | t }}
+                      </div>
+                    </div>
+                  </div>
+                  <button (click)="confirmEarlyCheckout()"
+                          class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition-all cursor-pointer shrink-0 shadow-md flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    {{ 'Xác nhận Trả phòng Sớm & Giải phóng Lịch' | t }}
                   </button>
-                } @else {
-                  <button (click)="stopOccupancyDetection()"
-                          class="px-5 py-2.5 rounded-xl text-xs font-black bg-rose-600 hover:bg-rose-700 text-white transition-all cursor-pointer shadow-md flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
-                    {{ 'Dừng Nhận diện' | t }}
-                  </button>
-                }
-                <button (click)="saveOccupancySnapshot()"
-                        [disabled]="!occDetectionRunning"
-                        class="px-4 py-2.5 rounded-xl text-xs font-bold bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 hover:bg-[#002D5C] text-white transition-all cursor-pointer shadow-xs disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                  {{ 'Lưu Snapshot' | t }}
-                </button>
-              </div>
+                </div>
+              }
+
+              @if (occEarlyCheckoutDone) {
+                <div class="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 text-emerald-800 dark:text-emerald-200 text-xs font-bold flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                  <span>{{ 'Khung giờ đã được giải phóng thành công lên sàn Marketplace UEL Space. Phòng sẵn sàng đón lượt khách tiếp theo.' | t }}</span>
+                </div>
+              }
+
             </div>
 
-            <!-- RIGHT: Controls & Space Selector (4 Cols) -->
+            <!-- RIGHT: Controls, Live Booking Verification Card & Space Selector (4 Cols) -->
             <div class="lg:col-span-4 space-y-5">
+
+              <!-- Live Booking Verification Card (Đối chiếu thông tin thực tế) -->
+              @if (occActiveBooking) {
+                <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-border-gray dark:border-slate-800 shadow-xs space-y-3.5">
+                  <div class="flex items-center justify-between pb-3 border-b border-border-gray dark:border-slate-800">
+                    <div class="flex items-center gap-2">
+                      <div class="w-8 h-8 rounded-xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-400 flex items-center justify-center font-black">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                      </div>
+                      <h4 class="text-sm font-black text-dark-text dark:text-white">{{ 'Đối chiếu Đơn Đặt chỗ Thực tế' | t }}</h4>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase"
+                          [class]="occActiveBooking.status === 'IN_USE' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300' : 'bg-sky-100 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300'">
+                      {{occActiveBooking.status}}
+                    </span>
+                  </div>
+
+                  <div class="space-y-2 text-xs">
+                    <div class="flex justify-between py-1 border-b border-dashed border-slate-100 dark:border-slate-800">
+                      <span class="text-text-muted dark:text-slate-400">{{ 'Mã đơn:' | t }}</span>
+                      <span class="font-black text-dark-text dark:text-white">{{occActiveBooking.code}}</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-dashed border-slate-100 dark:border-slate-800">
+                      <span class="text-text-muted dark:text-slate-400">{{ 'Người đặt:' | t }}</span>
+                      <span class="font-bold text-dark-text dark:text-white">{{occActiveBooking.bookerName}}</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-dashed border-slate-100 dark:border-slate-800">
+                      <span class="text-text-muted dark:text-slate-400">{{ 'Khung giờ thuê:' | t }}</span>
+                      <span class="font-bold text-uel-blue dark:text-sky-400">{{occActiveBooking.timeSlot}}</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-dashed border-slate-100 dark:border-slate-800">
+                      <span class="text-text-muted dark:text-slate-400">{{ 'Số người đăng ký:' | t }}</span>
+                      <span class="font-bold text-dark-text dark:text-white">{{occActiveBooking.attendees}} {{ 'người' | t }}</span>
+                    </div>
+                    <div class="flex justify-between py-1">
+                      <span class="text-text-muted dark:text-slate-400">{{ 'AI phát hiện thực tế:' | t }}</span>
+                      <span class="font-black" [class]="occIsOverCapacity ? 'text-rose-600' : 'text-emerald-600'">
+                        {{occCurrentCount}} {{ 'người' | t }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Verification Comparison Badge -->
+                  <div class="p-3 rounded-2xl border text-center"
+                       [class]="occIsOverCapacity ? 'bg-rose-50 border-rose-200 text-rose-700 dark:bg-rose-950/40 dark:border-rose-800 dark:text-rose-300' : 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300'">
+                    <div class="text-xs font-black uppercase">
+                      {{ occIsOverCapacity ? ('Cảnh báo Vượt sĩ số đăng ký' | t) : ('Sử dụng đúng thỏa thuận' | t) }}
+                    </div>
+                    <div class="text-[10px] font-semibold mt-0.5 opacity-90">
+                      {{ occIsOverCapacity ? ('Phát hiện vượt +' + occOverCapacityCount + ' người so với vé') : 'Số người thực tế phù hợp với quy định' }}
+                    </div>
+                  </div>
+                </div>
+              }
 
               <!-- Space Selector Card -->
               <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-border-gray dark:border-slate-800 shadow-xs space-y-4">
@@ -1584,7 +1752,7 @@
                   <h4 class="text-sm font-black text-dark-text dark:text-white">{{ 'Chọn Không gian Giám sát' | t }}</h4>
                 </div>
 
-                <div class="space-y-2 max-h-[340px] overflow-y-auto">
+                <div class="space-y-2 max-h-[300px] overflow-y-auto">
                   @for (space of spaces; track space.id) {
                     <button (click)="selectSpaceForDetection(space)"
                             [class]="occSelectedSpace?.id === space.id ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 ring-1 ring-emerald-400' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'"
@@ -1601,92 +1769,6 @@
                       </div>
                     </button>
                   }
-                </div>
-              </div>
-
-              <!-- Detection Stats Card -->
-              @if (occSelectedSpace) {
-                <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-border-gray dark:border-slate-800 shadow-xs space-y-4">
-                  <div class="flex items-center gap-2.5 pb-3 border-b border-border-gray dark:border-slate-800">
-                    <div class="w-8 h-8 rounded-xl bg-emerald-600/10 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-                    </div>
-                    <h4 class="text-sm font-black text-dark-text dark:text-white">{{ 'Thống kê Phát hiện' | t }}</h4>
-                  </div>
-
-                  <div class="grid grid-cols-2 gap-3">
-                    <div class="p-3 rounded-2xl border" [ngClass]="getOccupancyLevel().bgColor">
-                      <div class="text-2xl font-black" [ngClass]="getOccupancyLevel().color">{{occCurrentCount}}</div>
-                      <div class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">{{ 'Hiện tại' | t }}</div>
-                    </div>
-                    <div class="p-3 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800">
-                      <div class="text-2xl font-black text-sky-600 dark:text-sky-400">{{occAvgCount}}</div>
-                      <div class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">{{ 'Trung bình' | t }}</div>
-                    </div>
-                    <div class="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800">
-                      <div class="text-2xl font-black text-amber-600 dark:text-amber-400">{{occPeakCount}}</div>
-                      <div class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">{{ 'Cao nhất' | t }}</div>
-                    </div>
-                    <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800">
-                      <div class="text-2xl font-black text-slate-700 dark:text-slate-200">{{occSelectedSpace.capacity}}</div>
-                      <div class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">{{ 'Sức chứa' | t }}</div>
-                    </div>
-                  </div>
-
-                  <!-- Occupancy Level Badge -->
-                  <div class="p-3 rounded-2xl border text-center" [ngClass]="getOccupancyLevel().bgColor">
-                    <div class="text-xs font-black uppercase tracking-wider" [ngClass]="getOccupancyLevel().color">
-                      {{ 'Mức công suất:' | t }} {{ getOccupancyLevel().label | t }}
-                    </div>
-                    @if (occSelectedSpace) {
-                      <div class="mt-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden">
-                        <div class="h-full rounded-full transition-all duration-500"
-                             [style.width.%]="occSelectedSpace.capacity > 0 ? Math.min((occCurrentCount / occSelectedSpace.capacity) * 100, 100) : 0"
-                             [ngClass]="(occCurrentCount / occSelectedSpace.capacity) > 1 ? 'bg-rose-500' : (occCurrentCount / occSelectedSpace.capacity) > 0.8 ? 'bg-orange-500' : (occCurrentCount / occSelectedSpace.capacity) > 0.5 ? 'bg-amber-500' : 'bg-emerald-500'"></div>
-                      </div>
-                      <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-1">
-                        {{occSelectedSpace.capacity > 0 ? ((occCurrentCount / occSelectedSpace.capacity) * 100).toFixed(0) : 0}}% {{ 'công suất' | t }}
-                      </div>
-                    }
-                  </div>
-                </div>
-              }
-
-              <!-- Model Info Card -->
-              <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-border-gray dark:border-slate-800 shadow-xs space-y-3">
-                <div class="flex items-center gap-2.5 pb-3 border-b border-border-gray dark:border-slate-800">
-                  <div class="w-8 h-8 rounded-xl bg-violet-600/10 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4z"/></svg>
-                  </div>
-                  <h4 class="text-sm font-black text-dark-text dark:text-white">{{ 'Thông tin Model AI' | t }}</h4>
-                </div>
-                <div class="space-y-2 text-xs">
-                  <div class="flex justify-between">
-                    <span class="text-text-muted dark:text-slate-400">Model:</span>
-                    <span class="font-bold text-dark-text dark:text-white">COCO-SSD (Lite)</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-text-muted dark:text-slate-400">Backbone:</span>
-                    <span class="font-bold text-dark-text dark:text-white">MobileNet v2</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-text-muted dark:text-slate-400">Runtime:</span>
-                    <span class="font-bold text-dark-text dark:text-white">TensorFlow.js (WebGL)</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-text-muted dark:text-slate-400">{{ 'Xử lý:' | t }}</span>
-                    <span class="font-bold text-emerald-600 dark:text-emerald-400">Client-side (GPU Browser)</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-text-muted dark:text-slate-400">{{ 'Trạng thái:' | t }}</span>
-                    @if (occModelLoaded) {
-                      <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ 'Sẵn sàng ✓' | t }}</span>
-                    } @else if (occModelLoading) {
-                      <span class="font-bold text-amber-600 dark:text-amber-400">{{ 'Đang tải...' | t }}</span>
-                    } @else {
-                      <span class="font-bold text-slate-400">{{ 'Chưa tải' | t }}</span>
-                    }
-                  </div>
                 </div>
               </div>
 

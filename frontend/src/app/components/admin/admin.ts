@@ -858,7 +858,11 @@ export class Admin implements OnInit, OnDestroy {
   constructor(private ngZone: NgZone, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
-    // Check if entered as admin or setup initial stats
+    // Preload COCO-SSD model in background so turning on IoT camera is instant
+    this.loadOccupancyModel();
+    if (!this.occSelectedSpace && this.spaces.length > 0) {
+      this.selectSpaceForDetection(this.spaces[0]);
+    }
   }
 
   // Filter Bookings
@@ -1513,7 +1517,7 @@ export class Admin implements OnInit, OnDestroy {
     };
   }
 
-  // ===== OCCUPANCY DETECTION (Computer Vision) =====
+  // ===== OCCUPANCY DETECTION (Computer Vision & FlexSpace AI Core) =====
 
   selectSpaceForDetection(space: AdminSpace): void {
     this.occSelectedSpace = space;
@@ -1522,6 +1526,47 @@ export class Admin implements OnInit, OnDestroy {
     this.occPeakCount = 0;
     this.occAvgCount = 0;
     this.occHistory = [];
+    this.occSurchargeApplied = false;
+    this.occEarlyCheckoutDone = false;
+    this.occOvercapacityHandled = false;
+    this.occEmptyRoomSeconds = 0;
+    this.occIsEarlyCheckoutSuggested = false;
+    this.occIsOvertime = false;
+    this.occIsOverCapacity = false;
+    this.occSimulateOvertimeActive = false;
+
+    // Tự động liên kết đơn đặt chỗ thực tế của không gian này
+    const matched = this.bookings.find(b => 
+      (b.spaceId === space.id || b.spaceName.toLowerCase().includes(space.name.toLowerCase())) &&
+      (b.status === 'IN_USE' || b.status === 'APPROVED')
+    );
+
+    if (matched) {
+      this.occActiveBooking = matched;
+    } else {
+      // Đơn đặt chỗ mẫu liên kết không gian để giám sát
+      const anyBooking = this.bookings.find(b => b.spaceId === space.id);
+      this.occActiveBooking = anyBooking || {
+        id: 'FLX-' + space.id,
+        code: 'FLX-BK-2026',
+        spaceId: space.id,
+        spaceName: space.name,
+        building: space.building,
+        bookerName: 'Nguyễn Trần Kim Giang',
+        bookerEmail: 'giangnntk24411@st.uel.edu.vn',
+        organization: 'CLB ITB UEL (Chủ nhiệm)',
+        purpose: 'Đặt chỗ làm việc & học tập linh hoạt',
+        activityType: 'Học nhóm',
+        date: new Date().toLocaleDateString('vi-VN'),
+        timeSlot: '08:00 - 11:30',
+        attendees: Math.min(space.capacity, 4),
+        status: 'IN_USE'
+      };
+    }
+
+    if (this.occDetectionRunning) {
+      this.evaluateFlexSpaceAiRules();
+    }
   }
 
   async loadOccupancyModel(): Promise<void> {
@@ -1534,7 +1579,7 @@ export class Admin implements OnInit, OnDestroy {
       this.occCocoModel = await cocoSsd.load({ base: 'lite_mobilenet_v2' });
       this.occModelLoaded = true;
       this.occModelLoading = false;
-      this.showToast(this.i18n.t('Model COCO-SSD đã tải thành công! Sẵn sàng nhận diện.'), 'success');
+      console.log('FlexSpace AI COCO-SSD Model preloaded successfully!');
     } catch (err: any) {
       this.occModelLoading = false;
       this.occModelError = this.i18n.t('Không thể tải model AI. Vui lòng kiểm tra kết nối mạng và thử lại. Chi tiết: ') + (err?.message || err);
@@ -1543,23 +1588,41 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   async startOccupancyDetection(): Promise<void> {
+    if (!this.occSelectedSpace && this.spaces.length > 0) {
+      this.selectSpaceForDetection(this.spaces[0]);
+    }
+
     if (!this.occSelectedSpace) {
       this.showToast(this.i18n.t('Vui lòng chọn không gian cần giám sát trước!'), 'warning');
       return;
     }
 
-    await this.loadOccupancyModel();
+    // Đảm bảo model đã tải
+    if (!this.occCocoModel) {
+      await this.loadOccupancyModel();
+    }
     if (!this.occCocoModel) return;
 
     try {
       this.stopOccupancyDetection();
-      const constraints: MediaStreamConstraints = { video: { width: 640, height: 480 } };
+      const constraints: MediaStreamConstraints = { 
+        video: { 
+          facingMode: { ideal: this.occFacingMode },
+          width: { ideal: 640 }, 
+          height: { ideal: 480 } 
+        },
+        audio: false
+      };
       this.occVideoStream = await navigator.mediaDevices.getUserMedia(constraints);
       this.occCameraActive = true;
+      this.cdr.detectChanges();
 
       setTimeout(() => {
         const videoEl = document.getElementById('occ-detection-video') as HTMLVideoElement;
         if (videoEl && this.occVideoStream) {
+          videoEl.setAttribute('playsinline', 'true');
+          videoEl.setAttribute('webkit-playsinline', 'true');
+          videoEl.muted = true;
           videoEl.srcObject = this.occVideoStream;
           videoEl.play().then(() => {
             this.occDetectionRunning = true;
@@ -1573,12 +1636,51 @@ export class Admin implements OnInit, OnDestroy {
               this.occLastFrameTime = now;
             }, 2000);
             this.runDetectionLoop(videoEl);
-          }).catch(e => console.warn('Video play error:', e));
+          }).catch(e => console.warn('Video play error on occ camera:', e));
         }
-      }, 300);
+      }, 150);
     } catch (err: any) {
       this.occCameraActive = false;
       this.occModelError = this.i18n.t('Không thể truy cập Camera: ') + (err?.message || this.i18n.t('Chưa cấp quyền hoặc thiết bị không có webcam.'));
+      this.cdr.detectChanges();
+    }
+  }
+
+  async toggleOccCameraFacing(): Promise<void> {
+    if (!this.occCameraActive || this.occIsSwitchingFacing) return;
+    this.occIsSwitchingFacing = true;
+    const nextFacing = this.occFacingMode === 'environment' ? 'user' : 'environment';
+
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: nextFacing },
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        },
+        audio: false
+      });
+
+      const oldStream = this.occVideoStream;
+      this.occVideoStream = newStream;
+      this.occFacingMode = nextFacing;
+
+      const videoEl = document.getElementById('occ-detection-video') as HTMLVideoElement;
+      if (videoEl) {
+        videoEl.srcObject = newStream;
+        await videoEl.play().catch(e => console.warn('Play error:', e));
+      }
+
+      if (oldStream) {
+        oldStream.getTracks().forEach(t => { try { t.stop(); } catch {} });
+      }
+      this.showToast(`${this.i18n.t('Camera IoT đã chuyển sang')} ${nextFacing === 'environment' ? this.i18n.t('Cam sau') : this.i18n.t('Cam trước')}!`, 'info');
+    } catch (e) {
+      console.warn('Lỗi đổi cam IoT:', e);
+      this.showToast(this.i18n.t('Không thể đổi camera hoặc thiết bị chỉ có 1 camera.'), 'warning');
+    } finally {
+      this.occIsSwitchingFacing = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -1647,6 +1749,9 @@ export class Admin implements OnInit, OnDestroy {
           this.occPeakCount = people.length;
         }
 
+        // Đánh giá các quy tắc nghiệp vụ FlexSpace AI
+        this.evaluateFlexSpaceAiRules();
+
         // Track history every ~5 seconds
         if (this.occHistory.length === 0 ||
             (Date.now() - new Date(this.occHistory[0]?.timestamp || 0).getTime()) > 5000) {
@@ -1677,6 +1782,156 @@ export class Admin implements OnInit, OnDestroy {
     });
   }
 
+  evaluateFlexSpaceAiRules(): void {
+    if (!this.occActiveBooking) return;
+
+    // 1. Kiểm tra Overcapacity (Vượt số lượng đăng ký thỏa thuận)
+    if (this.occActiveBooking.attendees > 0) {
+      if (this.occCurrentCount > this.occActiveBooking.attendees) {
+        this.occIsOverCapacity = true;
+        this.occOverCapacityCount = this.occCurrentCount - this.occActiveBooking.attendees;
+      } else {
+        this.occIsOverCapacity = false;
+        this.occOverCapacityCount = 0;
+      }
+    }
+
+    // 2. Kiểm tra Overtime (Sử dụng quá giờ)
+    if (!this.occEarlyCheckoutDone) {
+      const isOvertime = this.occSimulateOvertimeActive || this.checkBookingOvertime(this.occActiveBooking);
+      if (isOvertime && this.occCurrentCount > 0) {
+        this.occIsOvertime = true;
+        this.occOvertimeMinutes = this.calculateOvertimeMinutes(this.occActiveBooking);
+        // Gợi ý phụ phí theo block 30 phút (+50.000 VNĐ / block 30p)
+        const blocks = Math.max(1, Math.ceil(this.occOvertimeMinutes / 30));
+        this.occSuggestedSurcharge = blocks * 50000;
+      } else {
+        this.occIsOvertime = false;
+      }
+    }
+
+    // 3. Kiểm tra Early Checkout (Rời phòng sớm)
+    if (this.occActiveBooking.status === 'IN_USE' && !this.occEarlyCheckoutDone && !this.occIsOvertime) {
+      if (this.occCurrentCount === 0) {
+        this.occEmptyRoomSeconds += 1;
+        // Kích hoạt gợi ý khi phát hiện phòng trống
+        if (this.occEmptyRoomSeconds >= 3) {
+          this.occIsEarlyCheckoutSuggested = true;
+        }
+      } else {
+        this.occEmptyRoomSeconds = 0;
+        this.occIsEarlyCheckoutSuggested = false;
+      }
+    } else {
+      this.occEmptyRoomSeconds = 0;
+      this.occIsEarlyCheckoutSuggested = false;
+    }
+  }
+
+  private checkBookingOvertime(booking: AdminBooking): boolean {
+    try {
+      const parts = booking.timeSlot.split('-');
+      if (parts.length < 2) return false;
+      const endParts = parts[1].trim().split(':');
+      if (endParts.length < 2) return false;
+      const endHour = parseInt(endParts[0], 10);
+      const endMinute = parseInt(endParts[1], 10);
+
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+
+      return (currentHour > endHour || (currentHour === endHour && currentMinute >= endMinute));
+    } catch {
+      return false;
+    }
+  }
+
+  private calculateOvertimeMinutes(booking: AdminBooking): number {
+    if (this.occSimulateOvertimeActive) return 25;
+    try {
+      const parts = booking.timeSlot.split('-');
+      if (parts.length < 2) return 15;
+      const endParts = parts[1].trim().split(':');
+      const endHour = parseInt(endParts[0], 10);
+      const endMinute = parseInt(endParts[1], 10);
+
+      const now = new Date();
+      const diff = (now.getHours() * 60 + now.getMinutes()) - (endHour * 60 + endMinute);
+      return Math.max(15, diff);
+    } catch {
+      return 15;
+    }
+  }
+
+  toggleSimulateOvertime(): void {
+    this.occSimulateOvertimeActive = !this.occSimulateOvertimeActive;
+    this.evaluateFlexSpaceAiRules();
+    this.showToast(this.occSimulateOvertimeActive ? 'Đã bật mô phỏng tình huống Quá giờ (+25 phút)' : 'Đã tắt mô phỏng Quá giờ', 'info');
+  }
+
+  applyOvertimeSurcharge(): void {
+    if (!this.occActiveBooking) return;
+    this.occSurchargeApplied = true;
+    const amountStr = this.occSuggestedSurcharge.toLocaleString('vi-VN');
+    this.showToast(`${this.i18n.t('Đã áp dụng phụ phí quá giờ')} ${amountStr} VNĐ (${this.occOvertimeMinutes} phút) ${this.i18n.t('vào hóa đơn của')} ${this.occActiveBooking.bookerName}!`, 'success');
+
+    this.auditLogs.unshift({
+      id: 'aud-' + Date.now(),
+      timestamp: new Date().toLocaleString('vi-VN'),
+      actor: this.adminUser.email,
+      action: 'OVERTIME_SURCHARGE_APPLIED',
+      target: `${this.occActiveBooking.code} - ${this.occSelectedSpace?.name}`,
+      details: `FlexSpace AI phát hiện khách sử dụng quá giờ ${this.occOvertimeMinutes} phút (sĩ số thực tế: ${this.occCurrentCount} người). Chủ không gian áp dụng phụ phí ${amountStr} VNĐ theo block 30 phút.`,
+      level: 'WARNING'
+    });
+    this.cdr.detectChanges();
+  }
+
+  confirmEarlyCheckout(): void {
+    if (!this.occActiveBooking || !this.occSelectedSpace) return;
+    this.occEarlyCheckoutDone = true;
+    this.occIsEarlyCheckoutSuggested = false;
+
+    // 1. Cập nhật trạng thái booking sang COMPLETED
+    this.occActiveBooking.status = 'COMPLETED';
+
+    // 2. Giải phóng không gian ngay lập tức để người khác đặt
+    this.occSelectedSpace.status = 'AVAILABLE';
+    this.occSelectedSpace.currentOccupants = 0;
+
+    this.showToast(`${this.i18n.t('Đã xác nhận trả phòng sớm!')} ${this.occSelectedSpace.name} ${this.i18n.t('đã được giải phóng và sẵn sàng cho khách khác đặt ngay.')}`, 'success');
+
+    this.auditLogs.unshift({
+      id: 'aud-' + Date.now(),
+      timestamp: new Date().toLocaleString('vi-VN'),
+      actor: this.adminUser.email,
+      action: 'EARLY_CHECKOUT_SLOT_RELEASED',
+      target: `${this.occActiveBooking.code} - ${this.occSelectedSpace.name}`,
+      details: `FlexSpace AI nhận diện phòng trống trước thời gian kết thúc đặt chỗ. Chủ không gian xác nhận trả phòng sớm, giải phóng khung giờ còn dư đưa trở lại sàn Marketplace.`,
+      level: 'INFO'
+    });
+    this.cdr.detectChanges();
+  }
+
+  handleOvercapacityWarning(): void {
+    if (!this.occActiveBooking) return;
+    this.occOvercapacityHandled = true;
+    const extraFee = this.occOverCapacityCount * 30000;
+    this.showToast(`${this.i18n.t('Đã ghi nhận phụ thu')} +${this.occOverCapacityCount} người (${extraFee.toLocaleString('vi-VN')} VNĐ) cho đơn ${this.occActiveBooking.code}!`, 'warning');
+
+    this.auditLogs.unshift({
+      id: 'aud-' + Date.now(),
+      timestamp: new Date().toLocaleString('vi-VN'),
+      actor: this.adminUser.email,
+      action: 'OVERCAPACITY_DETECTED',
+      target: `${this.occActiveBooking.code} - ${this.occSelectedSpace?.name}`,
+      details: `FlexSpace AI phát hiện ${this.occCurrentCount} người (vượt ${this.occOverCapacityCount} người so với đăng ký ${this.occActiveBooking.attendees} người). Đã ghi nhận phụ phí và cảnh báo sử dụng vượt quá thỏa thuận.`,
+      level: 'WARNING'
+    });
+    this.cdr.detectChanges();
+  }
+
   stopOccupancyDetection(): void {
     this.occDetectionRunning = false;
     if (this.occVideoStream) {
@@ -1684,10 +1939,12 @@ export class Admin implements OnInit, OnDestroy {
       this.occVideoStream = null;
     }
     this.occCameraActive = false;
+    this.occIsSwitchingFacing = false;
     if (this.occFpsInterval) {
       clearInterval(this.occFpsInterval);
       this.occFpsInterval = null;
     }
+    this.cdr.detectChanges();
   }
 
   getOccupancyLevel(): { label: string; color: string; bgColor: string } {
@@ -1714,10 +1971,8 @@ export class Admin implements OnInit, OnDestroy {
     };
     this.occHistory.unshift(snapshot);
 
-    // Update space currentOccupants
     this.occSelectedSpace.currentOccupants = this.occCurrentCount;
 
-    // Add Audit Log
     this.auditLogs.unshift({
       id: 'aud-' + Date.now(),
       timestamp: now.toLocaleString('vi-VN'),

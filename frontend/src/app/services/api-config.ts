@@ -18,4 +18,4 @@ export const AUTH_GOOGLE_URL = `${SERVER_BASE_URL}/api/auth/google`;
 
 // Cấu hình Google OAuth 2.0 Client ID (tạo tại Google Cloud Console -> Credentials)
 // Người dùng có thể thay đổi trực tiếp tại đây hoặc thông qua giao diện nhập nhanh ở màn hình Đăng nhập.
-export const GOOGLE_CLIENT_ID = '938164821613-demo.apps.googleusercontent.com';
+export const GOOGLE_CLIENT_ID = '718641806689-j4k89ensl7t3l05iin3imj7c1ndbbepj.apps.googleusercontent.com';
