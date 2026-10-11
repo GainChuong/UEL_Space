@@ -1642,6 +1642,8 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   async startOccupancyDetection(): Promise<void> {
+    if (this.occStartingCamera || this.occCameraActive) return;
+
     if (!this.occSelectedSpace && this.spaces.length > 0) {
       this.selectSpaceForDetection(this.spaces[0]);
     }
@@ -1651,26 +1653,55 @@ export class Admin implements OnInit, OnDestroy {
       return;
     }
 
-    // Đảm bảo model đã tải
-    if (!this.occCocoModel) {
-      await this.loadOccupancyModel();
+    if (!navigator?.mediaDevices?.getUserMedia) {
+      this.occModelError = this.i18n.t('Trình duyệt không hỗ trợ WebRTC Camera API hoặc yêu cầu kết nối HTTPS/localhost.');
+      this.showToast(this.occModelError, 'warning');
+      return;
     }
-    if (!this.occCocoModel) return;
+
+    this.occStartingCamera = true;
+    this.occModelError = '';
+    this.cdr.detectChanges();
 
     try {
-      this.stopOccupancyDetection();
-      const constraints: MediaStreamConstraints = { 
-        video: { 
-          facingMode: { ideal: this.occFacingMode },
-          width: { ideal: 640 }, 
-          height: { ideal: 480 } 
-        },
-        audio: false
-      };
-      this.occVideoStream = await navigator.mediaDevices.getUserMedia(constraints);
+      // 1. Dọn dẹp stream cũ nếu có
+      if (this.occVideoStream) {
+        this.occVideoStream.getTracks().forEach(t => { try { t.stop(); } catch {} });
+        this.occVideoStream = null;
+      }
+
+      // Kích hoạt ngay cameraActive để Angular render thẻ <video> ngay lập tức
       this.occCameraActive = true;
       this.cdr.detectChanges();
 
+      // 2. Yêu cầu camera ngay lập tức trên user interaction hiện tại (bảo toàn quyền của trình duyệt trên điện thoại)
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            facingMode: { ideal: this.occFacingMode },
+            width: { ideal: 1280 }, 
+            height: { ideal: 720 } 
+          },
+          audio: false
+        });
+      } catch (errConstraint) {
+        console.warn('Lấy cam theo constraint lý tưởng thất bại, thử fallback facingMode:', errConstraint);
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: this.occFacingMode } },
+            audio: false
+          });
+        } catch {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        }
+      }
+
+      this.occVideoStream = stream;
+      this.occStartingCamera = false;
+      this.cdr.detectChanges();
+
+      // 3. Kết nối trực tiếp vào phần tử video
       setTimeout(() => {
         const videoEl = document.getElementById('occ-detection-video') as HTMLVideoElement;
         if (videoEl && this.occVideoStream) {
@@ -1682,6 +1713,7 @@ export class Admin implements OnInit, OnDestroy {
             this.occDetectionRunning = true;
             this.occFrameCount = 0;
             this.occLastFrameTime = performance.now();
+            if (this.occFpsInterval) clearInterval(this.occFpsInterval);
             this.occFpsInterval = setInterval(() => {
               const now = performance.now();
               const elapsed = (now - this.occLastFrameTime) / 1000;
@@ -1689,13 +1721,42 @@ export class Admin implements OnInit, OnDestroy {
               this.occFrameCount = 0;
               this.occLastFrameTime = now;
             }, 2000);
-            this.runDetectionLoop(videoEl);
-          }).catch(e => console.warn('Video play error on occ camera:', e));
+
+            // Bắt đầu nhận diện AI: nếu đã tải model thì chạy ngay, nếu chưa thì tải ngầm
+            if (this.occCocoModel) {
+              this.runDetectionLoop(videoEl);
+            } else {
+              this.loadOccupancyModel().then(() => {
+                if (this.occDetectionRunning) {
+                  this.runDetectionLoop(videoEl);
+                }
+              }).catch(e => {
+                console.warn('Không thể nạp AI model ngầm:', e);
+              });
+            }
+          }).catch(ePlay => {
+            console.warn('Video play retry needed on occ camera:', ePlay);
+            videoEl.muted = true;
+            videoEl.play().catch(err2 => console.error('Occ play retry failed:', err2));
+            this.occDetectionRunning = true;
+            if (this.occCocoModel) this.runDetectionLoop(videoEl);
+          });
         }
-      }, 150);
+      }, 50);
+
     } catch (err: any) {
+      console.error('Camera access error in startOccupancyDetection:', err);
+      this.occStartingCamera = false;
       this.occCameraActive = false;
-      this.occModelError = this.i18n.t('Không thể truy cập Camera: ') + (err?.message || this.i18n.t('Chưa cấp quyền hoặc thiết bị không có webcam.'));
+      this.occDetectionRunning = false;
+      if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
+        this.occModelError = this.i18n.t('Quyền truy cập Camera bị từ chối. Vui lòng cấp quyền Camera trên trình duyệt điện thoại để tiếp tục.');
+      } else if (err?.name === 'NotFoundError' || err?.name === 'DevicesNotFoundError') {
+        this.occModelError = this.i18n.t('Không tìm thấy thiết bị Camera trên thiết bị này.');
+      } else {
+        this.occModelError = this.i18n.t('Không thể truy cập Camera: ') + (err?.message || this.i18n.t('Chưa cấp quyền hoặc thiết bị không có camera.'));
+      }
+      this.showToast(this.occModelError, 'warning');
       this.cdr.detectChanges();
     }
   }
@@ -1706,14 +1767,22 @@ export class Admin implements OnInit, OnDestroy {
     const nextFacing = this.occFacingMode === 'environment' ? 'user' : 'environment';
 
     try {
-      const newStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: nextFacing },
-          width: { ideal: 640 },
-          height: { ideal: 480 }
-        },
-        audio: false
-      });
+      let newStream: MediaStream;
+      try {
+        newStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: nextFacing },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        });
+      } catch {
+        newStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: nextFacing } },
+          audio: false
+        });
+      }
 
       const oldStream = this.occVideoStream;
       this.occVideoStream = newStream;
@@ -1721,6 +1790,9 @@ export class Admin implements OnInit, OnDestroy {
 
       const videoEl = document.getElementById('occ-detection-video') as HTMLVideoElement;
       if (videoEl) {
+        videoEl.setAttribute('playsinline', 'true');
+        videoEl.setAttribute('webkit-playsinline', 'true');
+        videoEl.muted = true;
         videoEl.srcObject = newStream;
         await videoEl.play().catch(e => console.warn('Play error:', e));
       }
@@ -1742,19 +1814,34 @@ export class Admin implements OnInit, OnDestroy {
     if (!this.occDetectionRunning || !this.occCocoModel) return;
 
     const canvas = document.getElementById('occ-detection-canvas') as HTMLCanvasElement;
-    if (!canvas || !videoEl.videoWidth) {
+    if (!canvas || !videoEl.videoWidth || videoEl.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
       requestAnimationFrame(() => this.runDetectionLoop(videoEl));
       return;
     }
 
-    canvas.width = videoEl.videoWidth;
-    canvas.height = videoEl.videoHeight;
-    const ctx = canvas.getContext('2d')!;
+    const now = performance.now();
+    // Giới hạn tần suất suy luận AI trên điện thoại: mỗi 130ms (~7-8 FPS)
+    // Giúp camera video stream 60 FPS mượt mà tuyệt đối, không gây nóng máy hoặc giật lag CPU
+    if (this.isDetectingOccFrame || (now - this.lastOccDetectionTimestamp < 130)) {
+      requestAnimationFrame(() => this.runDetectionLoop(videoEl));
+      return;
+    }
 
-    this.occCocoModel.detect(videoEl).then((predictions: any[]) => {
-      if (!this.occDetectionRunning) return;
+    this.isDetectingOccFrame = true;
+    this.lastOccDetectionTimestamp = now;
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Chạy ngoài Angular Zone để không trigger change detection 60 lần/giây
+    this.ngZone.runOutsideAngular(() => {
+      this.occCocoModel.detect(videoEl).then((predictions: any[]) => {
+        this.isDetectingOccFrame = false;
+        if (!this.occDetectionRunning) return;
+
+        canvas.width = videoEl.videoWidth;
+        canvas.height = videoEl.videoHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const people = predictions.filter((p: any) => p.class === 'person' && p.score > 0.45);
 
@@ -1793,46 +1880,56 @@ export class Admin implements OnInit, OnDestroy {
         ctx.fillText(label, x + 6, y - 7);
       });
 
-      this.ngZone.run(() => {
-        this.occCurrentCount = people.length;
-        this.occConfidence = people.length > 0
-          ? Math.round(people.reduce((sum: number, p: any) => sum + p.score, 0) / people.length * 100)
-          : 0;
+        // Chỉ trigger Angular update khi sĩ số thay đổi hoặc sau mỗi 3 giây để tối ưu CPU di động
+        const countChanged = this.occCurrentCount !== people.length;
+        this.occFrameCount++;
 
-        if (people.length > this.occPeakCount) {
-          this.occPeakCount = people.length;
+        if (countChanged || (now - this.lastOccStatsUpdate > 3000)) {
+          this.lastOccStatsUpdate = now;
+          this.ngZone.run(() => {
+            this.occCurrentCount = people.length;
+            this.occConfidence = people.length > 0
+              ? Math.round(people.reduce((sum: number, p: any) => sum + p.score, 0) / people.length * 100)
+              : 0;
+
+            if (people.length > this.occPeakCount) {
+              this.occPeakCount = people.length;
+            }
+
+            // Đánh giá các quy tắc nghiệp vụ FlexSpace AI
+            this.evaluateFlexSpaceAiRules();
+
+            // Track history every ~5 seconds
+            if (this.occHistory.length === 0 ||
+                (Date.now() - new Date(this.occHistory[0]?.timestamp || 0).getTime()) > 5000) {
+              const histNow = new Date();
+              this.occHistory.unshift({
+                timestamp: histNow.toLocaleTimeString('vi-VN'),
+                spaceName: this.occSelectedSpace?.name || '',
+                detectedCount: people.length,
+                capacity: this.occSelectedSpace?.capacity || 0,
+                occupancyRate: this.occSelectedSpace ? Math.round((people.length / this.occSelectedSpace.capacity) * 100) : 0,
+                confidence: this.occConfidence
+              });
+              if (this.occHistory.length > 50) this.occHistory.pop();
+
+              const total = this.occHistory.reduce((s, h) => s + h.detectedCount, 0);
+              this.occAvgCount = Math.round(total / this.occHistory.length);
+            }
+            this.cdr.detectChanges();
+          });
         }
 
-        // Đánh giá các quy tắc nghiệp vụ FlexSpace AI
-        this.evaluateFlexSpaceAiRules();
-
-        // Track history every ~5 seconds
-        if (this.occHistory.length === 0 ||
-            (Date.now() - new Date(this.occHistory[0]?.timestamp || 0).getTime()) > 5000) {
-          const now = new Date();
-          this.occHistory.unshift({
-            timestamp: now.toLocaleTimeString('vi-VN'),
-            spaceName: this.occSelectedSpace?.name || '',
-            detectedCount: people.length,
-            capacity: this.occSelectedSpace?.capacity || 0,
-            occupancyRate: this.occSelectedSpace ? Math.round((people.length / this.occSelectedSpace.capacity) * 100) : 0,
-            confidence: this.occConfidence
-          });
-          if (this.occHistory.length > 50) this.occHistory.pop();
-
-          // Update average
-          const total = this.occHistory.reduce((s, h) => s + h.detectedCount, 0);
-          this.occAvgCount = Math.round(total / this.occHistory.length);
+        if (this.occDetectionRunning) {
+          requestAnimationFrame(() => this.runDetectionLoop(videoEl));
+        }
+      }).catch((err: any) => {
+        this.isDetectingOccFrame = false;
+        console.warn('Detection frame error:', err);
+        if (this.occDetectionRunning) {
+          requestAnimationFrame(() => this.runDetectionLoop(videoEl));
         }
       });
-
-      this.occFrameCount++;
-      requestAnimationFrame(() => this.runDetectionLoop(videoEl));
-    }).catch((err: any) => {
-      console.warn('Detection frame error:', err);
-      if (this.occDetectionRunning) {
-        requestAnimationFrame(() => this.runDetectionLoop(videoEl));
-      }
     });
   }
 
@@ -1988,8 +2085,26 @@ export class Admin implements OnInit, OnDestroy {
 
   stopOccupancyDetection(): void {
     this.occDetectionRunning = false;
+    this.isDetectingOccFrame = false;
+    this.occStartingCamera = false;
+    const videoEl = document.getElementById('occ-detection-video') as HTMLVideoElement;
+    if (videoEl) {
+      try {
+        videoEl.pause();
+        videoEl.srcObject = null;
+      } catch {}
+    }
+    const canvas = document.getElementById('occ-detection-canvas') as HTMLCanvasElement;
+    if (canvas) {
+      try {
+        const ctx = canvas.getContext('2d');
+        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+      } catch {}
+    }
     if (this.occVideoStream) {
-      this.occVideoStream.getTracks().forEach(track => track.stop());
+      this.occVideoStream.getTracks().forEach(track => {
+        try { track.stop(); } catch {}
+      });
       this.occVideoStream = null;
     }
     this.occCameraActive = false;

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { SERVER_IMAGES_LINK } from '../../services/api-config';
+import { SERVER_BASE_URL, SERVER_IMAGES_LINK } from '../../services/api-config';
 import { TranslatePipe } from '../../services/translate.pipe';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
 
@@ -14,6 +14,7 @@ export interface SpaceItem {
   capacity: number;
   capacityText: string;
   areaSize: number;
+  hourlyPrice: number;
   status: 'available' | 'in-use' | 'reserved' | 'maintenance';
   statusText: string;
   equipment: string[];
@@ -71,6 +72,7 @@ export class Home implements OnInit {
       capacity: 50,
       capacityText: '50 người',
       areaSize: 60,
+      hourlyPrice: 60000,
       status: 'available',
       statusText: 'Trống',
       equipment: ['Máy chiếu', 'Điều hòa', 'Wifi tốc độ cao'],
@@ -84,6 +86,7 @@ export class Home implements OnInit {
       capacity: 15,
       capacityText: '15 người',
       areaSize: 30,
+      hourlyPrice: 120000,
       status: 'available',
       statusText: 'Trống',
       equipment: ['Máy chiếu', 'Điều hòa', 'Bảng từ'],
@@ -97,6 +100,7 @@ export class Home implements OnInit {
       capacity: 120,
       capacityText: '120 người',
       areaSize: 200,
+      hourlyPrice: 25000,
       status: 'available',
       statusText: 'Trống',
       equipment: ['Wifi tốc độ cao', 'Điều hòa', 'Ổ cắm điện'],
@@ -110,6 +114,7 @@ export class Home implements OnInit {
       capacity: 80,
       capacityText: '80 người',
       areaSize: 90,
+      hourlyPrice: 200000,
       status: 'available',
       statusText: 'Trống',
       equipment: ['Máy chiếu', 'Điều hòa', 'Wifi tốc độ cao', 'Bảng từ'],
@@ -123,6 +128,7 @@ export class Home implements OnInit {
       capacity: 6,
       capacityText: '6 người',
       areaSize: 15,
+      hourlyPrice: 30000,
       status: 'available',
       statusText: 'Trống',
       equipment: ['Wifi tốc độ cao', 'Ổ cắm điện'],
@@ -136,6 +142,7 @@ export class Home implements OnInit {
       capacity: 35,
       capacityText: '35 người',
       areaSize: 45,
+      hourlyPrice: 60000,
       status: 'available',
       statusText: 'Trống',
       equipment: ['Điều hòa', 'Bảng từ', 'Wifi tốc độ cao'],
@@ -322,6 +329,8 @@ export class Home implements OnInit {
       capacity: space.capacity,
       status: space.status,
       statusText: space.statusText,
+      hourlyPrice: space.hourlyPrice || 60000,
+      totalPrice: (space.hourlyPrice || 60000) * 2,
       facilities: space.equipment && space.equipment.length > 0 
         ? space.equipment.map(e => e.includes('Wifi') ? 'Wifi UEL Free' : e.includes('Điều hòa') ? 'Điều hòa 2 chiều' : e.includes('Máy chiếu') ? 'Máy chiếu sắc nét' : e)
         : ['Máy chiếu sắc nét', 'Điều hòa 2 chiều', 'Wifi UEL Free', 'Ổ cắm điện'],
@@ -333,6 +342,106 @@ export class Home implements OnInit {
     // Default select first available slot
     this.selectedSlot = todaySlots.find(s => s.status === 'available') || todaySlots[0];
     this.bookingSuccess = false;
+  }
+
+  // MoMo Sandbox Payment Modal State
+  momoModal = {
+    isOpen: false,
+    orderId: '',
+    amount: 0,
+    payUrl: '',
+    qrCodeUrl: '',
+    isProcessing: false,
+    loading: false,
+    bookingCode: '',
+    roomName: '',
+    slotText: ''
+  };
+
+  openMomoPayment() {
+    if (!this.selectedRoomDetail || this.selectedRoomDetail.status !== 'available') return;
+    const pricePerHour = this.selectedRoomDetail.hourlyPrice || 60000;
+    const durationHours = 2; // Ca 2 tiếng
+    const totalAmount = pricePerHour * durationHours;
+    const code = 'BK-MOMO-' + Date.now().toString().slice(-6);
+
+    this.momoModal = {
+      isOpen: true,
+      orderId: code,
+      bookingCode: code,
+      amount: totalAmount,
+      payUrl: '',
+      qrCodeUrl: '',
+      isProcessing: true,
+      loading: true,
+      roomName: this.selectedRoomDetail.name || 'Phòng học UEL',
+      slotText: this.selectedSlot?.period || 'Ca 2 tiếng'
+    };
+
+    // Gọi API Backend MoMo Sandbox
+    fetch(`${SERVER_BASE_URL}/api/payments/momo/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId: code,
+        amount: totalAmount,
+        orderInfo: `Thanh toan thue ${this.selectedRoomDetail.name} (${this.selectedSlot?.period || 'Ca 2 tieng'})`,
+        redirectUrl: `${window.location.origin}/booking-history?paymentSuccess=true&orderId=${code}`
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        this.momoModal.isProcessing = false;
+        this.momoModal.loading = false;
+        if (data && data.success) {
+          this.momoModal.payUrl = data.payUrl || '';
+          this.momoModal.qrCodeUrl = data.qrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=2|99|0908123456|||0|0|${totalAmount}|${code}|transfer_myqr`;
+        } else {
+          this.momoModal.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=2|99|0908123456|||0|0|${totalAmount}|${code}|transfer_myqr`;
+        }
+      })
+      .catch(err => {
+        console.warn('MoMo create error:', err);
+        this.momoModal.isProcessing = false;
+        this.momoModal.loading = false;
+        this.momoModal.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=2|99|0908123456|||0|0|${totalAmount}|${code}|transfer_myqr`;
+      });
+  }
+
+  closeMomoModal() {
+    this.momoModal.isOpen = false;
+  }
+
+  confirmMomoSuccessTest() {
+    this.momoModal.isProcessing = true;
+    const code = this.momoModal.bookingCode || 'BK-MOMO-' + Date.now().toString().slice(-6);
+
+    fetch(`${SERVER_BASE_URL}/api/payments/momo/confirm-test`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId: code,
+        transId: 'MOMO-SANDBOX-' + Date.now(),
+        paymentMethod: 'MOMO'
+      })
+    })
+      .then(res => res.json())
+      .then(() => {
+        this.momoModal.isOpen = false;
+        this.momoModal.isProcessing = false;
+        this.bookingSuccess = true;
+      })
+      .catch(() => {
+        this.momoModal.isOpen = false;
+        this.momoModal.isProcessing = false;
+        this.bookingSuccess = true;
+      });
+  }
+
+  openMomoGatewayDirect() {
+    if (this.momoModal.payUrl) {
+      window.open(this.momoModal.payUrl, '_blank');
+    }
   }
 
   selectSlot(slot: any) {

@@ -1164,16 +1164,22 @@
                     </button>
                   } @else {
                     <button (click)="startCamera()" 
-                            class="px-3.5 py-1.5 rounded-xl bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 hover:bg-[#002B54] text-white text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                      <span>{{ 'Bật Camera' | t }}</span>
+                            [disabled]="isStartingCamera"
+                            class="px-3.5 py-1.5 rounded-xl bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 hover:bg-[#002B54] text-white text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs touch-manipulation">
+                      @if (isStartingCamera) {
+                        <svg class="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-20"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                        <span>{{ 'Đang bật...' | t }}</span>
+                      } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        <span>{{ 'Bật Camera' | t }}</span>
+                      }
                     </button>
                   }
                 </div>
               </div>
 
-              <!-- Camera Viewfinder Box (Comfortable fixed height to eliminate overlap) -->
-              <div class="relative bg-slate-900 rounded-2xl overflow-hidden h-[290px] sm:h-[340px] flex items-center justify-center border-2 border-slate-700/80 shadow-inner group">
+              <!-- Camera Viewfinder Box (Mobile-first responsive height) -->
+              <div class="relative bg-slate-900 rounded-2xl sm:rounded-3xl overflow-hidden h-[50vh] min-h-[360px] max-h-[560px] sm:h-[380px] flex items-center justify-center border-2 border-slate-700/80 shadow-inner group">
                 
                 @if (cameraActive) {
                   <!-- Live Video Stream -->
@@ -1205,7 +1211,7 @@
 
                   <!-- QR Targeting Box Overlay (Scaled for mobile viewports) -->
                   <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div class="w-44 h-44 sm:w-52 sm:h-52 border-2 border-dashed border-white/50 rounded-2xl relative flex items-center justify-center">
+                    <div class="w-48 h-48 sm:w-56 sm:h-56 border-2 border-dashed border-white/50 rounded-2xl relative flex items-center justify-center">
                       <!-- 4 Sharp Corners -->
                       <div class="absolute -top-1 -left-1 w-5 h-5 border-t-4 border-l-4 border-sky-400 rounded-tl-lg"></div>
                       <div class="absolute -top-1 -right-1 w-5 h-5 border-t-4 border-r-4 border-sky-400 rounded-tr-lg"></div>
@@ -1218,26 +1224,44 @@
                     </div>
                   </div>
 
+                  <!-- Mobile Quick Switch Camera Facing Button (Bottom Left) -->
+                  <button (click)="toggleCameraFacing()" 
+                          [disabled]="isSwitchingCamera"
+                          class="absolute bottom-2.5 left-2.5 px-3 py-1.5 rounded-full bg-black/70 hover:bg-black/90 text-white text-[11px] font-bold backdrop-blur-md border border-white/20 flex items-center gap-1.5 cursor-pointer shadow-lg active:scale-95 touch-manipulation z-20 sm:hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" [class.animate-spin]="isSwitchingCamera"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                    <span>{{ cameraFacingMode === 'environment' ? ('Cam sau' | t) : ('Cam trước' | t) }}</span>
+                  </button>
+
                   <!-- Live Facing Mode Tag (Bottom Right) -->
                   <div class="absolute bottom-2.5 right-2.5 px-2.5 py-1 rounded-full bg-black/60 text-white/80 text-[10px] font-bold backdrop-blur-xs flex items-center gap-1.5 pointer-events-none z-10">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span>{{ cameraFacingMode === 'environment' ? ('Cam sau' | t) : ('Cam trước' | t) }}</span>
                   </div>
                 } @else {
-                  <!-- Standby Viewport when camera off -->
-                  <div class="text-center p-6 space-y-2.5">
-                    <div class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-slate-400">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/></svg>
+                  <!-- Standby Viewport when camera off with Prominent Button -->
+                  <div class="text-center p-6 space-y-3 sm:space-y-4 max-w-sm mx-auto">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-sky-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/></svg>
                     </div>
-                    <div class="text-xs sm:text-sm font-bold text-white">{{ 'Camera đang ở chế độ chờ' | t }}</div>
-                    <p class="text-[11px] sm:text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
-                      {{ 'Bấm "Bật Camera" ở trên để quét qua webcam, hoặc sử dụng máy quét cầm tay USB / ô nhập mã bên dưới.' | t }}
-                    </p>
-                    <button (click)="startCamera()" 
-                            class="px-4 py-2 rounded-xl bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 hover:bg-[#002D5C] text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-xs">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                      {{ 'Kích hoạt Camera ngay' | t }}
-                    </button>
+                    <div>
+                      <div class="text-sm sm:text-base font-black text-white">{{ 'Camera đang ở chế độ chờ' | t }}</div>
+                      <p class="text-[11px] sm:text-xs text-slate-400 mt-1 leading-relaxed">
+                        {{ 'Bấm kích hoạt bên dưới để bắt đầu quét trực tiếp, hoặc nhập mã vé.' | t }}
+                      </p>
+                    </div>
+                    <div class="pt-1">
+                      <button (click)="startCamera()" 
+                              [disabled]="isStartingCamera"
+                              class="w-full sm:w-auto px-6 py-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-uel-blue dark:bg-sky-600 hover:bg-[#002D5C] text-white text-xs sm:text-sm font-black transition-all cursor-pointer inline-flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20 active:scale-95 touch-manipulation mx-auto">
+                        @if (isStartingCamera) {
+                          <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-20"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                          <span>{{ 'Đang khởi động Camera...' | t }}</span>
+                        } @else {
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                          <span>{{ 'Kích hoạt Camera ngay' | t }}</span>
+                        }
+                      </button>
+                    </div>
                   </div>
                 }
 
@@ -1483,12 +1507,12 @@
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
             <!-- LEFT: Camera + Canvas Detection View (8 Cols) -->
-            <div class="lg:col-span-8 bg-white dark:bg-slate-900 rounded-3xl p-6 border border-border-gray dark:border-slate-800 shadow-xs space-y-5">
+            <div class="lg:col-span-8 bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 border border-border-gray dark:border-slate-800 shadow-xs space-y-4 sm:space-y-5">
 
               <!-- Section Title & Camera Switcher -->
               <div class="flex items-center justify-between pb-4 border-b border-border-gray dark:border-slate-800">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-2xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-400 flex items-center justify-center font-black border border-uel-blue/20 dark:border-sky-400/20">
+                  <div class="w-10 h-10 rounded-2xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-400 flex items-center justify-center font-black border border-uel-blue/20 dark:border-sky-400/20 shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                   </div>
                   <div>
@@ -1500,7 +1524,7 @@
                   @if (occCameraActive) {
                     <button (click)="toggleOccCameraFacing()" 
                             [disabled]="occIsSwitchingFacing"
-                            class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs">
+                            class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs touch-manipulation">
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" [class.animate-spin]="occIsSwitchingFacing"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
                       <span>{{ occFacingMode === 'environment' ? ('Cam sau' | t) : ('Cam trước' | t) }}</span>
                     </button>
@@ -1512,32 +1536,40 @@
                 </div>
               </div>
 
-              <!-- Camera Viewfinder with Canvas Overlay -->
-              <div class="relative bg-slate-900 rounded-2xl overflow-hidden aspect-video flex items-center justify-center border-2 border-slate-700/80 shadow-inner">
+              <!-- Camera Viewfinder with Canvas Overlay - Mobile-First Large Viewport -->
+              <div class="relative bg-slate-900 rounded-2xl sm:rounded-3xl overflow-hidden h-[52vh] min-h-[380px] max-h-[580px] sm:h-auto sm:min-h-[440px] md:aspect-video flex items-center justify-center border-2 border-slate-700/80 shadow-inner">
                 @if (occCameraActive) {
-                  <video id="occ-detection-video" autoplay playsinline muted
+                  <video id="occ-detection-video" autoplay playsinline webkit-playsinline muted
                          class="w-full h-full object-cover"></video>
                   <canvas id="occ-detection-canvas"
-                          class="absolute inset-0 w-full h-full" style="pointer-events: none;"></canvas>
+                          class="absolute inset-0 w-full h-full object-cover pointer-events-none"></canvas>
                   
                   <!-- Live Count Overlay (Top Left) -->
-                  <div class="absolute top-4 left-4 bg-black/75 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/20">
-                    <div class="text-3xl font-black text-emerald-400">{{occCurrentCount}}</div>
-                    <div class="text-[10px] font-bold text-white/70 uppercase tracking-wider">{{ 'Người phát hiện' | t }}</div>
+                  <div class="absolute top-3 left-3 sm:top-4 sm:left-4 bg-black/75 backdrop-blur-md rounded-2xl px-3 py-2 sm:px-4 sm:py-3 border border-white/20">
+                    <div class="text-2xl sm:text-3xl font-black text-emerald-400">{{occCurrentCount}}</div>
+                    <div class="text-[9px] sm:text-[10px] font-bold text-white/70 uppercase tracking-wider">{{ 'Người phát hiện' | t }}</div>
                   </div>
 
                   <!-- Live Agreement Status Overlay (Top Right) -->
                   @if (occActiveBooking) {
-                    <div class="absolute top-4 right-4 bg-black/75 backdrop-blur-md rounded-2xl px-4 py-3 border text-right"
+                    <div class="absolute top-3 right-3 sm:top-4 sm:right-4 bg-black/75 backdrop-blur-md rounded-2xl px-3 py-2 sm:px-4 sm:py-3 border text-right"
                          [class]="occIsOverCapacity ? 'border-rose-400/80 text-rose-300' : (occIsOvertime ? 'border-amber-400/80 text-amber-300' : 'border-emerald-400/80 text-emerald-300')">
-                      <div class="text-lg font-black">
+                      <div class="text-base sm:text-lg font-black">
                         {{occCurrentCount}} / {{occActiveBooking.attendees}}
                       </div>
-                      <div class="text-[10px] font-bold uppercase">
+                      <div class="text-[9px] sm:text-[10px] font-bold uppercase">
                         {{ occIsOverCapacity ? ('Vượt sĩ số' | t) : ('Sĩ số đăng ký' | t) }}
                       </div>
                     </div>
                   }
+
+                  <!-- Mobile Quick Switch Camera Facing Button (Bottom Left) -->
+                  <button (click)="toggleOccCameraFacing()" 
+                          [disabled]="occIsSwitchingFacing"
+                          class="absolute bottom-3 left-3 px-3 py-1.5 rounded-full bg-black/70 hover:bg-black/90 text-white text-[11px] font-bold backdrop-blur-md border border-white/20 flex items-center gap-1.5 cursor-pointer shadow-lg active:scale-95 touch-manipulation z-10 sm:hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" [class.animate-spin]="occIsSwitchingFacing"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                    <span>{{ occFacingMode === 'environment' ? ('Cam sau' | t) : ('Cam trước' | t) }}</span>
+                  </button>
 
                   <!-- Live Watermark (Bottom Right) -->
                   <div class="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/60 text-white/80 text-[10px] font-bold backdrop-blur-xs flex items-center gap-1.5 pointer-events-none">
@@ -1545,18 +1577,33 @@
                     <span>IoT Webcam • {{ occFacingMode === 'environment' ? 'Rear' : 'Front' }}</span>
                   </div>
                 } @else {
-                  <!-- Standby Placeholder -->
-                  <div class="text-center space-y-4 p-8">
-                    <div class="w-20 h-20 mx-auto rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-white/30"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <!-- Standby Placeholder with Large Action Button -->
+                  <div class="text-center space-y-3 sm:space-y-4 p-6 sm:p-8 max-w-sm mx-auto">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="text-sky-400"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                     </div>
-                    <div class="text-white text-sm font-bold">{{ 'Camera IoT đang ở chế độ chờ' | t }}</div>
-                    <p class="text-white/50 text-xs font-semibold max-w-xs mx-auto">
-                      {{ 'Bấm "Kích hoạt Camera IoT" để bắt đầu quét đối chiếu người thực tế và tối ưu không gian.' | t }}
-                    </p>
+                    <div>
+                      <div class="text-white text-base sm:text-lg font-black">{{ 'Camera IoT đang ở chế độ chờ' | t }}</div>
+                      <p class="text-white/70 text-xs font-normal mt-1 leading-relaxed">
+                        {{ 'Bấm kích hoạt để bắt đầu quét đối chiếu người thực tế và tối ưu không gian.' | t }}
+                      </p>
+                    </div>
+                    <div class="pt-1">
+                      <button (click)="startOccupancyDetection()"
+                              [disabled]="occStartingCamera"
+                              class="w-full sm:w-auto px-6 py-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black bg-uel-blue dark:bg-sky-600 hover:bg-[#002D5C] text-white transition-all cursor-pointer shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 active:scale-95 touch-manipulation mx-auto">
+                        @if (occStartingCamera) {
+                          <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-20"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                          <span>{{ 'Đang khởi động Camera IoT...' | t }}</span>
+                        } @else {
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                          <span>{{ 'Kích hoạt Camera IoT ngay' | t }}</span>
+                        }
+                      </button>
+                    </div>
                     @if (occModelLoading) {
-                      <div class="flex items-center justify-center gap-2 text-sky-400 text-xs font-bold">
-                        <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-20"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                      <div class="flex items-center justify-center gap-2 text-sky-400 text-xs font-bold pt-1">
+                        <svg class="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-20"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
                         {{ 'Đang tự tải ngầm model AI...' | t }}
                       </div>
                     }
@@ -1564,33 +1611,39 @@
                 }
               </div>
 
-              <!-- Action Buttons -->
-              <div class="flex items-center justify-between gap-3 flex-wrap pt-1">
-                <div class="flex items-center gap-2 flex-wrap">
-                  @if (!occDetectionRunning) {
+              <!-- Action Buttons - Touch-friendly Responsive Row -->
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  @if (!occCameraActive) {
                     <button (click)="startOccupancyDetection()"
-                            class="px-5 py-2.5 rounded-xl text-xs font-black bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 hover:bg-[#002D5C] text-white transition-all cursor-pointer shadow-md flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                      {{ 'Kích hoạt Camera IoT' | t }}
+                            [disabled]="occStartingCamera"
+                            class="w-full sm:w-auto px-5 py-3 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 hover:bg-[#002D5C] text-white transition-all cursor-pointer shadow-md flex items-center justify-center gap-2 touch-manipulation">
+                      @if (occStartingCamera) {
+                        <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-20"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                        <span>{{ 'Đang khởi động Camera...' | t }}</span>
+                      } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        <span>{{ 'Kích hoạt Camera IoT' | t }}</span>
+                      }
                     </button>
                   } @else {
                     <button (click)="stopOccupancyDetection()"
-                            class="px-5 py-2.5 rounded-xl text-xs font-black bg-rose-600 hover:bg-rose-700 text-white transition-all cursor-pointer shadow-md flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                            class="w-full sm:w-auto px-5 py-3 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black bg-rose-600 hover:bg-rose-700 text-white transition-all cursor-pointer shadow-md flex items-center justify-center gap-2 touch-manipulation">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
                       {{ 'Dừng Nhận diện' | t }}
                     </button>
                   }
                   <button (click)="saveOccupancySnapshot()"
                           [disabled]="!occDetectionRunning"
-                          class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-all cursor-pointer shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                          class="w-full sm:w-auto px-4 py-3 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-all cursor-pointer shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                     {{ 'Lưu Snapshot' | t }}
                   </button>
                 </div>
 
                 <!-- Simulation Toggle Button for Demo Presentation -->
                 <button (click)="toggleSimulateOvertime()"
-                        class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5"
+                        class="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center justify-center gap-1.5 touch-manipulation"
                         [class]="occSimulateOvertimeActive ? 'bg-amber-500 text-white border-amber-600 shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                   <span>{{ occSimulateOvertimeActive ? ('Đang mô phỏng Quá giờ (+25p)' | t) : ('Test Giả lập Quá giờ' | t) }}</span>

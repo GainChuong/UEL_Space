@@ -226,6 +226,13 @@ export const ADMIN_EN: Record<string, string> = {
   'đã được giải phóng và sẵn sàng cho khách khác đặt ngay.': 'has been released and is ready for other guests to book immediately.',
   'Đã ghi nhận phụ thu': 'Recorded extra guest fee',
   'Camera IoT đã chuyển sang': 'IoT Camera switched to',
+  'Đang khởi động Camera IoT...': 'Starting IoT Camera...',
+  'Kích hoạt Camera IoT ngay': 'Activate IoT Camera Now',
+  'Đang khởi động Camera...': 'Starting Camera...',
+  'Đang bật...': 'Starting...',
+  'Bấm kích hoạt để bắt đầu quét đối chiếu người thực tế và tối ưu không gian.': 'Click activate to start real-time occupancy scanning and space optimization.',
+  'Bấm kích hoạt bên dưới để bắt đầu quét trực tiếp, hoặc nhập mã vé.': 'Click activate below to start live scanning, or enter a ticket code.',
+  'Dừng Camera IoT': 'Stop IoT Camera',
 
   // ===== Modals =====
   'Từ chối Đơn đặt phòng': 'Reject Booking',

@@ -1,7 +1,7 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
-import { SERVER_IMAGES_LINK } from '../../services/api-config';
+import { SERVER_IMAGES_LINK, SERVER_BASE_URL } from '../../services/api-config';
 import { TranslatePipe } from '../../services/translate.pipe';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
 
@@ -85,6 +85,12 @@ export class Map implements OnInit, AfterViewInit {
       const roomType = forcedType || types[Math.floor(Math.random() * types.length)];
       const floorNum = Math.floor(roomNum / 100);
 
+      let hourlyPrice = 60000;
+      if (roomType === 'Giảng đường') hourlyPrice = 200000;
+      else if (roomType === 'Phòng họp') hourlyPrice = 120000;
+      else if (roomType === 'Thư viện' || roomType === 'Khu tự học') hourlyPrice = 30000;
+      else if (roomType === 'CLB - Đội nhóm') hourlyPrice = 50000;
+
       let currentActivity = '';
       let expectedFreeTime = '';
       if (statusObj.code === 'in-use') {
@@ -109,6 +115,7 @@ export class Map implements OnInit, AfterViewInit {
         statusText: statusObj.text,
         type: roomType,
         floor: `Tầng ${floorNum}`,
+        hourlyPrice: hourlyPrice,
         facilities: ['Máy chiếu sắc nét', 'Điều hòa 2 chiều', 'Wifi UEL Free', 'Ổ cắm điện từng bàn', 'Bảng viết'],
         currentActivity: currentActivity,
         expectedFreeTime: expectedFreeTime,
@@ -536,5 +543,127 @@ export class Map implements OnInit, AfterViewInit {
 
   closeEmptyState() {
     this.showEmptyState = false;
+  }
+
+  // MoMo Sandbox Payment State & Handlers
+  momoModal = {
+    isOpen: false,
+    qrCodeUrl: '',
+    payUrl: '',
+    orderId: '',
+    amount: 0,
+    roomName: '',
+    slotText: '',
+    loading: false
+  };
+
+  async openMomoPayment(room?: any, slot?: any) {
+    const targetRoom = room || this.selectedRoomToBook || this.selectedRoomDetail;
+    const targetSlot = slot || this.selectedSlot;
+    if (!targetRoom) return;
+
+    const hours = 2; // Ca học tiêu chuẩn 2 giờ
+    const hourlyPrice = targetRoom.hourlyPrice || 60000;
+    const totalAmount = hourlyPrice * hours;
+
+    this.momoModal = {
+      isOpen: true,
+      qrCodeUrl: '',
+      payUrl: '',
+      orderId: '',
+      amount: totalAmount,
+      roomName: targetRoom.name,
+      slotText: targetSlot?.time || targetSlot?.period || 'Ca 2 tiếng',
+      loading: true
+    };
+
+    try {
+      const token = localStorage.getItem('token') || '';
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      const res = await fetch(`${SERVER_BASE_URL}/api/payments/momo/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          spaceId: targetRoom.id || targetRoom.number || 'space-map',
+          spaceName: targetRoom.name,
+          hours: hours,
+          startTime: new Date().toISOString(),
+          endTime: new Date(Date.now() + hours * 3600000).toISOString(),
+          userEmail: currentUser.email || 'student@st.uel.edu.vn'
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        this.momoModal.orderId = data.orderId;
+        this.momoModal.payUrl = data.payUrl;
+        this.momoModal.qrCodeUrl = data.qrCodeUrl;
+        this.momoModal.loading = false;
+      } else {
+        alert('Không thể tạo mã thanh toán MoMo: ' + (data.message || 'Lỗi server'));
+        this.momoModal.isOpen = false;
+      }
+    } catch (err: any) {
+      console.error('MoMo payment create error:', err);
+      alert('Không thể kết nối máy chủ thanh toán MoMo.');
+      this.momoModal.isOpen = false;
+    }
+  }
+
+  closeMomoModal() {
+    this.momoModal.isOpen = false;
+  }
+
+  async confirmMomoSuccessTest() {
+    if (!this.momoModal.orderId) {
+      if (this.selectedRoomToBook) {
+        this.selectedRoomToBook.status = 'in-use';
+        this.selectedRoomToBook.statusText = 'Đang sử dụng';
+      }
+      this.bookingSuccess = true;
+      this.momoModal.isOpen = false;
+      return;
+    }
+
+    try {
+      const res = await fetch(`${SERVER_BASE_URL}/api/payments/momo/confirm-test`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          orderId: this.momoModal.orderId
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        if (this.selectedRoomToBook) {
+          this.selectedRoomToBook.status = 'in-use';
+          this.selectedRoomToBook.statusText = 'Đang sử dụng';
+        }
+        this.bookingSuccess = true;
+        this.momoModal.isOpen = false;
+      } else {
+        alert('Xác nhận thanh toán không thành công: ' + (data.message || 'Lỗi'));
+      }
+    } catch (err) {
+      console.error('Error confirming MoMo payment test:', err);
+      if (this.selectedRoomToBook) {
+        this.selectedRoomToBook.status = 'in-use';
+        this.selectedRoomToBook.statusText = 'Đang sử dụng';
+      }
+      this.bookingSuccess = true;
+      this.momoModal.isOpen = false;
+    }
+  }
+
+  openMomoGatewayDirect() {
+    if (this.momoModal.payUrl) {
+      window.open(this.momoModal.payUrl, '_blank');
+    }
   }
 }

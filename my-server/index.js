@@ -31,6 +31,7 @@ const { auditRoutes } = require('./src/modules/audit/audit.routes');
 const { analyticsRoutes } = require('./src/modules/analytics/analytics.routes');
 const { scheduleRoutes } = require('./src/modules/schedules/schedule.routes');
 const { notificationRoutes } = require('./src/modules/notifications/notification.routes');
+const { paymentRoutes } = require('./src/modules/payments/payment.routes');
 
 // Import Repositories & Services để lắp ráp Dependency Injection
 const { CatalogRepository } = require('./src/modules/catalog/catalog.repository');
@@ -175,6 +176,15 @@ async function bootstrap() {
       scheduleRepository,
       notificationService,
       userRepository
+    })
+  );
+  app.use(
+    '/api/payments',
+    paymentRoutes({
+      bookingRepository,
+      spaceRepository,
+      notificationService,
+      db
     })
   );
   app.use(

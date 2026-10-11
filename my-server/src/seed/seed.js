@@ -333,6 +333,7 @@ async function seed() {
       capacity: 50,
       area: 60,
       areaSize: 60,
+      hourlyPrice: 60000,
       status: SPACE_STATUS.AVAILABLE,
       description: 'Giảng đường đa năng trang bị màn chiếu hiện đại, âm thanh vòm, điều hòa công suất lớn.',
       equipment: [
@@ -370,6 +371,7 @@ async function seed() {
       capacity: 15,
       area: 30,
       areaSize: 30,
+      hourlyPrice: 120000,
       status: SPACE_STATUS.AVAILABLE,
       description: 'Phòng họp cao cấp phục vụ họp hội nghị, bảo vệ đồ án và thảo luận học thuật.',
       equipment: [
@@ -407,6 +409,7 @@ async function seed() {
       capacity: 120,
       area: 200,
       areaSize: 200,
+      hourlyPrice: 25000,
       status: SPACE_STATUS.AVAILABLE,
       description: 'Không gian học tập yên tĩnh, ánh sáng tự nhiên tiêu chuẩn, ổ cắm từng bàn.',
       equipment: [
@@ -443,6 +446,7 @@ async function seed() {
       capacity: 80,
       area: 95,
       areaSize: 95,
+      hourlyPrice: 200000,
       status: SPACE_STATUS.AVAILABLE,
       description: 'Giảng đường bậc thang sức chứa lớn, trang bị hệ thống âm thanh giảng dạy chất lượng cao.',
       equipment: [
@@ -479,6 +483,7 @@ async function seed() {
       capacity: 8,
       area: 15,
       areaSize: 15,
+      hourlyPrice: 30000,
       status: SPACE_STATUS.AVAILABLE,
       description: 'Chòi tự học ngoài trời thoáng đãng, phủ sóng wifi khuôn viên trường, phù hợp làm việc nhóm.',
       equipment: [
@@ -515,6 +520,7 @@ async function seed() {
       capacity: 45,
       area: 55,
       areaSize: 55,
+      hourlyPrice: 60000,
       status: SPACE_STATUS.AVAILABLE,
       description: 'Phòng học tiêu chuẩn với đầy đủ trang thiết bị hỗ trợ học tập và thuyết trình.',
       equipment: [
@@ -551,6 +557,7 @@ async function seed() {
       capacity: 40,
       area: 75,
       areaSize: 75,
+      hourlyPrice: 150000,
       status: SPACE_STATUS.AVAILABLE,
       description: 'Phòng máy thực hành trang bị 40 PC Core i7, switch mạng gigabit, chuyên học lập trình và phân tích dữ liệu.',
       equipment: [
@@ -587,6 +594,7 @@ async function seed() {
       capacity: 350,
       area: 320,
       areaSize: 320,
+      hourlyPrice: 500000,
       status: SPACE_STATUS.AVAILABLE,
       description: 'Hội trường chính của trường UEL, trang bị sân khấu, hệ thống ánh sáng chuyên nghiệp, màn hình LED lớn.',
       equipment: [
