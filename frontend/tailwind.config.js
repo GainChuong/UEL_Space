@@ -30,6 +30,7 @@ module.exports = {
       },
       borderRadius: {
         'pill': '9999px',
+        'card': '1.25rem',
       }
     },
   },

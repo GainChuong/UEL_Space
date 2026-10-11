@@ -1170,6 +1170,27 @@
                   <!-- Dynamic Laser Line Scan Effect -->
                   <div class="laser-scanner-line pointer-events-none"></div>
 
+                  <!-- In-Camera Visual Feedback Badge -->
+                  @if (recentScanFeedback) {
+                    <div class="absolute top-4 left-4 right-4 p-3 rounded-2xl flex items-center gap-3 z-30 shadow-xl backdrop-blur-md animate-[bounce_1s_ease-in-out]"
+                         [class]="recentScanFeedback.type === 'SUCCESS' ? 'bg-emerald-600/95 text-white border border-emerald-400/60' : 'bg-amber-600/95 text-white border border-amber-400/60'">
+                      <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center font-black text-sm shrink-0">
+                        {{ recentScanFeedback.type === 'SUCCESS' ? '✓' : '!' }}
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <div class="text-xs font-black truncate">{{ recentScanFeedback.title }}</div>
+                        <div class="text-[11px] font-semibold opacity-90 truncate">{{ recentScanFeedback.subtitle }}</div>
+                      </div>
+                    </div>
+                  }
+
+                  @if (isProcessingScan) {
+                    <div class="absolute inset-0 bg-slate-950/70 backdrop-blur-xs flex flex-col items-center justify-center z-20 text-white space-y-2 pointer-events-none">
+                      <div class="w-10 h-10 border-4 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
+                      <div class="text-xs font-bold">{{ 'Đang giải mã mã QR...' | t }}</div>
+                    </div>
+                  }
+
                   <!-- QR Targeting Box Overlay (Subtle Sky Blue Corners) -->
                   <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div class="w-56 h-56 border-2 border-dashed border-white/40 rounded-3xl relative flex items-center justify-center">
@@ -1276,7 +1297,7 @@
             </div>
 
             <!-- RIGHT: Verification Result & Live Session Details (5 Cols) -->
-            <div class="lg:col-span-5 bg-white dark:bg-slate-900 rounded-3xl p-6 border border-border-gray dark:border-slate-800 shadow-xs space-y-5">
+            <div id="scan-result-card" class="lg:col-span-5 bg-white dark:bg-slate-900 rounded-3xl p-6 border border-border-gray dark:border-slate-800 shadow-xs space-y-5">
               
               <div class="flex items-center justify-between pb-3 border-b border-border-gray dark:border-slate-800">
                 <h3 class="text-base font-black text-dark-text dark:text-white tracking-tight">{{ 'Kết quả Xác thực Thực tế' | t }}</h3>
