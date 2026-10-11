@@ -263,6 +263,22 @@ export class Admin implements OnInit, OnDestroy {
   private occFrameCount: number = 0;
   private occFpsInterval: any = null;
 
+  // FlexSpace AI Core Differentiator State
+  occActiveBooking: AdminBooking | null = null;
+  occFacingMode: 'user' | 'environment' = 'environment';
+  occIsSwitchingFacing: boolean = false;
+  occIsOverCapacity: boolean = false;
+  occOverCapacityCount: number = 0;
+  occIsOvertime: boolean = false;
+  occOvertimeMinutes: number = 0;
+  occSuggestedSurcharge: number = 0;
+  occEmptyRoomSeconds: number = 0;
+  occIsEarlyCheckoutSuggested: boolean = false;
+  occSurchargeApplied: boolean = false;
+  occEarlyCheckoutDone: boolean = false;
+  occOvercapacityHandled: boolean = false;
+  occSimulateOvertimeActive: boolean = false;
+
   // Rejection Modal State
   rejectModal: {
     isOpen: boolean;
