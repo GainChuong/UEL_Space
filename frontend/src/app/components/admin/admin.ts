@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, NgZone, HostListener, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone, HostListener, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -296,16 +296,20 @@ export class Admin implements OnInit, OnDestroy {
   closeScanSuccessModal(): void {
     this.scanSuccessModal.isOpen = false;
     this.scanSuccessModal.booking = null;
+    this.lastScannedCode = '';
+    this.cdr.detectChanges();
   }
 
   viewApprovalsTab(): void {
     this.scanSuccessModal.isOpen = false;
     this.activeTab = 'approvals';
+    this.cdr.detectChanges();
   }
 
   viewSpacesTab(): void {
     this.scanSuccessModal.isOpen = false;
     this.activeTab = 'spaces';
+    this.cdr.detectChanges();
   }
 
   // Data: Bookings
@@ -778,7 +782,7 @@ export class Admin implements OnInit, OnDestroy {
     }
   ];
 
-  constructor(private ngZone: NgZone) {}
+  constructor(private ngZone: NgZone, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     // Check if entered as admin or setup initial stats
@@ -1110,32 +1114,15 @@ export class Admin implements OnInit, OnDestroy {
   private runQrScanningLoop(videoEl: HTMLVideoElement): void {
     if (!this.qrScanningRunning || !this.cameraActive) return;
 
+    // Tạm dừng lấy frame mới khi Modal thành công đang mở
+    if (this.scanSuccessModal.isOpen) {
+      requestAnimationFrame(() => this.runQrScanningLoop(videoEl));
+      return;
+    }
+
     if (!this.isScanningFrame && videoEl.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && videoEl.videoWidth > 0 && videoEl.videoHeight > 0) {
       this.isScanningFrame = true;
-
-      // 1. Check native BarcodeDetector if supported by browser (modern Chrome/Edge/Android)
-      if ('BarcodeDetector' in window) {
-        try {
-          if (!this.barcodeDetector) {
-            this.barcodeDetector = new (window as any).BarcodeDetector({ formats: ['qr_code'] });
-          }
-          this.barcodeDetector.detect(videoEl).then((barcodes: any[]) => {
-            if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
-              this.handleDetectedQrCode(barcodes[0].rawValue);
-              this.isScanningFrame = false;
-            } else {
-              this.scanFrameWithJsQr(videoEl);
-            }
-          }).catch(() => {
-            this.scanFrameWithJsQr(videoEl);
-          });
-        } catch {
-          this.scanFrameWithJsQr(videoEl);
-        }
-      } else {
-        // 2. Fallback to pure JavaScript jsQR (works everywhere including iOS Safari)
-        this.scanFrameWithJsQr(videoEl);
-      }
+      this.scanFrameWithJsQr(videoEl);
     }
 
     if (this.qrScanningRunning) {
@@ -1148,8 +1135,8 @@ export class Admin implements OnInit, OnDestroy {
       if (!this.qrCanvas) {
         this.qrCanvas = document.createElement('canvas');
       }
-      // Crisp resolution for mobile QR decoding (up to 960px)
-      const width = Math.min(videoEl.videoWidth, 960);
+      // Dùng 640px cho mobile để xử lý siêu mượt và chính xác cao
+      const width = Math.min(videoEl.videoWidth, 640);
       const height = Math.round((videoEl.videoHeight / videoEl.videoWidth) * width);
       this.qrCanvas.width = width;
       this.qrCanvas.height = height;
@@ -1158,7 +1145,6 @@ export class Admin implements OnInit, OnDestroy {
       if (ctx) {
         ctx.drawImage(videoEl, 0, 0, width, height);
         const imageData = ctx.getImageData(0, 0, width, height);
-        // attemptBoth works on both standard and inverted QR codes
         const qrCode = jsQR(imageData.data, imageData.width, imageData.height, {
           inversionAttempts: 'attemptBoth'
         });
@@ -1167,7 +1153,7 @@ export class Admin implements OnInit, OnDestroy {
         }
       }
     } catch {
-      // Canvas read security or context error
+      // ignore context error
     } finally {
       this.isScanningFrame = false;
     }
@@ -1188,7 +1174,7 @@ export class Admin implements OnInit, OnDestroy {
 
     // Physical vibration feedback on mobile
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      try { navigator.vibrate([100, 50, 100]); } catch {}
+      try { navigator.vibrate([120, 60, 120]); } catch {}
     }
 
     this.playScanBeep();
@@ -1201,17 +1187,11 @@ export class Admin implements OnInit, OnDestroy {
       };
       setTimeout(() => {
         this.recentScanFeedback = null;
+        this.cdr.detectChanges();
       }, 4000);
 
       this.processQrCode(cleanCode, 'CAMERA');
-
-      // On mobile, auto-scroll to result card so the user sees verification info immediately
-      setTimeout(() => {
-        const resultCard = document.getElementById('scan-result-card');
-        if (resultCard && typeof window !== 'undefined' && window.innerWidth < 1024) {
-          resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 200);
+      this.cdr.detectChanges();
     });
   }
 
@@ -1254,127 +1234,125 @@ export class Admin implements OnInit, OnDestroy {
       } catch {}
     }
 
-    this.isProcessingScan = true;
+    this.scannerInputCode = '';
 
-    setTimeout(() => {
-      this.isProcessingScan = false;
-      this.scannerInputCode = '';
+    const normalized = code.toUpperCase();
+    let matched = this.bookings.find(b => 
+      b.code.toUpperCase() === normalized || 
+      b.id.toUpperCase() === normalized ||
+      b.code.toUpperCase().includes(normalized) ||
+      normalized.includes(b.code.toUpperCase())
+    );
 
-      const normalized = code.toUpperCase();
-      let matched = this.bookings.find(b => 
-        b.code.toUpperCase() === normalized || 
-        b.id.toUpperCase() === normalized ||
-        b.code.toUpperCase().includes(normalized) ||
-        normalized.includes(b.code.toUpperCase())
-      );
+    // If no pre-existing match in mock list,
+    // dynamically generate an active approved booking so scanning ANY QR code will verify successfully!
+    if (!matched) {
+      const dynamicBooking: AdminBooking = {
+        id: code,
+        code: code.length > 25 ? (code.slice(0, 20) + '...') : code,
+        spaceId: 'a-105',
+        spaceName: 'Phòng A.105',
+        building: 'Tòa A - Tầng 1',
+        bookerName: 'Sinh viên UEL',
+        bookerEmail: 'sinhvien@st.uel.edu.vn',
+        organization: 'Sinh viên UEL',
+        purpose: 'Xác thực hiện diện phòng học qua mã QR',
+        activityType: 'Tự học',
+        date: new Date().toLocaleDateString('vi-VN'),
+        timeSlot: '08:00 - 11:30',
+        attendees: 1,
+        status: 'PENDING'
+      };
+      this.bookings.unshift(dynamicBooking);
+      matched = dynamicBooking;
+    }
 
-      // If no pre-existing match in mock list,
-      // dynamically generate an active approved booking so scanning ANY QR code will verify successfully!
-      if (!matched) {
-        const dynamicBooking: AdminBooking = {
-          id: code,
-          code: code.length > 25 ? (code.slice(0, 20) + '...') : code,
-          spaceId: 'a-105',
-          spaceName: 'Phòng A.105',
-          building: 'Tòa A - Tầng 1',
-          bookerName: 'Sinh viên UEL',
-          bookerEmail: 'sinhvien@st.uel.edu.vn',
-          organization: 'Sinh viên UEL',
-          purpose: 'Xác thực hiện diện phòng học qua mã QR',
-          activityType: 'Tự học',
-          date: new Date().toLocaleDateString('vi-VN'),
-          timeSlot: '08:00 - 11:30',
-          attendees: 1,
-          status: 'PENDING'
-        };
-        this.bookings.unshift(dynamicBooking);
-        matched = dynamicBooking;
-      }
-
-      if (matched.status === 'REJECTED') {
-        this.scanResult = {
-          status: 'ERROR',
-          message: `${this.i18n.t('Đơn đặt chỗ')} ${matched.code} ${this.i18n.t('đã bị TỪ CHỐI trước đó!')}`,
-          booking: matched,
-          isOverrideAllowed: true,
-          reason: matched.rejectionReason || this.i18n.t('Đơn bị từ chối do trùng lịch học hoặc vi phạm quy định cơ sở vật chất.')
-        };
-        this.showToast(this.i18n.t('Đơn đã bị từ chối trước đó!'), 'warning');
-        return;
-      }
-
-      if (matched.status === 'CANCELLED') {
-        this.scanResult = {
-          status: 'ERROR',
-          message: `${this.i18n.t('Đơn đặt chỗ')} ${matched.code} ${this.i18n.t('đã bị HỦY bởi người đặt!')}`,
-          booking: matched,
-          isOverrideAllowed: true,
-          reason: this.i18n.t('Sinh viên đã chủ động hủy lịch trước giờ diễn ra.')
-        };
-        this.showToast(this.i18n.t('Đơn này đã bị hủy!'), 'warning');
-        return;
-      }
-
-      // Check-in Success & Auto Approval
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      const dateStr = now.toLocaleDateString('vi-VN');
-
-      matched.status = 'IN_USE';
-      matched.actualCheckInAt = `${dateStr} ${timeStr}`;
-      matched.processedBy = this.adminUser.email;
-      matched.processedAt = `${dateStr} ${timeStr}`;
-
-      // Update room in spaces array to IN_USE
-      const targetSpace = this.spaces.find(s => 
-        (matched && s.id === matched.spaceId) || 
-        (matched && s.name.toLowerCase().includes(matched.spaceName.toLowerCase())) ||
-        (matched && matched.spaceName.toLowerCase().includes(s.name.toLowerCase()))
-      );
-      if (targetSpace) {
-        targetSpace.status = 'IN_USE';
-        targetSpace.currentOccupants = Math.max(targetSpace.currentOccupants + (matched.attendees || 1), 1);
-      }
-
-      // Clear any pending no-show exception for this room/user
-      this.releaseCases = this.releaseCases.filter(rc => rc.spaceName !== matched.spaceName && rc.userEmail !== matched.bookerEmail);
-
-      // Append to Recent Check-ins
-      this.recentCheckIns.unshift({
-        timestamp: `${dateStr} ${timeStr}`,
-        bookingCode: matched.code,
-        spaceName: matched.spaceName,
-        bookerName: matched.bookerName,
-        timeSlot: matched.timeSlot,
-        verifiedBy: this.adminUser.email,
-        type: scanType
-      });
-
-      // Append to Audit Trail
-      this.auditLogs.unshift({
-        id: 'aud-' + Date.now(),
-        timestamp: `${dateStr} ${timeStr}`,
-        actor: this.adminUser.email,
-        action: 'QR_CHECKIN_VERIFIED',
-        target: `${matched.code} (${matched.spaceName})`,
-        details: `${this.i18n.t('Check-in xác thực có mặt thành công cho')} ${matched.bookerName} (${matched.bookerEmail}) ${this.i18n.t('qua')} ${scanType}. ${this.i18n.t('Kích hoạt trạng thái Đang sử dụng (IN_USE).')}`,
-        level: 'INFO'
-      });
-
+    if (matched.status === 'REJECTED') {
       this.scanResult = {
-        status: 'SUCCESS',
-        message: `${this.i18n.t('Xác thực Check-in THÀNH CÔNG cho')} ${matched.bookerName}!`,
-        booking: matched
+        status: 'ERROR',
+        message: `${this.i18n.t('Đơn đặt chỗ')} ${matched.code} ${this.i18n.t('đã bị TỪ CHỐI trước đó!')}`,
+        booking: matched,
+        isOverrideAllowed: true,
+        reason: matched.rejectionReason || this.i18n.t('Đơn bị từ chối do trùng lịch học hoặc vi phạm quy định cơ sở vật chất.')
       };
+      this.showToast(this.i18n.t('Đơn đã bị từ chối trước đó!'), 'warning');
+      this.cdr.detectChanges();
+      return;
+    }
 
-      // Open Instant Verification Modal
-      this.scanSuccessModal = {
-        isOpen: true,
-        booking: matched
+    if (matched.status === 'CANCELLED') {
+      this.scanResult = {
+        status: 'ERROR',
+        message: `${this.i18n.t('Đơn đặt chỗ')} ${matched.code} ${this.i18n.t('đã bị HỦY bởi người đặt!')}`,
+        booking: matched,
+        isOverrideAllowed: true,
+        reason: this.i18n.t('Sinh viên đã chủ động hủy lịch trước giờ diễn ra.')
       };
+      this.showToast(this.i18n.t('Đơn này đã bị hủy!'), 'warning');
+      this.cdr.detectChanges();
+      return;
+    }
 
-      this.showToast(`${this.i18n.t('Check-in thành công:')} ${matched.bookerName} ${this.i18n.t('đã vào')} ${matched.spaceName}!`, 'success');
-    }, 350);
+    // Check-in Success & Auto Approval
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const dateStr = now.toLocaleDateString('vi-VN');
+
+    matched.status = 'IN_USE';
+    matched.actualCheckInAt = `${dateStr} ${timeStr}`;
+    matched.processedBy = this.adminUser.email;
+    matched.processedAt = `${dateStr} ${timeStr}`;
+
+    // Update room in spaces array to IN_USE
+    const targetSpace = this.spaces.find(s => 
+      (matched && s.id === matched.spaceId) || 
+      (matched && s.name.toLowerCase().includes(matched.spaceName.toLowerCase())) ||
+      (matched && matched.spaceName.toLowerCase().includes(s.name.toLowerCase()))
+    );
+    if (targetSpace) {
+      targetSpace.status = 'IN_USE';
+      targetSpace.currentOccupants = Math.max(targetSpace.currentOccupants + (matched.attendees || 1), 1);
+    }
+
+    // Clear any pending no-show exception for this room/user
+    this.releaseCases = this.releaseCases.filter(rc => rc.spaceName !== matched.spaceName && rc.userEmail !== matched.bookerEmail);
+
+    // Append to Recent Check-ins
+    this.recentCheckIns.unshift({
+      timestamp: `${dateStr} ${timeStr}`,
+      bookingCode: matched.code,
+      spaceName: matched.spaceName,
+      bookerName: matched.bookerName,
+      timeSlot: matched.timeSlot,
+      verifiedBy: this.adminUser.email,
+      type: scanType
+    });
+
+    // Append to Audit Trail
+    this.auditLogs.unshift({
+      id: 'aud-' + Date.now(),
+      timestamp: `${dateStr} ${timeStr}`,
+      actor: this.adminUser.email,
+      action: 'QR_CHECKIN_VERIFIED',
+      target: `${matched.code} (${matched.spaceName})`,
+      details: `${this.i18n.t('Check-in xác thực có mặt thành công cho')} ${matched.bookerName} (${matched.bookerEmail}) ${this.i18n.t('qua')} ${scanType}. ${this.i18n.t('Kích hoạt trạng thái Đang sử dụng (IN_USE).')}`,
+      level: 'INFO'
+    });
+
+    this.scanResult = {
+      status: 'SUCCESS',
+      message: `${this.i18n.t('Xác thực Check-in THÀNH CÔNG cho')} ${matched.bookerName}!`,
+      booking: matched
+    };
+
+    // Open Instant Verification Modal
+    this.scanSuccessModal = {
+      isOpen: true,
+      booking: matched
+    };
+
+    this.showToast(`${this.i18n.t('Check-in thành công:')} ${matched.bookerName} ${this.i18n.t('đã vào')} ${matched.spaceName}!`, 'success');
+    this.cdr.detectChanges();
   }
 
   adminOverrideCheckIn(): void {
