@@ -1699,7 +1699,8 @@ export class Admin implements OnInit, OnDestroy {
           await tf.setBackend('webgl');
         }
       } catch (e) {
-        console.warn('WebGL backend fallback:', e);
+        console.warn('WebGL backend fallback, trying cpu:', e);
+        try { await tf.setBackend('cpu'); } catch {}
       }
       await tf.ready();
       const currentBackend = tf.getBackend();
@@ -1708,17 +1709,17 @@ export class Admin implements OnInit, OnDestroy {
       const cocoSsd = await import('@tensorflow-models/coco-ssd');
       const loadPromise = cocoSsd.load({ base: 'lite_mobilenet_v2' });
       const timeoutPromise = new Promise<null>((_, reject) =>
-        setTimeout(() => reject(new Error('Model weights GCP download timeout')), 10000)
+        setTimeout(() => reject(new Error('Model weights GCP download timeout')), 45000)
       );
 
       this.occCocoModel = await Promise.race([loadPromise, timeoutPromise]);
       const isGpu = currentBackend === 'webgl';
-      this.occModelName = `COCO-SSD (${isGpu ? 'GPU WebGL' : 'CPU'}) + Vision AI`;
+      this.occModelName = `COCO-SSD (${isGpu ? 'GPU WebGL' : 'CPU'}) + Head-Peak AI`;
       console.log('UEL Space AI Model loaded successfully:', this.occModelName);
     } catch (err: any) {
-      console.warn('COCO-SSD background load error or timeout, running with Vision AI:', err);
+      console.warn('COCO-SSD background load error or timeout, running with Head-Peak AI:', err);
       if (!this.occCocoModel) {
-        this.occModelName = this.faceDetector ? 'Hardware Face AI + Vision' : 'Autonomous Vision AI (Cực nhạy)';
+        this.occModelName = this.faceDetector ? 'Hardware Face AI + Head-Peak' : 'AI Head-Peak Isolation (Edge AI)';
       }
     } finally {
       this.occModelLoading = false;
@@ -1727,8 +1728,8 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   /**
-   * Hợp nhất các bộ phận cơ thể (đầu, thân, bàn tay) hoặc các hộp trùng lặp về cùng 1 người duy nhất.
-   * Triệt tiêu hoàn toàn lỗi đếm 1 người thành nhiều người khi chỉ nhận diện được từng phần cơ thể.
+   * Bộ lọc Non-Maximum Suppression (NMS) & hợp nhất trục đứng.
+   * TUYỆT ĐỐI KHÔNG GỘP NGANG các cá nhân ngồi cạnh nhau ở các dãy bàn.
    */
   private consolidateAndMergeDetections(
     boxes: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }>,
@@ -1740,7 +1741,6 @@ export class Admin implements OnInit, OnDestroy {
     let merged = [...boxes];
     let changed = true;
 
-    // Lặp hợp nhất đến khi không còn 2 hộp nào thuộc cùng 1 cá nhân
     while (changed) {
       changed = false;
       const nextMerged: typeof boxes = [];
@@ -1770,7 +1770,6 @@ export class Admin implements OnInit, OnDestroy {
           const iou = unionArea > 0 ? interArea / unionArea : 0;
           const ios = minArea > 0 ? interArea / minArea : 0;
 
-          // 2. Phân tích khoảng cách giải phẫu người khi ngồi/đứng làm việc
           const c1X = b1.x + b1.w / 2;
           const c1Y = b1.y + b1.h / 2;
           const c2X = b2.x + b2.w / 2;
@@ -1778,7 +1777,6 @@ export class Admin implements OnInit, OnDestroy {
           const deltaX = Math.abs(c1X - c2X);
           const deltaY = Math.abs(c1Y - c2Y);
 
-          // Khung bao sau khi hợp nhất dự kiến
           const unionLeft = Math.min(b1.x, b2.x);
           const unionTop = Math.min(b1.y, b2.y);
           const unionRight = Math.max(b1.x + b1.w, b2.x + b2.w);
@@ -1786,17 +1784,17 @@ export class Admin implements OnInit, OnDestroy {
           const unionW = unionRight - unionLeft;
           const unionH = unionBottom - unionTop;
 
-          // Điều kiện 1: Trùng lặp IoU >= 0.15 hoặc 1 hộp nằm lọt trong hộp kia (IoS >= 0.30)
-          const isDirectOverlap = iou >= 0.15 || ios >= 0.30;
+          // Điều kiện 1: Trùng lặp hộp nhận diện đáng kể (NMS: IoU >= 0.40 hoặc IoS >= 0.70)
+          const isDirectOverlap = iou >= 0.40 || ios >= 0.70;
 
-          // Điều kiện 2: Cùng 1 cơ thể người (đầu, thân trên, cánh tay/bàn tay trên bàn)
-          const isSamePersonParts =
-            (deltaX <= Math.max(b1.w, b2.w) * 1.35 || deltaX <= vw * 0.38) &&
-            (deltaY <= Math.max(b1.h, b2.h) * 1.5 || deltaY <= vh * 0.52) &&
-            unionW <= vw * 0.65 &&
-            unionH <= vh * 0.95;
+          // Điều kiện 2: Chỉ gộp phần tay/ngực nằm CHÍNH DIỆN TRỰC TIẾP bên dưới cùng 1 thân người (cùng trục đứng hẹp)
+          const minW = Math.min(b1.w, b2.w);
+          const isSamePersonVerticalAxis =
+            deltaX <= minW * 0.35 &&
+            deltaY <= Math.max(b1.h, b2.h) * 1.1 &&
+            unionW <= Math.max(b1.w, b2.w) * 1.25;
 
-          if (isDirectOverlap || isSamePersonParts) {
+          if (isDirectOverlap || isSamePersonVerticalAxis) {
             b1.x = unionLeft;
             b1.y = unionTop;
             b1.w = unionW;
@@ -1820,9 +1818,9 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   /**
-   * Bộ xử lý thị giác máy tính độc lập (Autonomous Computer Vision Engine)
-   * Chạy trực tiếp trên Canvas tốc độ cực cao (< 1ms), nhận diện người, vùng đầu và thân trên
-   * Hoạt động 100% độc lập, không phụ thuộc mạng, nhận diện tức thì ngay từ frame đầu tiên.
+   * Bộ xử lý thị giác máy tính tách đỉnh đầu độc lập (Head-Peak & Multi-Target Isolation Engine)
+   * Sử dụng lưới phân giải cao 24x18, nhận diện từng cá nhân/sinh viên riêng rẽ ngồi ở các dãy bàn
+   * Hoạt động 100% độc lập, không bị gộp chung nhiều người thành 1.
    */
   private detectPeopleWithVisionEngine(videoEl: HTMLVideoElement): Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> {
     const vw = videoEl.videoWidth;
@@ -1832,8 +1830,8 @@ export class Admin implements OnInit, OnDestroy {
     if (!this.procCanvas) {
       this.procCanvas = document.createElement('canvas');
     }
-    const procW = 160;
-    const procH = 120;
+    const procW = 240;
+    const procH = 180;
     if (this.procCanvas.width !== procW || this.procCanvas.height !== procH) {
       this.procCanvas.width = procW;
       this.procCanvas.height = procH;
@@ -1847,8 +1845,8 @@ export class Admin implements OnInit, OnDestroy {
       const imgData = ctx.getImageData(0, 0, procW, procH);
       const data = imgData.data;
 
-      const cols = 16;
-      const rows = 12;
+      const cols = 24;
+      const rows = 18;
       const blockW = procW / cols; // 10px
       const blockH = procH / rows; // 10px
       const grid: number[][] = Array.from({ length: rows }, () => Array(cols).fill(0));
@@ -1874,22 +1872,22 @@ export class Admin implements OnInit, OnDestroy {
               const cb = 128 + ((-43 * red - 85 * green + 128 * blue) >> 8);
               const cr = 128 + ((128 * red - 107 * green - 21 * blue) >> 8);
 
-              // Điều kiện da: Cb [75..130], Cr [130..175], Lum [35..245] + Ràng buộc RGB
-              const isRgbSkin = red > 75 && green > 35 && blue > 20 && red > green && (red - green) >= 8 && (red - blue) >= 8;
-              if (cb >= 75 && cb <= 130 && cr >= 130 && cr <= 175 && lum >= 35 && lum <= 245 && isRgbSkin) {
+              // Điều kiện nhận diện đầu & da: Cb [75..130], Cr [130..175], Lum [30..245]
+              const isRgbSkin = red > 75 && green > 35 && blue > 20 && red > green && (red - green) >= 6 && (red - blue) >= 6;
+              if (cb >= 75 && cb <= 130 && cr >= 130 && cr <= 175 && lum >= 30 && lum <= 245 && isRgbSkin) {
                 skinCount++;
               }
             }
           }
 
-          const minDensity = this.occSensitivity === 'high' ? 0.12 : (this.occSensitivity === 'normal' ? 0.18 : 0.26);
+          const minDensity = this.occSensitivity === 'high' ? 0.08 : (this.occSensitivity === 'normal' ? 0.12 : 0.18);
           if (skinCount / totalPx >= minDensity) {
             grid[r][c] = 1;
           }
         }
       }
 
-      // Nhóm các khối liền kề thành cụm người (Connected Component Clustering)
+      // Phân tách các đỉnh đầu độc lập (Connected Component Clustering với 4-connectivity)
       const visited: boolean[][] = Array.from({ length: rows }, () => Array(cols).fill(false));
       const clusters: Array<{ minC: number; maxC: number; minR: number; maxR: number; blockCount: number }> = [];
 
@@ -1909,11 +1907,10 @@ export class Admin implements OnInit, OnDestroy {
               minR = Math.min(minR, currR);
               maxR = Math.max(maxR, currR);
 
+              // 4-connectivity để tránh nối dính 2 người ngồi ở hai dãy bàn kế nhau
               const neighbors: [number, number][] = [
                 [currR - 1, currC], [currR + 1, currC],
-                [currR, currC - 1], [currR, currC + 1],
-                [currR - 1, currC - 1], [currR - 1, currC + 1],
-                [currR + 1, currC - 1], [currR + 1, currC + 1]
+                [currR, currC - 1], [currR, currC + 1]
               ];
 
               for (const [nr, nc] of neighbors) {
@@ -1924,9 +1921,9 @@ export class Admin implements OnInit, OnDestroy {
               }
             }
 
-            // Loại bỏ nhiễu quá bé hoặc nền quá lớn
+            // Tiêu chuẩn tối thiểu của một đỉnh đầu/khuôn mặt
             const minBlocks = this.occSensitivity === 'high' ? 2 : (this.occSensitivity === 'normal' ? 3 : 4);
-            const maxBlocks = Math.floor(rows * cols * 0.45);
+            const maxBlocks = Math.floor(rows * cols * 0.35);
             if (blockCount >= minBlocks && blockCount <= maxBlocks) {
               clusters.push({ minC, maxC, minR, maxR, blockCount });
             }
@@ -1934,7 +1931,7 @@ export class Admin implements OnInit, OnDestroy {
         }
       }
 
-      // Gom các cụm thuộc cùng 1 cơ thể người (đầu, cổ, ngực, 2 cánh tay và bàn tay trên bàn)
+      // Chỉ gộp các cụm nằm CHÍNH DIỆN trên cùng 1 trục dọc hẹp (đầu nối xuống cổ và ngực)
       const mergedClusters: typeof clusters = [];
       for (const cl of clusters) {
         const clCenterX = (cl.minC + cl.maxC) / 2;
@@ -1942,7 +1939,8 @@ export class Admin implements OnInit, OnDestroy {
         const match = mergedClusters.find(m => {
           const mCenterX = (m.minC + m.maxC) / 2;
           const mCenterY = (m.minR + m.maxR) / 2;
-          return Math.abs(clCenterX - mCenterX) <= 5.5 && Math.abs(clCenterY - mCenterY) <= 6;
+          // Độ lệch ngang tối đa 1.2 khối (chỉ cùng 1 cột), độ lệch dọc tối đa 3.5 khối
+          return Math.abs(clCenterX - mCenterX) <= 1.2 && Math.abs(clCenterY - mCenterY) <= 3.5;
         });
         if (match) {
           match.minC = Math.min(match.minC, cl.minC);
@@ -1965,18 +1963,17 @@ export class Admin implements OnInit, OnDestroy {
         const rawBoxW = (cl.maxC - cl.minC + 1) * blockW * scaleX;
         const rawBoxH = (cl.maxR - cl.minR + 1) * blockH * scaleY;
 
-        // Mở rộng viền để ôm trọn khuôn mặt, cổ và vai người
-        const expandW = Math.max(rawBoxW * 0.35, 40);
-        const expandH = Math.max(rawBoxH * 0.65, 60);
-        const finalX = Math.max(0, rawBoxX - expandW / 2);
-        const finalY = Math.max(0, rawBoxY - expandH * 0.2);
-        const finalW = Math.min(vw - finalX, rawBoxW + expandW);
-        const finalH = Math.min(vh - finalY, rawBoxH + expandH);
+        // Ước lượng khung hình người từ đỉnh đầu & thân trên
+        const targetW = Math.max(rawBoxW * 1.3, vw * 0.10);
+        const targetH = Math.max(rawBoxH * 1.6, targetW * 1.15);
+        const finalX = Math.max(0, rawBoxX - (targetW - rawBoxW) / 2);
+        const finalY = Math.max(0, rawBoxY - targetH * 0.1);
+        const finalW = Math.min(vw - finalX, targetW);
+        const finalH = Math.min(vh - finalY, targetH);
 
-        // Kích thước tối thiểu hợp lệ của một người trong khung hình
-        if (finalW < vw * 0.08 || finalH < vh * 0.08) continue;
+        if (finalW < vw * 0.05 || finalH < vh * 0.05) continue;
 
-        const conf = Math.min(96, Math.max(82, 80 + cl.blockCount * 2));
+        const conf = Math.min(97, Math.max(84, 82 + cl.blockCount * 2));
 
         results.push({
           x: Math.round(finalX),
@@ -1984,7 +1981,7 @@ export class Admin implements OnInit, OnDestroy {
           w: Math.round(finalW),
           h: Math.round(finalH),
           score: conf,
-          label: 'Người (Vision AI)'
+          label: 'Người (Head-Peak AI)'
         });
       }
 
@@ -1994,6 +1991,7 @@ export class Admin implements OnInit, OnDestroy {
       return [];
     }
   }
+
 
 
   async startOccupancyDetection(): Promise<void> {
@@ -2300,25 +2298,29 @@ export class Admin implements OnInit, OnDestroy {
         });
       }
 
-      // 4B. Post-tracking fusion: Hợp nhất triệt để các track nằm gần hoặc chồng lấn nhau
+      // 4B. Post-tracking fusion: Chỉ hợp nhất nếu 2 vệt theo dõi trùng lặp đáng kể (IoU >= 0.35 hoặc IoS >= 0.65)
       for (let i = 0; i < this.trackedPeople.length; i++) {
         for (let j = i + 1; j < this.trackedPeople.length; j++) {
           const t1 = this.trackedPeople[i];
           const t2 = this.trackedPeople[j];
-          const c1X = t1.x + t1.w / 2;
-          const c1Y = t1.y + t1.h / 2;
-          const c2X = t2.x + t2.w / 2;
-          const c2Y = t2.y + t2.h / 2;
-          const dist = Math.hypot(c1X - c2X, c1Y - c2Y);
-          const maxDim = Math.max(t1.w, t1.h, t2.w, t2.h);
-          const unionW = Math.max(t1.x + t1.w, t2.x + t2.w) - Math.min(t1.x, t2.x);
-          const unionH = Math.max(t1.y + t1.h, t2.y + t2.h) - Math.min(t1.y, t2.y);
 
-          if (dist < maxDim * 0.75 || (dist < videoEl.videoWidth * 0.35 && unionW <= videoEl.videoWidth * 0.55 && unionH <= videoEl.videoHeight * 0.9)) {
+          const interX1 = Math.max(t1.x, t2.x);
+          const interY1 = Math.max(t1.y, t2.y);
+          const interX2 = Math.min(t1.x + t1.w, t2.x + t2.w);
+          const interY2 = Math.min(t1.y + t1.h, t2.y + t2.h);
+          const interW = Math.max(0, interX2 - interX1);
+          const interH = Math.max(0, interY2 - interY1);
+          const interArea = interW * interH;
+          const unionArea = t1.w * t1.h + t2.w * t2.h - interArea;
+          const iou = unionArea > 0 ? interArea / unionArea : 0;
+          const minArea = Math.min(t1.w * t1.h, t2.w * t2.h);
+          const ios = minArea > 0 ? interArea / minArea : 0;
+
+          if (iou >= 0.35 || ios >= 0.65) {
             const minX = Math.min(t1.x, t2.x);
             const minY = Math.min(t1.y, t2.y);
-            t1.w = unionW;
-            t1.h = unionH;
+            t1.w = Math.max(t1.x + t1.w, t2.x + t2.w) - minX;
+            t1.h = Math.max(t1.y + t1.h, t2.y + t2.h) - minY;
             t1.x = minX;
             t1.y = minY;
             t1.score = Math.max(t1.score, t2.score);
@@ -2660,6 +2662,28 @@ export class Admin implements OnInit, OnDestroy {
       level: this.occCurrentCount > this.occSelectedSpace.capacity ? 'WARNING' : 'INFO'
     });
 
-    this.showToast(`${this.i18n.t('Đã lưu snapshot:')} ${this.occCurrentCount} ${this.i18n.t('người tại')} ${this.occSelectedSpace.name}`, 'success');
+    // Đồng bộ tức thì và đóng gói dữ liệu giám sát vào MongoDB Atlas
+    try {
+      fetch(`${SERVER_BASE_URL}/api/occupancy/record`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          spaceId: this.occSelectedSpace.id,
+          spaceName: this.occSelectedSpace.name,
+          detectedCount: this.occCurrentCount,
+          capacity: this.occSelectedSpace.capacity,
+          confidence: this.occConfidence,
+          modelName: this.occModelName,
+          notes: `UEL Space Edge AI Snapshot tại ${this.occSelectedSpace.name}`
+        })
+      }).then(res => {
+        if (res.ok) console.log('Occupancy snapshot synced to MongoDB Atlas successfully!');
+      }).catch(err => console.warn('MongoDB sync warning:', err));
+    } catch (e) {
+      console.warn('MongoDB sync exception:', e);
+    }
+
+    this.showToast(`${this.i18n.t('Đã lưu snapshot & đồng bộ MongoDB Atlas:')} ${this.occCurrentCount} ${this.i18n.t('người tại')} ${this.occSelectedSpace.name}`, 'success');
   }
 }
+

@@ -3,6 +3,10 @@ class OccupancyRepository {
     this.collection = collection;
   }
 
+  insert(doc) {
+    return this.collection.insertOne(doc).then(() => doc);
+  }
+
   insertMany(docs) {
     if (!docs.length) return Promise.resolve([]);
     return this.collection.insertMany(docs).then(() => docs);
