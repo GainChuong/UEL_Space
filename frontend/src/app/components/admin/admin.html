@@ -385,7 +385,7 @@
                      (click)="isProfileOpen = false"
                      class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer text-left">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-uel-blue dark:text-sky-400 shrink-0"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                    <span>{{ (settingsService.language$ | async) === 'vi' ? 'Về giao diện sinh viên' : 'Client Interface' }}</span>
+                    <span>{{ (settingsService.language$ | async) === 'vi' ? 'Về giao diện sàn UEL Space' : 'UEL Space Marketplace' }}</span>
                   </a>
 
                   <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
@@ -465,7 +465,7 @@
             </div>
             <div class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">68.4%</div>
             <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1.5 flex items-center gap-1">
-              <span>{{ 'Đang có 192 sinh viên sử dụng' | t }}</span>
+              <span>{{ 'Đang có 192 khách thuê / nhân sự sử dụng' | t }}</span>
             </div>
           </div>
 
@@ -639,19 +639,20 @@
               <div class="relative w-full sm:w-72">
                 <input type="text"
                        [(ngModel)]="searchFilter"
-                       [placeholder]="'Tìm mã đơn, tên SV, không gian...' | t"
+                       [placeholder]="'Tìm mã đơn, khách thuê, không gian...' | t"
                        class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-border-gray dark:border-slate-700 rounded-xl outline-none focus:border-uel-blue focus:bg-white dark:focus:bg-slate-900 transition-all dark:text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="absolute left-3 top-2.5 text-slate-400"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
               </div>
 
               <select [(ngModel)]="selectedBuildingFilter"
                       class="text-xs bg-slate-50 dark:bg-slate-800 border border-border-gray dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-uel-blue font-semibold text-slate-700 dark:text-slate-200">
-                <option value="all">{{ 'Tất cả Tòa nhà' | t }}</option>
-                <option value="A">{{ 'Tòa nhà A' | t }}</option>
-                <option value="A3">{{ 'Tòa nhà A3' | t }}</option>
-                <option value="B2">{{ 'Tòa nhà B2' | t }}</option>
-                <option value="Thư viện">{{ 'Thư viện UEL' | t }}</option>
-                <option value="Thanh Niên">{{ 'Khuôn viên ngoài trời' | t }}</option>
+                <option value="all">{{ 'Tất cả Tòa nhà & Hub' | t }}</option>
+                <option value="Central Tower">{{ 'Central Tower Q.1' | t }}</option>
+                <option value="TechPark">{{ 'TechPark Executive Hub' | t }}</option>
+                <option value="Innovation">{{ 'Innovation Hub Q.2' | t }}</option>
+                <option value="Landmark">{{ 'Landmark Lounge' | t }}</option>
+                <option value="Green Office">{{ 'Green Office Suites' | t }}</option>
+                <option value="Startup Pod">{{ 'Startup Pod Hub' | t }}</option>
               </select>
             </div>
 
@@ -802,7 +803,7 @@
             <div>
               <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">{{ 'Cơ chế phát hiện vắng mặt & Thu hồi chỗ tự động (F21-F23 & F38)' | t }}</h3>
               <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-                {{ 'Hệ thống tự động rà quét session mỗi 5 phút. Khi sinh viên vắng mặt quá ' | t }}<span class="font-bold underline text-slate-800 dark:text-white">{{ '15 phút' | t }}</span>{{ ' (away_warning_minutes) mà không quét mã QR xác nhận sự hiện diện (Presence Tracking F09), hệ thống tự động đưa vào danh sách ngoại lệ chờ Admin can thiệp hoặc giải phóng chỗ cho sinh viên khác.' | t }}
+                {{ 'Hệ thống tự động rà quét session mỗi 5 phút. Khi khách thuê vắng mặt quá ' | t }}<span class="font-bold underline text-slate-800 dark:text-white">{{ '15 phút' | t }}</span>{{ ' (away_warning_minutes) mà không quét mã QR xác nhận sự hiện diện (Presence Tracking F09), hệ thống tự động đưa vào danh sách ngoại lệ chờ Admin can thiệp hoặc giải phóng chỗ cho khách khác.' | t }}
               </p>
             </div>
           </div>
@@ -1027,13 +1028,13 @@
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-900 text-white dark:bg-sky-400 dark:text-slate-900">{{ 'Quản trị viên' | t }}</span>
                       }
                       @if (u.role === 'SPACE_MANAGER') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800">{{ 'Quản lý không gian' | t }}</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800">{{ 'Đối tác sở hữu (Host)' | t }}</span>
                       }
                       @if (u.role === 'LECTURER') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800">{{ 'Giảng viên' | t }}</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800">{{ 'Doanh nghiệp / Tổ chức' | t }}</span>
                       }
                       @if (u.role === 'STUDENT') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800">{{ 'Sinh viên' | t }}</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800">{{ 'Khách thuê cá nhân' | t }}</span>
                       }
                     </td>
                     <td class="py-3.5 px-4 text-slate-600 dark:text-slate-300">{{ u.organization | t }}</td>
@@ -1113,7 +1114,7 @@
               </div>
               <h2 class="text-2xl sm:text-3xl font-black tracking-tight mb-2">{{ 'Xác thực có mặt & Kích hoạt không gian' | t }}</h2>
               <p class="text-white/80 text-xs sm:text-sm leading-relaxed">
-                {{ 'Quét mã QR trên vé đặt chỗ của sinh viên để xác thực người đặt đã thực sự đến phòng. Hệ thống tự động chuyển trạng thái sang ' | t }}<strong class="text-emerald-300">{{ 'Đang sử dụng (IN_USE)' | t }}</strong>{{ ' và loại bỏ nguy cơ bị cưỡng chế thu hồi do No-show.' | t }}
+                {{ 'Quét mã QR trên vé đặt chỗ của khách thuê để xác thực người đặt đã thực sự đến phòng. Hệ thống tự động chuyển trạng thái sang ' | t }}<strong class="text-emerald-300">{{ 'Đang sử dụng (IN_USE)' | t }}</strong>{{ ' và loại bỏ nguy cơ bị cưỡng chế thu hồi do No-show.' | t }}
               </p>
             </div>
 
@@ -1338,7 +1339,7 @@
                   <div class="bg-white dark:bg-slate-900 rounded-xl p-3.5 border border-emerald-200 dark:border-emerald-800 text-xs space-y-2">
                     <div class="flex justify-between items-center"><span class="text-text-muted dark:text-slate-400">{{ 'Mã đặt chỗ:' | t }}</span> <span class="font-black text-uel-blue dark:text-sky-400 text-sm">{{scanResult.booking.code}}</span></div>
                     <div class="flex justify-between items-center"><span class="text-text-muted dark:text-slate-400">{{ 'Người đặt:' | t }}</span> <span class="font-bold text-dark-text dark:text-white">{{scanResult.booking.bookerName}}</span></div>
-                    <div class="flex justify-between items-center"><span class="text-text-muted dark:text-slate-400">{{ 'Email sinh viên:' | t }}</span> <span class="text-slate-600 dark:text-slate-300 font-medium">{{scanResult.booking.bookerEmail}}</span></div>
+                    <div class="flex justify-between items-center"><span class="text-text-muted dark:text-slate-400">{{ 'Email khách thuê:' | t }}</span> <span class="text-slate-600 dark:text-slate-300 font-medium">{{scanResult.booking.bookerEmail}}</span></div>
                     <div class="flex justify-between items-center"><span class="text-text-muted dark:text-slate-400">{{ 'Khung giờ đăng ký:' | t }}</span> <span class="font-bold text-uel-blue dark:text-sky-400">{{scanResult.booking.timeSlot}}</span></div>
                     <div class="flex justify-between items-center"><span class="text-text-muted dark:text-slate-400">{{ 'Giờ Check-in thực tế:' | t }}</span> <span class="font-black text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/50 px-2 py-0.5 rounded">{{scanResult.booking.actualCheckInAt}}</span></div>
                     <div class="flex justify-between items-center"><span class="text-text-muted dark:text-slate-400">{{ 'Trạng thái mới:' | t }}</span> <span class="font-black text-white bg-emerald-600 px-2.5 py-0.5 rounded-full uppercase text-[10px]">{{ 'Đang sử dụng (IN_USE)' | t }}</span></div>
@@ -1381,7 +1382,7 @@
                         {{ 'Đặc quyền Quản trị viên (Admin Override):' | t }}
                       </div>
                       <p class="text-amber-800 dark:text-amber-300 text-[11px] leading-relaxed">
-                        {{ 'Nếu sinh viên xuất trình Thẻ Sinh viên / Giấy mời hợp lệ tại quầy, bạn có thể ghi đè quyền và cho phép vào phòng.' | t }}
+                        {{ 'Nếu khách xuất trình hợp đồng / mã định danh đặt phòng hợp lệ tại quầy, bạn có thể ghi đè quyền và cho phép vào phòng.' | t }}
                       </p>
                       <button (click)="adminOverrideCheckIn()" 
                               class="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition-colors shadow-sm cursor-pointer">
@@ -1405,7 +1406,7 @@
                   </div>
                   <div class="text-sm font-bold text-dark-text dark:text-white">{{ 'Chưa có lượt quét nào' | t }}</div>
                   <p class="text-xs text-text-muted dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
-                    {{ 'Đưa mã QR trên vé đặt chỗ của sinh viên trước camera hoặc dùng máy đọc mã vạch để kiểm tra thông tin.' | t }}
+                    {{ 'Đưa mã QR trên vé đặt chỗ của khách hàng trước camera hoặc dùng máy đọc mã vạch để kiểm tra thông tin.' | t }}
                   </p>
                 </div>
               }
@@ -1433,7 +1434,7 @@
                     <th class="py-3 px-4">{{ 'Thời gian quét' | t }}</th>
                     <th class="py-3 px-4">{{ 'Mã đặt chỗ' | t }}</th>
                     <th class="py-3 px-4">{{ 'Không gian phòng' | t }}</th>
-                    <th class="py-3 px-4">{{ 'Sinh viên / Người đặt' | t }}</th>
+                    <th class="py-3 px-4">{{ 'Khách thuê / Người đặt' | t }}</th>
                     <th class="py-3 px-4">{{ 'Khung giờ' | t }}</th>
                     <th class="py-3 px-4 text-center">{{ 'Phương thức quét' | t }}</th>
                     <th class="py-3 px-4 text-right">{{ 'Xác nhận bởi' | t }}</th>
@@ -1471,16 +1472,16 @@
 
         <div class="space-y-6 animate-[fade-in_0.2s_ease-out]">
 
-          <!-- Top Banner: FlexSpace AI Vision Hub -->
+          <!-- Top Banner: UEL Space AI Vision Hub -->
           <div class="bg-gradient-to-r from-[#002D5C] via-[#003B71] to-[#00509E] rounded-3xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 border border-white/10">
             <div class="relative z-10 max-w-2xl">
               <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-400/20 border border-sky-400/30 text-xs font-black text-sky-200 mb-3 tracking-wide uppercase">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                {{ 'FlexSpace AI • Giám sát Không gian & Tối ưu Doanh thu' | t }}
+                {{ 'UEL Space AI • Giám sát Không gian & Tối ưu Doanh thu' | t }}
               </div>
               <h2 class="text-2xl sm:text-3xl font-black tracking-tight mb-2">{{ 'AI Occupancy Detection & Tối ưu Khai thác' | t }}</h2>
               <p class="text-white/80 text-xs sm:text-sm leading-relaxed">
-                {{ 'Đối chiếu sĩ số thực tế với đơn đặt phòng, cảnh báo vượt số lượng cho phép, phát hiện sử dụng quá giờ (Overtime) để áp dụng phụ phí và tự động nhận diện trả phòng sớm nhằm giải phóng khung giờ tái khai thác trên sàn Marketplace.' | t }}
+                {{ 'Đối chiếu sĩ số thực tế với đơn đặt phòng, cảnh báo vượt số lượng cho phép, phát hiện sử dụng quá giờ (Overtime) để áp dụng phụ phí và tự động nhận diện trả phòng sớm nhằm giải phóng khung giờ tái khai thác trên sàn UEL Space.' | t }}
               </p>
             </div>
 
@@ -1520,7 +1521,33 @@
                     <p class="text-xs text-text-muted dark:text-slate-400">Computer Vision Edge AI • Mobile/Webcam IoT Node</p>
                   </div>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
+                  <!-- Active Model Tag -->
+                  <div class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 text-[11px] font-bold text-sky-700 dark:text-sky-300">
+                    <span class="w-2 h-2 rounded-full" [class]="occCocoModel || faceDetector ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'"></span>
+                    <span class="truncate max-w-[210px]">{{occModelName}}</span>
+                  </div>
+
+                  <!-- Sensitivity Selector -->
+                  <div class="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-[11px]">
+                    <span class="px-1 text-slate-500 font-semibold hidden md:inline">{{ 'Độ nhạy:' | t }}</span>
+                    <button type="button" (click)="setOccSensitivity('high')" 
+                            [class]="occSensitivity === 'high' ? 'bg-uel-blue dark:bg-sky-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+                            class="px-2 py-0.5 rounded-lg transition-all cursor-pointer font-bold">
+                      {{ 'Siêu nhạy' | t }}
+                    </button>
+                    <button type="button" (click)="setOccSensitivity('normal')" 
+                            [class]="occSensitivity === 'normal' ? 'bg-uel-blue dark:bg-sky-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+                            class="px-2 py-0.5 rounded-lg transition-all cursor-pointer font-bold">
+                      {{ 'Tiêu chuẩn' | t }}
+                    </button>
+                    <button type="button" (click)="setOccSensitivity('strict')" 
+                            [class]="occSensitivity === 'strict' ? 'bg-uel-blue dark:bg-sky-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+                            class="px-2 py-0.5 rounded-lg transition-all cursor-pointer font-bold">
+                      {{ 'Nghiêm ngặt' | t }}
+                    </button>
+                  </div>
+
                   @if (occCameraActive) {
                     <button (click)="toggleOccCameraFacing()" 
                             [disabled]="occIsSwitchingFacing"
@@ -1574,7 +1601,7 @@
                   <!-- Live Watermark (Bottom Right) -->
                   <div class="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/60 text-white/80 text-[10px] font-bold backdrop-blur-xs flex items-center gap-1.5 pointer-events-none">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>IoT Webcam • {{ occFacingMode === 'environment' ? 'Rear' : 'Front' }}</span>
+                    <span>{{occModelName}} • {{ occFacingMode === 'environment' ? 'Rear' : 'Front' }}</span>
                   </div>
                 } @else {
                   <!-- Standby Placeholder with Large Action Button -->
@@ -1641,13 +1668,29 @@
                   </button>
                 </div>
 
-                <!-- Simulation Toggle Button for Demo Presentation -->
-                <button (click)="toggleSimulateOvertime()"
-                        class="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center justify-center gap-1.5 touch-manipulation"
-                        [class]="occSimulateOvertimeActive ? 'bg-amber-500 text-white border-amber-600 shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  <span>{{ occSimulateOvertimeActive ? ('Đang mô phỏng Quá giờ (+25p)' | t) : ('Test Giả lập Quá giờ' | t) }}</span>
-                </button>
+                <div class="flex flex-wrap items-center gap-2">
+                  <!-- Manual Headcount Simulation -->
+                  <div class="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+                    <span class="text-text-muted dark:text-slate-400 font-semibold px-1 text-[11px]">{{ 'Mô phỏng sĩ số:' | t }}</span>
+                    <button type="button" (click)="adjustOccManualCount(-1)" 
+                            class="w-6 h-6 rounded-lg bg-white dark:bg-slate-700 hover:bg-slate-200 text-slate-800 dark:text-white font-black shadow-2xs flex items-center justify-center cursor-pointer active:scale-95">
+                      -
+                    </button>
+                    <span class="px-1 font-black text-uel-blue dark:text-sky-400 text-sm">{{occCurrentCount}}</span>
+                    <button type="button" (click)="adjustOccManualCount(1)" 
+                            class="w-6 h-6 rounded-lg bg-white dark:bg-slate-700 hover:bg-slate-200 text-slate-800 dark:text-white font-black shadow-2xs flex items-center justify-center cursor-pointer active:scale-95">
+                      +
+                    </button>
+                  </div>
+
+                  <!-- Simulation Toggle Button for Demo Presentation -->
+                  <button (click)="toggleSimulateOvertime()"
+                          class="px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center justify-center gap-1.5 touch-manipulation"
+                          [class]="occSimulateOvertimeActive ? 'bg-amber-500 text-white border-amber-600 shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>{{ occSimulateOvertimeActive ? ('Đang mô phỏng Quá giờ (+25p)' | t) : ('Test Giả lập Quá giờ' | t) }}</span>
+                  </button>
+                </div>
               </div>
 
               <!-- AI SMART DECISION BANNERS (Real-time Business Value Differentiators) -->

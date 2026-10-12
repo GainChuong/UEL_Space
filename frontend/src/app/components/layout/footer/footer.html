@@ -10,42 +10,52 @@
     
     <!-- Top Section (Columns) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-12">
-      <!-- Left: Các khoa viện (8 cols) -->
+      <!-- Left: Danh mục không gian & Đối tác (8 cols) -->
       <div class="lg:col-span-8">
-        <h3 class="text-base font-bold uppercase tracking-wider mb-6 border-b border-white/20 pb-4">{{ 'Các Khoa Viện' | t }}</h3>
+        <h3 class="text-base font-bold uppercase tracking-wider mb-6 border-b border-white/20 pb-4">{{ 'Danh Mục Không Gian & Mạng Lưới Đối Tác' | t }}</h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4">
           <!-- Col 1 -->
-          <ul class="space-y-3">
-            <li><a href="#" class="text-white hover:text-sky-blue transition-colors text-[14px]">{{ 'Khoa Kinh tế' | t }}</a></li>
-            <li><a href="#" class="text-white hover:text-sky-blue transition-colors text-[14px]">{{ 'Khoa Kinh tế đối ngoại' | t }}</a></li>
-            <li><a href="#" class="text-white hover:text-sky-blue transition-colors text-[14px]">{{ 'Khoa Tài chính - Ngân hàng' | t }}</a></li>
-            <li><a href="#" class="text-white hover:text-sky-blue transition-colors text-[14px]">{{ 'Khoa Kế toán - Kiểm toán' | t }}</a></li>
-            <li><a href="#" class="text-white hover:text-sky-blue transition-colors text-[14px]">{{ 'Khoa Quản trị Kinh doanh' | t }}</a></li>
-          </ul>
+          <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-uel-orange mb-3">{{ 'Loại không gian' | t }}</h4>
+            <ul class="space-y-2.5">
+              <li><a routerLink="/map" class="text-white/90 hover:text-sky-blue transition-colors text-[13.5px]">{{ 'Phòng họp VIP & Boardroom' | t }}</a></li>
+              <li><a routerLink="/map" class="text-white/90 hover:text-sky-blue transition-colors text-[13.5px]">{{ 'Văn phòng riêng Private Suite' | t }}</a></li>
+              <li><a routerLink="/map" class="text-white/90 hover:text-sky-blue transition-colors text-[13.5px]">{{ 'Bàn làm việc Hot Desk Coworking' | t }}</a></li>
+              <li><a routerLink="/map" class="text-white/90 hover:text-sky-blue transition-colors text-[13.5px]">{{ 'Hội trường Workshop & Event' | t }}</a></li>
+              <li><a routerLink="/map" class="text-white/90 hover:text-sky-blue transition-colors text-[13.5px]">{{ 'Focus Pod cách âm tiêu chuẩn' | t }}</a></li>
+            </ul>
+          </div>
           <!-- Col 2 -->
-          <ul class="space-y-3">
-            <li><a href="#" class="text-white hover:text-sky-blue transition-colors text-[14px]">{{ 'Khoa Hệ thống thông tin' | t }}</a></li>
-            <li><a href="#" class="text-white hover:text-sky-blue transition-colors text-[14px]">{{ 'Khoa Toán kinh tế' | t }}</a></li>
-            <li><a href="#" class="text-white hover:text-sky-blue transition-colors text-[14px]">{{ 'Khoa Luật' | t }}</a></li>
-            <li><a href="#" class="text-white hover:text-sky-blue transition-colors text-[14px]">{{ 'Khoa Luật kinh tế' | t }}</a></li>
-            <li><a href="#" class="text-white hover:text-sky-blue transition-colors text-[14px]">{{ 'Viện Quốc tế' | t }}</a></li>
-          </ul>
+          <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-uel-orange mb-3">{{ 'Mạng lưới Hub nổi bật' | t }}</h4>
+            <ul class="space-y-2.5">
+              <li><a routerLink="/map" class="text-white/90 hover:text-sky-blue transition-colors text-[13.5px]">{{ 'Central Tower Q.1' | t }}</a></li>
+              <li><a routerLink="/map" class="text-white/90 hover:text-sky-blue transition-colors text-[13.5px]">{{ 'TechPark Executive Hub' | t }}</a></li>
+              <li><a routerLink="/map" class="text-white/90 hover:text-sky-blue transition-colors text-[13.5px]">{{ 'Innovation Hub Q.2' | t }}</a></li>
+              <li><a routerLink="/map" class="text-white/90 hover:text-sky-blue transition-colors text-[13.5px]">{{ 'Landmark Lounge' | t }}</a></li>
+              <li><a routerLink="/map" class="text-white/90 hover:text-sky-blue transition-colors text-[13.5px]">{{ 'Green Office Suites' | t }}</a></li>
+            </ul>
+          </div>
           <!-- Col 3 -->
-          <ul class="space-y-3">
-            <li><a href="#" class="text-white hover:text-sky-blue transition-colors text-[14px]">{{ 'Viện IBT ĐHQG-HCM' | t }}</a></li>
-            <li><a href="#" class="text-white hover:text-sky-blue transition-colors text-[14px]">{{ 'Viện IICL' | t }}</a></li>
-            <li><a href="#" class="text-white hover:text-sky-blue transition-colors text-[14px]">{{ 'Viện IDP ĐHQG-HCM' | t }}</a></li>
-            <li><a href="#" class="text-white hover:text-sky-blue transition-colors text-[14px]">{{ 'Công ty UEL' | t }}</a></li>
-          </ul>
+          <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-uel-orange mb-3">{{ 'Về UEL Space' | t }}</h4>
+            <ul class="space-y-2.5">
+              <li><a routerLink="/about" class="text-white/90 hover:text-sky-blue transition-colors text-[13.5px]">{{ 'Mô hình Marketplace B2B' | t }}</a></li>
+              <li><a routerLink="/about" class="text-white/90 hover:text-sky-blue transition-colors text-[13.5px]">{{ 'Công nghệ AI Occupancy' | t }}</a></li>
+              <li><a routerLink="/login" class="text-white/90 hover:text-sky-blue transition-colors text-[13.5px]">{{ 'Đăng ký làm Đối tác (Host)' | t }}</a></li>
+              <li><a routerLink="/booking" class="text-white/90 hover:text-sky-blue transition-colors text-[13.5px]">{{ 'Quản lý đơn đặt chỗ' | t }}</a></li>
+              <li><a routerLink="/about" class="text-white/90 hover:text-sky-blue transition-colors text-[13.5px]">{{ 'Tích hợp Google Calendar' | t }}</a></li>
+            </ul>
+          </div>
         </div>
       </div>
       
       <!-- Right: Đăng ký nhận bản tin (4 cols) -->
       <div class="lg:col-span-4">
         <h3 class="text-base font-bold uppercase tracking-wider mb-6 border-b border-white/20 pb-4">{{ 'Đăng ký nhận bản tin' | t }}</h3>
-        <p class="text-[14px] text-white/90 mb-4 leading-relaxed">{{ 'Đăng ký ngay để cập nhật tin tức, sự kiện và thông tin tuyển sinh mới nhất.' | t }}</p>
+        <p class="text-[14px] text-white/90 mb-4 leading-relaxed">{{ 'Đăng ký ngay để nhận ưu đãi giá thuê văn phòng và cập nhật công nghệ AI Occupancy mới nhất.' | t }}</p>
         <div class="mb-4">
-          <input type="email" [placeholder]="'Địa chỉ email' | t" class="w-full bg-white text-dark-text px-4 py-3 rounded-[32px] outline-none placeholder:text-gray-400 text-[14px]">
+          <input type="email" [placeholder]="'Địa chỉ email công ty' | t" class="w-full bg-white text-dark-text px-4 py-3 rounded-[32px] outline-none placeholder:text-gray-400 text-[14px]">
         </div>
         <!-- Recaptcha mockup -->
         <div class="bg-white rounded-md p-3 flex items-center justify-between w-[280px] h-[74px] shadow-sm mb-6">
@@ -71,17 +81,17 @@
       <h3 class="text-base font-bold uppercase tracking-wider mb-4">{{ 'Thông tin liên hệ' | t }}</h3>
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div class="space-y-1">
-          <p class="text-[14px] text-white/90">{{ 'Số 669 Đỗ Mười, khu phố 3, phường Linh Xuân, TP.HCM' | t }}</p>
-          <p class="text-[14px] text-white/90">{{ 'Điện thoại: 19001239' | t }}</p>
+          <p class="text-[14px] text-white/90">{{ 'Trụ sở chính: Số 669 Đỗ Mười, P. Linh Xuân, TP.HCM | Mạng lưới Hub đối tác toàn quốc' | t }}</p>
+          <p class="text-[14px] text-white/90">{{ 'Hotline hỗ trợ: 19001239 • Email: contact@uelspace.vn' | t }}</p>
         </div>
         <div class="space-y-3 min-w-[200px]">
-          <a href="#" class="flex items-center gap-2 text-white hover:text-sky-blue transition-colors group">
+          <a routerLink="/map" class="flex items-center gap-2 text-white hover:text-sky-blue transition-colors group">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="group-hover:-translate-y-0.5 transition-transform"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-            <span class="text-[14px] font-bold border-b border-transparent group-hover:border-sky-blue">{{ 'Sơ đồ đến trường' | t }}</span>
+            <span class="text-[14px] font-bold border-b border-transparent group-hover:border-sky-blue">{{ 'Sơ đồ mạng lưới Hub' | t }}</span>
           </a>
-          <a href="#" class="flex items-center gap-2 text-white hover:text-sky-blue transition-colors group">
+          <a routerLink="/about" class="flex items-center gap-2 text-white hover:text-sky-blue transition-colors group">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="group-hover:-translate-y-0.5 transition-transform"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-            <span class="text-[14px] font-bold border-b border-transparent group-hover:border-sky-blue">{{ 'Thông tin liên hệ' | t }}</span>
+            <span class="text-[14px] font-bold border-b border-transparent group-hover:border-sky-blue">{{ 'Về nền tảng UEL Space' | t }}</span>
           </a>
         </div>
       </div>

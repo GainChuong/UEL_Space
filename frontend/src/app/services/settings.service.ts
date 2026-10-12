@@ -49,7 +49,7 @@ export class SettingsService {
   public isAuthModalOpen$: Observable<boolean> = this.authModalOpenSubject.asObservable();
 
   private authModalMessageSubject = new BehaviorSubject<string>(
-    'Bạn đang ở chế độ chỉ xem. Vui lòng đăng nhập với tài khoản Google UEL để thực hiện thao tác này.'
+    'Bạn đang ở chế độ xem thông tin. Vui lòng đăng nhập với tài khoản Google để thực hiện đặt chỗ và thanh toán.'
   );
   public authModalMessage$: Observable<string> = this.authModalMessageSubject.asObservable();
 
@@ -64,18 +64,18 @@ export class SettingsService {
   // Default Users
   public readonly defaultAdminUser: UserProfile = {
     id: 'ADMIN-001',
-    name: 'Admin UEL',
-    email: 'admin@uel.edu.vn',
+    name: 'Quản trị viên UEL Space',
+    email: 'admin@uelspace.vn',
     role: 'ADMIN',
-    organization: 'Phòng QTTTS & Quản trị Không gian'
+    organization: 'Ban Quản Trị Hệ Thống UEL Space'
   };
 
   public readonly defaultStudentUser: UserProfile = {
-    id: 'K24411',
+    id: 'MBR-9821',
     name: 'Nguyễn Trần Kim Giang',
-    email: 'giangnntk24411@st.uel.edu.vn',
+    email: 'giang.nguyen@techflow.vn',
     role: 'STUDENT',
-    organization: 'CLB ITB UEL'
+    organization: 'TechFlow Solutions (Doanh nghiệp)'
   };
 
   constructor() {
@@ -297,8 +297,8 @@ export class SettingsService {
     const initialList: AppNotification[] = [
       {
         id: 'notif-1',
-        title: 'Phê duyệt đặt phòng thành công',
-        message: 'Đơn mượn Phòng Họp A2.1 (UEL-BK-2026-083) cho NCKH đã được Quản trị viên duyệt.',
+        title: 'Xác nhận đặt phòng họp thành công',
+        message: 'Đơn thuê Phòng Boardroom B1 (FS-BK-2026-083) của bạn đã được xác nhận thanh toán qua MoMo.',
         timeAgo: '5 phút trước',
         timestamp: '11/10/2026 09:28',
         type: 'success',
@@ -308,7 +308,7 @@ export class SettingsService {
       {
         id: 'notif-2',
         title: 'Nhắc nhở quét QR xác thực hiện diện (F09)',
-        message: 'Bạn còn 10 phút để quét mã QR check-in tại Khu tự học Thư viện (Tầng 2) trước khi bị giải phóng chỗ.',
+        message: 'Bạn còn 10 phút để quét mã QR check-in tại Hub Central Tower trước khi AI tự động giải phóng phòng (No-show).',
         timeAgo: '20 phút trước',
         timestamp: '11/10/2026 09:12',
         type: 'warning',
@@ -317,8 +317,8 @@ export class SettingsService {
       },
       {
         id: 'notif-3',
-        title: 'Bảo trì Chòi tự học 1 đã hoàn tất',
-        message: 'Không gian Chòi tự học 1 (Đường Thanh Niên) đã mở lại phục vụ sinh viên sinh hoạt và học tập.',
+        title: 'Bảo trì Pod làm việc 1 đã hoàn tất',
+        message: 'Không gian Meeting Pod 1 (Eco Space) đã mở lại sẵn sàng tiếp nhận lịch đặt trên sàn.',
         timeAgo: '1 giờ trước',
         timestamp: '11/10/2026 08:30',
         type: 'info',
@@ -327,8 +327,8 @@ export class SettingsService {
       },
       {
         id: 'notif-4',
-        title: 'Phân quyền tài khoản ThS. Lê Hoàng Long',
-        message: 'Tài khoản giảng viên đã được kích hoạt chế độ ưu tiên đặt phòng hội thảo.',
+        title: 'Đối tác mới gia nhập UEL Space Partner',
+        message: 'Tòa nhà Landmark Innovation Hub đã chính thức mở thêm 12 phòng họp và văn phòng riêng trên sàn.',
         timeAgo: 'Hôm qua',
         timestamp: '10/10/2026 17:45',
         type: 'info',

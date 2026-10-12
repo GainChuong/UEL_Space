@@ -24,14 +24,14 @@
       <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-black tracking-normal leading-[1.25] mb-6 max-w-5xl mx-auto drop-shadow-lg">
         {{ 'Hành Trình Kiến Tạo' | t }} <br>
         <span class="text-transparent bg-clip-text bg-gradient-to-r from-uel-orange via-[#FFA800] to-[#FFC72C] inline-block py-1.5 px-1 filter drop-shadow-[0_2px_12px_rgba(255,121,0,0.3)]">
-          {{ 'Không Gian Học Tập Thông Minh' | t }}
+          {{ 'Sàn Chia Sẻ Văn Phòng Thông Minh' | t }}
         </span>
       </h1>
 
       <!-- Subtitle: 2 dòng thẳng hàng cân xứng hoàn hảo -->
       <p class="text-base sm:text-lg text-slate-100 max-w-4xl mx-auto leading-relaxed font-normal drop-shadow">
-        {{ 'Câu chuyện đằng sau Smart Campus Space: Từ những bất cập thực tế tại giảng đường, thư viện' | t }}<br class="hidden md:inline">
-        {{ 'đến giải pháp quản trị số hóa dựa trên dữ liệu thời gian thực.' | t }}
+        {{ 'Câu chuyện đằng sau UEL Space: Từ nghịch lý văn phòng chưa khai thác hết công suất' | t }}<br class="hidden md:inline">
+        {{ 'đến giải pháp sàn chia sẻ B2B tích hợp AI Occupancy Detection thông minh.' | t }}
       </p>
 
     </div>
@@ -51,7 +51,7 @@
        ========================================================================= -->
   <main class="relative max-w-[1240px] mx-auto px-5 sm:px-8 lg:px-12 mt-12 sm:mt-16">
     
-    <!-- Vertical Story Route Line (ITB Club Style Animation Track) -->
+    <!-- Vertical Story Route Line (Animation Track) -->
     <div class="story-timeline-track hidden lg:block" aria-hidden="true">
       <div class="timeline-traveler" [style.top.%]="scrollProgress"></div>
     </div>
@@ -59,7 +59,7 @@
     <div class="space-y-20 sm:space-y-32">
 
       <!-- =======================================================================
-           CHAPTER 01 / XUẤT PHÁT ĐIỂM (THE ORIGIN)
+           CHAPTER 01 / NGHỊCH LÝ LÃNG PHÍ (THE ORIGIN)
            ======================================================================= -->
       <article id="chapter-1" class="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center scroll-mt-28">
         
@@ -71,21 +71,21 @@
               01
             </span>
             <span class="text-xs font-mono font-bold tracking-widest uppercase text-uel-orange">
-              {{ 'XUẤT PHÁT ĐIỂM' | t }}
+              {{ 'NGHỊCH LÝ CÔNG SUẤT' | t }}
             </span>
           </div>
 
           <h2 class="text-2xl sm:text-4xl font-black text-uel-blue dark:text-sky-400 leading-tight [text-wrap:balance]">
-            {{ 'Nhu cầu lớn giữa lòng campus năng động.' | t }}
+            {{ 'Hàng ngàn mét vuông văn phòng chưa khai thác hết.' | t }}
           </h2>
 
           <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-normal [text-wrap:balance]">
-            {{ 'Tại UEL, sinh viên, các câu lạc bộ và giảng viên mỗi ngày đều cần nhiều loại không gian: phòng học lý thuyết, phòng họp nhóm, thư viện và chòi tự học. Tuy nhiên, việc biết phòng nào còn trống tại một thời điểm cụ thể vẫn chưa thuận tiện, phải hỏi mượn thủ công qua nhiều kênh.' | t }}
+            {{ 'Nhiều doanh nghiệp và đơn vị sở hữu không gian chỉ sử dụng 40-50% công suất phòng họp, bàn làm việc vào các khung giờ ngoài cao điểm. Trong khi đó, hàng ngàn startup, cá nhân và đội ngũ dự án lại đau đầu tìm kiếm không gian thuê ngắn hạn linh hoạt, tiện nghi và chi phí hợp lý.' | t }}
           </p>
 
           <!-- Quote Block -->
           <blockquote class="p-4 sm:p-5 rounded-2xl bg-uel-blue/5 dark:bg-sky-400/10 border border-uel-blue/15 dark:border-sky-400/20 text-xs sm:text-sm text-uel-blue dark:text-sky-300 font-bold italic leading-relaxed">
-            {{ '"Một khuôn viên đại học thông minh bắt đầu từ những không gian học tập luôn sẵn sàng và dễ dàng tiếp cận."' | t }}
+            {{ '"Kinh tế chia sẻ là chiếc cầu nối biến không gian dư thừa thành tài sản sinh lời và tối ưu nguồn lực cho toàn xã hội."' | t }}
           </blockquote>
 
           <div class="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2 pt-1">
@@ -94,7 +94,7 @@
               <line x1="12" y1="8" x2="12" y2="12" stroke-width="2.8"/>
               <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="3.5"/>
             </svg>
-            <span class="text-slate-600 dark:text-slate-400 font-medium">{{ 'Thực trạng ghi nhận từ khảo sát nhu cầu cơ sở vật chất học tập UEL' | t }}</span>
+            <span class="text-slate-600 dark:text-slate-400 font-medium">{{ 'Thực trạng khảo sát từ nhu cầu văn phòng chia sẻ & Coworking tại các đô thị' | t }}</span>
           </div>
         </div>
 
@@ -107,7 +107,7 @@
             
             <div class="absolute inset-0 bg-gradient-to-t from-[#001D3D]/90 via-[#001D3D]/25 to-transparent"></div>
 
-            <!-- Bottom Caption & Controls Bar (ITB Style) -->
+            <!-- Bottom Caption & Controls Bar -->
             <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between text-white gap-3">
               <div>
                 <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-uel-orange text-white">
@@ -154,7 +154,7 @@
 
 
       <!-- =======================================================================
-           CHAPTER 02 / ĐIỂM NÓNG THỰC TẾ (THE TENSION)
+           CHAPTER 02 / MÔ HÌNH MARKETPLACE (THE MODEL)
            Zig-zag: Photo left, Text right
            ======================================================================= -->
       <article id="chapter-2" class="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center scroll-mt-28">
@@ -217,20 +217,20 @@
               02
             </span>
             <span class="text-xs font-mono font-bold tracking-widest uppercase text-uel-blue dark:text-sky-400">
-              {{ 'ĐIỂM NÓNG THỰC TẾ' | t }}
+              {{ 'MÔ HÌNH MARKETPLACE' | t }}
             </span>
           </div>
 
           <h2 class="text-2xl sm:text-4xl font-black text-uel-blue dark:text-sky-400 leading-tight [text-wrap:balance]">
-            {{ 'Nghịch lý "Giữ chỗ ảo" tại Thư viện UEL.' | t }}
+            {{ 'Sàn thương mại điện tử kết nối Cung & Cầu.' | t }}
           </h2>
 
           <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-normal [text-wrap:balance]">
-            {{ 'Vào mùa ôn thi, sinh viên thường xuyên phát hiện thư viện hết chỗ sau khi đã di chuyển đến nơi. Đáng nói, nhiều vị trí chỉ có đồ dùng cá nhân được đặt để "giữ chỗ" hàng giờ liền mà không có người học, tước đi cơ hội của những bạn đang thực sự cần.' | t }}
+            {{ 'UEL Space vận hành theo mô hình Marketplace: cho phép các doanh nghiệp sở hữu không gian niêm yết phòng, thiết lập giá thuê theo giờ và theo dõi doanh thu minh bạch; đồng thời giúp khách thuê dễ dàng tìm kiếm, đặt chỗ trực tuyến và thanh toán tức thì.' | t }}
           </p>
 
           <blockquote class="p-4 sm:p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800 text-xs sm:text-sm text-amber-950 dark:text-amber-200 font-bold italic leading-relaxed">
-            {{ '"Chiếc balo nằm trên bàn suốt 4 tiếng, trong khi ngoài sảnh nhiều bạn không tìm được một góc để ngồi học."' | t }}
+            {{ '"Chủ không gian tối đa hóa doanh thu từ diện tích nhàn rỗi — Khách thuê tiết kiệm tới 60% chi phí vận hành cố định."' | t }}
           </blockquote>
 
           <div class="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2 pt-1">
@@ -239,7 +239,7 @@
               <line x1="12" y1="8" x2="12" y2="12" stroke-width="2.8"/>
               <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="3.5"/>
             </svg>
-            <span class="text-slate-600 dark:text-slate-400 font-medium">{{ 'Chủ đề thường xuyên được phản ánh trên các hội nhóm sinh viên UEL' | t }}</span>
+            <span class="text-slate-600 dark:text-slate-400 font-medium">{{ 'Tích hợp thanh toán MoMo Sandbox và đồng bộ Google Calendar 1-click' | t }}</span>
           </div>
         </div>
 
@@ -247,7 +247,7 @@
 
 
       <!-- =======================================================================
-           CHAPTER 03 / LỜI GIẢI CÔNG NGHỆ (THE BREAKTHROUGH)
+           CHAPTER 03 / AI OCCUPANCY DETECTION (THE BREAKTHROUGH)
            ======================================================================= -->
       <article id="chapter-3" class="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center scroll-mt-28">
         
@@ -258,20 +258,20 @@
               03
             </span>
             <span class="text-xs font-mono font-bold tracking-widest uppercase text-emerald-600 dark:text-emerald-400">
-              {{ 'LỜI GIẢI CÔNG NGHỆ' | t }}
+              {{ 'AI OCCUPANCY DETECTION' | t }}
             </span>
           </div>
 
           <h2 class="text-2xl sm:text-4xl font-black text-uel-blue dark:text-sky-400 leading-tight [text-wrap:balance]">
-            {{ 'Smart Campus Space — Khép lại khoảng cách.' | t }}
+            {{ 'Điểm khác biệt cốt lõi: AI Occupancy Detection.' | t }}
           </h2>
 
           <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-normal [text-wrap:balance]">
-            {{ 'Hệ thống đưa ra cơ chế quản lý tập trung dựa trên dữ liệu thực tế. Bằng việc kết hợp tìm kiếm đa tiêu chí với quy trình ' | t }}<strong class="text-uel-blue font-bold">QR Check-in / Check-out</strong>{{ ', nền tảng tự động phát hiện no-show và giải phóng phòng trống cho người khác.' | t }}
+            {{ 'Thông qua thị giác máy tính, UEL Space ước tính số người có mặt trong phòng và đối chiếu với số lượng đăng ký để phát hiện vượt tải. Đồng thời, AI theo dõi trạng thái hiện diện để cảnh báo khách sử dụng quá giờ, hỗ trợ chủ không gian xác minh và áp dụng phụ phí theo chính sách.' | t }}
           </p>
 
           <blockquote class="p-4 sm:p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800 text-xs sm:text-sm text-emerald-950 dark:text-emerald-200 font-bold italic leading-relaxed">
-            {{ '"Không chỉ dừng ở việc đặt phòng — mục tiêu là đảm bảo ai thực sự cần cũng có được không gian học tập."' | t }}
+            {{ '"Đặc biệt: Khi khách rời phòng trước giờ kết thúc, AI tự động xác nhận check-out sớm và giải phóng khung giờ trống ngay lập tức cho khách hàng mới."' | t }}
           </blockquote>
 
           <div class="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2 pt-1">
@@ -280,7 +280,7 @@
               <line x1="12" y1="8" x2="12" y2="12" stroke-width="2.8"/>
               <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="3.5"/>
             </svg>
-            <span class="text-slate-600 dark:text-slate-400 font-medium">{{ 'Hệ thống kích hoạt cảnh báo no-show và tự động thu hồi phòng sau 15 phút' | t }}</span>
+            <span class="text-slate-600 dark:text-slate-400 font-medium">{{ 'Tối ưu hóa tối đa vòng quay sử dụng phòng và bảo vệ quyền lợi minh bạch cho cả hai bên' | t }}</span>
           </div>
 
           <!-- 4 Mini Pillars -->
@@ -351,25 +351,25 @@
 
 
       <!-- =======================================================================
-           CHAPTER 04 / TẦM NHÌN DỮ LIỆU (THE VISION & ACTION)
+           CHAPTER 04 / KINH TẾ CHIA SẺ B2B (THE VISION & ACTION)
            ======================================================================= -->
       <article id="chapter-4" class="relative text-center max-w-3xl mx-auto space-y-6 pt-6 scroll-mt-28">
         
         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-uel-orange/10 text-uel-orange text-xs font-mono font-bold uppercase tracking-wider">
-          <span>{{ '04 / TẦM NHÌN DỮ LIỆU' | t }}</span>
+          <span>{{ '04 / KINH TẾ CHIA SẺ B2B' | t }}</span>
         </div>
 
         <h2 class="text-3xl sm:text-5xl font-black text-uel-blue dark:text-sky-400 leading-tight [text-wrap:balance]">
-          {{ 'Kiến tạo Campus Đại học Thông minh tại UEL.' | t }}
+          {{ 'Kiến tạo Hệ sinh thái Văn phòng Chia sẻ Thông minh.' | t }}
         </h2>
 
         <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-normal max-w-2xl mx-auto [text-wrap:balance]">
-          {{ 'Smart Campus Space không chỉ giải quyết nhu cầu mượn phòng thường ngày, mà còn cung cấp cơ sở dữ liệu thực tế giúp nhà trường nâng cao năng lực khai thác tài nguyên và bảo dưỡng cơ sở vật chất.' | t }}
+          {{ 'UEL Space mở ra kỷ nguyên mới cho thị trường cho thuê không gian: kết nối liền mạch giữa các đơn vị sở hữu tòa nhà văn phòng và cộng đồng startup, tổ chức năng động, mang lại lợi ích tài chính bền vững.' | t }}
         </p>
 
-        <!-- CTA Box: Crisp, Sharp, High-Contrast Pro Max (Zero Blurry Texture) -->
+        <!-- CTA Box: Crisp, Sharp, High-Contrast Pro Max -->
         <div class="bg-[radial-gradient(ellipse_at_top_right,_#004B8D_0%,_#001D3D_55%,_#000F24_100%)] rounded-3xl p-8 sm:p-12 text-white shadow-2xl relative overflow-hidden mt-8 border border-white/15">
-          <!-- Subtle Crisp Vector Pattern (Sharp & Clean) -->
+          <!-- Subtle Crisp Vector Pattern -->
           <svg class="absolute inset-0 w-full h-full opacity-15 pointer-events-none" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="cta-grid" width="32" height="32" patternUnits="userSpaceOnUse">
@@ -379,17 +379,17 @@
             <rect width="100%" height="100%" fill="url(#cta-grid)" />
           </svg>
 
-          <!-- Decorative Concentric Rings for Smart Space Motif (Crisp & Vector) -->
+          <!-- Decorative Concentric Rings for Smart Space Motif -->
           <div class="absolute -top-16 -right-16 w-80 h-80 rounded-full border border-white/10 pointer-events-none"></div>
           <div class="absolute -top-8 -right-8 w-64 h-64 rounded-full border border-uel-orange/20 pointer-events-none"></div>
           <div class="absolute -bottom-16 -left-16 w-80 h-80 rounded-full border border-white/10 pointer-events-none"></div>
 
           <div class="relative z-10 space-y-5">
             <h3 class="text-2xl sm:text-3xl md:text-4xl font-black leading-tight [text-wrap:balance] drop-shadow-sm">
-              {{ 'Khám phá không gian học tập của bạn ngay hôm nay' | t }}
+              {{ 'Khám phá và đặt không gian làm việc của bạn ngay hôm nay' | t }}
             </h3>
             <p class="text-sm sm:text-base text-slate-200 font-normal max-w-xl mx-auto [text-wrap:balance] leading-relaxed">
-              {{ 'Tra cứu sơ đồ khuôn viên, kiểm tra mật độ thư viện và đặt phòng nhanh chóng theo thời gian thực.' | t }}
+              {{ 'Tra cứu mạng lưới văn phòng đối tác, lựa chọn phòng họp VIP và trải nghiệm quản lý thông minh cùng AI Occupancy.' | t }}
             </p>
 
             <div class="pt-2 flex flex-wrap items-center justify-center gap-3">

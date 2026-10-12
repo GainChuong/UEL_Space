@@ -13,7 +13,7 @@ import { filter } from 'rxjs/operators';
   templateUrl: './app.html',
 })
 export class App {
-  protected readonly title = signal('UEL Space');
+  protected readonly title = signal('UEL Space - Nền tảng chia sẻ & cho thuê văn phòng thông minh');
   hideHeaderFooter: boolean = false;
 
   constructor(private router: Router) {

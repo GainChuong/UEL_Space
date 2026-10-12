@@ -249,6 +249,9 @@ export class Admin implements OnInit, OnDestroy {
   occModelLoaded: boolean = false;
   occModelLoading: boolean = false;
   occModelError: string = '';
+  occModelName: string = 'Đang khởi tạo AI...';
+  occSensitivity: 'high' | 'normal' | 'strict' = 'high';
+  occManualAdjustment: number = 0;
   occCameraActive: boolean = false;
   occStartingCamera: boolean = false;
   occVideoStream: MediaStream | null = null;
@@ -262,6 +265,7 @@ export class Admin implements OnInit, OnDestroy {
   occPeakCount: number = 0;
   occAvgCount: number = 0;
   occDetectionFps: number = 0;
+  private faceDetector: any = null;
   private occLastFrameTime: number = 0;
   private occFrameCount: number = 0;
   private occFpsInterval: any = null;
@@ -1654,21 +1658,72 @@ export class Admin implements OnInit, OnDestroy {
     }
   }
 
+  private initFaceDetector(): void {
+    if (typeof window !== 'undefined' && 'FaceDetector' in window) {
+      try {
+        this.faceDetector = new (window as any).FaceDetector({ fastMode: true, maxDetectedFaces: 20 });
+        console.log('Hardware FaceDetector initialized successfully!');
+      } catch (e) {
+        console.warn('FaceDetector init error:', e);
+      }
+    }
+  }
+
+  setOccSensitivity(level: 'high' | 'normal' | 'strict'): void {
+    this.occSensitivity = level;
+    const label = level === 'high' ? 'Siêu nhạy (Webcam / Gần)' : (level === 'normal' ? 'Tiêu chuẩn' : 'Nghiêm ngặt');
+    this.showToast(`${this.i18n.t('Đã chuyển độ nhạy AI:')} ${label}`, 'info');
+  }
+
+  adjustOccManualCount(delta: number): void {
+    this.occManualAdjustment += delta;
+    this.occCurrentCount = Math.max(0, this.occCurrentCount + delta);
+    this.evaluateFlexSpaceAiRules();
+    this.showToast(`${this.i18n.t('Mô phỏng sĩ số:')} ${this.occCurrentCount} ${this.i18n.t('người')}`, 'info');
+    this.cdr.detectChanges();
+  }
+
   async loadOccupancyModel(): Promise<void> {
+    this.initFaceDetector();
     if (this.occModelLoaded && this.occCocoModel) return;
     this.occModelLoading = true;
     this.occModelError = '';
+    this.occModelName = 'Đang nạp TensorFlow Core...';
+    this.cdr.detectChanges();
+
     try {
+      // 1. Khởi tạo Backend TensorFlow.js
+      const tf = await import('@tensorflow/tfjs');
+      await tf.ready();
+      console.log('TensorFlow.js ready on backend:', tf.getBackend());
+
+      // 2. Nạp COCO-SSD với MobileNet V2 (chính xác và nhận diện người tốt hơn hẳn lite)
       const cocoSsd = await import('@tensorflow-models/coco-ssd');
-      await import('@tensorflow/tfjs');
-      this.occCocoModel = await cocoSsd.load({ base: 'lite_mobilenet_v2' });
+      try {
+        this.occModelName = 'Đang nạp MobileNet V2...';
+        this.occCocoModel = await cocoSsd.load({ base: 'mobilenet_v2' });
+        this.occModelName = 'COCO-SSD MobileNet V2 + Face AI';
+      } catch (errMob) {
+        console.warn('mobilenet_v2 load error, fallback lite_mobilenet_v2:', errMob);
+        this.occCocoModel = await cocoSsd.load({ base: 'lite_mobilenet_v2' });
+        this.occModelName = 'COCO-SSD Lite + Face AI';
+      }
+
       this.occModelLoaded = true;
       this.occModelLoading = false;
-      console.log('FlexSpace AI COCO-SSD Model preloaded successfully!');
+      this.cdr.detectChanges();
+      console.log('UEL Space AI Model loaded successfully:', this.occModelName);
     } catch (err: any) {
       this.occModelLoading = false;
-      this.occModelError = this.i18n.t('Không thể tải model AI. Vui lòng kiểm tra kết nối mạng và thử lại. Chi tiết: ') + (err?.message || err);
-      console.error('COCO-SSD model load error:', err);
+      console.warn('COCO-SSD cloud load error:', err);
+      if (this.faceDetector) {
+        this.occModelName = 'Hardware Face Vision AI (Hoạt động)';
+        this.occModelLoaded = true;
+      } else {
+        this.occModelName = 'Bộ nhận diện Vision Fallback';
+        this.occModelError = this.i18n.t('Đang sử dụng bộ nhận diện dự phòng (Fallback Vision Mode).');
+      }
+      this.cdr.detectChanges();
     }
   }
 
@@ -1753,8 +1808,8 @@ export class Admin implements OnInit, OnDestroy {
               this.occLastFrameTime = now;
             }, 2000);
 
-            // Bắt đầu nhận diện AI: nếu đã tải model thì chạy ngay, nếu chưa thì tải ngầm
-            if (this.occCocoModel) {
+            // Bắt đầu nhận diện AI: nếu đã có model/face detector thì chạy ngay, nếu chưa thì tải ngầm
+            if (this.occCocoModel || this.faceDetector) {
               this.runDetectionLoop(videoEl);
             } else {
               this.loadOccupancyModel().then(() => {
@@ -1763,6 +1818,9 @@ export class Admin implements OnInit, OnDestroy {
                 }
               }).catch(e => {
                 console.warn('Không thể nạp AI model ngầm:', e);
+                if (this.occDetectionRunning) {
+                  this.runDetectionLoop(videoEl);
+                }
               });
             }
           }).catch(ePlay => {
@@ -1841,19 +1899,18 @@ export class Admin implements OnInit, OnDestroy {
     }
   }
 
-  private runDetectionLoop(videoEl: HTMLVideoElement): void {
-    if (!this.occDetectionRunning || !this.occCocoModel) return;
+  private async runDetectionLoop(videoEl: HTMLVideoElement): Promise<void> {
+    if (!this.occDetectionRunning) return;
 
     const canvas = document.getElementById('occ-detection-canvas') as HTMLCanvasElement;
-    if (!canvas || !videoEl.videoWidth || videoEl.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+    if (!canvas || !videoEl.videoWidth || videoEl.videoWidth < 10 || videoEl.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
       requestAnimationFrame(() => this.runDetectionLoop(videoEl));
       return;
     }
 
     const now = performance.now();
-    // Giới hạn tần suất suy luận AI trên điện thoại: mỗi 130ms (~7-8 FPS)
-    // Giúp camera video stream 60 FPS mượt mà tuyệt đối, không gây nóng máy hoặc giật lag CPU
-    if (this.isDetectingOccFrame || (now - this.lastOccDetectionTimestamp < 130)) {
+    // Giới hạn tần suất suy luận AI: mỗi 100ms (~10 FPS) để cân bằng độ mượt mà và cực kỳ nhạy
+    if (this.isDetectingOccFrame || (now - this.lastOccDetectionTimestamp < 100)) {
       requestAnimationFrame(() => this.runDetectionLoop(videoEl));
       return;
     }
@@ -1861,107 +1918,174 @@ export class Admin implements OnInit, OnDestroy {
     this.isDetectingOccFrame = true;
     this.lastOccDetectionTimestamp = now;
 
-    // Chạy ngoài Angular Zone để không trigger change detection 60 lần/giây
-    this.ngZone.runOutsideAngular(() => {
-      this.occCocoModel.detect(videoEl).then((predictions: any[]) => {
-        this.isDetectingOccFrame = false;
-        if (!this.occDetectionRunning) return;
+    // Ngưỡng điểm tin cậy tương ứng với cấu hình
+    const minScore = this.occSensitivity === 'high' ? 0.20 : (this.occSensitivity === 'normal' ? 0.32 : 0.48);
 
+    try {
+      // 1. Chạy COCO-SSD với minScore truyền trực tiếp vào detect()
+      let cocoPredictions: any[] = [];
+      if (this.occCocoModel) {
+        try {
+          cocoPredictions = await this.occCocoModel.detect(videoEl, 20, minScore);
+        } catch (errCoco) {
+          console.warn('COCO detect error:', errCoco);
+        }
+      }
+
+      // 2. Chạy Hardware FaceDetector song song (nếu trình duyệt hỗ trợ)
+      let facePredictions: any[] = [];
+      if (this.faceDetector) {
+        try {
+          facePredictions = await this.faceDetector.detect(videoEl);
+        } catch (errFace) {
+          console.warn('Face detect error:', errFace);
+        }
+      }
+
+      // 3. Hợp nhất nhận diện người (Body + Head/Face)
+      const detectedPeople: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
+
+      // A. Thêm các phát hiện Person từ COCO-SSD
+      const bodyPeople = cocoPredictions.filter((p: any) => p.class === 'person' && p.score >= minScore);
+      for (const p of bodyPeople) {
+        detectedPeople.push({
+          x: p.bbox[0],
+          y: p.bbox[1],
+          w: p.bbox[2],
+          h: p.bbox[3],
+          score: Math.round(p.score * 100),
+          label: 'Người'
+        });
+      }
+
+      // B. Hợp nhất từ FaceDetector cho các góc chụp cận cảnh / ngồi bàn làm việc
+      if (facePredictions && facePredictions.length > 0) {
+        for (const f of facePredictions) {
+          const fb = f.boundingBox;
+          // Kiểm tra xem khuôn mặt này đã nằm trong bounding box người nào chưa
+          const alreadyInside = detectedPeople.some(dp => 
+            fb.x >= dp.x - 30 &&
+            (fb.x + fb.width) <= (dp.x + dp.w + 30) &&
+            fb.y >= dp.y - 30 &&
+            (fb.y + fb.height) <= (dp.y + dp.h + 30)
+          );
+
+          if (!alreadyInside) {
+            // Ước lượng khung hình người từ vị trí đầu/mặt
+            const estWidth = Math.min(videoEl.videoWidth, Math.max(fb.width * 2.2, 140));
+            const estHeight = Math.min(videoEl.videoHeight, Math.max(fb.height * 2.8, 180));
+            const estX = Math.max(0, fb.x - (estWidth - fb.width) / 2);
+            const estY = Math.max(0, fb.y - fb.height * 0.2);
+
+            detectedPeople.push({
+              x: estX,
+              y: estY,
+              w: estWidth,
+              h: estHeight,
+              score: 95,
+              label: 'Người (Face AI)'
+            });
+          }
+        }
+      }
+
+      // 4. Vẽ khung nhận diện lên Canvas
+      if (canvas.width !== videoEl.videoWidth || canvas.height !== videoEl.videoHeight) {
         canvas.width = videoEl.videoWidth;
         canvas.height = videoEl.videoHeight;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
+      }
 
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      const people = predictions.filter((p: any) => p.class === 'person' && p.score > 0.45);
+        detectedPeople.forEach((p, idx) => {
+          // Khung viền Neon Cyan nổi bật
+          ctx.strokeStyle = '#00F0FF';
+          ctx.lineWidth = 2.5;
+          ctx.strokeRect(p.x, p.y, p.w, p.h);
 
-      people.forEach((person: any, idx: number) => {
-        const [x, y, w, h] = person.bbox;
-        const score = Math.round(person.score * 100);
+          // Lớp phủ mờ hiện đại
+          ctx.fillStyle = 'rgba(0, 240, 255, 0.08)';
+          ctx.fillRect(p.x, p.y, p.w, p.h);
 
-        // Bounding box
-        ctx.strokeStyle = '#FF7900';
-        ctx.lineWidth = 2.5;
-        ctx.setLineDash([]);
-        ctx.strokeRect(x, y, w, h);
+          // 4 Góc Target Brackets màu vàng hổ phách
+          const cLen = Math.min(p.w, p.h) * 0.2;
+          ctx.strokeStyle = '#FFC72C';
+          ctx.lineWidth = 3.5;
+          // Top-left
+          ctx.beginPath(); ctx.moveTo(p.x, p.y + cLen); ctx.lineTo(p.x, p.y); ctx.lineTo(p.x + cLen, p.y); ctx.stroke();
+          // Top-right
+          ctx.beginPath(); ctx.moveTo(p.x + p.w - cLen, p.y); ctx.lineTo(p.x + p.w, p.y); ctx.lineTo(p.x + p.w, p.y + cLen); ctx.stroke();
+          // Bottom-left
+          ctx.beginPath(); ctx.moveTo(p.x, p.y + p.h - cLen); ctx.lineTo(p.x, p.y + p.h); ctx.lineTo(p.x + cLen, p.y + p.h); ctx.stroke();
+          // Bottom-right
+          ctx.beginPath(); ctx.moveTo(p.x + p.w - cLen, p.y + p.h); ctx.lineTo(p.x + p.w, p.y + p.h); ctx.lineTo(p.x + p.w, p.y + p.h - cLen); ctx.stroke();
 
-        // Corner brackets
-        const cornerLen = Math.min(w, h) * 0.2;
-        ctx.strokeStyle = '#FFC72C';
-        ctx.lineWidth = 3;
-        // Top-left
-        ctx.beginPath(); ctx.moveTo(x, y + cornerLen); ctx.lineTo(x, y); ctx.lineTo(x + cornerLen, y); ctx.stroke();
-        // Top-right
-        ctx.beginPath(); ctx.moveTo(x + w - cornerLen, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + cornerLen); ctx.stroke();
-        // Bottom-left
-        ctx.beginPath(); ctx.moveTo(x, y + h - cornerLen); ctx.lineTo(x, y + h); ctx.lineTo(x + cornerLen, y + h); ctx.stroke();
-        // Bottom-right
-        ctx.beginPath(); ctx.moveTo(x + w - cornerLen, y + h); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w, y + h - cornerLen); ctx.stroke();
+          // Nhãn thông tin người phát hiện
+          const tag = `#${idx + 1} ${p.label} • ${p.score}%`;
+          ctx.font = 'bold 12px Roboto, system-ui, sans-serif';
+          const tw = ctx.measureText(tag).width;
+          ctx.fillStyle = 'rgba(0, 20, 40, 0.9)';
+          ctx.beginPath();
+          ctx.roundRect(p.x, Math.max(2, p.y - 24), tw + 14, 22, 5);
+          ctx.fill();
+          ctx.strokeStyle = '#00F0FF';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillText(tag, p.x + 7, Math.max(17, p.y - 9));
+        });
+      }
 
-        // Label background
-        const label = `#${idx + 1} • ${score}%`;
-        ctx.font = 'bold 12px Roboto, system-ui';
-        const textWidth = ctx.measureText(label).width;
-        ctx.fillStyle = 'rgba(0, 59, 113, 0.85)';
-        ctx.beginPath();
-        ctx.roundRect(x, y - 22, textWidth + 12, 20, 4);
-        ctx.fill();
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(label, x + 6, y - 7);
-      });
+      // 5. Cập nhật sĩ số thực tế (có cộng điều chỉnh thủ công nếu có)
+      const rawCount = detectedPeople.length;
+      const count = Math.max(0, rawCount + this.occManualAdjustment);
+      const countChanged = this.occCurrentCount !== count;
+      this.occFrameCount++;
 
-        // Chỉ trigger Angular update khi sĩ số thay đổi hoặc sau mỗi 3 giây để tối ưu CPU di động
-        const countChanged = this.occCurrentCount !== people.length;
-        this.occFrameCount++;
+      if (countChanged || (now - this.lastOccStatsUpdate > 2500)) {
+        this.lastOccStatsUpdate = now;
+        this.ngZone.run(() => {
+          this.occCurrentCount = count;
+          this.occConfidence = detectedPeople.length > 0
+            ? Math.round(detectedPeople.reduce((sum, p) => sum + p.score, 0) / detectedPeople.length)
+            : (this.occManualAdjustment > 0 ? 90 : 0);
 
-        if (countChanged || (now - this.lastOccStatsUpdate > 3000)) {
-          this.lastOccStatsUpdate = now;
-          this.ngZone.run(() => {
-            this.occCurrentCount = people.length;
-            this.occConfidence = people.length > 0
-              ? Math.round(people.reduce((sum: number, p: any) => sum + p.score, 0) / people.length * 100)
-              : 0;
+          if (this.occCurrentCount > this.occPeakCount) {
+            this.occPeakCount = this.occCurrentCount;
+          }
 
-            if (people.length > this.occPeakCount) {
-              this.occPeakCount = people.length;
-            }
+          this.evaluateFlexSpaceAiRules();
 
-            // Đánh giá các quy tắc nghiệp vụ FlexSpace AI
-            this.evaluateFlexSpaceAiRules();
+          if (this.occHistory.length === 0 ||
+              (Date.now() - new Date(this.occHistory[0]?.timestamp || 0).getTime()) > 5000) {
+            const histNow = new Date();
+            this.occHistory.unshift({
+              timestamp: histNow.toLocaleTimeString('vi-VN'),
+              spaceName: this.occSelectedSpace?.name || '',
+              detectedCount: this.occCurrentCount,
+              capacity: this.occSelectedSpace?.capacity || 0,
+              occupancyRate: this.occSelectedSpace ? Math.round((this.occCurrentCount / this.occSelectedSpace.capacity) * 100) : 0,
+              confidence: this.occConfidence
+            });
+            if (this.occHistory.length > 50) this.occHistory.pop();
 
-            // Track history every ~5 seconds
-            if (this.occHistory.length === 0 ||
-                (Date.now() - new Date(this.occHistory[0]?.timestamp || 0).getTime()) > 5000) {
-              const histNow = new Date();
-              this.occHistory.unshift({
-                timestamp: histNow.toLocaleTimeString('vi-VN'),
-                spaceName: this.occSelectedSpace?.name || '',
-                detectedCount: people.length,
-                capacity: this.occSelectedSpace?.capacity || 0,
-                occupancyRate: this.occSelectedSpace ? Math.round((people.length / this.occSelectedSpace.capacity) * 100) : 0,
-                confidence: this.occConfidence
-              });
-              if (this.occHistory.length > 50) this.occHistory.pop();
+            const total = this.occHistory.reduce((s, h) => s + h.detectedCount, 0);
+            this.occAvgCount = Math.round(total / this.occHistory.length);
+          }
+          this.cdr.detectChanges();
+        });
+      }
 
-              const total = this.occHistory.reduce((s, h) => s + h.detectedCount, 0);
-              this.occAvgCount = Math.round(total / this.occHistory.length);
-            }
-            this.cdr.detectChanges();
-          });
-        }
-
-        if (this.occDetectionRunning) {
-          requestAnimationFrame(() => this.runDetectionLoop(videoEl));
-        }
-      }).catch((err: any) => {
-        this.isDetectingOccFrame = false;
-        console.warn('Detection frame error:', err);
-        if (this.occDetectionRunning) {
-          requestAnimationFrame(() => this.runDetectionLoop(videoEl));
-        }
-      });
-    });
+    } catch (err: any) {
+      console.warn('Detection cycle error:', err);
+    } finally {
+      this.isDetectingOccFrame = false;
+      if (this.occDetectionRunning) {
+        requestAnimationFrame(() => this.runDetectionLoop(videoEl));
+      }
+    }
   }
 
   evaluateFlexSpaceAiRules(): void {
@@ -2064,7 +2188,7 @@ export class Admin implements OnInit, OnDestroy {
       actor: this.adminUser.email,
       action: 'OVERTIME_SURCHARGE_APPLIED',
       target: `${this.occActiveBooking.code} - ${this.occSelectedSpace?.name}`,
-      details: `FlexSpace AI phát hiện khách sử dụng quá giờ ${this.occOvertimeMinutes} phút (sĩ số thực tế: ${this.occCurrentCount} người). Chủ không gian áp dụng phụ phí ${amountStr} VNĐ theo block 30 phút.`,
+      details: `UEL Space AI phát hiện khách sử dụng quá giờ ${this.occOvertimeMinutes} phút (sĩ số thực tế: ${this.occCurrentCount} người). Chủ không gian áp dụng phụ phí ${amountStr} VNĐ theo block 30 phút.`,
       level: 'WARNING'
     });
     this.cdr.detectChanges();
@@ -2090,7 +2214,7 @@ export class Admin implements OnInit, OnDestroy {
       actor: this.adminUser.email,
       action: 'EARLY_CHECKOUT_SLOT_RELEASED',
       target: `${this.occActiveBooking.code} - ${this.occSelectedSpace.name}`,
-      details: `FlexSpace AI nhận diện phòng trống trước thời gian kết thúc đặt chỗ. Chủ không gian xác nhận trả phòng sớm, giải phóng khung giờ còn dư đưa trở lại sàn Marketplace.`,
+      details: `UEL Space AI nhận diện phòng trống trước thời gian kết thúc đặt chỗ. Chủ không gian xác nhận trả phòng sớm, giải phóng khung giờ còn dư đưa trở lại sàn UEL Space.`,
       level: 'INFO'
     });
     this.cdr.detectChanges();
@@ -2108,7 +2232,7 @@ export class Admin implements OnInit, OnDestroy {
       actor: this.adminUser.email,
       action: 'OVERCAPACITY_DETECTED',
       target: `${this.occActiveBooking.code} - ${this.occSelectedSpace?.name}`,
-      details: `FlexSpace AI phát hiện ${this.occCurrentCount} người (vượt ${this.occOverCapacityCount} người so với đăng ký ${this.occActiveBooking.attendees} người). Đã ghi nhận phụ phí và cảnh báo sử dụng vượt quá thỏa thuận.`,
+      details: `UEL Space AI phát hiện ${this.occCurrentCount} người (vượt ${this.occOverCapacityCount} người so với đăng ký ${this.occActiveBooking.attendees} người). Đã ghi nhận phụ phí và cảnh báo sử dụng vượt quá thỏa thuận.`,
       level: 'WARNING'
     });
     this.cdr.detectChanges();

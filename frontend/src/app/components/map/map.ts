@@ -27,12 +27,12 @@ export class Map implements OnInit, AfterViewInit {
 
   categories = [
     { id: 'all', name: 'Tất cả' },
-    { id: 'giang-duong', name: 'Giảng đường' },
-    { id: 'thu-vien', name: 'Thư viện' },
-    { id: 'phong-hoc', name: 'Phòng học' },
-    { id: 'phong-hop', name: 'Phòng họp' },
-    { id: 'khu-tu-hoc', name: 'Khu tự học' },
-    { id: 'clb', name: 'CLB - Đội nhóm' }
+    { id: 'phong-hop', name: 'Phòng họp VIP' },
+    { id: 'van-phong', name: 'Văn phòng riêng' },
+    { id: 'hot-desk', name: 'Bàn làm việc linh hoạt' },
+    { id: 'su-kien', name: 'Không gian sự kiện' },
+    { id: 'pod', name: 'Meeting Pod cách âm' },
+    { id: 'studio', name: 'Studio sáng tạo' }
   ];
 
   statuses = [
@@ -44,13 +44,13 @@ export class Map implements OnInit, AfterViewInit {
   ];
 
   buildings = [
-    { id: 'toa-a', name: 'Tòa A', top: '58%', left: '55%' },
-    { id: 'toa-b1', name: 'Tòa B1', top: '61%', left: '68%' },
-    { id: 'toa-b2', name: 'Tòa B2', top: '61%', left: '76%' },
-    { id: 'thu-vien', name: 'Thư viện', top: '41%', left: '53%' },
-    { id: 'choi-1', name: 'Chòi tự học 1', top: '72%', left: '33%' },
-    { id: 'choi-2', name: 'Chòi tự học 2', top: '55%', left: '63%' },
-    { id: 'choi-3', name: 'Chòi tự học 3', top: '55%', left: '70%' }
+    { id: 'central-tower', name: 'Central Tower Q.1', top: '58%', left: '55%' },
+    { id: 'techpark', name: 'TechPark Executive', top: '61%', left: '68%' },
+    { id: 'innovation-hub', name: 'Innovation Hub Q.2', top: '61%', left: '76%' },
+    { id: 'landmark-lounge', name: 'Landmark Lounge', top: '41%', left: '53%' },
+    { id: 'green-office', name: 'Green Office Suites', top: '72%', left: '33%' },
+    { id: 'creative-hub', name: 'Creative Hub Center', top: '55%', left: '63%' },
+    { id: 'startup-space', name: 'Startup Pod Hub', top: '55%', left: '70%' }
   ];
 
   isMobileFilterOpen: boolean = false;
@@ -70,7 +70,7 @@ export class Map implements OnInit, AfterViewInit {
       { code: 'restricted', text: 'Hạn chế' }
     ];
 
-    const types = ['Phòng học', 'Giảng đường', 'Phòng họp', 'Khu tự học', 'Thư viện'];
+    const types = ['Phòng họp VIP', 'Văn phòng riêng', 'Bàn làm việc linh hoạt', 'Không gian sự kiện', 'Meeting Pod cách âm', 'Studio sáng tạo'];
 
     return Array.from({ length: count }, (_, i) => {
       const roomNum = 101 + i;
@@ -89,38 +89,39 @@ export class Map implements OnInit, AfterViewInit {
       const roomType = forcedType || types[Math.floor(Math.random() * types.length)];
       const floorNum = Math.floor(roomNum / 100);
 
-      let hourlyPrice = 60000;
-      if (roomType === 'Giảng đường') hourlyPrice = 200000;
-      else if (roomType === 'Phòng họp') hourlyPrice = 120000;
-      else if (roomType === 'Thư viện' || roomType === 'Khu tự học') hourlyPrice = 30000;
-      else if (roomType === 'CLB - Đội nhóm') hourlyPrice = 50000;
+      let hourlyPrice = 150000;
+      if (roomType === 'Không gian sự kiện') hourlyPrice = 450000;
+      else if (roomType === 'Phòng họp VIP') hourlyPrice = 250000;
+      else if (roomType === 'Văn phòng riêng') hourlyPrice = 180000;
+      else if (roomType === 'Bàn làm việc linh hoạt') hourlyPrice = 35000;
+      else if (roomType === 'Meeting Pod cách âm') hourlyPrice = 70000;
 
       let currentActivity = '';
       let expectedFreeTime = '';
       if (statusObj.code === 'in-use') {
-        currentActivity = 'Đang có nhóm sinh viên K23 học tập & thảo luận';
+        currentActivity = 'Đang có doanh nghiệp đối tác họp chiến lược';
         expectedFreeTime = 'Dự kiến trống lúc 15:00';
       } else if (statusObj.code === 'reserved') {
-        currentActivity = 'Đã có bạn đăng ký giữ chỗ trước qua App UEL Space';
+        currentActivity = 'Đã có khách thuê đặt trước qua nền tảng UEL Space';
         expectedFreeTime = 'Khả dụng sau ca 17:15';
       } else if (statusObj.code === 'maintenance' || statusObj.code === 'restricted') {
-        currentActivity = 'Đang kiểm tra bảo dưỡng thiết bị máy lạnh & đường truyền';
+        currentActivity = 'Đang kiểm tra bảo dưỡng định kỳ hệ thống mạng & AI Camera';
         expectedFreeTime = 'Tạm ngưng nhận lịch hôm nay';
       } else {
-        currentActivity = 'Phòng hiện hoàn toàn trống, sẵn sàng đăng ký sử dụng ngay';
+        currentActivity = 'Không gian hiện hoàn toàn trống, sẵn sàng tiếp nhận đặt chỗ ngay';
         expectedFreeTime = 'Khả dụng cả ngày';
       }
 
       return {
-        name: `P.${roomNum}`,
+        name: `Không gian ${roomNum}`,
         number: `${roomNum}`,
-        capacity: Math.floor(Math.random() * 50) + 20,
+        capacity: Math.floor(Math.random() * 40) + 10,
         status: statusObj.code,
         statusText: statusObj.text,
         type: roomType,
         floor: `Tầng ${floorNum}`,
         hourlyPrice: hourlyPrice,
-        facilities: ['Máy chiếu sắc nét', 'Điều hòa 2 chiều', 'Wifi UEL Free', 'Ổ cắm điện từng bàn', 'Bảng viết'],
+        facilities: ['AI Occupancy Detection', 'Màn hình 4K', 'Cáp quang 1Gbps', 'Bảng kính tương tác', 'Máy pha cà phê'],
         currentActivity: currentActivity,
         expectedFreeTime: expectedFreeTime,
         todaySlots: [
@@ -162,11 +163,11 @@ export class Map implements OnInit, AfterViewInit {
     };
   }
 
-  // Student info & schedule cross-reference
+  // Client info & schedule cross-reference
   studentInfo = {
-    name: 'Nguyễn Minh Quân',
-    id: 'K224011823',
-    major: 'Kinh tế Quốc tế • K22'
+    name: 'Nguyễn Trần Kim Giang',
+    id: 'MBR-9821',
+    major: 'TechFlow Solutions • Doanh nghiệp thành viên'
   };
 
   bookingSlots = [
@@ -194,17 +195,17 @@ export class Map implements OnInit, AfterViewInit {
     {
       id: 'sched-1',
       time: '07:30 - 11:45',
-      title: 'Kinh tế lượng ứng dụng',
-      room: 'B1.202',
-      lecturer: 'TS. Lê Hoàng Minh',
-      type: 'class',
+      title: 'Họp chiến lược Ban Điều Hành quý IV',
+      room: 'Boardroom VIP B1',
+      lecturer: 'Chủ trì: CEO',
+      type: 'meeting',
       isBusy: true,
       conflictsWith: ['slot-1', 'slot-2']
     },
     {
       id: 'sched-2',
       time: '11:45 - 13:00',
-      title: 'Nghỉ trưa',
+      title: 'Nghỉ trưa & Networking Cafe',
       room: '',
       type: 'free',
       isBusy: false,
@@ -213,7 +214,7 @@ export class Map implements OnInit, AfterViewInit {
     {
       id: 'sched-3',
       time: '13:00 - 15:00',
-      title: 'Trống lịch học (Giờ tự học)',
+      title: 'Trống lịch (Khung giờ lý tưởng thuê phòng)',
       room: '',
       type: 'free',
       isBusy: false,
@@ -222,17 +223,17 @@ export class Map implements OnInit, AfterViewInit {
     {
       id: 'sched-4',
       time: '15:15 - 17:15',
-      title: 'Pháp luật đại cương',
-      room: 'A1.305',
-      lecturer: 'ThS. Trần Thị Mai',
-      type: 'class',
+      title: 'Làm việc cùng Quỹ Đầu Tư mạo hiểm',
+      room: 'Private Suite A2',
+      lecturer: 'Đối tác VCs',
+      type: 'meeting',
       isBusy: true,
       conflictsWith: ['slot-4']
     },
     {
       id: 'sched-5',
       time: '17:30 - 20:00',
-      title: 'Trống lịch học (Tự do)',
+      title: 'Trống lịch (Tự do làm việc cá nhân)',
       room: '',
       type: 'free',
       isBusy: false,

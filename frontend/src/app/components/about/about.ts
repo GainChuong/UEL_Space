@@ -36,28 +36,28 @@ export class About {
   activeChapter = 'chapter-1';
 
   chapters: ChapterNavItem[] = [
-    { id: 'chapter-1', index: '01', title: 'Xuất phát điểm' },
-    { id: 'chapter-2', index: '02', title: 'Điểm nóng thực tế' },
-    { id: 'chapter-3', index: '03', title: 'Lời giải công nghệ' },
-    { id: 'chapter-4', index: '04', title: 'Tầm nhìn dữ liệu' }
+    { id: 'chapter-1', index: '01', title: 'Nghịch lý lãng phí' },
+    { id: 'chapter-2', index: '02', title: 'Mô hình Marketplace' },
+    { id: 'chapter-3', index: '03', title: 'AI Occupancy' },
+    { id: 'chapter-4', index: '04', title: 'Kinh tế chia sẻ B2B' }
   ];
 
-  // Photo archives for chapters (ITB Club style interactive photo carousel)
+  // Photo archives for chapters (Interactive photo carousel)
   chapterArchives: { [key: string]: ChapterArchive } = {
     origin: {
       currentIndex: 0,
       photos: [
         {
           src: SERVER_IMAGES_LINK + 'homepage_banner.png',
-          tag: 'Khuôn viên UEL',
-          caption: 'Khuôn viên Trường Đại học Kinh tế - Luật',
-          subcaption: 'Không gian đào tạo hiện đại với hàng chục ngàn lượt sinh viên mỗi ngày'
+          tag: 'Nghịch lý công suất',
+          caption: 'Hàng ngàn m² văn phòng bỏ trống ngoài giờ',
+          subcaption: 'Nhiều doanh nghiệp chỉ sử dụng 40-60% công suất phòng họp, trong khi startup thiếu không gian linh hoạt'
         },
         {
           src: SERVER_IMAGES_LINK + 'login/carousel_2.jpg',
-          tag: 'Giảng đường A & B',
-          caption: 'Khu phức hợp phòng học & Hội trường',
-          subcaption: 'Nơi diễn ra hàng trăm buổi học và sự kiện phong trào hàng tuần'
+          tag: 'Nhu cầu thuê ngắn hạn',
+          caption: 'Cá nhân & Startup cần nơi làm việc theo giờ',
+          subcaption: 'Nhu cầu hội họp đối tác, workshop chuyên nghiệp với chi phí linh hoạt và tiện nghi đầy đủ'
         }
       ]
     },
@@ -66,15 +66,15 @@ export class About {
       photos: [
         {
           src: SERVER_IMAGES_LINK + 'demo_space_card.png',
-          tag: 'Thư viện & Khu tự học',
-          caption: 'Góc tự học & Thảo luận nhóm sinh viên',
-          subcaption: 'Điểm nóng nhu cầu chỗ ngồi cao điểm trong các kỳ thi'
+          tag: 'Sàn chia sẻ B2B',
+          caption: 'Kết nối Chủ sở hữu & Khách thuê tức thì',
+          subcaption: 'Hỗ trợ chủ không gian quản lý phòng, niêm yết giá thuê, quản lý lịch đặt và tăng trưởng doanh thu'
         },
         {
           src: SERVER_IMAGES_LINK + 'login/carousel_1.jpg',
-          tag: 'Học tập nhóm',
-          caption: 'Sinh viên UEL tìm kiếm không gian yên tĩnh',
-          subcaption: 'Nhu cầu biết trước mật độ và chỗ trống trước khi di chuyển đến trường'
+          tag: 'Trải nghiệm số hóa',
+          caption: 'Tìm kiếm, đặt chỗ & thanh toán trực tuyến',
+          subcaption: 'Tích hợp thanh toán MoMo Sandbox và xuất file đồng bộ Google Calendar chỉ với 1 click'
         }
       ]
     },
@@ -83,15 +83,15 @@ export class About {
       photos: [
         {
           src: SERVER_IMAGES_LINK + 'main_map.png',
-          tag: 'Bản đồ số UEL Space',
-          caption: 'Sơ đồ định vị thời gian thực',
-          subcaption: 'Số hóa vị trí từng phòng học, tòa nhà và chòi tự học'
+          tag: 'AI Occupancy Detection',
+          caption: 'Thị giác máy tính giám sát hiện diện thực tế',
+          subcaption: 'Ước tính số người có mặt, đối chiếu với số lượng đăng ký để phát hiện vượt tải và cảnh báo quá giờ'
         },
         {
           src: SERVER_IMAGES_LINK + 'demo_space_card.png',
-          tag: 'Kiểm soát Check-in',
-          caption: 'Cơ chế giải phóng chỗ thông minh',
-          subcaption: 'Tự động hủy đặt phòng nếu quá 15 phút không quét mã QR nhận chỗ'
+          tag: 'Giải phóng phòng sớm',
+          caption: 'Tự động mở lại slot trống khi khách về sớm',
+          subcaption: 'Khi AI nhận diện khách rời phòng sớm, hệ thống xác nhận checkout và mở khung giờ cho khách tiếp theo'
         }
       ]
     }
@@ -100,26 +100,26 @@ export class About {
   keyPillars = [
     {
       number: '01',
-      title: 'Lọc Đa Tiêu Chí',
-      desc: 'Tìm phòng theo giờ, sức chứa, thiết bị (máy chiếu, máy lạnh) và mục đích chỉ trong 3 giây.',
-      badge: 'Tìm kiếm nhanh'
+      title: 'Sàn Marketplace Đa Dạng',
+      desc: 'Tìm kiếm & đặt phòng họp VIP, văn phòng riêng, hot desk theo giờ hoặc ngày chỉ trong vài giây.',
+      badge: 'Đặt chỗ tức thì'
     },
     {
       number: '02',
-      title: 'Check-in & Chống No-show',
-      desc: 'Quét QR xác nhận có mặt; tự động hủy giữ chỗ nếu quá 15 phút không đến nhận phòng.',
-      badge: 'Chống giữ chỗ ảo'
+      title: 'AI Occupancy Detection',
+      desc: 'Thị giác máy tính giám sát số người thực tế, đối chiếu hợp đồng, phát hiện vượt tải và cảnh báo quá giờ.',
+      badge: 'Công nghệ AI độc quyền'
     },
     {
       number: '03',
-      title: 'Bản Đồ Mật Độ Trực Quan',
-      desc: 'Xem sơ đồ ghế trống thư viện và phòng học thời gian thực trước khi di chuyển.',
-      badge: 'Bản đồ trực tiếp'
+      title: 'Giải Phóng Slot Trống Sớm',
+      desc: 'AI phát hiện khách rời phòng sớm, tự động hoàn tất check-out và mở lại khung giờ cho khách hàng mới.',
+      badge: 'Tối ưu công suất'
     },
     {
       number: '04',
-      title: 'Báo Cáo & Quản Trị Dữ Liệu',
-      desc: 'Cung cấp số liệu giờ cao điểm, tỷ lệ lấp đầy phòng giúp nhà trường tối ưu vận hành.',
+      title: 'Đồng Bộ Lịch & Doanh Thu',
+      desc: 'Tích hợp Google Calendar 1-click, quản lý doanh thu minh bạch và báo cáo hiệu suất khai thác cho chủ không gian.',
       badge: 'Quản trị thông minh'
     }
   ];

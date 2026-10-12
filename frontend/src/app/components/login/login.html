@@ -35,7 +35,7 @@
       </h1>
 
       <p class="text-white/90 text-xs sm:text-base leading-relaxed mb-4 sm:mb-6 font-medium max-w-xl drop-shadow-sm">
-        {{ 'Trải nghiệm đặt phòng học tập, giảng đường và khu vực tự học hiện đại, tiện nghi ngay tại khuôn viên Trường Đại học' | t }} <span class="whitespace-nowrap font-bold text-white">{{ 'Kinh tế - Luật' | t }}</span>.
+        {{ 'Nền tảng chia sẻ & cho thuê văn phòng thông minh kết nối doanh nghiệp sở hữu không gian với cá nhân, startup và tổ chức, ứng dụng AI giám sát công suất thực tế.' | t }}
       </p>
     </div>
 
@@ -58,7 +58,7 @@
       <!-- Header of Card -->
       <div class="mb-6">
         <h2 class="text-3xl font-black text-dark-text dark:text-white tracking-tight mb-2">{{ 'Đăng nhập' | t }}</h2>
-        <p class="text-sm font-medium text-text-muted dark:text-slate-400">{{ 'Truy cập không gian số UEL bằng tài khoản sinh viên hoặc giảng viên.' | t }}</p>
+        <p class="text-sm font-medium text-text-muted dark:text-slate-400">{{ 'Khám phá và đặt chỗ văn phòng, phòng họp hoặc quản lý không gian của bạn trên UEL Space.' | t }}</p>
       </div>
 
       <!-- Portal Type Badge / Switcher -->
@@ -67,15 +67,15 @@
                 (click)="portalRole = 'student'"
                 [ngClass]="portalRole === 'student' ? 'bg-white dark:bg-slate-700 text-uel-blue dark:text-sky-300 shadow-xs font-black' : 'text-text-muted dark:text-slate-400 font-bold hover:text-dark-text dark:hover:text-white'"
                 class="flex-1 py-2 rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-          {{ 'Portal - Sinh viên' | t }}
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          {{ 'Khách thuê / Doanh nghiệp' | t }}
         </button>
         <button type="button" 
                 (click)="portalRole = 'lecturer'"
                 [ngClass]="portalRole === 'lecturer' ? 'bg-white dark:bg-slate-700 text-uel-blue dark:text-sky-300 shadow-xs font-black' : 'text-text-muted dark:text-slate-400 font-bold hover:text-dark-text dark:hover:text-white'"
                 class="flex-1 py-2 rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          {{ 'Giảng viên / CBVC' | t }}
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M19 21v-4"/><path d="M19 17b2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v4"/><circle cx="12" cy="7" r="4"/></svg>
+          {{ 'Đối tác sở hữu không gian' | t }}
         </button>
       </div>
 
@@ -110,16 +110,16 @@
           <label class="block text-xs font-bold text-dark-text dark:text-white mb-2 flex items-center justify-between">
             <span class="flex items-center gap-1.5">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="text-uel-blue dark:text-sky-400"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
-              {{ 'Tên đăng nhập hoặc email trường' | t }}
+              {{ 'Tài khoản hoặc Email công ty' | t }}
             </span>
-            <span class="text-[11px] font-normal text-text-muted dark:text-slate-400">({{ '@uel.edu.vn hoặc @st.uel.edu.vn' | t }})</span>
+            <span class="text-[11px] font-normal text-text-muted dark:text-slate-400">({{ 'Doanh nghiệp, cá nhân hoặc đối tác' | t }})</span>
           </label>
           <div class="relative">
             <input type="text"
                    [(ngModel)]="username"
                    name="username"
                    required
-                    [placeholder]="'Nhập MSSV hoặc email @st.uel.edu.vn' | t"
+                    [placeholder]="'Nhập email của bạn (VD: name@company.com)' | t"
                    class="w-full bg-[#F8FAFC] dark:bg-slate-800 border border-[#CBD5E1] dark:border-slate-700 rounded-2xl px-4 py-3.5 text-sm font-semibold text-dark-text dark:text-white placeholder:text-[#94A3B8] dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:border-uel-blue focus:ring-2 focus:ring-uel-blue/20 transition-all shadow-xs">
           </div>
         </div>
@@ -177,7 +177,7 @@
       <div class="relative my-6">
         <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-border-gray dark:border-slate-700"></div></div>
         <div class="relative flex justify-center text-[11px] font-bold uppercase tracking-wider text-text-muted dark:text-slate-400 bg-white dark:bg-slate-900 px-3">
-          {{ 'Hoặc đăng nhập với Google UEL' | t }}
+          {{ 'Hoặc đăng nhập nhanh với Google' | t }}
         </div>
       </div>
 
@@ -192,7 +192,7 @@
           <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
           <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
         </svg>
-        <span>{{ 'Đăng nhập bằng tài khoản Google UEL' | t }}</span>
+        <span>{{ 'Đăng nhập bằng tài khoản Google' | t }}</span>
       </button>
 
       <!-- Quick Admin Fast Login -->
@@ -200,9 +200,9 @@
         <div class="text-xs text-amber-900 dark:text-amber-200 leading-tight">
           <div class="font-bold flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-            {{ 'Tài khoản Quản trị viên UEL' | t }}
+            {{ 'Tài khoản Quản trị viên UEL Space' | t }}
           </div>
-          <div class="text-[11px] text-amber-700 dark:text-amber-400 font-mono mt-0.5">admin@uel.edu.vn</div>
+          <div class="text-[11px] text-amber-700 dark:text-amber-400 font-mono mt-0.5">admin@uelspace.vn</div>
         </div>
         <button type="button"
                 (click)="fillAdminMockup()"
@@ -217,7 +217,7 @@
     <div class="mt-8 pt-6 border-t border-border-gray/70 dark:border-slate-800 text-xs text-text-muted dark:text-slate-400 space-y-1.5">
       <div class="flex items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-uel-blue dark:text-sky-400 shrink-0"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-        <span>Số 669 Đỗ Mười, khu phố 3, P. Linh Xuân, TP.HCM</span>
+        <span>{{ 'Trụ sở chính: Số 669 Đỗ Mười, P. Linh Xuân, TP.HCM | Hub đối tác toàn quốc' | t }}</span>
       </div>
       <div class="flex items-center justify-between text-[11px] pt-1">
         <span class="flex items-center gap-1.5">

@@ -18,32 +18,26 @@ class AuthService {
   mapRole(email) {
     const normalized = email.toLowerCase();
     if (env.adminEmails.includes(normalized) || normalized.startsWith('admin')) {
-      return { role: ROLES.ADMIN, organizationName: 'Ban Quản lý Hạ tầng & Cơ sở vật chất UEL' };
+      return { role: ROLES.ADMIN, organizationName: 'Ban Quản Trị Hệ Thống UEL Space' };
     }
-    if (normalized.endsWith('@uel.edu.vn')) {
-      return { role: ROLES.LECTURER, organizationName: 'Giảng viên - Trường Đại học Kinh tế - Luật' };
+    if (normalized.endsWith('@company.com') || normalized.includes('host') || normalized.includes('partner') || normalized.includes('corp')) {
+      return { role: ROLES.LECTURER, organizationName: 'Đơn Vị Sở Hữu Không Gian (Host Partner)' };
     }
-    return { role: ROLES.STUDENT, organizationName: 'Trường Đại học Kinh tế - Luật (UEL)' };
+    return { role: ROLES.STUDENT, organizationName: 'Doanh Nghiệp & Khách Thuê (UEL Space Member)' };
   }
 
   buildCode(email, role) {
     const local = email.split('@')[0];
     if (role === ROLES.ADMIN) return 'ADMIN-001';
-    if (role === ROLES.STUDENT) return local.toUpperCase();
-    return `GV-${local.toUpperCase()}`;
+    if (role === ROLES.LECTURER) return `HOST-${local.toUpperCase()}`;
+    return `MBR-${local.toUpperCase()}`;
   }
 
   assertAllowedDomain(email) {
+    // FlexSpace AI Marketplace: Mở tự do cho mọi email Google (Cá nhân, Doanh nghiệp)
     const normalized = (email || '').trim().toLowerCase();
-    if (env.adminEmails.includes(normalized)) {
-      return;
-    }
-    if (!ALLOWED_DOMAIN_REGEX.test(normalized)) {
-      throw new AppError(
-        403,
-        'EMAIL_DOMAIN_REJECTED',
-        `Tài khoản (${email}) bị từ chối! Hệ thống chỉ chấp nhận tài khoản thuộc @uel.edu.vn hoặc @st.uel.edu.vn.`
-      );
+    if (!normalized || !normalized.includes('@')) {
+      throw new AppError(400, 'INVALID_EMAIL', 'Địa chỉ email không hợp lệ.');
     }
   }
 

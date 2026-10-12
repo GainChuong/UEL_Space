@@ -26,8 +26,8 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
   private autoSlideInterval: any;
 
   // Form State
-  portalRole: 'student' | 'lecturer' = 'student';
-  username: string = 'giangnntk24411@st.uel.edu.vn';
+  portalRole: 'student' | 'lecturer' = 'student'; // 'student' = Khách thuê doanh nghiệp, 'lecturer' = Chủ không gian/Host Partner
+  username: string = 'member@techflow.vn';
   password: string = '••••••••••••';
   rememberMe: boolean = true;
   showPassword: boolean = false;
@@ -42,7 +42,7 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
   showDevTestModal: boolean = false;
   testCustomEmail: string = '';
 
-  // Trạng thái thông báo từ chối tên miền email Google
+  // Trạng thái thông báo
   domainAlert = {
     isOpen: false,
     email: '',
@@ -173,25 +173,24 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  // Tạo Profile người dùng UEL chuẩn khi Backend Cloud offline
+  // Tạo Profile người dùng UEL Space chuẩn (hỗ trợ mọi email doanh nghiệp, cá nhân và đối tác)
   private createSmartFallbackUser(email: string, name?: string, picture?: string): UserProfile | null {
     const cleanEmail = (email || '').trim().toLowerCase();
-    const isLecturer = cleanEmail.endsWith('@uel.edu.vn');
-    const isStudent = cleanEmail.endsWith('@st.uel.edu.vn');
-    const isAdmin = cleanEmail.startsWith('admin') || cleanEmail.includes('admin@uel.edu.vn') || cleanEmail.includes('quantri@uel.edu.vn') || cleanEmail === 'gameyuno123@gmail.com';
-
-    if (!isLecturer && !isStudent && !isAdmin) {
+    if (!cleanEmail || !cleanEmail.includes('@')) {
       return null;
     }
 
-    const role: 'ADMIN' | 'LECTURER' | 'STUDENT' = isAdmin ? 'ADMIN' : (isLecturer ? 'LECTURER' : 'STUDENT');
+    const isAdmin = cleanEmail.startsWith('admin') || cleanEmail.includes('admin@') || cleanEmail.includes('quantri@') || cleanEmail === 'gameyuno123@gmail.com';
+    const isHost = cleanEmail.includes('host') || cleanEmail.includes('partner') || this.portalRole === 'lecturer';
+
+    const role: 'ADMIN' | 'LECTURER' | 'STUDENT' = isAdmin ? 'ADMIN' : (isHost ? 'LECTURER' : 'STUDENT');
     const organization = isAdmin 
-      ? 'Ban Quản trị Cơ sở vật chất UEL' 
-      : (isLecturer ? 'Giảng viên - Trường ĐH Kinh tế - Luật' : 'Sinh viên UEL');
+      ? 'Ban Quản Trị Hệ Thống UEL Space' 
+      : (isHost ? 'Đối tác sở hữu không gian (Host Partner)' : 'Doanh nghiệp & Khách thuê (UEL Space Member)');
 
     return {
       id: cleanEmail.split('@')[0].toUpperCase(),
-      name: name || cleanEmail.split('@')[0],
+      name: name || (cleanEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase())),
       email: cleanEmail,
       role: role,
       organization: organization,
@@ -428,10 +427,12 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
 
     let enteredEmail = this.username.trim().toLowerCase();
     if (!enteredEmail.includes('@')) {
-      enteredEmail += this.portalRole === 'lecturer' ? '@uel.edu.vn' : '@st.uel.edu.vn';
+      enteredEmail += this.portalRole === 'lecturer' ? '@host.uelspace.vn' : '@techflow.vn';
     }
 
-    const displayName = enteredEmail.includes('admin') ? 'Quản trị viên UEL' : (this.portalRole === 'lecturer' ? 'ThS. Giảng viên UEL' : 'Sinh viên UEL');
+    const displayName = enteredEmail.includes('admin') 
+      ? 'Quản trị viên UEL Space' 
+      : (this.portalRole === 'lecturer' ? 'Đối tác Quản lý Không gian' : 'Đại diện Doanh nghiệp');
 
     // Gửi xác thực qua backend
     this.http.post<any>(AUTH_GOOGLE_URL, {
@@ -449,19 +450,12 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
       },
       error: (err) => {
         this.isLoading = false;
-        const serverErrorCode = err.error?.error?.code;
-        const serverErrorMsg = err.error?.error?.message || err.error?.message;
-        if (serverErrorCode === 'EMAIL_DOMAIN_REJECTED' || err.status === 403) {
-          this.triggerDomainRejectionNotice(enteredEmail, serverErrorMsg);
-          return;
-        }
-
-        // Fallback: Khi backend offline, kiểm tra domain hợp lệ để cho đăng nhập
+        // Fallback: Khi backend offline, tự tạo profile hợp lệ
         const fallback = this.createSmartFallbackUser(enteredEmail, displayName);
         if (fallback) {
           this.handleAuthSuccess(fallback);
         } else {
-          this.triggerDomainRejectionNotice(enteredEmail, serverErrorMsg);
+          this.errorMessage = this.i18n.t('Đăng nhập thất bại, vui lòng kiểm tra lại email!');
         }
       }
     });
@@ -499,8 +493,8 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
   }
 
   fillAdminMockup(): void {
-    this.username = 'admin@uel.edu.vn';
-    this.password = 'Admin@UEL2026';
+    this.username = 'admin@uelspace.vn';
+    this.password = 'Admin@UELSpace2026';
     this.handleLogin();
   }
 }

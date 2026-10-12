@@ -21,7 +21,7 @@
         </h1>
         
         <p class="text-sm sm:text-base lg:text-xl font-medium text-white/90 mb-6 sm:mb-10 max-w-[500px] leading-relaxed drop-shadow-sm">
-          {{ 'Khám phá, đặt chỗ và sử dụng không gian trong khuôn viên UEL một cách thông minh và hiệu quả.' | t }}
+          {{ 'Sàn thương mại điện tử chia sẻ văn phòng, phòng họp và bàn làm việc ngắn hạn, tối ưu công suất khai thác cùng công nghệ AI Occupancy.' | t }}
         </p>
 
         <!-- Search & Filter Container -->
@@ -31,7 +31,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" class="shrink-0"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
             <input type="text"
                    [(ngModel)]="searchQuery"
-                   [placeholder]="'Tìm phòng, thư viện, khu vực...' | t"
+                   [placeholder]="'Tìm phòng họp, bàn làm việc, tòa nhà văn phòng đối tác...' | t"
                    class="flex-1 bg-transparent border-none outline-none text-[#111827] dark:text-white placeholder:text-[#9CA3AF] dark:placeholder:text-slate-500 text-sm sm:text-[17px] font-medium px-3 sm:px-4 h-full">
             <button class="shrink-0 text-uel-blue dark:text-sky-400 hover:text-sky-blue transition-colors cursor-pointer" routerLink="/map">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
@@ -302,7 +302,7 @@
                   </span>
                 </div>
                 <p class="text-xs text-text-muted dark:text-slate-400 font-medium mt-0.5">
-                  {{ selectedRoomDetail.building | t }} • {{ 'Khuôn viên UEL' | t }}
+                  {{ selectedRoomDetail.building | t }} • {{ 'Mạng lưới UEL Space' | t }}
                 </p>
               </div>
             </div>
@@ -583,7 +583,7 @@
 
             <div class="inline-flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-3.5 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-800">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              {{ 'Đã ghi nhận' | t }} • {{ 'Đã liên kết Lịch sinh viên UEL' | t }}
+              {{ 'Đã ghi nhận' | t }} • {{ 'Đã đồng bộ Lịch làm việc Google Calendar' | t }}
             </div>
 
             <!-- Google Calendar & Apple/Outlook Sync Actions -->

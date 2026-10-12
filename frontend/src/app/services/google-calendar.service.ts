@@ -22,20 +22,20 @@ export class GoogleCalendarService {
    * Tạo URL thêm sự kiện 1-Click vào Google Calendar Web / Mobile App
    */
   generateGoogleCalendarUrl(event: CalendarEventData): string {
-    const title = event.title || `[UEL SPACE] Mượn phòng ${event.roomName} - ${event.purpose || 'Học tập / Nghiên cứu'}`;
-    const location = event.location || `Phòng ${event.roomName}, ${event.building || 'Tòa nhà A/B'}, Trường ĐH Kinh tế - Luật (UEL), Số 669 Đỗ Mười, P. Linh Xuân, TP.HCM`;
+    const title = event.title || `[UEL Space] Thuê ${event.roomName} - ${event.purpose || 'Hội họp & Làm việc'}`;
+    const location = event.location || `Phòng ${event.roomName}, ${event.building || 'Tòa nhà văn phòng đối tác'}, Hệ thống UEL Space, TP.HCM`;
     
     const details = event.details || [
-      `🏛️ Đơn vị: Trường Đại học Kinh tế - Luật (UEL)`,
-      `📍 Không gian: Phòng ${event.roomName} (${event.building || 'Cơ sở chính'})`,
-      `🎟️ Mã xác nhận vé: ${event.code || 'UEL-88392'}`,
-      `👤 Người đăng ký: ${event.bookerName || 'Sinh viên UEL'}`,
-      `⏰ Khung giờ sử dụng: ${event.timeSlot || 'Ca học chính khóa'}`,
-      `📌 Mục đích: ${event.purpose || 'Học tập và sinh hoạt nhóm'}`,
+      `🏢 Nền tảng: UEL Space - Smart Office Sharing & Rental Platform`,
+      `📍 Không gian: ${event.roomName} (${event.building || 'Tòa nhà đối tác'})`,
+      `🎟️ Mã đặt chỗ: ${event.code || 'UEL-88392'}`,
+      `👤 Khách thuê / Doanh nghiệp: ${event.bookerName || 'Khách thuê UEL Space Member'}`,
+      `⏰ Khung giờ thuê: ${event.timeSlot || 'Khung giờ linh hoạt'}`,
+      `📌 Mục đích: ${event.purpose || 'Làm việc, hội họp hoặc tổ chức sự kiện'}`,
       `---------------------------------------`,
-      `⚠️ LƯU Ý CHECK-IN THỰC TẾ (F09/F21):`,
-      `• Vui lòng có mặt và Check-in mã QR tại kiosk trước 15 phút.`,
-      `• Nếu quá 15 phút chưa check-in, hệ thống sẽ tự động thu hồi phòng (No-show).`
+      `⚠️ LƯU Ý CHECK-IN & GIÁM SÁT AI OCCUPANCY:`,
+      `• Vui lòng quét mã QR tại cửa phòng để xác nhận hiện diện khi nhận phòng.`,
+      `• Hệ thống AI Occupancy tự động giám sát số lượng thực tế, cảnh báo quá giờ và hỗ trợ trả phòng sớm giải phóng chỗ.`
     ].join('\n');
 
     const { startFormatted, endFormatted } = this.formatCalendarDates(event.date, event.timeSlot);
@@ -109,9 +109,9 @@ export class GoogleCalendarService {
    * Tải file .ics chuẩn quốc tế cho Apple Calendar, Outlook và Google Calendar
    */
   downloadIcsFile(event: CalendarEventData): void {
-    const title = event.title || `[UEL SPACE] Mượn phòng ${event.roomName}`;
-    const location = event.location || `Phòng ${event.roomName}, Trường ĐH Kinh tế - Luật (UEL)`;
-    const description = (event.details || `Mã đặt chỗ: ${event.code || 'UEL-88392'} - Phòng ${event.roomName}`).replace(/\n/g, '\\n');
+    const title = event.title || `[UEL Space] Đặt phòng ${event.roomName}`;
+    const location = event.location || `Phòng ${event.roomName}, Hệ thống UEL Space`;
+    const description = (event.details || `Mã đặt chỗ: ${event.code || 'UEL-88392'} - Không gian ${event.roomName}`).replace(/\n/g, '\\n');
     
     const { startFormatted, endFormatted } = this.formatCalendarDates(event.date, event.timeSlot);
     const nowFormatted = this.formatUtcDate(new Date());
@@ -119,11 +119,11 @@ export class GoogleCalendarService {
     const icsContent = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//UEL SPACE//Campus Space Management//VI',
+      'PRODID:-//UEL Space//Smart Office Sharing Platform//VI',
       'CALSCALE:GREGORIAN',
       'METHOD:PUBLISH',
       'BEGIN:VEVENT',
-      `UID:uel-space-${Date.now()}@uel.edu.vn`,
+      `UID:uelspace-${Date.now()}@uelspace.vn`,
       `DTSTAMP:${nowFormatted}`,
       `DTSTART:${startFormatted}`,
       `DTEND:${endFormatted}`,
@@ -134,7 +134,7 @@ export class GoogleCalendarService {
       'BEGIN:VALARM',
       'TRIGGER:-PT15M',
       'ACTION:DISPLAY',
-      `DESCRIPTION:Nhắc nhở Check-in QR Phòng ${event.roomName}`,
+      `DESCRIPTION:Nhắc nhở Check-in Phòng ${event.roomName}`,
       'END:VALARM',
       'END:VEVENT',
       'END:VCALENDAR'
@@ -143,7 +143,7 @@ export class GoogleCalendarService {
     const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    link.setAttribute('download', `uel-space-${event.roomName}-${event.code || 'booking'}.ics`);
+    link.setAttribute('download', `uelspace-${event.roomName}-${event.code || 'booking'}.ics`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
