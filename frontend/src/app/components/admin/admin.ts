@@ -252,7 +252,6 @@ export class Admin implements OnInit, OnDestroy {
   occModelError: string = '';
   occModelName: string = 'Đang khởi tạo AI...';
   occSensitivity: 'high' | 'normal' | 'strict' = 'high';
-  occManualAdjustment: number = 0;
   occCameraActive: boolean = false;
   occStartingCamera: boolean = false;
   occVideoStream: MediaStream | null = null;
@@ -293,7 +292,6 @@ export class Admin implements OnInit, OnDestroy {
   occSurchargeApplied: boolean = false;
   occEarlyCheckoutDone: boolean = false;
   occOvercapacityHandled: boolean = false;
-  occSimulateOvertimeActive: boolean = false;
 
   // Rejection Modal State
   rejectModal: {
@@ -1628,7 +1626,6 @@ export class Admin implements OnInit, OnDestroy {
     this.occIsEarlyCheckoutSuggested = false;
     this.occIsOvertime = false;
     this.occIsOverCapacity = false;
-    this.occSimulateOvertimeActive = false;
 
     // Tự động liên kết đơn đặt chỗ thực tế của không gian này
     const matched = this.bookings.find(b => 
@@ -1679,14 +1676,6 @@ export class Admin implements OnInit, OnDestroy {
     this.occSensitivity = level;
     const label = level === 'high' ? 'Siêu nhạy (Webcam / Gần)' : (level === 'normal' ? 'Tiêu chuẩn' : 'Nghiêm ngặt');
     this.showToast(`${this.i18n.t('Đã chuyển độ nhạy AI:')} ${label}`, 'info');
-  }
-
-  adjustOccManualCount(delta: number): void {
-    this.occManualAdjustment += delta;
-    this.occCurrentCount = Math.max(0, this.occCurrentCount + delta);
-    this.evaluateFlexSpaceAiRules();
-    this.showToast(`${this.i18n.t('Mô phỏng sĩ số:')} ${this.occCurrentCount} ${this.i18n.t('người')}`, 'info');
-    this.cdr.detectChanges();
   }
 
   async loadOccupancyModel(): Promise<void> {
@@ -2411,7 +2400,7 @@ export class Admin implements OnInit, OnDestroy {
         }
       }
 
-      const count = Math.max(0, debouncedCount + this.occManualAdjustment);
+      const count = debouncedCount;
       const countChanged = this.occCurrentCount !== count;
       this.occFrameCount++;
 
@@ -2421,7 +2410,7 @@ export class Admin implements OnInit, OnDestroy {
           this.occCurrentCount = count;
           this.occConfidence = this.trackedPeople.length > 0
             ? Math.round(this.trackedPeople.reduce((sum, p) => sum + p.score, 0) / this.trackedPeople.length)
-            : (this.occManualAdjustment > 0 ? 90 : 0);
+            : 0;
 
           if (this.occCurrentCount > this.occPeakCount) {
             this.occPeakCount = this.occCurrentCount;
@@ -2473,9 +2462,9 @@ export class Admin implements OnInit, OnDestroy {
       }
     }
 
-    // 2. Kiểm tra Overtime (Sử dụng quá giờ)
+    // 2. Kiểm tra Overtime (Sử dụng quá giờ thực tế)
     if (!this.occEarlyCheckoutDone) {
-      const isOvertime = this.occSimulateOvertimeActive || this.checkBookingOvertime(this.occActiveBooking);
+      const isOvertime = this.checkBookingOvertime(this.occActiveBooking);
       if (isOvertime && this.occCurrentCount > 0) {
         this.occIsOvertime = true;
         this.occOvertimeMinutes = this.calculateOvertimeMinutes(this.occActiveBooking);
@@ -2525,7 +2514,6 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   private calculateOvertimeMinutes(booking: AdminBooking): number {
-    if (this.occSimulateOvertimeActive) return 25;
     try {
       const parts = booking.timeSlot.split('-');
       if (parts.length < 2) return 15;
@@ -2539,12 +2527,6 @@ export class Admin implements OnInit, OnDestroy {
     } catch {
       return 15;
     }
-  }
-
-  toggleSimulateOvertime(): void {
-    this.occSimulateOvertimeActive = !this.occSimulateOvertimeActive;
-    this.evaluateFlexSpaceAiRules();
-    this.showToast(this.occSimulateOvertimeActive ? 'Đã bật mô phỏng tình huống Quá giờ (+25 phút)' : 'Đã tắt mô phỏng Quá giờ', 'info');
   }
 
   applyOvertimeSurcharge(): void {
