@@ -77,7 +77,7 @@ export class Home implements OnInit {
       status: 'available',
       statusText: 'Trống',
       equipment: ['AI Occupancy', 'Màn hình 4K', 'Cáp quang 1Gbps', 'Micro hội nghị'],
-      image: SERVER_IMAGES_LINK + 'demo_space_card.png'
+      image: SERVER_IMAGES_LINK + 'spaces/space_a2_1_meeting_vip.jpg'
     },
     {
       id: 'a2-1',
@@ -91,7 +91,7 @@ export class Home implements OnInit {
       status: 'available',
       statusText: 'Trống',
       equipment: ['AI Occupancy', 'Điều hòa', 'Cáp quang 1Gbps', 'Bảng kính'],
-      image: SERVER_IMAGES_LINK + 'demo_space_card.png'
+      image: SERVER_IMAGES_LINK + 'spaces/space_b2_101_private_office.jpg'
     },
     {
       id: 'thu-vien-2',
@@ -105,7 +105,7 @@ export class Home implements OnInit {
       status: 'available',
       statusText: 'Trống',
       equipment: ['Cáp quang 1Gbps', 'Điều hòa', 'Ổ cắm điện', 'Tủ locker'],
-      image: SERVER_IMAGES_LINK + 'demo_space_card.png'
+      image: SERVER_IMAGES_LINK + 'spaces/space_thu_vien_coworking.jpg'
     },
     {
       id: 'a3-301',
@@ -119,7 +119,7 @@ export class Home implements OnInit {
       status: 'available',
       statusText: 'Trống',
       equipment: ['AI Occupancy', 'Màn hình 4K', 'Âm thanh vòm', 'Cáp quang 1Gbps'],
-      image: SERVER_IMAGES_LINK + 'demo_space_card.png'
+      image: SERVER_IMAGES_LINK + 'spaces/space_a3_301_event_hall.jpg'
     },
     {
       id: 'choi-1',
@@ -133,7 +133,7 @@ export class Home implements OnInit {
       status: 'available',
       statusText: 'Trống',
       equipment: ['Cách âm chuẩn', 'Màn hình họp trực tuyến', 'Cáp quang 1Gbps'],
-      image: SERVER_IMAGES_LINK + 'demo_space_card.png'
+      image: SERVER_IMAGES_LINK + 'spaces/space_choi_1_focus_pod.jpg'
     },
     {
       id: 'b2-101',
@@ -147,7 +147,7 @@ export class Home implements OnInit {
       status: 'available',
       statusText: 'Trống',
       equipment: ['AI Occupancy', 'Bảng tương tác', 'Cáp quang 1Gbps', 'Máy chiếu'],
-      image: SERVER_IMAGES_LINK + 'demo_space_card.png'
+      image: SERVER_IMAGES_LINK + 'spaces/space_a_105_creative_media.jpg'
     }
   ];
 

@@ -342,7 +342,7 @@ async function seed() {
         { id: 'eq-wifi', name: 'Wifi tốc độ cao', quantity: 1, condition: 'GOOD' },
         { id: 'eq-bang-tu', name: 'Bảng từ', quantity: 1, condition: 'GOOD' }
       ],
-      image: 'demo_space_card.png',
+      image: 'spaces/space_b1_104_lecture_hall.jpg',
       operatingHours: { open: '07:00', close: '21:00' },
       allowedUsers: 'ALL',
       policy: {
@@ -380,7 +380,7 @@ async function seed() {
         { id: 'eq-bang-tu', name: 'Bảng từ', quantity: 1, condition: 'GOOD' },
         { id: 'eq-tv-hop', name: 'TV họp trực tuyến', quantity: 1, condition: 'GOOD' }
       ],
-      image: 'demo_space_card.png',
+      image: 'spaces/space_a2_1_meeting_vip.jpg',
       operatingHours: { open: '08:00', close: '17:30' },
       allowedUsers: 'ALL',
       policy: {
@@ -417,7 +417,7 @@ async function seed() {
         { id: 'eq-dieu-hoa', name: 'Điều hòa', quantity: 6, condition: 'GOOD' },
         { id: 'eq-o-cam', name: 'Ổ cắm điện', quantity: 60, condition: 'GOOD' }
       ],
-      image: 'demo_space_card.png',
+      image: 'spaces/space_thu_vien_coworking.jpg',
       operatingHours: { open: '07:30', close: '20:30' },
       allowedUsers: 'ALL',
       policy: {
@@ -454,7 +454,7 @@ async function seed() {
         { id: 'eq-dieu-hoa', name: 'Điều hòa', quantity: 4, condition: 'GOOD' },
         { id: 'eq-micro', name: 'Micro không dây', quantity: 2, condition: 'GOOD' }
       ],
-      image: 'demo_space_card.png',
+      image: 'spaces/space_a3_301_event_hall.jpg',
       operatingHours: { open: '07:00', close: '21:00' },
       allowedUsers: 'ALL',
       policy: {
@@ -491,7 +491,7 @@ async function seed() {
         { id: 'eq-ban-go', name: 'Bàn ghế gỗ', quantity: 1, condition: 'GOOD' },
         { id: 'eq-o-cam', name: 'Ổ cắm điện', quantity: 4, condition: 'GOOD' }
       ],
-      image: 'demo_space_card.png',
+      image: 'spaces/space_choi_1_focus_pod.jpg',
       operatingHours: { open: '06:00', close: '22:00' },
       allowedUsers: 'ALL',
       policy: {
@@ -528,7 +528,7 @@ async function seed() {
         { id: 'eq-dieu-hoa', name: 'Điều hòa', quantity: 2, condition: 'GOOD' },
         { id: 'eq-wifi', name: 'Wifi tốc độ cao', quantity: 1, condition: 'GOOD' }
       ],
-      image: 'demo_space_card.png',
+      image: 'spaces/space_b2_101_private_office.jpg',
       operatingHours: { open: '07:00', close: '21:00' },
       allowedUsers: 'ALL',
       policy: {
@@ -565,7 +565,7 @@ async function seed() {
         { id: 'eq-may-chieu', name: 'Máy chiếu', quantity: 1, condition: 'GOOD' },
         { id: 'eq-dieu-hoa', name: 'Điều hòa', quantity: 2, condition: 'GOOD' }
       ],
-      image: 'demo_space_card.png',
+      image: 'spaces/space_b1_lab202_computer_lab.jpg',
       operatingHours: { open: '07:30', close: '17:30' },
       allowedUsers: 'ALL',
       policy: {
@@ -602,7 +602,7 @@ async function seed() {
         { id: 'eq-micro', name: 'Dàn âm thanh hội trường', quantity: 4, condition: 'GOOD' },
         { id: 'eq-dieu-hoa', name: 'Hệ thống lạnh trung tâm', quantity: 8, condition: 'GOOD' }
       ],
-      image: 'demo_space_card.png',
+      image: 'spaces/space_a_hoi_truong_grand.jpg',
       operatingHours: { open: '07:00', close: '22:00' },
       allowedUsers: 'ALL',
       policy: {

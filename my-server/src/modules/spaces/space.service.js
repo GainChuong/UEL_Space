@@ -96,7 +96,7 @@ class SpaceService {
       capacity,
       area: input.area !== undefined ? requireNumber(input.area, 'area', { min: 0 }) : (existing.area ?? 0),
       description: input.description !== undefined ? (optionalString(input.description, 'description') || '') : (existing.description || ''),
-      image: input.image !== undefined ? optionalString(input.image, 'image') : (existing.image || 'demo_space_card.png'),
+      image: input.image !== undefined ? optionalString(input.image, 'image') : (existing.image || 'spaces/space_a2_1_meeting_vip.jpg'),
       mapPosition: input.mapPosition ?? existing.mapPosition ?? null,
       allowedUsers: input.allowedUsers ?? existing.allowedUsers ?? 'ALL',
       operatingHours: input.operatingHours ?? existing.operatingHours ?? { open: '07:00', close: '21:00' },

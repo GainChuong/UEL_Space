@@ -70,7 +70,7 @@ function toLegacySpace(space) {
     status: decorated.statusKey,
     statusText: decorated.statusText,
     equipment: (decorated.equipment || []).map((item) => (typeof item === 'string' ? item : item.name)),
-    image: decorated.image || 'demo_space_card.png'
+    image: decorated.image || 'spaces/space_a2_1_meeting_vip.jpg'
   };
 }
 

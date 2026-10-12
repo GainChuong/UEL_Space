@@ -65,7 +65,7 @@ export class About {
       currentIndex: 0,
       photos: [
         {
-          src: SERVER_IMAGES_LINK + 'demo_space_card.png',
+          src: SERVER_IMAGES_LINK + 'spaces/space_thu_vien_coworking.jpg',
           tag: 'Sàn chia sẻ B2B',
           caption: 'Kết nối Chủ sở hữu & Khách thuê tức thì',
           subcaption: 'Hỗ trợ chủ không gian quản lý phòng, niêm yết giá thuê, quản lý lịch đặt và tăng trưởng doanh thu'
@@ -88,7 +88,7 @@ export class About {
           subcaption: 'Ước tính số người có mặt, đối chiếu với số lượng đăng ký để phát hiện vượt tải và cảnh báo quá giờ'
         },
         {
-          src: SERVER_IMAGES_LINK + 'demo_space_card.png',
+          src: SERVER_IMAGES_LINK + 'spaces/space_a2_1_meeting_vip.jpg',
           tag: 'Giải phóng phòng sớm',
           caption: 'Tự động mở lại slot trống khi khách về sớm',
           subcaption: 'Khi AI nhận diện khách rời phòng sớm, hệ thống xác nhận checkout và mở khung giờ cho khách tiếp theo'
