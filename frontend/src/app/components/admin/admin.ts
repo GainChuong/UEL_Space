@@ -274,6 +274,10 @@ export class Admin implements OnInit, OnDestroy {
   private lastOccDetectionTimestamp: number = 0;
   private lastOccStatsUpdate: number = 0;
   private procCanvas: HTMLCanvasElement | null = null;
+  private prevProcFrame: Uint8ClampedArray | null = null;
+  private trackedPeople: Array<{ id: number; x: number; y: number; w: number; h: number; score: number; label: string; missing: number }> = [];
+  private nextTrackId: number = 1;
+  private headcountDebounceBuffer: number[] = [];
 
   // FlexSpace AI Core Differentiator State
   occActiveBooking: AdminBooking | null = null;
@@ -1840,11 +1844,30 @@ export class Admin implements OnInit, OnDestroy {
         }
       }
 
+      // Gom các cụm nằm cùng trục dọc thuộc về cùng 1 cơ thể người (đầu, cổ, ngực, tay)
+      const mergedClusters: typeof clusters = [];
+      for (const cl of clusters) {
+        const clCenterX = (cl.minC + cl.maxC) / 2;
+        const match = mergedClusters.find(m => {
+          const mCenterX = (m.minC + m.maxC) / 2;
+          return Math.abs(clCenterX - mCenterX) <= 3;
+        });
+        if (match) {
+          match.minC = Math.min(match.minC, cl.minC);
+          match.maxC = Math.max(match.maxC, cl.maxC);
+          match.minR = Math.min(match.minR, cl.minR);
+          match.maxR = Math.max(match.maxR, cl.maxR);
+          match.blockCount += cl.blockCount;
+        } else {
+          mergedClusters.push({ ...cl });
+        }
+      }
+
       const scaleX = vw / procW;
       const scaleY = vh / procH;
       const results: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
 
-      for (const cl of clusters) {
+      for (const cl of mergedClusters) {
         const rawBoxX = cl.minC * blockW * scaleX;
         const rawBoxY = cl.minR * blockH * scaleY;
         const rawBoxW = (cl.maxC - cl.minC + 1) * blockW * scaleX;
@@ -2085,71 +2108,103 @@ export class Admin implements OnInit, OnDestroy {
         }
       }
 
-      // 3. Hợp nhất nhận diện người (Body + Head/Face)
+      // 3. Phân cấp nhận diện ưu tiên (Hierarchical Detection Architecture)
       const detectedPeople: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
 
-      // A. Thêm các phát hiện Person từ COCO-SSD
+      // A. Deep Learning COCO-SSD (Độ chính xác cao nhất)
       const bodyPeople = cocoPredictions.filter((p: any) => p.class === 'person' && p.score >= minScore);
-      for (const p of bodyPeople) {
-        detectedPeople.push({
-          x: p.bbox[0],
-          y: p.bbox[1],
-          w: p.bbox[2],
-          h: p.bbox[3],
-          score: Math.round(p.score * 100),
-          label: 'Người'
-        });
-      }
 
-      // B. Hợp nhất từ FaceDetector cho các góc chụp cận cảnh / ngồi bàn làm việc
-      if (facePredictions && facePredictions.length > 0) {
+      if (bodyPeople.length > 0) {
+        // Khi COCO-SSD phát hiện được người, ưu tiên tuyệt đối để loại bỏ hoàn toàn đếm trùng
+        for (const p of bodyPeople) {
+          detectedPeople.push({
+            x: Math.round(p.bbox[0]),
+            y: Math.round(p.bbox[1]),
+            w: Math.round(p.bbox[2]),
+            h: Math.round(p.bbox[3]),
+            score: Math.round(p.score * 100),
+            label: 'Người (AI Deep Learning)'
+          });
+        }
+      } else if (facePredictions && facePredictions.length > 0) {
+        // B. Khi người ngồi cận cảnh bàn làm việc che thân, sử dụng Face AI phần cứng
         for (const f of facePredictions) {
           const fb = f.boundingBox;
-          // Kiểm tra xem khuôn mặt này đã nằm trong bounding box người nào chưa
-          const alreadyInside = detectedPeople.some(dp => 
-            fb.x >= dp.x - 30 &&
-            (fb.x + fb.width) <= (dp.x + dp.w + 30) &&
-            fb.y >= dp.y - 30 &&
-            (fb.y + fb.height) <= (dp.y + dp.h + 30)
-          );
+          const estWidth = Math.min(videoEl.videoWidth, Math.max(fb.width * 2.2, 140));
+          const estHeight = Math.min(videoEl.videoHeight, Math.max(fb.height * 2.8, 180));
+          const estX = Math.max(0, fb.x - (estWidth - fb.width) / 2);
+          const estY = Math.max(0, fb.y - fb.height * 0.2);
 
-          if (!alreadyInside) {
-            // Ước lượng khung hình người từ vị trí đầu/mặt
-            const estWidth = Math.min(videoEl.videoWidth, Math.max(fb.width * 2.2, 140));
-            const estHeight = Math.min(videoEl.videoHeight, Math.max(fb.height * 2.8, 180));
-            const estX = Math.max(0, fb.x - (estWidth - fb.width) / 2);
-            const estY = Math.max(0, fb.y - fb.height * 0.2);
-
-            detectedPeople.push({
-              x: estX,
-              y: estY,
-              w: estWidth,
-              h: estHeight,
-              score: 95,
-              label: 'Người (Face AI)'
-            });
-          }
+          detectedPeople.push({
+            x: Math.round(estX),
+            y: Math.round(estY),
+            w: Math.round(estWidth),
+            h: Math.round(estHeight),
+            score: 95,
+            label: 'Người (Face AI)'
+          });
         }
-      }
-
-      // C. Hợp nhất từ Bộ xử lý Vision Engine (Autonomous Computer Vision)
-      // Chạy liên tục để luôn phát hiện người, không phụ thuộc kết nối hay mô hình ngoài
-      const visionPeople = this.detectPeopleWithVisionEngine(videoEl);
-      for (const vp of visionPeople) {
-        const vCenterX = vp.x + vp.w / 2;
-        const vCenterY = vp.y + vp.h / 2;
-        // Kiểm tra xem vị trí người này đã được COCO-SSD hoặc Face AI bao phủ chưa
-        const alreadyCovered = detectedPeople.some(dp =>
-          vCenterX >= dp.x - 30 && vCenterX <= dp.x + dp.w + 30 &&
-          vCenterY >= dp.y - 30 && vCenterY <= dp.y + dp.h + 30
-        );
-
-        if (!alreadyCovered) {
+      } else {
+        // C. Fallback: Vision Engine độc lập hoạt động khi 2 mô hình trên chưa bắt được
+        const visionPeople = this.detectPeopleWithVisionEngine(videoEl);
+        for (const vp of visionPeople) {
           detectedPeople.push(vp);
         }
       }
 
-      // 4. Vẽ khung nhận diện lên Canvas
+      // 4. BỘ THEO DÕI LÀM MƯỢT KHUNG HÌNH (Temporal EMA Box Tracking)
+      // Khử hoàn toàn rung lắc giật khung và cố định vị trí người mượt mà như camera Apple/Zoom
+      const unmatchedDetected = [...detectedPeople];
+      for (const tracked of this.trackedPeople) {
+        let bestDist = Infinity;
+        let bestIdx = -1;
+        const tcX = tracked.x + tracked.w / 2;
+        const tcY = tracked.y + tracked.h / 2;
+
+        for (let i = 0; i < unmatchedDetected.length; i++) {
+          const d = unmatchedDetected[i];
+          const dcX = d.x + d.w / 2;
+          const dcY = d.y + d.h / 2;
+          const dist = Math.hypot(tcX - dcX, tcY - dcY);
+          if (dist < 140 && dist < bestDist) {
+            bestDist = dist;
+            bestIdx = i;
+          }
+        }
+
+        if (bestIdx >= 0) {
+          const matched = unmatchedDetected.splice(bestIdx, 1)[0];
+          const alpha = 0.35;
+          tracked.x = Math.round(tracked.x * (1 - alpha) + matched.x * alpha);
+          tracked.y = Math.round(tracked.y * (1 - alpha) + matched.y * alpha);
+          tracked.w = Math.round(tracked.w * (1 - alpha) + matched.w * alpha);
+          tracked.h = Math.round(tracked.h * (1 - alpha) + matched.h * alpha);
+          tracked.score = matched.score;
+          tracked.label = matched.label;
+          tracked.missing = 0;
+        } else {
+          tracked.missing++;
+        }
+      }
+
+      // Giữ khung hình đang theo dõi trong tối đa 3 frame trước khi xóa bỏ
+      this.trackedPeople = this.trackedPeople.filter(t => t.missing <= 3);
+
+      // Thêm các mục tiêu mới được phát hiện
+      for (const d of unmatchedDetected) {
+        this.trackedPeople.push({
+          id: this.nextTrackId++,
+          x: d.x,
+          y: d.y,
+          w: d.w,
+          h: d.h,
+          score: d.score,
+          label: d.label,
+          missing: 0
+        });
+      }
+
+      // 5. Vẽ khung nhận diện lên Canvas
       if (canvas.width !== videoEl.videoWidth || canvas.height !== videoEl.videoHeight) {
         canvas.width = videoEl.videoWidth;
         canvas.height = videoEl.videoHeight;
@@ -2159,7 +2214,7 @@ export class Admin implements OnInit, OnDestroy {
       if (ctx) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        detectedPeople.forEach((p, idx) => {
+        this.trackedPeople.forEach((p, idx) => {
           // Khung viền Neon Cyan nổi bật
           ctx.strokeStyle = '#00F0FF';
           ctx.lineWidth = 2.5;
@@ -2198,9 +2253,27 @@ export class Admin implements OnInit, OnDestroy {
         });
       }
 
-      // 5. Cập nhật sĩ số thực tế (có cộng điều chỉnh thủ công nếu có)
-      const rawCount = detectedPeople.length;
-      const count = Math.max(0, rawCount + this.occManualAdjustment);
+      // 6. Cập nhật sĩ số thực tế (có Debounce khử rung số)
+      const currentRawCount = this.trackedPeople.length;
+      this.headcountDebounceBuffer.push(currentRawCount);
+      if (this.headcountDebounceBuffer.length > 4) {
+        this.headcountDebounceBuffer.shift();
+      }
+
+      // Tìm giá trị xuất hiện nhiều nhất (mode) trong buffer để khử nhảy số tức thời
+      const freqMap = new Map<number, number>();
+      let debouncedCount = currentRawCount;
+      let maxFreq = 0;
+      for (const c of this.headcountDebounceBuffer) {
+        const freq = (freqMap.get(c) || 0) + 1;
+        freqMap.set(c, freq);
+        if (freq > maxFreq) {
+          maxFreq = freq;
+          debouncedCount = c;
+        }
+      }
+
+      const count = Math.max(0, debouncedCount + this.occManualAdjustment);
       const countChanged = this.occCurrentCount !== count;
       this.occFrameCount++;
 
@@ -2208,8 +2281,8 @@ export class Admin implements OnInit, OnDestroy {
         this.lastOccStatsUpdate = now;
         this.ngZone.run(() => {
           this.occCurrentCount = count;
-          this.occConfidence = detectedPeople.length > 0
-            ? Math.round(detectedPeople.reduce((sum, p) => sum + p.score, 0) / detectedPeople.length)
+          this.occConfidence = this.trackedPeople.length > 0
+            ? Math.round(this.trackedPeople.reduce((sum, p) => sum + p.score, 0) / this.trackedPeople.length)
             : (this.occManualAdjustment > 0 ? 90 : 0);
 
           if (this.occCurrentCount > this.occPeakCount) {
