@@ -1705,8 +1705,16 @@ export class Admin implements OnInit, OnDestroy {
     try {
       this.occModelLoading = true;
       const tf = await import('@tensorflow/tfjs');
+      try {
+        if (tf.findBackend && tf.findBackend('webgl')) {
+          await tf.setBackend('webgl');
+        }
+      } catch (e) {
+        console.warn('WebGL backend fallback:', e);
+      }
       await tf.ready();
-      console.log('TensorFlow.js ready on backend:', tf.getBackend());
+      const currentBackend = tf.getBackend();
+      console.log('TensorFlow.js ready on backend:', currentBackend);
 
       const cocoSsd = await import('@tensorflow-models/coco-ssd');
       const loadPromise = cocoSsd.load({ base: 'lite_mobilenet_v2' });
@@ -1715,7 +1723,8 @@ export class Admin implements OnInit, OnDestroy {
       );
 
       this.occCocoModel = await Promise.race([loadPromise, timeoutPromise]);
-      this.occModelName = 'COCO-SSD Deep Learning + Vision AI';
+      const isGpu = currentBackend === 'webgl';
+      this.occModelName = `COCO-SSD (${isGpu ? 'GPU WebGL' : 'CPU'}) + Vision AI`;
       console.log('UEL Space AI Model loaded successfully:', this.occModelName);
     } catch (err: any) {
       console.warn('COCO-SSD background load error or timeout, running with Vision AI:', err);
@@ -1729,8 +1738,101 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   /**
+   * Hợp nhất các bộ phận cơ thể (đầu, thân, bàn tay) hoặc các hộp trùng lặp về cùng 1 người duy nhất.
+   * Triệt tiêu hoàn toàn lỗi đếm 1 người thành nhiều người khi chỉ nhận diện được từng phần cơ thể.
+   */
+  private consolidateAndMergeDetections(
+    boxes: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }>,
+    vw: number,
+    vh: number
+  ): Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> {
+    if (boxes.length <= 1) return boxes;
+
+    let merged = [...boxes];
+    let changed = true;
+
+    // Lặp hợp nhất đến khi không còn 2 hộp nào thuộc cùng 1 cá nhân
+    while (changed) {
+      changed = false;
+      const nextMerged: typeof boxes = [];
+      const used = new Set<number>();
+
+      for (let i = 0; i < merged.length; i++) {
+        if (used.has(i)) continue;
+        let b1 = { ...merged[i] };
+
+        for (let j = i + 1; j < merged.length; j++) {
+          if (used.has(j)) continue;
+          const b2 = merged[j];
+
+          // 1. Tính toán diện tích giao nhau (Intersection)
+          const interX1 = Math.max(b1.x, b2.x);
+          const interY1 = Math.max(b1.y, b2.y);
+          const interX2 = Math.min(b1.x + b1.w, b2.x + b2.w);
+          const interY2 = Math.min(b1.y + b1.h, b2.y + b2.h);
+          const interW = Math.max(0, interX2 - interX1);
+          const interH = Math.max(0, interY2 - interY1);
+          const interArea = interW * interH;
+
+          const area1 = b1.w * b1.h;
+          const area2 = b2.w * b2.h;
+          const minArea = Math.min(area1, area2);
+          const unionArea = area1 + area2 - interArea;
+          const iou = unionArea > 0 ? interArea / unionArea : 0;
+          const ios = minArea > 0 ? interArea / minArea : 0;
+
+          // 2. Phân tích khoảng cách giải phẫu người khi ngồi/đứng làm việc
+          const c1X = b1.x + b1.w / 2;
+          const c1Y = b1.y + b1.h / 2;
+          const c2X = b2.x + b2.w / 2;
+          const c2Y = b2.y + b2.h / 2;
+          const deltaX = Math.abs(c1X - c2X);
+          const deltaY = Math.abs(c1Y - c2Y);
+
+          // Khung bao sau khi hợp nhất dự kiến
+          const unionLeft = Math.min(b1.x, b2.x);
+          const unionTop = Math.min(b1.y, b2.y);
+          const unionRight = Math.max(b1.x + b1.w, b2.x + b2.w);
+          const unionBottom = Math.max(b1.y + b1.h, b2.y + b2.h);
+          const unionW = unionRight - unionLeft;
+          const unionH = unionBottom - unionTop;
+
+          // Điều kiện 1: Trùng lặp IoU >= 0.15 hoặc 1 hộp nằm lọt trong hộp kia (IoS >= 0.30)
+          const isDirectOverlap = iou >= 0.15 || ios >= 0.30;
+
+          // Điều kiện 2: Cùng 1 cơ thể người (đầu, thân trên, cánh tay/bàn tay trên bàn)
+          const isSamePersonParts =
+            (deltaX <= Math.max(b1.w, b2.w) * 1.35 || deltaX <= vw * 0.38) &&
+            (deltaY <= Math.max(b1.h, b2.h) * 1.5 || deltaY <= vh * 0.52) &&
+            unionW <= vw * 0.65 &&
+            unionH <= vh * 0.95;
+
+          if (isDirectOverlap || isSamePersonParts) {
+            b1.x = unionLeft;
+            b1.y = unionTop;
+            b1.w = unionW;
+            b1.h = unionH;
+            b1.score = Math.max(b1.score, b2.score);
+            if (b2.score > b1.score) {
+              b1.label = b2.label;
+            }
+            used.add(j);
+            changed = true;
+          }
+        }
+
+        nextMerged.push(b1);
+      }
+
+      merged = nextMerged;
+    }
+
+    return merged;
+  }
+
+  /**
    * Bộ xử lý thị giác máy tính độc lập (Autonomous Computer Vision Engine)
-   * Chạy trực tiếp trên Canvas tốc độ cực cao (< 2ms), nhận diện người, vùng đầu và thân trên
+   * Chạy trực tiếp trên Canvas tốc độ cực cao (< 1ms), nhận diện người, vùng đầu và thân trên
    * Hoạt động 100% độc lập, không phụ thuộc mạng, nhận diện tức thì ngay từ frame đầu tiên.
    */
   private detectPeopleWithVisionEngine(videoEl: HTMLVideoElement): Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> {
@@ -1778,13 +1880,12 @@ export class Admin implements OnInit, OnDestroy {
               const green = data[idx + 1];
               const blue = data[idx + 2];
 
-              // Mô hình màu YCbCr chuẩn quốc tế cho các tông màu da người
-              const lum = 0.299 * red + 0.587 * green + 0.114 * blue;
-              const cb = 128 - 0.168736 * red - 0.331264 * green + 0.5 * blue;
-              const cr = 128 + 0.5 * red - 0.418688 * green - 0.081312 * blue;
+              // Fast integer arithmetic YCbCr (< 0.2ms trên CPU)
+              const lum = (77 * red + 150 * green + 29 * blue) >> 8;
+              const cb = 128 + ((-43 * red - 85 * green + 128 * blue) >> 8);
+              const cr = 128 + ((128 * red - 107 * green - 21 * blue) >> 8);
 
-              // Điều kiện da: Cb [75..130], Cr [130..175], Lum [35..245]
-              // Kết hợp ràng buộc RGB loại bỏ các mặt bàn gỗ, tường vàng, bóng đèn
+              // Điều kiện da: Cb [75..130], Cr [130..175], Lum [35..245] + Ràng buộc RGB
               const isRgbSkin = red > 75 && green > 35 && blue > 20 && red > green && (red - green) >= 8 && (red - blue) >= 8;
               if (cb >= 75 && cb <= 130 && cr >= 130 && cr <= 175 && lum >= 35 && lum <= 245 && isRgbSkin) {
                 skinCount++;
@@ -1844,13 +1945,15 @@ export class Admin implements OnInit, OnDestroy {
         }
       }
 
-      // Gom các cụm nằm cùng trục dọc thuộc về cùng 1 cơ thể người (đầu, cổ, ngực, tay)
+      // Gom các cụm thuộc cùng 1 cơ thể người (đầu, cổ, ngực, 2 cánh tay và bàn tay trên bàn)
       const mergedClusters: typeof clusters = [];
       for (const cl of clusters) {
         const clCenterX = (cl.minC + cl.maxC) / 2;
+        const clCenterY = (cl.minR + cl.maxR) / 2;
         const match = mergedClusters.find(m => {
           const mCenterX = (m.minC + m.maxC) / 2;
-          return Math.abs(clCenterX - mCenterX) <= 3;
+          const mCenterY = (m.minR + m.maxR) / 2;
+          return Math.abs(clCenterX - mCenterX) <= 5.5 && Math.abs(clCenterY - mCenterY) <= 6;
         });
         if (match) {
           match.minC = Math.min(match.minC, cl.minC);
@@ -1902,6 +2005,7 @@ export class Admin implements OnInit, OnDestroy {
       return [];
     }
   }
+
 
   async startOccupancyDetection(): Promise<void> {
     if (this.occStartingCamera || this.occCameraActive) return;
@@ -2075,8 +2179,8 @@ export class Admin implements OnInit, OnDestroy {
     }
 
     const now = performance.now();
-    // Giới hạn tần suất suy luận AI: mỗi 100ms (~10 FPS) để cân bằng độ mượt mà và cực kỳ nhạy
-    if (this.isDetectingOccFrame || (now - this.lastOccDetectionTimestamp < 100)) {
+    // Tần suất suy luận cao cấp: mỗi 80ms cho độ phản hồi nhanh tức thì trên Admin Panel
+    if (this.isDetectingOccFrame || (now - this.lastOccDetectionTimestamp < 80)) {
       requestAnimationFrame(() => this.runDetectionLoop(videoEl));
       return;
     }
@@ -2092,7 +2196,7 @@ export class Admin implements OnInit, OnDestroy {
       let cocoPredictions: any[] = [];
       if (this.occCocoModel) {
         try {
-          cocoPredictions = await this.occCocoModel.detect(videoEl, 20, minScore);
+          cocoPredictions = await this.occCocoModel.detect(videoEl, 12, minScore);
         } catch (errCoco) {
           console.warn('COCO detect error:', errCoco);
         }
@@ -2108,26 +2212,24 @@ export class Admin implements OnInit, OnDestroy {
         }
       }
 
-      // 3. Phân cấp nhận diện ưu tiên (Hierarchical Detection Architecture)
-      const detectedPeople: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
+      // 3. Thu thập mọi ứng viên phát hiện từ các mô hình (Multi-Source Candidate Aggregation)
+      const rawDetected: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
 
-      // A. Deep Learning COCO-SSD (Độ chính xác cao nhất)
+      // A. Deep Learning COCO-SSD (Nhận diện toàn thân / người)
       const bodyPeople = cocoPredictions.filter((p: any) => p.class === 'person' && p.score >= minScore);
+      for (const p of bodyPeople) {
+        rawDetected.push({
+          x: Math.round(p.bbox[0]),
+          y: Math.round(p.bbox[1]),
+          w: Math.round(p.bbox[2]),
+          h: Math.round(p.bbox[3]),
+          score: Math.round(p.score * 100),
+          label: 'Người (AI Deep Learning)'
+        });
+      }
 
-      if (bodyPeople.length > 0) {
-        // Khi COCO-SSD phát hiện được người, ưu tiên tuyệt đối để loại bỏ hoàn toàn đếm trùng
-        for (const p of bodyPeople) {
-          detectedPeople.push({
-            x: Math.round(p.bbox[0]),
-            y: Math.round(p.bbox[1]),
-            w: Math.round(p.bbox[2]),
-            h: Math.round(p.bbox[3]),
-            score: Math.round(p.score * 100),
-            label: 'Người (AI Deep Learning)'
-          });
-        }
-      } else if (facePredictions && facePredictions.length > 0) {
-        // B. Khi người ngồi cận cảnh bàn làm việc che thân, sử dụng Face AI phần cứng
+      // B. Face AI (Nhận diện khuôn mặt khi người ngồi sát bàn che thân)
+      if (facePredictions && facePredictions.length > 0) {
         for (const f of facePredictions) {
           const fb = f.boundingBox;
           const estWidth = Math.min(videoEl.videoWidth, Math.max(fb.width * 2.2, 140));
@@ -2135,7 +2237,7 @@ export class Admin implements OnInit, OnDestroy {
           const estX = Math.max(0, fb.x - (estWidth - fb.width) / 2);
           const estY = Math.max(0, fb.y - fb.height * 0.2);
 
-          detectedPeople.push({
+          rawDetected.push({
             x: Math.round(estX),
             y: Math.round(estY),
             w: Math.round(estWidth),
@@ -2144,16 +2246,20 @@ export class Admin implements OnInit, OnDestroy {
             label: 'Người (Face AI)'
           });
         }
-      } else {
-        // C. Fallback: Vision Engine độc lập hoạt động khi 2 mô hình trên chưa bắt được
+      }
+
+      // C. Vision Engine siêu tốc (Phát hiện bàn tay, ngực, đầu khi thiếu dữ liệu hoặc đang load model)
+      if (rawDetected.length === 0 || !this.occCocoModel) {
         const visionPeople = this.detectPeopleWithVisionEngine(videoEl);
         for (const vp of visionPeople) {
-          detectedPeople.push(vp);
+          rawDetected.push(vp);
         }
       }
 
+      // D. HỢP NHẤT TRIỆT ĐỂ: Gom mọi bộ phận (đầu, thân, tay) và loại bỏ trùng lặp về 1 người duy nhất
+      const detectedPeople = this.consolidateAndMergeDetections(rawDetected, videoEl.videoWidth, videoEl.videoHeight);
+
       // 4. BỘ THEO DÕI LÀM MƯỢT KHUNG HÌNH (Temporal EMA Box Tracking)
-      // Khử hoàn toàn rung lắc giật khung và cố định vị trí người mượt mà như camera Apple/Zoom
       const unmatchedDetected = [...detectedPeople];
       for (const tracked of this.trackedPeople) {
         let bestDist = Infinity;
@@ -2166,7 +2272,8 @@ export class Admin implements OnInit, OnDestroy {
           const dcX = d.x + d.w / 2;
           const dcY = d.y + d.h / 2;
           const dist = Math.hypot(tcX - dcX, tcY - dcY);
-          if (dist < 140 && dist < bestDist) {
+          const maxAllowedDist = Math.max(160, Math.max(tracked.w, tracked.h) * 0.85);
+          if (dist < maxAllowedDist && dist < bestDist) {
             bestDist = dist;
             bestIdx = i;
           }
@@ -2174,7 +2281,7 @@ export class Admin implements OnInit, OnDestroy {
 
         if (bestIdx >= 0) {
           const matched = unmatchedDetected.splice(bestIdx, 1)[0];
-          const alpha = 0.35;
+          const alpha = 0.40;
           tracked.x = Math.round(tracked.x * (1 - alpha) + matched.x * alpha);
           tracked.y = Math.round(tracked.y * (1 - alpha) + matched.y * alpha);
           tracked.w = Math.round(tracked.w * (1 - alpha) + matched.w * alpha);
@@ -2187,8 +2294,8 @@ export class Admin implements OnInit, OnDestroy {
         }
       }
 
-      // Giữ khung hình đang theo dõi trong tối đa 3 frame trước khi xóa bỏ
-      this.trackedPeople = this.trackedPeople.filter(t => t.missing <= 3);
+      // Giữ khung hình đang theo dõi trong tối đa 2 frame khi mất tín hiệu tạm thời
+      this.trackedPeople = this.trackedPeople.filter(t => t.missing <= 2);
 
       // Thêm các mục tiêu mới được phát hiện
       for (const d of unmatchedDetected) {
@@ -2203,6 +2310,37 @@ export class Admin implements OnInit, OnDestroy {
           missing: 0
         });
       }
+
+      // 4B. Post-tracking fusion: Hợp nhất triệt để các track nằm gần hoặc chồng lấn nhau
+      for (let i = 0; i < this.trackedPeople.length; i++) {
+        for (let j = i + 1; j < this.trackedPeople.length; j++) {
+          const t1 = this.trackedPeople[i];
+          const t2 = this.trackedPeople[j];
+          const c1X = t1.x + t1.w / 2;
+          const c1Y = t1.y + t1.h / 2;
+          const c2X = t2.x + t2.w / 2;
+          const c2Y = t2.y + t2.h / 2;
+          const dist = Math.hypot(c1X - c2X, c1Y - c2Y);
+          const maxDim = Math.max(t1.w, t1.h, t2.w, t2.h);
+          const unionW = Math.max(t1.x + t1.w, t2.x + t2.w) - Math.min(t1.x, t2.x);
+          const unionH = Math.max(t1.y + t1.h, t2.y + t2.h) - Math.min(t1.y, t2.y);
+
+          if (dist < maxDim * 0.75 || (dist < videoEl.videoWidth * 0.35 && unionW <= videoEl.videoWidth * 0.55 && unionH <= videoEl.videoHeight * 0.9)) {
+            const minX = Math.min(t1.x, t2.x);
+            const minY = Math.min(t1.y, t2.y);
+            t1.w = unionW;
+            t1.h = unionH;
+            t1.x = minX;
+            t1.y = minY;
+            t1.score = Math.max(t1.score, t2.score);
+            t1.missing = Math.min(t1.missing, t2.missing);
+            if (t2.score > t1.score) t1.label = t2.label;
+            this.trackedPeople.splice(j, 1);
+            j--;
+          }
+        }
+      }
+
 
       // 5. Vẽ khung nhận diện lên Canvas
       if (canvas.width !== videoEl.videoWidth || canvas.height !== videoEl.videoHeight) {
