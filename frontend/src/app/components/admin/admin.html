@@ -1524,7 +1524,7 @@
                 <div class="flex flex-wrap items-center gap-2">
                   <!-- Active Model Tag -->
                   <div class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 text-[11px] font-bold text-sky-700 dark:text-sky-300">
-                    <span class="w-2 h-2 rounded-full" [class]="occCocoModel || faceDetector ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'"></span>
+                    <span class="w-2 h-2 rounded-full" [class]="occModelLoaded ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'"></span>
                     <span class="truncate max-w-[210px]">{{occModelName}}</span>
                   </div>
 
