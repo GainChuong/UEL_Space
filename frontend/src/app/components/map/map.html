@@ -24,37 +24,37 @@
         <button (click)="filterByCategory('Tất cả'); isMobileFilterOpen = false"
                 [ngClass]="activeCategory === 'Tất cả' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> {{ 'Tất cả' | t }}
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> {{ 'Tất cả không gian' | t }}
         </button>
-        <button (click)="filterByCategory('Giảng đường'); isMobileFilterOpen = false"
-                [ngClass]="activeCategory === 'Giảng đường' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
+        <button (click)="filterByCategory('Phòng họp VIP'); isMobileFilterOpen = false"
+                [ngClass]="activeCategory === 'Phòng họp VIP' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 3h20M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3m6 13v4m4-4v4m-4 0h4"></path></svg> {{ 'Giảng đường' | t }}
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> {{ 'Phòng họp VIP' | t }}
         </button>
-        <button (click)="filterByCategory('Thư viện'); isMobileFilterOpen = false"
-                [ngClass]="activeCategory === 'Thư viện' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
+        <button (click)="filterByCategory('Văn phòng riêng'); isMobileFilterOpen = false"
+                [ngClass]="activeCategory === 'Văn phòng riêng' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg> {{ 'Thư viện' | t }}
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="20" x2="22" y2="20"></line></svg> {{ 'Văn phòng riêng' | t }}
         </button>
-        <button (click)="filterByCategory('Phòng học'); isMobileFilterOpen = false"
-                [ngClass]="activeCategory === 'Phòng học' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
+        <button (click)="filterByCategory('Bàn làm việc linh hoạt'); isMobileFilterOpen = false"
+                [ngClass]="activeCategory === 'Bàn làm việc linh hoạt' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg> {{ 'Phòng học' | t }}
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg> {{ 'Bàn làm việc linh hoạt' | t }}
         </button>
-        <button (click)="filterByCategory('Phòng họp')"
-                [ngClass]="activeCategory === 'Phòng họp' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
+        <button (click)="filterByCategory('Không gian sự kiện'); isMobileFilterOpen = false"
+                [ngClass]="activeCategory === 'Không gian sự kiện' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> {{ 'Phòng họp' | t }}
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 3h20M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3m6 13v4m4-4v4m-4 0h4"></path></svg> {{ 'Không gian sự kiện' | t }}
         </button>
-        <button (click)="filterByCategory('Khu tự học')"
-                [ngClass]="activeCategory === 'Khu tự học' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
+        <button (click)="filterByCategory('Meeting Pod cách âm'); isMobileFilterOpen = false"
+                [ngClass]="activeCategory === 'Meeting Pod cách âm' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="20" x2="22" y2="20"></line></svg> {{ 'Khu tự học' | t }}
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg> {{ 'Meeting Pod cách âm' | t }}
         </button>
-        <button (click)="filterByCategory('CLB - Đội nhóm')"
-                [ngClass]="activeCategory === 'CLB - Đội nhóm' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
+        <button (click)="filterByCategory('Studio sáng tạo'); isMobileFilterOpen = false"
+                [ngClass]="activeCategory === 'Studio sáng tạo' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
                 class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> {{ 'CLB - Đội nhóm' | t }}
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> {{ 'Studio sáng tạo' | t }}
         </button>
       </div>
       

@@ -152,10 +152,10 @@
       <!-- Divider -->
       <div class="w-[1px] h-6 bg-border-gray/80 dark:bg-slate-800"></div>
       
-      <!-- Admin Portal Shortcut -->
+      <!-- Seller Center Shortcut -->
       <a routerLink="/admin" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-uel-blue/10 dark:bg-sky-400/10 hover:bg-uel-blue dark:hover:bg-sky-500 hover:text-white text-uel-blue dark:text-sky-300 text-xs font-bold transition-all cursor-pointer">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
-        <span>Admin Portal</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>{{ (settingsService.language$ | async) === 'vi' ? 'Kênh Người Bán' : 'Seller Center' }}</span>
       </a>
       
       <!-- =====================================================================
@@ -180,7 +180,7 @@
           <!-- Label text for desktop -->
           @if (settingsService.isLoggedIn$ | async) {
             <span class="hidden xl:block text-xs font-bold text-text-secondary dark:text-slate-300 group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors">
-              {{ (settingsService.currentUser$ | async)?.name || ('Sinh viên' | t) }}
+              {{ (settingsService.currentUser$ | async)?.name || ('Khách thuê / Đối tác' | t) }}
             </span>
           } @else {
             <span class="hidden xl:block text-xs font-bold text-slate-500 dark:text-slate-400 group-hover:text-uel-blue transition-colors">
@@ -211,7 +211,7 @@
                       {{ (settingsService.currentUser$ | async)?.email || 'giangnntk24411@st.uel.edu.vn' }}
                     </div>
                     <span class="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-uel-blue/10 dark:bg-sky-400/20 text-uel-blue dark:text-sky-300">
-                      {{ (settingsService.currentUser$ | async)?.role || 'STUDENT' }}
+                      {{ (settingsService.currentUser$ | async)?.role || 'SELLER / HOST' }}
                     </span>
                   </div>
                 </div>
@@ -234,12 +234,12 @@
                   </span>
                 </button>
 
-                <!-- Admin Link -->
+                <!-- Seller Center Link -->
                 <a routerLink="/admin"
                    (click)="isProfileOpen = false"
                    class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer text-left">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-uel-orange shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
-                  <span>{{ (settingsService.language$ | async) === 'vi' ? 'Bảng quản trị Admin' : 'Admin Console' }}</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-uel-orange shrink-0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                  <span>{{ (settingsService.language$ | async) === 'vi' ? 'Kênh Người Bán (Seller Center)' : 'Seller Center' }}</span>
                 </a>
 
                 <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>

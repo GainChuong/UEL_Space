@@ -27,6 +27,9 @@ export interface AdminBooking {
   rejectionReason?: string;
   processedBy?: string;
   processedAt?: string;
+  price?: number;
+  paymentStatus?: 'PAID' | 'PENDING' | 'REFUNDED';
+  rentalPackage?: string;
   actualCheckInAt?: string;
   hasConflictWarning?: boolean;
 }
@@ -66,6 +69,10 @@ export interface AdminSpace {
   equipment: string[];
   autoCheckoutMinutes: number;
   awayWarningMinutes: number;
+  pricePerHour?: number;
+  pricePerDay?: number;
+  rating?: number;
+  reviewsCount?: number;
 }
 
 export interface AdminUser {
@@ -73,7 +80,7 @@ export interface AdminUser {
   code: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'SPACE_MANAGER' | 'LECTURER' | 'STUDENT';
+  role: 'ADMIN' | 'SPACE_MANAGER' | 'LECTURER' | 'STUDENT' | 'SELLER_OWNER' | 'SELLER_STAFF' | 'CUSTOMER';
   organization: string;
   status: 'ACTIVE' | 'SUSPENDED';
   bookingsCount: number;
@@ -230,14 +237,24 @@ export class Admin implements OnInit, OnDestroy {
     }
   ];
 
-  // Admin Profile Mockup
+  // Seller / Partner Profile Mockup (Seller Center)
   adminUser = {
-    name: 'Quản trị viên Hệ thống UEL',
-    email: 'admin@uel.edu.vn',
-    role: 'System Administrator (Toàn quyền)',
-    campus: 'Trường Đại học Kinh tế - Luật (UEL) - Thủ Đức',
-    avatar: 'AD'
+    name: 'Chủ Gian Hàng UEL Space Partner Hub',
+    email: 'seller.partner@uelspace.vn',
+    role: 'Chủ Không Gian / Đối Tác Cho Thuê (Space Host)',
+    campus: 'Trụ sở UEL Space Hub - Khu Công nghệ cao TP. Thủ Đức',
+    avatar: 'SH',
+    storeName: 'UEL Space Marketplace Hub',
+    rating: 4.95,
+    totalReviews: 248,
+    walletBalance: 68500000
   };
+
+  // E-commerce Marketplace Metrics
+  totalRevenue: number = 68500000;
+  monthlyGrowthRate: number = 24.5;
+  activeListingsCount: number = 9;
+  completedOrdersCount: number = 128;
 
   // Toast Notification
   toast: { show: boolean; message: string; type: 'success' | 'warning' | 'info' } = {
@@ -654,176 +671,212 @@ export class Admin implements OnInit, OnDestroy {
     }
   ];
 
-  // Data: Spaces
+  // Data: Spaces (Listings & Pricing for Rent)
   spaces: AdminSpace[] = [
     {
       id: 'a3-301',
-      name: 'Giảng đường A3.301',
-      building: 'Tòa nhà A3',
+      name: 'Hội trường & Event Hall Landmark A3',
+      building: 'Central Tower Q.1',
       floor: 'Tầng 3',
-      type: 'Giảng đường',
+      type: 'Không gian sự kiện',
       capacity: 80,
       status: 'AVAILABLE',
       currentOccupants: 0,
-      equipment: ['Máy chiếu Laser', 'Âm thanh không dây', 'Điều hòa 2 chiều', 'Wifi UEL HighSpeed'],
+      equipment: ['Máy chiếu Laser 4K', 'Hệ thống âm thanh hội thảo không dây', 'Điều hòa trung tâm Daikin', 'Wifi cáp quang 1Gbps', 'Bục thuyết trình & Màn LED'],
       autoCheckoutMinutes: 20,
-      awayWarningMinutes: 10
+      awayWarningMinutes: 10,
+      pricePerHour: 750000,
+      pricePerDay: 5200000,
+      rating: 4.9,
+      reviewsCount: 42
     },
     {
       id: 'a2-1',
-      name: 'Phòng Họp A2.1',
-      building: 'Tòa nhà A',
+      name: 'Phòng Họp VIP Executive A2.1',
+      building: 'TechPark Executive',
       floor: 'Tầng 2',
-      type: 'Phòng họp',
+      type: 'Phòng họp VIP',
       capacity: 15,
       status: 'RESERVED',
       currentOccupants: 0,
-      equipment: ['Màn hình tương tác', 'Micro đa hướng', 'Điều hòa', 'Bảng kính'],
+      equipment: ['Màn hình tương tác Samsung Flip', 'Micro đa hướng chống ồn', 'Hệ thống Teleconference 4K', 'Bảng kính cường lực', 'Quầy teabreak riêng'],
       autoCheckoutMinutes: 15,
-      awayWarningMinutes: 8
+      awayWarningMinutes: 8,
+      pricePerHour: 350000,
+      pricePerDay: 2400000,
+      rating: 4.95,
+      reviewsCount: 88
     },
     {
       id: 'thu-vien-2',
-      name: 'Khu tự học Thư viện',
-      building: 'Tòa nhà Thư viện',
+      name: 'Khu Bàn làm việc linh hoạt Co-working',
+      building: 'Innovation Hub Q.2',
       floor: 'Tầng 2',
-      type: 'Khu tự học',
+      type: 'Bàn làm việc linh hoạt',
       capacity: 120,
       status: 'IN_USE',
       currentOccupants: 92,
-      equipment: ['Wifi công suất lớn', 'Bàn có cổng sạc Type-C', 'Đèn chống cận'],
+      equipment: ['Wifi công suất lớn băng thông đối xứng', 'Bàn có cổng sạc Type-C & Power Plug', 'Đèn chống cận chuẩn Ergonomic', 'Khu pantry cà phê tự phục vụ'],
       autoCheckoutMinutes: 15,
-      awayWarningMinutes: 10
+      awayWarningMinutes: 10,
+      pricePerHour: 45000,
+      pricePerDay: 250000,
+      rating: 4.8,
+      reviewsCount: 156
     },
     {
       id: 'b2-101',
-      name: 'Phòng B2.101',
-      building: 'Tòa nhà B2',
+      name: 'Văn phòng riêng Private Suite B2.101',
+      building: 'Landmark Lounge',
       floor: 'Tầng 1',
-      type: 'Phòng học',
+      type: 'Văn phòng riêng',
       capacity: 35,
       status: 'AVAILABLE',
       currentOccupants: 0,
-      equipment: ['Máy chiếu', 'Bảng từ xanh', 'Điều hòa'],
+      equipment: ['Cửa khóa thông minh Smart Lock', 'Bàn làm việc giám đốc', 'Điều hòa độc lập 24/7', 'Bảng từ kính', 'Tủ lưu trữ hồ sơ bảo mật'],
       autoCheckoutMinutes: 20,
-      awayWarningMinutes: 10
+      awayWarningMinutes: 10,
+      pricePerHour: 500000,
+      pricePerDay: 3500000,
+      rating: 4.9,
+      reviewsCount: 31
     },
     {
       id: 'choi-1',
-      name: 'Chòi tự học 1',
-      building: 'Đường Thanh Niên',
-      floor: 'Khuôn viên ngoài trời',
-      type: 'Khu tự học ngoài trời',
-      capacity: 6,
+      name: 'Meeting Pod cách âm Smart Pod 01',
+      building: 'Startup Pod Hub',
+      floor: 'Khuôn viên Vườn Công nghệ',
+      type: 'Meeting Pod cách âm',
+      capacity: 4,
       status: 'AVAILABLE',
       currentOccupants: 0,
-      equipment: ['Ổ cắm sạc chống nước', 'Đèn LED chiếu sáng', 'Wifi UEL Outdoor'],
+      equipment: ['Vách kính cách âm chuẩn 35dB', 'Hệ thống thông gió cưỡng bức', 'Màn hình họp nhanh 32 inch', 'Đèn LED nhiệt độ màu điều chỉnh'],
       autoCheckoutMinutes: 15,
-      awayWarningMinutes: 8
+      awayWarningMinutes: 8,
+      pricePerHour: 120000,
+      pricePerDay: 800000,
+      rating: 4.85,
+      reviewsCount: 64
     },
     {
       id: 'a-105',
-      name: 'Phòng A.105',
-      building: 'Tòa nhà A',
+      name: 'Studio sáng tạo Creative Media A.105',
+      building: 'Creative Hub Center',
       floor: 'Tầng 1',
-      type: 'Phòng học',
-      capacity: 35,
+      type: 'Studio sáng tạo',
+      capacity: 20,
       status: 'AVAILABLE',
       currentOccupants: 0,
-      equipment: ['Máy chiếu Laser', 'Điều hòa 2 chiều', 'Wifi UEL HighSpeed'],
+      equipment: ['Phông xanh Chromakey', 'Hệ thống đèn Spotlight & Softbox', 'Micro thu âm Podcast Shure', 'Cách âm tiêu âm chuyên nghiệp'],
       autoCheckoutMinutes: 15,
-      awayWarningMinutes: 10
+      awayWarningMinutes: 10,
+      pricePerHour: 400000,
+      pricePerDay: 2800000,
+      rating: 4.92,
+      reviewsCount: 53
     },
     {
       id: 'b1-202',
-      name: 'Phòng B1.202',
-      building: 'Tòa nhà B1',
+      name: 'Phòng đào tạo & Workshop Executive B1.202',
+      building: 'Central Tower Q.1',
       floor: 'Tầng 2',
-      type: 'Giảng đường',
+      type: 'Không gian sự kiện',
       capacity: 60,
       status: 'AVAILABLE',
       currentOccupants: 0,
-      equipment: ['Âm thanh không dây', 'Máy chiếu', 'Điều hòa', 'Wifi HighSpeed'],
+      equipment: ['Âm thanh đa vùng', '2 Máy chiếu song song', 'Điều hòa inverter', 'Wifi doanh nghiệp riêng'],
       autoCheckoutMinutes: 20,
-      awayWarningMinutes: 10
+      awayWarningMinutes: 10,
+      pricePerHour: 600000,
+      pricePerDay: 4200000,
+      rating: 4.88,
+      reviewsCount: 29
     },
     {
       id: 'choi-2',
-      name: 'Chòi tự học 2',
-      building: 'Đường Thanh Niên',
-      floor: 'Khuôn viên ngoài trời',
-      type: 'Khu tự học ngoài trời',
-      capacity: 6,
+      name: 'Meeting Pod cách âm Solo Booth 02',
+      building: 'Startup Pod Hub',
+      floor: 'Khuôn viên Vườn Công nghệ',
+      type: 'Meeting Pod cách âm',
+      capacity: 2,
       status: 'AVAILABLE',
       currentOccupants: 0,
-      equipment: ['Ổ cắm sạc chống nước', 'Đèn LED chiếu sáng', 'Wifi UEL Outdoor'],
+      equipment: ['Cách âm hoàn hảo cho Phone call', 'Bàn làm việc đứng/ngồi', 'Cổng sạc Type-C PD 100W', 'Ghế Ergonomic Herman Miller'],
       autoCheckoutMinutes: 15,
-      awayWarningMinutes: 8
+      awayWarningMinutes: 8,
+      pricePerHour: 80000,
+      pricePerDay: 500000,
+      rating: 4.75,
+      reviewsCount: 37
     },
     {
       id: 'choi-3',
-      name: 'Chòi tự học 3',
-      building: 'Đường Thanh Niên',
-      floor: 'Khuôn viên ngoài trời',
-      type: 'Khu tự học ngoài trời',
+      name: 'Không gian mở Outdoor Gazebo Hub',
+      building: 'Green Office Suites',
+      floor: 'Sân vườn ngoài trời',
+      type: 'Bàn làm việc linh hoạt',
       capacity: 10,
       status: 'AVAILABLE',
       currentOccupants: 0,
-      equipment: ['Ổ cắm sạc chống nước', 'Đèn LED chiếu sáng', 'Wifi UEL Outdoor'],
+      equipment: ['Ổ cắm sạc chuẩn IP66 chống nước', 'Đèn LED chiếu sáng dịu mắt', 'Mái che điều hướng', 'Wifi Mesh ngoài trời'],
       autoCheckoutMinutes: 15,
-      awayWarningMinutes: 8
+      awayWarningMinutes: 8,
+      pricePerHour: 150000,
+      pricePerDay: 1000000,
+      rating: 4.82,
+      reviewsCount: 45
     }
   ];
 
-  // Data: Users & Roles
+  // Data: Users & Roles (Seller Staff & Rental Customers)
   users: AdminUser[] = [
     {
       id: 'u-01',
-      code: 'ADMIN-001',
-      name: 'Quản trị viên Hệ thống UEL',
-      email: 'admin@uel.edu.vn',
-      role: 'ADMIN',
-      organization: 'Phòng QTTTS & TT Quản lý Hạ tầng',
+      code: 'HOST-001',
+      name: 'Nguyễn Trần Kim Giang (Chủ Gian Hàng)',
+      email: 'giangnntk24411@st.uel.edu.vn',
+      role: 'SELLER_OWNER',
+      organization: 'UEL Space Partner Store - Chuỗi Văn Phòng Đổi Mới Sáng Tạo',
       status: 'ACTIVE',
       bookingsCount: 0
     },
     {
       id: 'u-02',
-      code: 'MGR-002',
-      name: 'Quản lý Không gian Thư viện',
-      email: 'library_mgr@uel.edu.vn',
-      role: 'SPACE_MANAGER',
-      organization: 'Thư viện Trung tâm UEL',
+      code: 'STAFF-002',
+      name: 'Nguyễn Văn Thành (Lễ tân & Vận hành)',
+      email: 'operations@uelspace.vn',
+      role: 'SELLER_STAFF',
+      organization: 'Đội Vận hành Gian hàng UEL Space',
       status: 'ACTIVE',
       bookingsCount: 4
     },
     {
       id: 'u-03',
-      code: 'K24411',
-      name: 'Nguyễn Trần Kim Giang',
-      email: 'giangnntk24411@st.uel.edu.vn',
-      role: 'STUDENT',
-      organization: 'CLB ITB UEL (Chủ nhiệm)',
+      code: 'CUST-081',
+      name: 'Trần Minh Anh (Founder FinTech Co.)',
+      email: 'anhtm@fintechhub.vn',
+      role: 'CUSTOMER',
+      organization: 'Công ty Cổ phần Giải pháp FinTech Việt',
       status: 'ACTIVE',
       bookingsCount: 18
     },
     {
       id: 'u-04',
-      code: 'GV-HTTT',
-      name: 'ThS. Lê Hoàng Long',
-      email: 'longlh@uel.edu.vn',
-      role: 'LECTURER',
-      organization: 'Khoa Hệ thống Thông tin',
+      code: 'CUST-082',
+      name: 'ThS. Lê Hoàng Long (Giám đốc Đào tạo)',
+      email: 'longlh@innovate.edu.vn',
+      role: 'CUSTOMER',
+      organization: 'Viện Nghiên cứu Đổi mới Sáng tạo & AI',
       status: 'ACTIVE',
       bookingsCount: 12
     },
     {
       id: 'u-05',
-      code: 'K23405',
-      name: 'Đỗ Thùy Linh',
-      email: 'linhdt@st.uel.edu.vn',
-      role: 'STUDENT',
-      organization: 'Sinh viên Khoa Luật Kinh tế',
+      code: 'CUST-085',
+      name: 'Đỗ Thùy Linh (Trưởng nhóm Dự án)',
+      email: 'linhdt@creativelab.com',
+      role: 'CUSTOMER',
+      organization: 'Creative Media Agency',
       status: 'SUSPENDED',
       bookingsCount: 5
     }
