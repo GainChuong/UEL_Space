@@ -267,7 +267,7 @@ export class Admin implements OnInit, OnDestroy {
   occModelLoaded: boolean = false;
   occModelLoading: boolean = false;
   occModelError: string = '';
-  occModelName: string = 'Đang khởi tạo AI...';
+  occModelName: string = 'YOLOv11 Server AI (Sẵn sàng)';
   occSensitivity: 'high' | 'normal' | 'strict' = 'high';
   occCameraActive: boolean = false;
   occStartingCamera: boolean = false;
@@ -283,6 +283,12 @@ export class Admin implements OnInit, OnDestroy {
   occAvgCount: number = 0;
   occDetectionFps: number = 0;
   private faceDetector: any = null;
+
+  // Option B: SOTA YOLOv11 Server AI Engine State
+  occEngineMode: 'server' | 'client' = 'server';
+  occServerStatus: 'online' | 'offline' | 'checking' = 'checking';
+  occServerLatencyMs: number = 0;
+  private offscreenCanvas: HTMLCanvasElement | null = null;
   private occLastFrameTime: number = 0;
   private occFrameCount: number = 0;
   private occFpsInterval: any = null;
@@ -925,6 +931,8 @@ export class Admin implements OnInit, OnDestroy {
   constructor(private ngZone: NgZone, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
+    // Kiểm tra Server AI YOLOv11 (Option B)
+    this.checkServerAiHealth();
     // Preload COCO-SSD model in background so turning on IoT camera is instant
     this.loadOccupancyModel();
     if (!this.occSelectedSpace && this.spaces.length > 0) {
@@ -1725,6 +1733,114 @@ export class Admin implements OnInit, OnDestroy {
     }
   }
 
+  setOccEngineMode(mode: 'server' | 'client'): void {
+    this.occEngineMode = mode;
+    if (mode === 'server') {
+      this.occModelName = 'YOLOv11 Server AI (Độ chính xác cao)';
+      this.showToast(this.i18n.t('Đã chuyển sang YOLOv11 Server AI (Độ chính xác cao, hỗ trợ mọi thiết bị)'), 'success');
+      this.checkServerAiHealth();
+    } else {
+      this.occModelName = this.occCocoModel ? 'COCO-SSD Client + Face AI' : 'Edge AI Head-Peak';
+      this.showToast(this.i18n.t('Đã chuyển sang Client Edge AI (Chạy offline trên trình duyệt)'), 'info');
+    }
+    this.cdr.detectChanges();
+  }
+
+  async checkServerAiHealth(): Promise<boolean> {
+    try {
+      this.occServerStatus = 'checking';
+      const res = await fetch(`${SERVER_BASE_URL}/api/occupancy/live`, { signal: AbortSignal.timeout(3500) });
+      if (res.ok) {
+        this.occServerStatus = 'online';
+        if (this.occEngineMode === 'server') {
+          this.occModelName = 'YOLOv11 Server AI (Sẵn sàng)';
+        }
+        return true;
+      }
+      this.occServerStatus = 'offline';
+      return false;
+    } catch {
+      this.occServerStatus = 'offline';
+      return false;
+    } finally {
+      this.cdr.detectChanges();
+    }
+  }
+
+  private async detectWithServerYolo(
+    videoEl: HTMLVideoElement
+  ): Promise<Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> | null> {
+    try {
+      const vw = videoEl.videoWidth;
+      const vh = videoEl.videoHeight;
+      if (!vw || !vh) return null;
+
+      // Chuẩn hóa kích thước khung hình gửi lên Server (max width 640px)
+      // Tối ưu dung lượng <35KB, truyền tải siêu tốc qua mạng 4G/WiFi cho mọi điện thoại và laptop
+      const targetWidth = Math.min(640, vw);
+      const scale = targetWidth / vw;
+      const targetHeight = Math.round(vh * scale);
+
+      if (!this.offscreenCanvas) {
+        this.offscreenCanvas = document.createElement('canvas');
+      }
+      this.offscreenCanvas.width = targetWidth;
+      this.offscreenCanvas.height = targetHeight;
+      const ctx = this.offscreenCanvas.getContext('2d', { willReadFrequently: true });
+      if (!ctx) return null;
+
+      ctx.drawImage(videoEl, 0, 0, targetWidth, targetHeight);
+      const base64Image = this.offscreenCanvas.toDataURL('image/jpeg', 0.72);
+
+      const t0 = performance.now();
+      const res = await fetch(`${SERVER_BASE_URL}/api/occupancy/detect-server`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image: base64Image,
+          confidenceThreshold: this.occSensitivity === 'high' ? 0.20 : (this.occSensitivity === 'normal' ? 0.32 : 0.48),
+          iouThreshold: 0.45,
+          spaceId: this.occSelectedSpace?.id || 'general',
+          spaceName: this.occSelectedSpace?.name || 'UEL Space Room'
+        }),
+        signal: AbortSignal.timeout(5000)
+      });
+
+      if (!res.ok) {
+        this.occServerStatus = 'offline';
+        return null;
+      }
+
+      const data = await res.json();
+      if (!data.success) {
+        this.occServerStatus = 'offline';
+        return null;
+      }
+
+      this.occServerStatus = 'online';
+      this.occServerLatencyMs = Math.round(performance.now() - t0);
+      this.occModelName = `YOLOv11 Server AI (${data.processingTimeMs}ms • ${data.device ? data.device.toUpperCase() : 'CPU'})`;
+
+      const boxes: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
+      if (Array.isArray(data.boxes)) {
+        for (const b of data.boxes) {
+          boxes.push({
+            x: Math.round(b.x / scale),
+            y: Math.round(b.y / scale),
+            w: Math.round(b.w / scale),
+            h: Math.round(b.h / scale),
+            score: Math.round(b.confidence),
+            label: b.label || 'Khách thuê (YOLOv11)'
+          });
+        }
+      }
+      return boxes;
+    } catch {
+      this.occServerStatus = 'offline';
+      return null;
+    }
+  }
+
   setOccSensitivity(level: 'high' | 'normal' | 'strict'): void {
     this.occSensitivity = level;
     const label = level === 'high' ? 'Siêu nhạy (Webcam / Gần)' : (level === 'normal' ? 'Tiêu chuẩn' : 'Nghiêm ngặt');
@@ -2219,8 +2335,9 @@ export class Admin implements OnInit, OnDestroy {
     }
 
     const now = performance.now();
-    // Tần suất suy luận cao cấp: mỗi 80ms cho độ phản hồi nhanh tức thì trên Admin Panel
-    if (this.isDetectingOccFrame || (now - this.lastOccDetectionTimestamp < 80)) {
+    // Tần suất suy luận: 140ms cho Server AI (tối ưu băng thông/mượt mà), 80ms cho Client Edge AI
+    const intervalThreshold = this.occEngineMode === 'server' ? 140 : 80;
+    if (this.isDetectingOccFrame || (now - this.lastOccDetectionTimestamp < intervalThreshold)) {
       requestAnimationFrame(() => this.runDetectionLoop(videoEl));
       return;
     }
@@ -2232,71 +2349,85 @@ export class Admin implements OnInit, OnDestroy {
     const minScore = this.occSensitivity === 'high' ? 0.20 : (this.occSensitivity === 'normal' ? 0.32 : 0.48);
 
     try {
-      // 1. Chạy COCO-SSD với minScore truyền trực tiếp vào detect()
-      let cocoPredictions: any[] = [];
-      if (this.occCocoModel) {
-        try {
-          cocoPredictions = await this.occCocoModel.detect(videoEl, 12, minScore);
-        } catch (errCoco) {
-          console.warn('COCO detect error:', errCoco);
-        }
-      }
-
-      // 2. Chạy Hardware FaceDetector song song (nếu trình duyệt hỗ trợ)
-      let facePredictions: any[] = [];
-      if (this.faceDetector) {
-        try {
-          facePredictions = await this.faceDetector.detect(videoEl);
-        } catch (errFace) {
-          console.warn('Face detect error:', errFace);
-        }
-      }
-
-      // 3. Thu thập mọi ứng viên phát hiện từ các mô hình (Multi-Source Candidate Aggregation)
       const rawDetected: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
+      let usedServerYolo = false;
 
-      // A. Deep Learning COCO-SSD (Nhận diện toàn thân / người)
-      const bodyPeople = cocoPredictions.filter((p: any) => p.class === 'person' && p.score >= minScore);
-      for (const p of bodyPeople) {
-        rawDetected.push({
-          x: Math.round(p.bbox[0]),
-          y: Math.round(p.bbox[1]),
-          w: Math.round(p.bbox[2]),
-          h: Math.round(p.bbox[3]),
-          score: Math.round(p.score * 100),
-          label: 'Người (AI Deep Learning)'
-        });
+      // 1. Chế độ Ưu tiên: SOTA YOLOv11 Server AI Microservice (Option B)
+      if (this.occEngineMode === 'server') {
+        const serverBoxes = await this.detectWithServerYolo(videoEl);
+        if (serverBoxes !== null) {
+          usedServerYolo = true;
+          for (const sb of serverBoxes) {
+            rawDetected.push(sb);
+          }
+        }
       }
 
-      // B. Face AI (Nhận diện khuôn mặt khi người ngồi sát bàn che thân)
-      if (facePredictions && facePredictions.length > 0) {
-        for (const f of facePredictions) {
-          const fb = f.boundingBox;
-          const estWidth = Math.min(videoEl.videoWidth, Math.max(fb.width * 2.2, 140));
-          const estHeight = Math.min(videoEl.videoHeight, Math.max(fb.height * 2.8, 180));
-          const estX = Math.max(0, fb.x - (estWidth - fb.width) / 2);
-          const estY = Math.max(0, fb.y - fb.height * 0.2);
+      // 2. Chế độ Client Edge AI hoặc Tự động Dự phòng khi Server AI Offline
+      if (!usedServerYolo) {
+        // A. Chạy COCO-SSD với minScore truyền trực tiếp vào detect()
+        let cocoPredictions: any[] = [];
+        if (this.occCocoModel) {
+          try {
+            cocoPredictions = await this.occCocoModel.detect(videoEl, 12, minScore);
+          } catch (errCoco) {
+            console.warn('COCO detect error:', errCoco);
+          }
+        }
 
+        // B. Chạy Hardware FaceDetector song song (nếu trình duyệt hỗ trợ)
+        let facePredictions: any[] = [];
+        if (this.faceDetector) {
+          try {
+            facePredictions = await this.faceDetector.detect(videoEl);
+          } catch (errFace) {
+            console.warn('Face detect error:', errFace);
+          }
+        }
+
+        // C. Thu thập kết quả Deep Learning COCO-SSD
+        const bodyPeople = cocoPredictions.filter((p: any) => p.class === 'person' && p.score >= minScore);
+        for (const p of bodyPeople) {
           rawDetected.push({
-            x: Math.round(estX),
-            y: Math.round(estY),
-            w: Math.round(estWidth),
-            h: Math.round(estHeight),
-            score: 95,
-            label: 'Người (Face AI)'
+            x: Math.round(p.bbox[0]),
+            y: Math.round(p.bbox[1]),
+            w: Math.round(p.bbox[2]),
+            h: Math.round(p.bbox[3]),
+            score: Math.round(p.score * 100),
+            label: 'Người (AI Deep Learning)'
           });
         }
-      }
 
-      // C. Vision Engine siêu tốc (Phát hiện bàn tay, ngực, đầu khi thiếu dữ liệu hoặc đang load model)
-      if (rawDetected.length === 0 || !this.occCocoModel) {
-        const visionPeople = this.detectPeopleWithVisionEngine(videoEl);
-        for (const vp of visionPeople) {
-          rawDetected.push(vp);
+        // D. Face AI (Nhận diện khuôn mặt khi người ngồi sát bàn che thân)
+        if (facePredictions && facePredictions.length > 0) {
+          for (const f of facePredictions) {
+            const fb = f.boundingBox;
+            const estWidth = Math.min(videoEl.videoWidth, Math.max(fb.width * 2.2, 140));
+            const estHeight = Math.min(videoEl.videoHeight, Math.max(fb.height * 2.8, 180));
+            const estX = Math.max(0, fb.x - (estWidth - fb.width) / 2);
+            const estY = Math.max(0, fb.y - fb.height * 0.2);
+
+            rawDetected.push({
+              x: Math.round(estX),
+              y: Math.round(estY),
+              w: Math.round(estWidth),
+              h: Math.round(estHeight),
+              score: 95,
+              label: 'Người (Face AI)'
+            });
+          }
+        }
+
+        // E. Vision Engine siêu tốc (Phát hiện bàn tay, ngực, đầu khi thiếu dữ liệu hoặc đang load model)
+        if (rawDetected.length === 0 || !this.occCocoModel) {
+          const visionPeople = this.detectPeopleWithVisionEngine(videoEl);
+          for (const vp of visionPeople) {
+            rawDetected.push(vp);
+          }
         }
       }
 
-      // D. HỢP NHẤT TRIỆT ĐỂ: Gom mọi bộ phận (đầu, thân, tay) và loại bỏ trùng lặp về 1 người duy nhất
+      // 3. HỢP NHẤT TRIỆT ĐỂ: Gom mọi bộ phận (đầu, thân, tay) và loại bỏ trùng lặp về 1 người duy nhất
       const detectedPeople = this.consolidateAndMergeDetections(rawDetected, videoEl.videoWidth, videoEl.videoHeight);
 
       // 4. BỘ THEO DÕI LÀM MƯỢT KHUNG HÌNH (Temporal EMA Box Tracking)

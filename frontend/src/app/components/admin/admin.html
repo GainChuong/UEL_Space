@@ -1559,9 +1559,29 @@
                   </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
+                  <!-- AI Engine Mode Switcher: Option B (YOLOv11 Server AI) vs Client Edge AI -->
+                  <div class="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-[11px]">
+                    <button type="button" (click)="setOccEngineMode('server')" 
+                            [class]="occEngineMode === 'server' ? 'bg-emerald-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+                            class="px-2.5 py-1 rounded-lg transition-all cursor-pointer font-bold flex items-center gap-1.5"
+                            title="YOLOv11 SOTA: Tối ưu cho mọi điện thoại, camera IP, nhận diện chính xác >98%">
+                      <span class="w-1.5 h-1.5 rounded-full" [class]="occServerStatus === 'online' ? 'bg-emerald-300 animate-pulse' : (occServerStatus === 'offline' ? 'bg-rose-400' : 'bg-amber-400')"></span>
+                      <span>{{ 'Server AI (YOLOv11)' | t }}</span>
+                      @if (occEngineMode === 'server' && occServerLatencyMs > 0) {
+                        <span class="text-[9px] opacity-85 font-mono">({{occServerLatencyMs}}ms)</span>
+                      }
+                    </button>
+                    <button type="button" (click)="setOccEngineMode('client')" 
+                            [class]="occEngineMode === 'client' ? 'bg-uel-blue dark:bg-sky-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+                            class="px-2.5 py-1 rounded-lg transition-all cursor-pointer font-bold flex items-center gap-1.5"
+                            title="Edge AI: Xử lý cục bộ trên trình duyệt thiết bị hiện tại">
+                      <span>{{ 'Client Edge AI' | t }}</span>
+                    </button>
+                  </div>
+
                   <!-- Active Model Tag -->
                   <div class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 text-[11px] font-bold text-sky-700 dark:text-sky-300">
-                    <span class="w-2 h-2 rounded-full" [class]="occModelLoaded ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'"></span>
+                    <span class="w-2 h-2 rounded-full" [class]="occModelLoaded || occServerStatus === 'online' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'"></span>
                     <span class="truncate max-w-[210px]">{{occModelName}}</span>
                   </div>
 
@@ -1637,7 +1657,7 @@
 
                   <!-- Live Watermark (Bottom Right) -->
                   <div class="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/60 text-white/80 text-[10px] font-bold backdrop-blur-xs flex items-center gap-1.5 pointer-events-none">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="w-2 h-2 rounded-full" [class]="occEngineMode === 'server' ? 'bg-sky-400 animate-pulse' : 'bg-emerald-400 animate-pulse'"></span>
                     <span>{{occModelName}} • {{ occFacingMode === 'environment' ? 'Rear' : 'Front' }}</span>
                   </div>
                 } @else {

@@ -474,8 +474,13 @@ export const ADMIN_EN: Record<string, string> = {
   'Không gian Chòi tự học 1 (Đường Thanh Niên) đã mở lại phục vụ sinh viên sinh hoạt và học tập.': 'The Self-study Hut 1 space (Thanh Nien Road) has reopened to serve students for activities and study.',
   'Phân quyền tài khoản ThS. Lê Hoàng Long': 'Account permissions for MSc. Le Hoang Long',
   'Tài khoản giảng viên đã được kích hoạt chế độ ưu tiên đặt phòng hội thảo.': 'The lecturer account has been activated with priority seminar room booking.',
-  '5 phút trước': '5 minutes ago',
-  '20 phút trước': '20 minutes ago',
-  '1 giờ trước': '1 hour ago',
-  'Hôm qua': 'Yesterday',
+  // ===== SOTA YOLOv11 Server AI =====
+  'Chế độ AI:': 'AI Engine:',
+  'Server AI (YOLOv11)': 'Server AI (YOLOv11)',
+  'Client Edge AI': 'Client Edge AI',
+  'Độ chính xác cao, đa thiết bị': 'High accuracy, all devices',
+  'Ngoại tuyến, chạy tại máy': 'Offline, runs on-device',
+  'Đã chuyển sang YOLOv11 Server AI (Độ chính xác cao, hỗ trợ mọi thiết bị)': 'Switched to YOLOv11 Server AI (High accuracy, all devices supported)',
+  'Đã chuyển sang Client Edge AI (Chạy offline trên trình duyệt)': 'Switched to Client Edge AI (Runs offline in browser)',
+  'Server AI Ngoại tuyến. Đang dùng Edge AI dự phòng': 'Server AI Offline. Using Edge AI fallback'
 };
