@@ -310,24 +310,24 @@ export class Home implements OnInit {
 
   studentInfo = {
     name: 'Nguyễn Minh Quân',
-    id: 'K224011823',
-    major: 'Kinh tế Quốc tế • K22'
+    id: 'CORP-88392',
+    major: 'Đại diện Doanh nghiệp • FinTech Hub'
   };
 
   openBookingModal(space: SpaceItem) {
     const floorMatch = space.building.match(/Tầng\s*\d+/i);
     const floor = floorMatch ? floorMatch[0] : 'Tầng 1';
 
-    let currentActivity = 'Phòng hiện hoàn toàn trống, sẵn sàng đăng ký sử dụng ngay';
+    let currentActivity = 'Không gian hiện hoàn toàn trống, sẵn sàng tiếp nhận đặt chỗ ngay';
     let expectedFreeTime = 'Khả dụng cả ngày';
     if (space.status === 'in-use') {
-      currentActivity = 'Đang có nhóm sinh viên K23 học tập & thảo luận';
+      currentActivity = 'Đang có doanh nghiệp đối tác họp ban điều hành & làm việc';
       expectedFreeTime = 'Dự kiến trống lúc 15:00';
     } else if (space.status === 'reserved') {
-      currentActivity = 'Đã có bạn đăng ký giữ chỗ trước qua App UEL Space';
+      currentActivity = 'Đã có khách thuê đặt giữ chỗ trước qua sàn UEL Space';
       expectedFreeTime = 'Khả dụng sau ca 17:15';
     } else if (space.status === 'maintenance') {
-      currentActivity = 'Đang kiểm tra bảo dưỡng thiết bị máy lạnh & đường truyền';
+      currentActivity = 'Đang kiểm tra bảo dưỡng hệ thống điều hòa & đường truyền';
       expectedFreeTime = 'Tạm ngưng nhận lịch hôm nay';
     }
 
@@ -352,8 +352,8 @@ export class Home implements OnInit {
       hourlyPrice: pricePerHour,
       totalPrice: pricePerHour * this.customDurationHours,
       facilities: space.equipment && space.equipment.length > 0 
-        ? space.equipment.map(e => e.includes('Wifi') ? 'Wifi UEL Free' : e.includes('Điều hòa') ? 'Điều hòa 2 chiều' : e.includes('Máy chiếu') ? 'Máy chiếu sắc nét' : e)
-        : ['Máy chiếu sắc nét', 'Điều hòa 2 chiều', 'Wifi UEL Free', 'Ổ cắm điện'],
+        ? space.equipment.map(e => e.includes('Wifi') ? 'Cáp quang 1Gbps' : e.includes('Điều hòa') ? 'Điều hòa 2 chiều' : e.includes('Máy chiếu') ? 'Màn hình 4K / Máy chiếu' : e)
+        : ['Màn hình 4K / Máy chiếu', 'Điều hòa 2 chiều', 'Cáp quang 1Gbps', 'Ổ cắm điện'],
       currentActivity: currentActivity,
       expectedFreeTime: expectedFreeTime
     };
@@ -531,13 +531,13 @@ export class Home implements OnInit {
     const r = room || this.selectedRoomDetail;
     const s = slot || this.selectedSlot;
     this.googleCalendarService.openGoogleCalendar({
-      title: `[UEL SPACE] Đặt phòng ${r?.name || 'Học tập'}`,
-      roomName: r?.name || 'Phòng học UEL',
-      building: r?.building || 'Cơ sở chính UEL',
+      title: `[UEL SPACE] Đặt không gian ${r?.name || 'Văn phòng'}`,
+      roomName: r?.name || 'Phòng họp VIP',
+      building: r?.building || 'Tòa nhà văn phòng đối tác',
       code: 'UEL-88392',
       date: new Date().toLocaleDateString('vi-VN'),
       timeSlot: s?.period || 'Ca 3 (13:00 - 15:00)',
-      purpose: 'Học tập & Thảo luận nhóm sinh viên',
+      purpose: 'Hội thảo & Họp đối tác doanh nghiệp',
       bookerName: this.studentInfo.name
     });
   }
@@ -546,27 +546,27 @@ export class Home implements OnInit {
     const r = room || this.selectedRoomDetail;
     const s = slot || this.selectedSlot;
     this.googleCalendarService.downloadIcsFile({
-      title: `[UEL SPACE] Đặt phòng ${r?.name || 'Học tập'}`,
-      roomName: r?.name || 'Phòng học UEL',
-      building: r?.building || 'Cơ sở chính UEL',
+      title: `[UEL SPACE] Đặt không gian ${r?.name || 'Văn phòng'}`,
+      roomName: r?.name || 'Phòng họp VIP',
+      building: r?.building || 'Tòa nhà văn phòng đối tác',
       code: 'UEL-88392',
       date: new Date().toLocaleDateString('vi-VN'),
       timeSlot: s?.period || 'Ca 3 (13:00 - 15:00)',
-      purpose: 'Học tập & Thảo luận nhóm sinh viên',
+      purpose: 'Hội thảo & Họp đối tác doanh nghiệp',
       bookerName: this.studentInfo.name
     });
   }
 
   addCourseToGoogleCalendar(course: any, day: any) {
     this.googleCalendarService.openGoogleCalendar({
-      title: `[Lớp học UEL] ${course.subject} (${course.code}) - Phòng ${course.room}`,
-      roomName: course.room,
-      building: course.campus,
-      code: course.lhp,
+      title: `[Sự kiện Doanh nghiệp] ${course.subject || 'Hội thảo'} - ${course.room || 'Phòng họp'}`,
+      roomName: course.room || 'Phòng họp',
+      building: course.campus || 'Hub trung tâm',
+      code: course.lhp || 'UEL-EVENT',
       date: day.date,
       timeSlot: course.time,
-      purpose: `Giảng viên: ${course.lecturer} | Số tiết: ${course.periodsTotal} (${course.periodRange})`,
-      details: `📚 Môn học: ${course.subject} (${course.code})\n🏛️ Phòng: ${course.room} - ${course.campus}\n👨‍🏫 Giảng viên: ${course.lecturer}\n⏰ Giờ học: ${course.time}\n🌐 Ngôn ngữ: ${course.language}`
+      purpose: `Chủ trì: ${course.lecturer || 'Ban tổ chức'} | Thời lượng: ${course.periodsTotal || '2h'}`,
+      details: `🏢 Sự kiện: ${course.subject}\n🏛️ Địa điểm: ${course.room} - ${course.campus}\n👤 Chủ trì: ${course.lecturer}\n⏰ Thời gian: ${course.time}`
     });
   }
 }

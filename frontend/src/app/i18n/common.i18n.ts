@@ -95,23 +95,24 @@ export const COMMON_EN: Record<string, string> = {
   'Thứ 7': 'Saturday',
   'Chủ Nhật': 'Sunday',
 
-  // Header notifications (demo data)
-  'Phê duyệt đặt phòng thành công': 'Booking approved successfully',
-  'Đơn mượn Phòng Họp A2.1 (UEL-BK-2026-083) cho NCKH đã được Quản trị viên duyệt.': 'Your request for Meeting Room A2.1 (UEL-BK-2026-083) for research has been approved by the Administrator.',
+  // Header notifications
+  'Xác nhận đặt phòng họp thành công': 'Meeting room booking confirmed successfully',
+  'Đơn thuê Phòng Boardroom B1 (FS-BK-2026-083) của bạn đã được xác nhận thanh toán qua MoMo.': 'Your booking for Boardroom B1 (FS-BK-2026-083) has been confirmed and paid via MoMo.',
   '5 phút trước': '5 minutes ago',
   'Nhắc nhở quét QR xác thực hiện diện (F09)': 'QR presence check-in reminder (F09)',
-  'Bạn còn 10 phút để quét mã QR check-in tại Khu tự học Thư viện (Tầng 2) trước khi bị giải phóng chỗ.': 'You have 10 minutes to scan the QR code to check in at the Library Study Area (Floor 2) before your seat is released.',
+  'Bạn còn 10 phút để quét mã QR check-in tại Hub Central Tower trước khi AI tự động giải phóng phòng (No-show).': 'You have 10 minutes to scan the QR check-in at Central Tower Hub before AI auto-releases the room (No-show).',
   '20 phút trước': '20 minutes ago',
-  'Bảo trì Chòi tự học 1 đã hoàn tất': 'Maintenance of Study Hut 1 completed',
-  'Không gian Chòi tự học 1 (Đường Thanh Niên) đã mở lại phục vụ sinh viên sinh hoạt và học tập.': 'Study Hut 1 (Thanh Nien Street) has reopened for student activities and study.',
+  'Bảo trì Pod làm việc 1 đã hoàn tất': 'Maintenance of Work Pod 1 is complete',
+  'Không gian Meeting Pod 1 (Eco Space) đã mở lại sẵn sàng tiếp nhận lịch đặt trên sàn.': 'Meeting Pod 1 (Eco Space) has reopened and is ready for booking on the marketplace.',
   '1 giờ trước': '1 hour ago',
-  'Phân quyền tài khoản ThS. Lê Hoàng Long': 'Account role granted to MSc. Le Hoang Long',
-  'Tài khoản giảng viên đã được kích hoạt chế độ ưu tiên đặt phòng hội thảo.': 'The lecturer account has been granted priority booking for seminar rooms.',
+  'Đối tác mới gia nhập UEL Space Partner': 'New partner joined UEL Space Partner',
+  'Tòa nhà Landmark Innovation Hub đã chính thức mở thêm 12 phòng họp và văn phòng riêng trên sàn.': 'Landmark Innovation Hub has officially listed 12 meeting rooms and private offices on the marketplace.',
   'Hôm qua': 'Yesterday',
   'Tài khoản': 'Account',
 
   // Auth required modal
-  'Bạn đang ở chế độ chỉ xem. Vui lòng đăng nhập với tài khoản Google UEL để thực hiện thao tác này.': 'You are in view-only mode. Please sign in with a UEL Google account to perform this action.',
+  'Bạn đang ở chế độ xem thông tin. Vui lòng đăng nhập với tài khoản Google để thực hiện đặt chỗ và thanh toán.': 'You are in view-only mode. Please sign in with Google to book and pay for workspaces.',
+  'Bạn đang ở chế độ chỉ xem. Vui lòng đăng nhập với tài khoản Google UEL để thực hiện thao tác này.': 'You are in view-only mode. Please sign in with Google to book and pay for workspaces.',
 
   // Settings feedback messages
   'Trình duyệt không hỗ trợ Web Notifications API.': 'Your browser does not support the Web Notifications API.',

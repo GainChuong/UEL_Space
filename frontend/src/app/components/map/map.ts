@@ -289,13 +289,13 @@ export class Map implements OnInit, AfterViewInit {
     const r = room || this.selectedRoomToBook || this.selectedRoomDetail;
     if (!r) return;
     this.googleCalendarService.openGoogleCalendar({
-      title: `[UEL SPACE] Đặt phòng ${r.name || 'Học tập'}`,
-      roomName: r.name || 'Phòng học UEL',
-      building: r.building || this.selectedBuilding?.name || 'Cơ sở chính UEL',
+      title: `[UEL SPACE] Đặt không gian ${r.name || 'Văn phòng'}`,
+      roomName: r.name || 'Phòng họp VIP',
+      building: r.building || this.selectedBuilding?.name || 'Tòa nhà văn phòng đối tác',
       code: 'UEL-88392',
       date: this.customBookingDate,
       timeSlot: `${this.customStartTime} - ${this.customEndTime}`,
-      purpose: 'Học tập & Thảo luận nhóm sinh viên',
+      purpose: 'Họp chiến lược & Làm việc doanh nghiệp',
       bookerName: this.studentInfo.name
     });
   }
@@ -307,9 +307,9 @@ export class Map implements OnInit, AfterViewInit {
       return;
     }
 
-    const busyClasses = [
-      { start: '07:30', end: '11:45', title: 'Kinh tế lượng ứng dụng', room: 'B1.202' },
-      { start: '15:15', end: '17:15', title: 'Pháp luật đại cương', room: 'A1.305' }
+    const busyReservations = [
+      { start: '07:30', end: '11:45', title: 'Họp chiến lược Ban Điều Hành quý IV', room: 'Boardroom VIP B1' },
+      { start: '15:15', end: '17:15', title: 'Làm việc cùng Quỹ Đầu Tư mạo hiểm', room: 'Private Suite A2' }
     ];
 
     const toMinutes = (timeStr: string) => {
@@ -320,7 +320,7 @@ export class Map implements OnInit, AfterViewInit {
     const selStart = toMinutes(this.customStartTime);
     const selEnd = toMinutes(this.customEndTime);
 
-    const conflict = busyClasses.find(c => {
+    const conflict = busyReservations.find(c => {
       const cStart = toMinutes(c.start);
       const cEnd = toMinutes(c.end);
       return Math.max(selStart, cStart) < Math.min(selEnd, cEnd);
@@ -328,7 +328,7 @@ export class Map implements OnInit, AfterViewInit {
 
     if (conflict) {
       this.hasConflict = true;
-      this.conflictReason = `Trùng giờ học "${conflict.title}" (${conflict.start} - ${conflict.end}) tại ${conflict.room}`;
+      this.conflictReason = `Trùng lịch với ca thuê trước: "${conflict.title}" (${conflict.start} - ${conflict.end}) tại ${conflict.room}`;
     } else {
       this.hasConflict = false;
       this.conflictReason = '';
@@ -353,13 +353,13 @@ export class Map implements OnInit, AfterViewInit {
     const r = room || this.selectedRoomToBook;
     const s = slot || this.selectedSlot;
     this.googleCalendarService.openGoogleCalendar({
-      title: `[UEL SPACE] Đặt phòng ${r?.name || 'Học tập'}`,
-      roomName: r?.name || 'Phòng học UEL',
-      building: r?.building || this.selectedBuilding?.name || 'Cơ sở chính UEL',
+      title: `[UEL SPACE] Đặt không gian ${r?.name || 'Văn phòng'}`,
+      roomName: r?.name || 'Phòng họp VIP',
+      building: r?.building || this.selectedBuilding?.name || 'Tòa nhà văn phòng đối tác',
       code: 'UEL-88392',
       date: this.customBookingDate,
       timeSlot: s?.time || `${this.customStartTime} - ${this.customEndTime}`,
-      purpose: 'Học tập & Thảo luận nhóm sinh viên',
+      purpose: 'Họp chiến lược & Làm việc doanh nghiệp',
       bookerName: this.studentInfo.name
     });
   }
@@ -368,13 +368,13 @@ export class Map implements OnInit, AfterViewInit {
     const r = room || this.selectedRoomToBook;
     const s = slot || this.selectedSlot;
     this.googleCalendarService.downloadIcsFile({
-      title: `[UEL SPACE] Đặt phòng ${r?.name || 'Học tập'}`,
-      roomName: r?.name || 'Phòng học UEL',
-      building: r?.building || this.selectedBuilding?.name || 'Cơ sở chính UEL',
+      title: `[UEL SPACE] Đặt không gian ${r?.name || 'Văn phòng'}`,
+      roomName: r?.name || 'Phòng họp VIP',
+      building: r?.building || this.selectedBuilding?.name || 'Tòa nhà văn phòng đối tác',
       code: 'UEL-88392',
       date: this.customBookingDate,
       timeSlot: s?.time || `${this.customStartTime} - ${this.customEndTime}`,
-      purpose: 'Học tập & Thảo luận nhóm sinh viên',
+      purpose: 'Họp chiến lược & Làm việc doanh nghiệp',
       bookerName: this.studentInfo.name
     });
   }

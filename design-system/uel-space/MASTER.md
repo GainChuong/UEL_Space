@@ -6,25 +6,31 @@
 
 ---
 
-**Project:** UEL SPACE
-**Generated:** 2026-10-05 10:45:41
-**Category:** Coworking Space
+**Project:** UEL SPACE (Smart Campus & Marketplace Coworking Platform)
+**Production URL:** https://uelspace-tan.vercel.app
+**Category:** Coworking Space & Smart Room Management
 
 ---
 
-## Global Rules
+## Global Rules & Brand Tokens
 
-### Color Palette
+### Color Palette (Live Production Source of Truth)
 
-| Role | Hex | CSS Variable |
-|------|-----|--------------|
-| Primary | `#7C3AED` | `--color-primary` |
-| Secondary | `#A78BFA` | `--color-secondary` |
-| CTA/Accent | `#F97316` | `--color-cta` |
-| Background | `#FAF5FF` | `--color-background` |
-| Text | `#4C1D95` | `--color-text` |
+| Role | Hex | CSS Token / Class | Usage |
+|------|-----|-------------------|-------|
+| Brand Navy Deep | `#001D3D` / `#001428` | `bg-[#001D3D]` | Sidebar Admin, Login left canvas, Footer |
+| Brand Navy Base | `#003B71` | `text-uel-blue` / `bg-uel-blue` | Header buttons, Brand primary accents |
+| Brand Dark Canvas | `#070D18` | `dark:bg-[#070D18]` | Dark mode background (Live default) |
+| Brand Light Canvas | `#F5F7F9` | `bg-[#F5F7F9]` | Light mode background |
+| Action Cyan / Sky | `#0284C7` / `#00A3FF` | `bg-sky-600` / `#0284C7` | Active Admin menu, 'Đặt chỗ ngay' button |
+| Action Coral / Orange | `#F97316` | `bg-uel-orange` | Hero CTA, 'GỬI', Admin button |
+| Price Gold / Yellow | `#FBBF24` / `#F59E0B` | `text-amber-400` / `#FBBF24` | Room card hourly prices (`$ 250,000 VNĐ / giờ`) |
+| Payment MoMo | `#A50064` / `#D82D8B` | `bg-[#a50064]` / `MoMo QR` | MoMo payment badge & checkout CTA |
+| Status Ready (Green) | `#10B981` | `bg-emerald-500` / `#10B981` | 'Trống' / 'Sẵn sàng' status badge |
+| Status Occupied (Red) | `#EF4444` / `#F43F5E` | `bg-rose-500` | 'Đang sử dụng' badge & occupied zones |
+| Status Near-Full (Amber) | `#F59E0B` | `bg-amber-500` | 'Sắp có lịch' badge (<30 phút) |
 
-**Color Notes:** Event theme colors + Excitement accents
+**Design System Harmony:** Designed for seamless transition between User Marketplace and Admin Telemetry Portal.
 
 ### Typography
 

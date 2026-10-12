@@ -666,10 +666,10 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                       </div>
                       <div class="text-xs">
-                        <div class="font-black text-amber-900 dark:text-amber-300">{{ 'Phát hiện xung đột lịch học!' | t }}</div>
+                        <div class="font-black text-amber-900 dark:text-amber-300">{{ 'Phát hiện trùng lịch với ca thuê khác!' | t }}</div>
                         <div class="text-amber-800 dark:text-amber-300 font-semibold mt-0.5">{{conflictReason | t}}</div>
                         <div class="text-[11px] text-amber-700 dark:text-amber-400 mt-1">
-                          {{ 'Hệ thống tạm khóa nút đặt nhằm tránh trùng ca học theo Quy chế Đào tạo UEL. Vui lòng chọn ca rảnh khác.' | t }}
+                          {{ 'Không gian đã có đối tác đặt trước trong khung giờ này. Vui lòng chọn khung giờ trống khác trên sàn.' | t }}
                         </div>
                       </div>
                     </div>
@@ -679,8 +679,8 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                       </div>
                       <div class="text-xs">
-                        <div class="font-black text-emerald-900 dark:text-emerald-300">{{ 'Lịch hoàn toàn hợp lệ trên Google Calendar!' | t }}</div>
-                        <div class="text-emerald-800 dark:text-emerald-300 font-semibold mt-0.5">{{ 'Bạn không có tiết học nào trong khung giờ' | t }} {{ customStartTime }} - {{ customEndTime }}. {{ 'Đủ điều kiện đăng ký phòng.' | t }}</div>
+                        <div class="font-black text-emerald-900 dark:text-emerald-300">{{ 'Khung giờ hoàn toàn khả dụng trên Google Calendar!' | t }}</div>
+                        <div class="text-emerald-800 dark:text-emerald-300 font-semibold mt-0.5">{{ 'Khung giờ hoàn toàn trống' | t }} {{ customStartTime }} - {{ customEndTime }}. {{ 'Đủ điều kiện tạo đơn thuê không gian.' | t }}</div>
                       </div>
                     </div>
                   }

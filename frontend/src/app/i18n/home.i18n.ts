@@ -1,5 +1,6 @@
 export const HOME_EN: Record<string, string> = {
-  // Hero
+  'Nền tảng bên thứ ba kết nối Người cho thuê mặt bằng và Khách thuê văn phòng, phòng họp linh hoạt — Tối ưu công suất khai thác cùng công nghệ AI Occupancy.':
+    'Third-party marketplace connecting space hosts and tenants for flexible meeting rooms and offices — Maximizing occupancy with AI Occupancy Detection.',
   'Sàn thương mại điện tử chia sẻ văn phòng, phòng họp và bàn làm việc ngắn hạn, tối ưu công suất khai thác cùng công nghệ AI Occupancy.':
     'Smart office sharing & rental marketplace connecting underutilized spaces with individuals and businesses, maximizing efficiency with AI Occupancy Detection.',
   'Khám phá, đặt chỗ và sử dụng không gian trong khuôn viên UEL một cách thông minh và hiệu quả.':

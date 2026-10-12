@@ -717,7 +717,7 @@
                       <div class="font-bold text-dark-text dark:text-white flex items-center gap-2">
                         <span>{{ b.spaceName | t }}</span>
                         @if (b.hasConflictWarning) {
-                          <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[10px] font-semibold" [title]="'Phát hiện trùng lịch học' | t">
+                          <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[10px] font-semibold" [title]="'Phát hiện trùng lịch thuê' | t">
                             {{ 'Trùng lịch' | t }}
                           </span>
                         }
@@ -1970,9 +1970,9 @@
         <div class="space-y-2">
           <label class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ 'Chọn nhanh lý do từ chối thường gặp:' | t }}</label>
           <div class="space-y-1.5">
-            <button (click)="applySuggestedReason('Trùng lịch học chính khóa ưu tiên của nhà trường.')"
+            <button (click)="applySuggestedReason('Trùng lịch với ca thuê ưu tiên đã thanh toán trước.')"
                     class="w-full text-left text-[11px] px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-300 border border-transparent hover:border-rose-200 dark:hover:border-rose-800 transition-colors font-medium">
-              {{ '• Trùng lịch học chính khóa ưu tiên của nhà trường' | t }}
+              {{ '• Trùng lịch với ca thuê ưu tiên đã thanh toán' | t }}
             </button>
             <button (click)="applySuggestedReason('Vượt quá công suất hoặc không phù hợp với mục đích sử dụng không gian.')"
                     class="w-full text-left text-[11px] px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-300 border border-transparent hover:border-rose-200 dark:hover:border-rose-800 transition-colors font-medium">

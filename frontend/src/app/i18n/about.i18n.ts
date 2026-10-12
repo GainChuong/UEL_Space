@@ -28,7 +28,8 @@ export const ABOUT_EN: Record<string, string> = {
   // Chapter 02 - The model
   'MÔ HÌNH MARKETPLACE': 'THE MARKETPLACE MODEL',
   'ĐIỂM NÓNG THỰC TẾ': 'THE MARKET TENSION',
-  'Sàn thương mại điện tử kết nối Cung & Cầu.': 'An E-commerce Marketplace Connecting Supply & Demand.',
+  'UEL Space là bên thứ ba trung gian kết nối giữa Người cho thuê (các đơn vị sở hữu tòa nhà, phòng họp, văn phòng còn trống) và Người đi thuê (doanh nghiệp, startup, cá nhân cần không gian làm việc). Nền tảng cho phép niêm yết không gian linh hoạt, thiết lập giá thuê theo giờ, thanh toán MoMo tức thì và theo dõi doanh thu minh bạch.':
+    'UEL Space is a third-party intermediary connecting space hosts (commercial property owners with vacant rooms/desks) and tenants (enterprises, startups, and individuals seeking workspace). The platform allows flexible listings, hourly pricing, instant MoMo checkout, and transparent revenue tracking.',
   'UEL Space vận hành theo mô hình Marketplace: cho phép các doanh nghiệp sở hữu không gian niêm yết phòng, thiết lập giá thuê theo giờ và theo dõi doanh thu minh bạch; đồng thời giúp khách thuê dễ dàng tìm kiếm, đặt chỗ trực tuyến và thanh toán tức thì.':
     'UEL Space operates as a marketplace: allowing space owners to list rooms, set hourly rates, and track revenue transparently; while enabling tenants to easily search, book online, and pay instantly.',
   '"Chủ không gian tối đa hóa doanh thu từ diện tích nhàn rỗi — Khách thuê tiết kiệm tới 60% chi phí vận hành cố định."':

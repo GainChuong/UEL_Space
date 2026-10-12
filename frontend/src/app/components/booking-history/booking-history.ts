@@ -359,7 +359,7 @@ export class BookingHistory implements OnInit {
       date: booking.date,
       timeSlot: booking.timeSlot,
       purpose: booking.purpose,
-      bookerName: 'Sinh viên UEL'
+      bookerName: 'Khách thuê Doanh nghiệp'
     });
   }
 
@@ -372,7 +372,7 @@ export class BookingHistory implements OnInit {
       date: booking.date,
       timeSlot: booking.timeSlot,
       purpose: booking.purpose,
-      bookerName: 'Sinh viên UEL'
+      bookerName: 'Khách thuê Doanh nghiệp'
     });
   }
 }
