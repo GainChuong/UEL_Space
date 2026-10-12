@@ -4,10 +4,11 @@ import { CommonModule } from '@angular/common';
 import { Header } from './components/layout/header/header';
 import { Footer } from './components/layout/footer/footer';
 import { AuthModalComponent } from './components/common/auth-modal/auth-modal';
+import { ChatbotComponent } from './components/common/chatbot/chatbot';
 import { filter } from 'rxjs/operators';
 
 @Component({
-  imports: [CommonModule, RouterOutlet, Header, Footer, AuthModalComponent],
+  imports: [CommonModule, RouterOutlet, Header, Footer, AuthModalComponent, ChatbotComponent],
   selector: 'app-root',
   styleUrl: './app.scss',
   templateUrl: './app.html',
