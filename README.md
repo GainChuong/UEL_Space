@@ -2,7 +2,7 @@
   <img src="my-server/public/images/logo.png" alt="UEL Space Logo" width="280">
 </p>
 
-<h1 align="center">🏛️ UEL SPACE - HỆ THỐNG QUẢN LÝ KHÔNG GIAN HỌC TẬP THÔNG MINH</h1>
+<h1 align="center">🏛️ UEL SPACE - HỆ THỐNG QUẢN LÝ & CHIA SẺ KHÔNG GIAN THÔNG MINH</h1>
 
 <p align="center">
   <strong>Đồ án môn học: Phát triển Web Kinh doanh Nâng cao (PTWNC)</strong><br>
@@ -11,106 +11,162 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Angular-22.2-DD0031?style=for-the-badge&logo=angular&logoColor=white" alt="Angular">
-  <img src="https://img.shields.io/badge/Node.js-26-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js">
+  <img src="https://img.shields.io/badge/Node.js-20+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js">
   <img src="https://img.shields.io/badge/Express.js-4.19-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express.js">
-  <img src="https://img.shields.io/badge/MongoDB-6.8-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB">
+  <img src="https://img.shields.io/badge/MongoDB-Atlas_6.8-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB">
   <img src="https://img.shields.io/badge/TailwindCSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
   <img src="https://img.shields.io/badge/TensorFlow.js-Coco--SSD-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white" alt="TensorFlow.js">
+  <img src="https://img.shields.io/badge/YOLOv11-Edge_AI-00FFFF?style=for-the-badge&logo=yolo&logoColor=black" alt="YOLOv11">
+  <img src="https://img.shields.io/badge/Google_Stitch-Figma_Vector-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Google Stitch">
 </p>
 
 ---
 
 ## 📖 1. Giới thiệu tổng quan (Overview)
 
-**UEL Space** là nền tảng quản trị và đặt phòng không gian học tập, phòng họp, giảng đường và chòi tự học phục vụ cho toàn thể cán bộ, giảng viên và sinh viên Trường Đại học Kinh tế - Luật (ĐHQG-HCM). 
+**UEL Space** là hệ sinh thái số tích hợp giữa **Cổng Quản lý & Đặt phòng Học đường (Campus Space Portal)** và **Sàn Thương mại Dịch vụ Không gian (Marketplace & Seller Center)** phục vụ cho toàn thể cán bộ, giảng viên, sinh viên Trường Đại học Kinh tế - Luật (ĐHQG-HCM) cùng các đối tác doanh nghiệp, startup liên kết.
 
-Dự án được xây dựng bám sát chuẩn kiến trúc Fullstack hiện đại, tuân thủ nguyên tắc thiết kế nhận diện thương hiệu **UEL Brand Guidelines** và hệ thống quy định nghiệp vụ học đường thực tế.
+Hệ thống giải quyết triệt để bài toán nghịch lý công suất phòng (lãng phí 40–50% diện tích ngoài giờ học chính khóa), ứng dụng **Thị giác máy tính AI (Computer Vision)** để tự động hóa điểm danh, chống gian lận sĩ số, phát hiện vắng mặt (No-show), tính phụ phí quá giờ (Overtime) và giải phóng sớm các khung giờ trống đưa trở lại sàn khai thác thời gian thực.
 
----
-
-## ✨ 2. Tính năng nổi bật (Key Features)
-
-### 🗺️ 1. Bản đồ tương tác & Tra cứu không gian (Interactive Campus Map)
-* Định vị chi tiết các tòa nhà học phần (**Tòa A, A3, B1, B2, Thư viện, Khu chòi tự học ngoài trời**).
-* Hiển thị trạng thái phòng trực quan theo thời gian thực (*Đang trống*, *Đang sử dụng*, *Bảo trì*).
-* Bộ lọc đa tiêu chí: theo loại phòng (Giảng đường, Phòng họp, Khu tự học), sức chứa, trang thiết bị (Máy chiếu, Micro, Máy lạnh, Bảng từ...).
-
-### 📅 2. Đặt chỗ & Quản lý lịch mượn (Smart Booking Engine)
-* Đặt lịch linh hoạt theo từng khung giờ học tập (Ca sáng, chiều, tối).
-* Cơ chế khóa chống trùng lịch (Conflict Resolution), đối soát tự động theo phân loại phòng.
-* Tự động sinh mã đặt chỗ và vé QR phục vụ điểm danh **Check-in/Check-out** tại phòng (Quy tắc F09/F21).
-
-### 🔐 3. Xác thực bảo mật Google OAuth 2.0 & Phân quyền UEL
-* **Giới hạn tên miền học đường nghiêm ngặt:**
-  * 🎓 Sinh viên: Email đuôi `@st.uel.edu.vn` (Role: `STUDENT`).
-  * 👨‍🏫 Giảng viên / CBVC: Email đuôi `@uel.edu.vn` (Role: `LECTURER`).
-  * 🛡️ Quản trị viên: Email được ủy quyền quản trị (Role: `ADMIN`).
-  * ❌ Từ chối tuyệt đối tài khoản ngoài (như `@gmail.com`, `@yahoo.com`) qua mã `403 Forbidden`.
-* **Chế độ chỉ xem (View-Only Mode):** Khi chưa đăng nhập, người dùng được xem thông tin công khai; khi tương tác với bất kỳ tính năng đặt phòng hay quản trị, hệ thống lập tức mở cửa sổ yêu cầu đăng nhập và chuyển hướng tiện lợi.
-
-### 🤖 4. Thị giác máy tính AI (Computer Vision AI with TensorFlow.js)
-* Tích hợp mô hình nhận diện vật thể thời gian thực **Coco-SSD / TensorFlow.js**.
-* Kiểm đếm số lượng người thực tế trong phòng học qua luồng camera/hình ảnh, cảnh báo quá tải hoặc phát hiện phòng học trống để tối ưu hóa năng lượng.
-
-### 🎨 5. Giao diện cao cấp chuẩn Brand Guidelines & Tiện ích bổ sung
-* **Bảng màu nhận diện:** Xanh UEL (`#003366`), Cam UEL (`#E87722`), Deep Navy (`#001E3D`).
-* **Dark / Light Theme:** Chuyển đổi giao diện sáng/tối mượt mà không giật cục.
-* **Đa ngôn ngữ (i18n):** Chuyển đổi linh hoạt giữa Tiếng Việt và Tiếng Anh.
-* **Bảng điều khiển Admin:** Phê duyệt đơn đặt chỗ, giám sát hạ tầng và thống kê tần suất sử dụng phòng.
+Dự án được xây dựng bám sát 100% tài liệu kiến trúc kỹ thuật [Developer Handbook](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Instruction/Developer_Handbook_Angular_Fullstack.md), 22 quy tắc học đường [Business Rules](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Instruction/Business_Rules.md), quy chuẩn thực thể [Entity Specification](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Instruction/Entity_Specification.md) và nhận diện thương hiệu [UEL Brand Guidelines](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Brand_Guideline/Overview/Web_design_specification.md).
 
 ---
 
-## 🏗️ 3. Kiến trúc kỹ thuật (Architecture & Tech Stack)
+## ✨ 2. Ma trận tính năng cốt lõi (Core Feature Matrix)
+
+### 🌐 PHẦN 1: CỔNG NGƯỜI DÙNG (USER PORTAL)
+
+| Phân hệ / Màn hình | Tính năng nổi bật & Công nghệ hiện thực |
+| :--- | :--- |
+| **🏠 Trang chủ Toàn diện (Homepage)** | • Hero Banner flycam Thư viện UEL kết hợp thanh tìm kiếm thông minh bo góc `rounded-full`.<br>• Lưới 6 thẻ listing không gian phục vụ tức thì: giá giờ/ngày, huy hiệu MoMo QR, sức chứa m², chip tiện ích.<br>• Chân trang Deep Navy tích hợp Đăng ký bản tin, Google reCAPTCHA và định vị trụ sở Đỗ Mười. |
+| **🗺️ Bản đồ tương tác & Đặt phòng (Campus Masterplan)** | • Bản đồ 2D khuôn viên trường UEL: Tòa A, A3 Multiplex, B1, B2 Coworking, Thư viện, Chòi tự học, Suối Nhum, Cổng 1–3, Trạm xe buýt.<br>• Cột lọc đa năng 7 phân loại không gian, bảng trạng thái chấm màu thời gian thực và phím tắt đối chiếu Google Calendar. |
+| **📋 Lịch sử Đặt chỗ (Booking History Hub)** | • Banner gradient Electric Cyan hiển thị bộ 3 chỉ số: Tổng số đơn, Đang hoạt động, Đã hoàn tất.<br>• Thẻ đơn hàng thông minh: Mã đặt chỗ, vị trí, giờ thuê, mục đích, nút xem **Vé QR Check-in**, phím tắt đồng bộ Google Calendar và hủy đơn. |
+| **🚀 Về chúng tôi (About Us - Storytelling)** | • Trục kể chuyện 4 chương tương tác: Nghịch lý công suất phòng (01), Mô hình sàn Marketplace B2B (02), Thị giác máy tính AI Occupancy Detection (03) và Tầm nhìn chia sẻ văn phòng tương lai (04). |
+| **🔐 Đăng nhập & Xác thực (SSO Portal)** | • Bố cục Split-Screen: Cột trái Deep Navy Cinematic Hero, cột phải Form đăng nhập thẻ trắng thanh lịch.<br>• Bộ chuyển vai trò (Role Switcher): Sinh viên / Giảng viên / Khách thuê doanh nghiệp / Đối tác Chủ gian hàng.<br>• Xác thực Google OAuth 2.0 lọc domain nghiêm ngặt (`@st.uel.edu.vn`, `@uel.edu.vn`). |
+
+---
+
+### 💼 PHẦN 2: KÊNH NGƯỜI BÁN & QUẢN TRỊ (SELLER CENTER & ADMIN)
+
+Hệ thống Seller Center bao gồm trọn bộ **8 tab nghiệp vụ hoàn chỉnh** đáp ứng mô hình thương mại hóa không gian giáo dục - doanh nghiệp:
+
+| Tab Nghiệp vụ | Mã quy tắc | Mô tả chi tiết & Công nghệ tích hợp |
+| :--- | :---: | :--- |
+| **1. Tổng quan & Doanh thu** | F01–F08 | Dashboard Bento Grid 4 KPI: Doanh thu T10 (+24.5%), đơn chờ duyệt, tỷ lệ lấp đầy (78.4%), listing niêm yết; Biểu đồ thanh tiến độ hiệu suất phân khu thời gian thực và widget duyệt nhanh. |
+| **2. Quản lý Đơn thuê (Booking Orders)** | F10–F15 | Data Table đa tiêu chí quản lý toàn bộ đơn đặt: Mã đơn, Khách thuê, Không gian, Khung giờ, Cảnh báo trùng lịch, Thao tác phê duyệt hoặc từ chối đơn hàng. |
+| **3. Xử lý Vi phạm & Hủy slot (No-Show)** | F21–F23, F38 | Cơ chế tự động rà quét chu kỳ 5 phút, ngưỡng vắng mặt 15 phút (`away_warning_minutes`). Hàng thẻ ngoại lệ hiển thị số phút vắng mặt, badge cảnh báo cấp bách cùng nút can thiệp: *Đã quay lại* hoặc *Thu hồi phòng sớm*. |
+| **4. Trạm Check-in Gian hàng (Kiosk Mode)** | F09, F38 | Trạm Kiosk điểm danh sự hiện diện vật lý: Khung ngắm Camera trực tiếp quét mã QR trên vé khách thuê, tích hợp máy quét mã vạch USB cầm tay, tự động chuyển trạng thái phòng sang `IN_USE` loại bỏ nguy cơ No-show. |
+| **5. Không gian & Bảng giá niêm yết** | F25–F30 | Lưới thẻ không gian cho thuê thương mại: Quản lý giá giờ/ngày, sức chứa, thời gian hủy tự động, danh mục trang thiết bị và công tắc bật/tắt chế độ bảo trì (`MAINTENANCE`). |
+| **6. Khách thuê & Nhân viên gian hàng** | F31–F33 | Bảng quản lý danh mục tài khoản đối tác: Phân cấp vai trò rõ ràng giữa Chủ Gian Hàng (`Host`), Nhân viên Vận hành và Khách thuê Space; quản lý trạng thái tài khoản (*Hoạt động* / *Tạm khóa*). |
+| **7. Lịch sử Giao dịch & Nhật ký (Audit Logs)** | F34 | Ghi nhận toàn bộ vết kiểm toán hệ thống bất biến (Immutable Audit Trail): `APPROVE_BOOKING`, `AUTO_CHECKOUT_TRIGGERED`, `SPACE_MAINTENANCE_LOCK`, `USER_ROLE_UPDATED` kèm Actor, Timestamp và Severity Level. |
+| **8. Giám sát Sĩ số IoT AI & Chống gian lận** | F38 | Thị giác máy tính nhận diện người thời gian thực: Tích hợp linh hoạt giữa **Client Edge AI (Coco-SSD / TensorFlow.js)** và **Server AI (YOLOv11)**; đối chiếu sĩ số thực tế với số lượng đăng ký trên vé, phát hiện vượt sĩ số, cảnh báo quá giờ (Overtime) và tự động nhận diện trả phòng sớm (Early Checkout). |
+
+---
+
+## 🎨 3. Hệ sinh thái Thiết kế Figma & Google Stitch
+
+Toàn bộ hệ thống giao diện UEL Space được thiết kế vector hóa chuẩn xác 100% tỉ lệ Desktop HD (`2560 x 2048`), lưu trữ và đồng bộ trên **Google Stitch Canvas**:
+
+> 🔗 **Canvas Dự án Google Stitch Chính thức:** [https://stitch.withgoogle.com/projects/15917314834578745602](https://stitch.withgoogle.com/projects/15917314834578745602)  
+> 📑 **Tài liệu Manifest chi tiết:** [FIGMA_MANIFEST.md](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/design-system/uel-space/FIGMA_MANIFEST.md)
+
+### 📌 Danh mục 13 Màn hình Vector Chuẩn Thiết kế:
+1. **Trang chủ Toàn diện (Homepage Full):** ID `828b17ce1861452d97209d2fe3732b2e` (2560 x 4780 px) - [Xem Screenshot](https://lh3.googleusercontent.com/aida/AEtjO1UCNEThg4yuIgo3cT0VvnwKpOs8H_QtD1HF8jeGaq_Fp8N740-5Qbh6ZcIOr9S0T0LMnartt1zXEzxjfHI5ldlRDOivn4H5ArLOX7ggdAHQZySTICPxYluJNvfPcGuhah7n_3iy_g4Y7b2BJpRJuUOb7FdW6EjUzcolukkt9dMFL9UsQU6ry2riP1VPw4LLhWDuCTXMqKvuhJcwoos_jHgK7ksbtPlqYKHWHuBvz1TTJAQLdzU0zQ67-M4)
+2. **Bản đồ tương tác & Đặt phòng (Campus Map):** ID `2058a318b6d34ff2bc6dd7fa61c077d3` (2560 x 2048 px) - [Xem Screenshot](https://lh3.googleusercontent.com/aida/AEtjO1WCVpvMRJlR3LAYT6tyr_9sFst93Pcj5p0RGr6-vyOiOODB8eyLxK-px_SwRIC5COFxLezWX44QIk3KOGa0WXIwslmJq6tg-tovXXiq6q-HKKnRzAkCTG2t1wVB_LeaUfDlXRceEc7x1iGuXCKxV6gAm-Ij2uPrx-fxmXK_5_RAyEjkFyqLOJxxnDTLQt_IbG-B84uWXZcfstMAFCrcABim9Ncz5jbmmYM2iBG2E6CqyhmvsawuKTOZoUE9)
+3. **Lịch sử đặt chỗ của bạn (Booking History):** ID `3ae4c615929448c88f71840468d7dcd8` (2560 x 3470 px) - [Xem Screenshot](https://lh3.googleusercontent.com/aida/AEtjO1WH5s031ZPgwhfZRGhwkuqpYzoo4oRqhdNXR7r8Yz96FlcowNeVuq_Js5l8aGc3Q2q-mK3DXgKLhsPElX3fMJ2nSz7bEOk3l-XYWy-d4MufnirnPU5UeOduNsLpkOhCj3kz2o0A6EJMItSiMeJleyrtUphhmZovmMyq3WWFAxNnvhZVNybszeh0NY-_KoleSBm9znd_7lr71badaVP7Wk60icKBm2SbUsqDXdC8cMkQ4azNRb6gCbU0-wQc)
+4. **Về chúng tôi (About Us - Hành trình kiến tạo):** ID `a778140c646d416f8d4a9e4b961b4542` (2560 x 9468 px) - [Xem Screenshot](https://lh3.googleusercontent.com/aida/AEtjO1XScs4fNZFYXe5BIVdB3HDxd60ZkiWTfCdWEjQHbWaGvz7K1HQ8fYD158ZQ8sa9m4fJhUU4Q6drwMb10WJsy6an7gABjpK5I5pu1EimO_KFrv3ObfN1AgTHCeot3qUgo3LLOiRLxEWfJycIP0-5IvkhZpVQDWJdFJ3AgoTxL418K-w55nniaIEaGe85D1rinUQhLGh_mLI5HDgS_KdJkcEbTKSzMWcKd7CgKQPGJBKw17TQV-Ym7vgIcCQD)
+5. **Màn hình Đăng nhập (Authentication Portal):** ID `73dc9c2a61324c2db2b9919ed1d5d769` (2560 x 2048 px) - [Xem Screenshot](https://lh3.googleusercontent.com/aida/AEtjO1Uc7tyG1lyoH2iWDQabRfUNPTgs3nYtzgtod1fiUXXNsLddv6fkYpTbciu9gIzD48Pdl4x3hYQelFVHhXWx3baQznEqKAMNGsv9vmRRH2R5d3cjXK8mZdT-vJ20rLarBDnGp3YdGd0vDoujGjcOXGHxe_Dz5aT4SPlR3J2PoYGbdchrwg0pCVzmsqB3AoRXTAG60HvKhWnTldQ8kv4OZ_9FpmwhCuNYaoQLb2w9nqeudE_Fgu-oJK5TSMHG)
+6. **Seller Center - Tab 1 (Tổng quan & Doanh thu):** ID `2ae2cd1a656541e58f97aefc4911348a` (2560 x 2048 px) - [Xem Screenshot](https://lh3.googleusercontent.com/aida/AEtjO1UtR-iL36_KHZRPA20viy5FJ60ufMhWS-OekTQYwMRnoUqGny5UvyMdtR76oSCuO8sdiho8AyGOkuNtBm1aSWa7nLZzt9iyL94Vr6wedIRZRDhVcktS2I6oh-WkV9JlqRYya5pKAMLnPIAg29yU2JwQwzCJRircQ1MGpe7REKJ-CZ9a9CW6VtgpRC-szU26Hj2-oMe8Ihl-xNtjRWq7q6FfsTj2xhCj0mLm94tuXBHNrOI6tibsHEmyw6D_)
+7. **Seller Center - Tab 2 (Quản lý Đơn thuê):** ID `48e0e8db4e2b428787673928ea5630a7` (2560 x 2872 px) - [Xem Screenshot](https://lh3.googleusercontent.com/aida/AEtjO1VlzsMBhmgJEyHYiXbQqT2WoO7rX8vc0ssV0XIONZgH8Y0KifftABXeF8ICosRuT28d5BKsi_oDUAzyN1y4mws6eK23nzO5El_cTS3dBJBINL9iNIer54BpQt1KJ6zh3UUMt9U853mVMYdBoPGSx8SQ5nTFYyRxfW3yI6tGxeGfcg0FA9fg6bgynSwx5MvtboxwSVsv4Eg_v9GkCHIHIgAFc9VDyP9-pt78EWcjoWB1-SHw0BbFvqFun83u)
+8. **Seller Center - Tab 3 (Xử lý Vi phạm & Hủy slot):** ID `173d05ebed0c43f9b82f1b360978576f` (2560 x 2048 px) - [Xem Screenshot](https://lh3.googleusercontent.com/aida/AEtjO1WbLuNhT-tJJvwkQg4Klj2SqRQKZfIB5L53sh558Kso3KH_dhlcd3rd4IvNY0jijw9eUCMBbuAAKMlLMxMzBal1Fhu5NzgD8Zu7Uzsa0qpJTyWnORK_RKF_-33RV2CmGAI0cjswgaGiGR0hcdyfuOsHCGS3IJaJATltIZ6ZKsNxHiPV5EAKrE_33LwklYNNRbsnhLMvBIhvSVLLFgLabhSrAvnv-HT7vGWD5vxxKWBcu4Nb6XXZtSHV5SY)
+9. **Seller Center - Tab 4 (Trạm Quét QR & Check-in Kiosk):** ID `da8c9d26d3804fadb9233fc0d2c58cbd` (2560 x 2048 px) - [Xem Screenshot](https://lh3.googleusercontent.com/aida/AEtjO1UJkKIDTlVdZVoGEf-_h5UWs8xtoVLUTFAdFjvwK7RTSpnN4-coLGZJpD_k02H_EUZr8pfDfEvk4pAY7TYfkZNbB8EUaNH_ieWx6TAu7W4ehFsc-5fd30gYpJBlw5EIfdo-v1zZWwf4xk9dpsmbUE7Jx0_0cY334O1rAUo0-UheuSnCCW5S4HEKzWhVo49KUowBTMl-b-sjc6tlrzgRHelbxZElrwZr6UNroe253eY0X7g982AFMUbd3NKU)
+10. **Seller Center - Tab 5 (Không gian & Bảng giá thuê):** ID `271457b1d2914d5b8d71217b9b626fe3` (2560 x 2048 px) - [Xem Screenshot](https://lh3.googleusercontent.com/aida/AEtjO1X-7kQ2e81hQvrQMNyOghif1pbGDfBwpwyGC05aAQljB4hOj-UypEgDqKK7a-yoVqSj6ZZ5N1d8nhXvc2qkpyCAkVNU-UT2L0_5ZDtKRkg8Dlo4Ihu2LoAlcVPydnvjJBw3Etsb9X7yiqUYtkjcoc_nJYCSdPZfekQ1ljERlliIESmVsXE4qrYqAUXQtKP4wf7WfHEkTj9XqtlMO9x_DuhSuTRIOJP5L2YFgrX8-xSvOyGU-_gT34wvFq67)
+11. **Seller Center - Tab 6 (Khách thuê & Nhân viên gian hàng):** ID `db918d248fec4d78a868726189c203bb` (2560 x 2048 px) - [Xem Screenshot](https://lh3.googleusercontent.com/aida/AEtjO1WwejqmccIP8N14VtA1sGLUkIjKev5VBeJX9PeIqzsoGJsnWd_OTE1LyFHvd1lnyevc-TF8UbQ7u3Jg3IL7QfRSel1jpT3R5zGI8thvG0VdayfbkZN1LYfmpD-j1h6vysQY3fQ2ToFEBUF1NGGeEpp34yxukgBYf4SxTD5s-waeOdNIlb5mz6TMpbS-EJ4m-BR1rSOoBMGhIIMckyT5ofGnzzTxgjygSQw_P3ZFLJmghL9U_ukiLH-xG8EG)
+12. **Seller Center - Tab 7 (Lịch sử Giao dịch & Nhật ký Audit Logs):** ID `f95c0ab0daf6487ca3435c2527938414` (2560 x 2048 px) - [Xem Screenshot](https://lh3.googleusercontent.com/aida/AEtjO1V7FqJDOoNED9MR63q6-WZnpir-XFQB0j_6_XeNxgscf3t1yip0Q4o7IcTWkXagi0wD5JRi4PwrsisxgsvkFD34BQ2KjRZYzqfv7NlQSyaqH2AJAi4lgd_49PesgyvuE4F6XuqiQfRdFdEqj-Sbl-rmKT9gVV45IqCe0JilFl21TnRUyg5L-o3eekSsjvLdokW0DzVTpvNqffVi5NOIXvwk5P9ThGyF8BI-9RZ3KQAO-yXSMJe2ga9FcQjh)
+13. **Seller Center - Tab 8 (Giám sát Sĩ số IoT AI & Chống Gian lận):** ID `24d6b73300474913b320a7454652c004` (2560 x 3002 px) - [Xem Screenshot](https://lh3.googleusercontent.com/aida/AEtjO1VG0c3e-saSKAfVzS9omq6Dj1Q4OYncFXhfw1UV5VgwCWoveALIDkalK1sgKlo2uo_IaCXujfsvZFgKcM8uqVMAXsuIvlMhzofFd7nA0AA2NecldstE5vQYiKO7EgZksqLrgHwq2DWzXiEMsrn60Hwi7oBRvFsmbVzo25y7IE1y8A2EPpGI1olrkn-l1ZRaieRGHEwwGLPisaQ0g-ImAjIKb4gf-F2fy2KNXjC4sluGhguJQvfETvMao2_t)
+
+> 💡 **Hướng dẫn sao chép sang Figma:** Truy cập link canvas dự án trên Google Stitch, nhấp chọn bất kỳ Frame nào, click nút **"Copy to Figma"** ở góc trên bên phải và nhấn **`Ctrl + V`** vào file Figma cá nhân để dán toàn bộ layer vector, auto layout và typography gốc.
+
+---
+
+## 📊 4. Sơ đồ Thiết kế Hệ thống & Quy trình (System Diagrams)
+
+Hệ thống được mô hình hóa theo các chuẩn kỹ nghệ phần mềm chuyên nghiệp:
+
+* 🔄 **Sơ đồ Quy trình Nghiệp vụ (BPMN 2.0):** [Campus_Space_BPMN_2_0_Lucid.drawio](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Diagram/BPMN/Campus_Space_BPMN_2_0_Lucid.drawio) (Tương thích hoàn toàn với Camunda & Lucidchart).
+* 🗄️ **Mô hình Thực thể Quan hệ (ERD - Database Schema):** [Campus_Space_ERD.dbml](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Diagram/ERD/Campus_Space_ERD.dbml) & [ERD Documentation](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Diagram/ERD/Readme.md) (Chuẩn hóa Normalization 3NF, Multi-tenancy, Soft Deletion, Optimistic Locking).
+* 🎯 **Sơ đồ Ca Sử Dụng (Use Case Diagram):** [Campus_Space_UseCase_LucidCompatible.drawio](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Diagram/Use_case/Campus_Space_UseCase_LucidCompatible.drawio).
+
+---
+
+## 🏗️ 5. Kiến trúc kỹ thuật & Cấu trúc mã nguồn
 
 ```
 UEL_Space/
-├── frontend/                 # Ứng dụng Single Page Application (Angular 22)
-│   ├── src/app/components/   # Component module (Home, Map, Booking, Login, Admin, About)
-│   ├── src/app/services/     # Dịch vụ tầng client (Settings, Auth, i18n, API Config)
-│   ├── src/app/guards/       # Route guards bảo vệ phân quyền
-│   └── src/app/i18n/         # Từ điển đa ngôn ngữ (VI/EN)
-├── my-server/                # RESTful API Backend Server (Node.js + Express)
-│   ├── src/modules/          # Kiến trúc phân tầng Layered Modules (Controller - Service - Repo)
-│   │   ├── auth/             # Xác thực Google OAuth & Phân quyền
-│   │   ├── spaces/           # Nghiệp vụ quản lý không gian
-│   │   ├── bookings/         # Xử lý đơn đặt phòng & Kiểm tra xung đột lịch
-│   │   └── ...               # Analytics, Feedback, Incidents, Notifications
-│   ├── public/images/        # Kho lưu trữ hình ảnh & static assets phục vụ CDN
-│   └── index.js              # Điểm khởi chạy Express Server chính
-├── Instruction/              # Tài liệu đặc tả nghiệp vụ & Handbook
+├── frontend/                     # Ứng dụng Single Page Application (Angular 22.2 Standalone)
+│   ├── src/app/components/       # Component Modules (home, map, booking, admin, login, about)
+│   ├── src/app/services/         # Client Services (Auth, Space, Booking, Settings, AI Detection)
+│   ├── src/app/guards/           # Route Guards phân quyền truy cập
+│   └── src/app/i18n/             # Bộ từ điển đa ngôn ngữ (Tiếng Việt / English)
+├── my-server/                    # RESTful API Backend Server (Node.js 20+ & Express.js 4.19)
+│   ├── src/modules/              # Kiến trúc phân tầng Layered Modules (Controller - Service - Repo)
+│   │   ├── auth/                 # Google OAuth 2.0 & Quản lý phiên Session
+│   │   ├── spaces/               # Nghiệp vụ quản lý không gian, phân loại, giá niêm yết
+│   │   ├── bookings/             # Xử lý đơn đặt, đối soát lịch và chống trùng phòng
+│   │   ├── usage-sessions/       # Ghi nhận phiên sử dụng và quét QR Check-in
+│   │   ├── occupancy/            # Nhật ký kiểm đếm sĩ số và kết nối IoT AI
+│   │   └── audit-logs/           # Lưu vết kiểm toán hoạt động bất biến (F34)
+│   ├── src/ai-service/           # Dịch vụ Python AI YOLOv11 Server (Computer Vision Service)
+│   ├── src/seed/seed.js          # Bộ Seeder nạp 7 phân hệ Database lên MongoDB Atlas
+│   ├── public/images/            # Kho ảnh static assets nội bộ
+│   └── index.js                  # Điểm khởi chạy Express Server chính
+├── design-system/                # Hệ thống thiết kế & Tài liệu kết nối Figma
+│   └── uel-space/FIGMA_MANIFEST.md # Manifest 13 màn hình Figma, ID Stitch & download links
+├── Diagram/                      # Sơ đồ thiết kế chuẩn kỹ nghệ phần mềm
+│   ├── BPMN/                     # Sơ đồ quy trình nghiệp vụ BPMN 2.0
+│   ├── ERD/                      # Sơ đồ quan hệ thực thể DBML & Markdown
+│   └── Use_case/                 # Sơ đồ Use Case phân quyền
+├── Instruction/                  # Hồ sơ đặc tả nghiệp vụ & Handbook
 │   ├── Developer_Handbook_Angular_Fullstack.md
 │   ├── Business_Rules.md
 │   └── Entity_Specification.md
-└── Brand_Guideline/          # Hướng dẫn thiết kế giao diện & nhận diện thương hiệu
+└── Brand_Guideline/              # Tiêu chuẩn thương hiệu & Web Design Specifications
 ```
 
 ---
 
-## 🚀 4. Hướng dẫn cài đặt & Khởi chạy (Getting Started)
+## 🚀 6. Hướng dẫn Cài đặt & Khởi chạy (Getting Started)
 
 ### Yêu cầu tiên quyết (Prerequisites)
-* **Node.js**: Phiên bản 18.x trở lên (khuyên dùng Node 20.x hoặc mới hơn).
-* **npm**: Phiên bản 9.x trở lên.
-* **Docker / MongoDB** (tùy chọn nếu chạy cơ sở dữ liệu MongoDB phân tán).
+* **Node.js**: Phiên bản 20.x trở lên.
+* **npm**: Phiên bản 10.x trở lên.
+* **Python**: Phiên bản 3.10 trở lên (tùy chọn khi chạy Server AI YOLOv11).
+* **MongoDB**: Tài khoản kết nối MongoDB Atlas hoặc máy chủ MongoDB cục bộ.
 
 ---
 
 ### Bước 1: Khởi động Backend API Server (`my-server`)
 
-Mở terminal tại thư mục gốc dự án:
+Mở terminal tại thư mục gốc:
 
 ```powershell
-# Di chuyển vào thư mục my-server
+# Di chuyển vào thư mục backend
 cd my-server
 
-# Cài đặt các gói phụ thuộc
+# Cài đặt các thư viện phụ thuộc
 npm install
 
-# Khởi chạy server API (cổng mặc định: http://localhost:3000)
-npm start
+# Nạp dữ liệu hạt giống 7 Modules lên MongoDB Atlas (Chạy 1 lần đầu tiên)
+npm run seed
+
+# Khởi chạy máy chủ phát triển Backend (Cổng mặc định: http://localhost:3000)
+npm run dev
 ```
 
-> **Ghi chú:** Backend phục vụ REST API tại `http://localhost:3000/api/` và Static Images CDN tại `http://localhost:3000/images/`.
+> 💡 **Khởi chạy Python YOLOv11 AI Service (Tùy chọn):**
+> ```powershell
+> npm run ai:start
+> ```
 
 ---
 
@@ -127,36 +183,37 @@ npm install
 
 # Khởi chạy máy chủ phát triển Angular
 npm start
-# hoặc chạy trực tiếp: ng serve -o
 ```
 
-Truy cập ứng dụng tại địa chỉ: **`http://localhost:4200`**
+Truy cập ứng dụng tại: **`http://localhost:4200`**
 
 ---
 
-## 🔑 5. Tài khoản thử nghiệm (Test Accounts)
+## 🔑 7. Bảng Tài khoản Thử nghiệm (Test Accounts Matrix)
 
-Bạn có thể trải nghiệm các tính năng phân quyền qua các tài khoản định sẵn:
+Hệ thống đã nạp sẵn các tài khoản thử nghiệm theo đúng phân quyền học đường và kênh người bán:
 
 | Loại tài khoản | Địa chỉ Email | Mật khẩu mẫu | Vai trò (Role) | Chức năng chính |
 | :--- | :--- | :--- | :--- | :--- |
-| **Quản trị viên** | `admin@uel.edu.vn` | `Admin@UEL2026` | `ADMIN` | Quản trị không gian, duyệt đặt chỗ, thống kê AI |
-| **Giảng viên** | `longlh@uel.edu.vn` | `Gv@UEL2026` | `LECTURER` | Đặt phòng giảng dạy, phòng hội thảo |
-| **Sinh viên** | `giangnntk24411@st.uel.edu.vn` | `Sv@UEL2026` | `STUDENT` | Đặt chòi tự học, mượn phòng CLB, Check-in QR |
+| **Quản trị viên Hệ thống** | `admin@uel.edu.vn` | `Admin@UEL2026` | `ADMIN` | Quản trị toàn quyền, phê duyệt đơn đặt, cấu hình hệ thống, xem nhật ký Audit Log |
+| **Giảng viên UEL** | `chittk@uel.edu.vn` | `Gv@UEL2026` | `LECTURER` | Đặt phòng họp VIP, giảng đường ưu tiên, quản lý lịch sự kiện |
+| **Sinh viên UEL** | `giangntk24411@st.uel.edu.vn` | `Sv@UEL2026` | `STUDENT` | Đặt chòi tự học, Hot Desk Co-working, nhận vé QR Check-in |
+| **Chủ Gian Hàng (Host)** | `seller.partner@uelspace.vn` | `Partner@2026` | `SELLER_OWNER` | Quản lý Listing không gian, theo dõi doanh thu ví, giám sát sĩ số IoT AI |
+| **Nhân viên Vận hành** | `operations@uelspace.vn` | `Staff@2026` | `SELLER_STAFF` | Vận hành trạm quét QR Kiosk, xử lý vi phạm No-show tại quầy lễ tân |
 
 ---
 
-## 📚 6. Tài liệu tham khảo dự án
+## 📚 8. Tài liệu kỹ thuật tham khảo
 
-Chi tiết về quy trình kỹ thuật và nghiệp vụ được lưu trữ tại thư mục [Instruction](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Instruction/):
-* 📖 [Developer Handbook](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Instruction/Developer_Handbook_Angular_Fullstack.md) - Hướng dẫn chi tiết kiến trúc Angular - Node - Express.
-* ⚖️ [Business Rules](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Instruction/Business_Rules.md) - Đặc tả 22 quy định nghiệp vụ học đường.
-* 🗄️ [Entity Specification](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Instruction/Entity_Specification.md) - Sơ đồ và định nghĩa các thực thể dữ liệu.
-* 🎨 [Web Design Specification](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Brand_Guideline/Overview/Web_design_specification.md) - Chuẩn màu sắc, typography và phong cách thiết kế UEL.
+* 📖 [Developer Handbook](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Instruction/Developer_Handbook_Angular_Fullstack.md) - Cẩm nang phát triển hệ thống Angular - Node.js.
+* ⚖️ [Business Rules](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Instruction/Business_Rules.md) - Đặc tả 22 quy định nghiệp vụ học đường UEL.
+* 🗄️ [Entity Specification](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Instruction/Entity_Specification.md) - Cấu trúc dữ liệu 7 phân hệ MongoDB.
+* 🎨 [Web Design Specification](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Brand_Guideline/Overview/Web_design_specification.md) - Quy chuẩn màu sắc, font chữ và phong cách UEL.
+* 🖼️ [Figma & Stitch Manifest](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/design-system/uel-space/FIGMA_MANIFEST.md) - Danh mục 13 màn hình Figma Vector HD.
 
 ---
 
 <p align="center">
   <strong>© 2026 UEL SPACE PROJECT · PHÁT TRIỂN WEB KINH DOANH NÂNG CAO</strong><br>
-  <em>Trường Đại học Kinh tế - Luật, ĐHQG-HCM</em>
+  <em>Trường Đại học Kinh tế - Luật, Đại học Quốc gia TP. Hồ Chí Minh</em>
 </p>
