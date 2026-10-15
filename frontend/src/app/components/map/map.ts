@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -27,6 +27,11 @@ export class Map implements OnInit, AfterViewInit {
   sortBy: string = 'popular';
   isLoading: boolean = false;
 
+  // Custom Dropdown Open States
+  isCategoryOpen: boolean = false;
+  isStatusOpen: boolean = false;
+  isSortOpen: boolean = false;
+
   favorites: Set<string> = new Set<string>();
 
   spaces: any[] = [];
@@ -34,7 +39,7 @@ export class Map implements OnInit, AfterViewInit {
 
   // Dataset categories from FatimaSaadNaik/indoor-scenes-dataset
   categories = [
-    { id: 'all', name: 'Tất cả không gian', en: 'All Spaces', icon: 'grid', count: 10 },
+    { id: 'all', name: 'Tất cả phân loại', en: 'All Categories', icon: 'grid', count: 10 },
     { id: 'meeting_room', name: 'Phòng họp VIP', en: 'Meeting Room', icon: 'users', count: 2 },
     { id: 'office', name: 'Văn phòng riêng', en: 'Private Office', icon: 'briefcase', count: 2 },
     { id: 'library', name: 'Thư viện & Co-study', en: 'Library & Co-working', icon: 'book', count: 1 },
@@ -48,10 +53,18 @@ export class Map implements OnInit, AfterViewInit {
   // Room Statuses
   statuses = [
     { code: 'all', text: 'Tất cả trạng thái', dot: 'bg-slate-400' },
-    { code: 'available', text: 'Trống (Khả dụng)', dot: 'bg-emerald-500 animate-pulse' },
-    { code: 'in-use', text: 'Đang sử dụng', dot: 'bg-uel-blue' },
+    { code: 'available', text: 'Trống (Khả dụng)', dot: 'bg-emerald-500' },
+    { code: 'in-use', text: 'Đang sử dụng', dot: 'bg-uel-blue dark:bg-sky-400' },
     { code: 'reserved', text: 'Đã đặt', dot: 'bg-amber-500' },
     { code: 'maintenance', text: 'Bảo trì', dot: 'bg-slate-500' }
+  ];
+
+  sortOptions = [
+    { id: 'popular', text: 'Phổ biến nhất' },
+    { id: 'price-asc', text: 'Giá: Thấp đến Cao' },
+    { id: 'price-desc', text: 'Giá: Cao đến Thấp' },
+    { id: 'rating', text: 'Đánh giá cao nhất' },
+    { id: 'capacity', text: 'Sức chứa lớn nhất' }
   ];
 
   // Client info & schedule cross-reference
@@ -371,14 +384,86 @@ export class Map implements OnInit, AfterViewInit {
     }
   }
 
-  filterByCategory(catId: string) {
+  // Custom Dropdown Controllers
+  toggleCategoryDropdown(event: Event) {
+    event.stopPropagation();
+    this.isCategoryOpen = !this.isCategoryOpen;
+    this.isStatusOpen = false;
+    this.isSortOpen = false;
+  }
+
+  toggleStatusDropdown(event: Event) {
+    event.stopPropagation();
+    this.isStatusOpen = !this.isStatusOpen;
+    this.isCategoryOpen = false;
+    this.isSortOpen = false;
+  }
+
+  toggleSortDropdown(event: Event) {
+    event.stopPropagation();
+    this.isSortOpen = !this.isSortOpen;
+    this.isCategoryOpen = false;
+    this.isStatusOpen = false;
+  }
+
+  closeAllDropdowns() {
+    this.isCategoryOpen = false;
+    this.isStatusOpen = false;
+    this.isSortOpen = false;
+  }
+
+  @HostListener('document:click')
+  onDocumentClick() {
+    this.closeAllDropdowns();
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    this.closeAllDropdowns();
+  }
+
+  selectCategory(catId: string) {
     this.activeCategory = catId;
+    this.closeAllDropdowns();
     this.filterSpaces();
   }
 
-  filterByStatus(statusCode: string) {
+  selectStatus(statusCode: string) {
     this.activeStatus = statusCode;
+    this.closeAllDropdowns();
     this.filterSpaces();
+  }
+
+  selectSort(sortId: string) {
+    this.sortBy = sortId;
+    this.closeAllDropdowns();
+    this.filterSpaces();
+  }
+
+  getActiveCategoryName(): string {
+    if (this.activeCategory === 'all') {
+      return `Tất cả phân loại (${this.spaces.length})`;
+    }
+    const cat = this.categories.find(c => c.id === this.activeCategory);
+    return cat ? `${cat.name} (${cat.count})` : 'Tất cả phân loại';
+  }
+
+  getActiveStatusName(): string {
+    const st = this.statuses.find(s => s.code === this.activeStatus);
+    return st ? st.text : 'Tất cả trạng thái';
+  }
+
+  getActiveSortName(): string {
+    const s = this.sortOptions.find(o => o.id === this.sortBy);
+    return s ? s.text : 'Phổ biến nhất';
+  }
+
+  filterByCategory(catId: string) {
+    this.selectCategory(catId);
+  }
+
+  filterByStatus(statusCode: string) {
+    this.selectStatus(statusCode);
   }
 
   onSearchChange() {
@@ -394,6 +479,7 @@ export class Map implements OnInit, AfterViewInit {
     this.activeStatus = 'all';
     this.searchQuery = '';
     this.sortBy = 'popular';
+    this.closeAllDropdowns();
     this.filterSpaces();
   }
 

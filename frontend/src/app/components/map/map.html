@@ -1,7 +1,7 @@
 <div class="min-h-screen bg-[#F8FAFC] dark:bg-[#070D18] py-4 sm:py-6 px-3 sm:px-6 lg:px-8 max-w-[1600px] mx-auto flex flex-col gap-6">
 
   <!-- ==================== HEADER & UNIFIED FILTER BAR ==================== -->
-  <header class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-3xl border border-slate-200/90 dark:border-slate-800 p-4 sm:p-6 shadow-sm flex flex-col gap-4 transition-all">
+  <header class="relative z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-3xl border border-slate-200/90 dark:border-slate-800 p-4 sm:p-6 shadow-sm flex flex-col gap-4 transition-all">
     
     <!-- Top Row: Title + Badges & Results Counter -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -15,8 +15,7 @@
       </div>
 
       <div class="flex items-center gap-2 self-start sm:self-auto">
-        <div class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5 border border-slate-200/60 dark:border-slate-700/60">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <div class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5 border border-slate-200/60 dark:border-slate-700/60">
           <span class="font-black text-uel-blue dark:text-sky-400">{{ filteredSpaces.length }}</span>
           <span>{{ 'không gian sẵn sàng' | t }}</span>
         </div>
@@ -34,7 +33,7 @@
                [(ngModel)]="searchQuery"
                (input)="onSearchChange()"
                placeholder="{{ 'Tìm nhanh theo tên phòng, vị trí, tiện ích, thiết bị...' | t }}"
-               class="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-dark-text dark:text-slate-100 placeholder-slate-400 outline-none focus:border-uel-blue dark:focus:border-sky-400 focus:bg-white dark:focus:bg-slate-900 transition-all">
+               class="w-full h-11 pl-10 pr-9 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-dark-text dark:text-slate-100 placeholder-slate-400 outline-none focus:border-uel-blue dark:focus:border-sky-400 focus:bg-white dark:focus:bg-slate-900 transition-all">
         @if (searchQuery) {
           <button (click)="searchQuery = ''; onSearchChange()" 
                   class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
@@ -43,79 +42,150 @@
         }
       </div>
 
-      <!-- Dropdowns Group: Category, Status, Sort & Reset -->
+      <!-- Dropdowns Group: Custom Brand Guideline Menus -->
       <div class="flex flex-wrap sm:flex-nowrap items-center gap-2">
         
-        <!-- Category Dropdown (Indoor Scenes Categories) -->
-        <div class="relative flex-1 sm:flex-none sm:w-48 group">
-          <select [(ngModel)]="activeCategory"
-                  (change)="filterSpaces()"
-                  [class.border-uel-blue]="activeCategory !== 'all'"
+        <!-- Custom Category Dropdown -->
+        <div class="relative flex-1 sm:flex-none sm:w-56">
+          <button type="button"
+                  (click)="toggleCategoryDropdown($event)"
+                  [class.border-uel-blue]="activeCategory !== 'all' || isCategoryOpen"
                   [class.text-uel-blue]="activeCategory !== 'all'"
                   [class.bg-uel-blue/5]="activeCategory !== 'all'"
-                  [class.dark:border-sky-400]="activeCategory !== 'all'"
+                  [class.dark:border-sky-400]="activeCategory !== 'all' || isCategoryOpen"
                   [class.dark:text-sky-300]="activeCategory !== 'all'"
-                  class="w-full pl-3.5 pr-8 py-2.5 rounded-2xl bg-slate-50 hover:bg-slate-100/70 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none cursor-pointer focus:border-uel-blue dark:focus:border-sky-400 focus:ring-2 focus:ring-uel-blue/15 dark:focus:ring-sky-400/20 transition-all appearance-none">
-            <option value="all">{{ 'Tất cả phân loại' | t }} ({{ spaces.length }})</option>
-            @for (cat of categories; track cat.id) {
-              @if (cat.id !== 'all') {
-                <option [value]="cat.id">
-                  {{ cat.name | t }} ({{ cat.count }})
-                </option>
+                  [class.ring-2]="isCategoryOpen"
+                  [class.ring-uel-blue/20]="isCategoryOpen"
+                  [class.dark:ring-sky-400/20]="isCategoryOpen"
+                  class="w-full h-11 pl-4 pr-3 rounded-2xl bg-slate-50 hover:bg-slate-100/80 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center justify-between gap-2 transition-all cursor-pointer shadow-2xs">
+            <span class="truncate">{{ getActiveCategoryName() }}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 [class.rotate-180]="isCategoryOpen"
+                 class="text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </button>
+
+          <!-- Dropdown Panel -->
+          @if (isCategoryOpen) {
+            <div class="absolute top-full left-0 mt-2 z-50 w-64 max-h-80 overflow-y-auto rounded-2xl bg-white dark:bg-[#0B132B] border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/20 dark:shadow-black/80 p-1.5 space-y-1 animate-[fade-in-up_0.15s_cubic-bezier(0.16,1,0.3,1)]">
+              @for (cat of categories; track cat.id) {
+                <button type="button"
+                        (click)="selectCategory(cat.id)"
+                        [class.bg-uel-blue/10]="activeCategory === cat.id"
+                        [class.text-uel-blue]="activeCategory === cat.id"
+                        [class.dark:bg-sky-400/20]="activeCategory === cat.id"
+                        [class.dark:text-sky-300]="activeCategory === cat.id"
+                        class="w-full px-3.5 py-2.5 rounded-xl text-left text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/90 hover:text-uel-blue dark:hover:text-sky-300 flex items-center justify-between transition-colors cursor-pointer group">
+                  <span class="truncate">{{ cat.name | t }}</span>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 group-hover:bg-uel-blue/10 group-hover:text-uel-blue dark:group-hover:text-sky-300">
+                      {{ cat.count }}
+                    </span>
+                    @if (cat.id === activeCategory) {
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-uel-blue dark:text-sky-400">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    }
+                  </div>
+                </button>
               }
-            }
-          </select>
-          <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400 group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-          </div>
+            </div>
+          }
         </div>
 
-        <!-- Status Dropdown -->
-        <div class="relative flex-1 sm:flex-none sm:w-40 group">
-          <select [(ngModel)]="activeStatus"
-                  (change)="filterSpaces()"
-                  [class.border-uel-blue]="activeStatus !== 'all'"
+        <!-- Custom Status Dropdown -->
+        <div class="relative flex-1 sm:flex-none sm:w-48">
+          <button type="button"
+                  (click)="toggleStatusDropdown($event)"
+                  [class.border-uel-blue]="activeStatus !== 'all' || isStatusOpen"
                   [class.text-uel-blue]="activeStatus !== 'all'"
                   [class.bg-uel-blue/5]="activeStatus !== 'all'"
-                  [class.dark:border-sky-400]="activeStatus !== 'all'"
+                  [class.dark:border-sky-400]="activeStatus !== 'all' || isStatusOpen"
                   [class.dark:text-sky-300]="activeStatus !== 'all'"
-                  class="w-full pl-3.5 pr-8 py-2.5 rounded-2xl bg-slate-50 hover:bg-slate-100/70 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none cursor-pointer focus:border-uel-blue dark:focus:border-sky-400 focus:ring-2 focus:ring-uel-blue/15 dark:focus:ring-sky-400/20 transition-all appearance-none">
-            <option value="all">{{ 'Tất cả trạng thái' | t }}</option>
-            <option value="available">{{ 'Trống (Khả dụng)' | t }}</option>
-            <option value="in-use">{{ 'Đang sử dụng' | t }}</option>
-            <option value="reserved">{{ 'Đã đặt' | t }}</option>
-            <option value="maintenance">{{ 'Bảo trì' | t }}</option>
-          </select>
-          <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400 group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-          </div>
+                  [class.ring-2]="isStatusOpen"
+                  [class.ring-uel-blue/20]="isStatusOpen"
+                  [class.dark:ring-sky-400/20]="isStatusOpen"
+                  class="w-full h-11 pl-4 pr-3 rounded-2xl bg-slate-50 hover:bg-slate-100/80 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center justify-between gap-2 transition-all cursor-pointer shadow-2xs">
+            <span class="truncate">{{ getActiveStatusName() }}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 [class.rotate-180]="isStatusOpen"
+                 class="text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </button>
+
+          <!-- Dropdown Panel -->
+          @if (isStatusOpen) {
+            <div class="absolute top-full left-0 mt-2 z-50 w-52 max-h-80 overflow-y-auto rounded-2xl bg-white dark:bg-[#0B132B] border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/20 dark:shadow-black/80 p-1.5 space-y-1 animate-[fade-in-up_0.15s_cubic-bezier(0.16,1,0.3,1)]">
+              @for (st of statuses; track st.code) {
+                <button type="button"
+                        (click)="selectStatus(st.code)"
+                        [class.bg-uel-blue/10]="activeStatus === st.code"
+                        [class.text-uel-blue]="activeStatus === st.code"
+                        [class.dark:bg-sky-400/20]="activeStatus === st.code"
+                        [class.dark:text-sky-300]="activeStatus === st.code"
+                        class="w-full px-3.5 py-2.5 rounded-xl text-left text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/90 hover:text-uel-blue dark:hover:text-sky-300 flex items-center justify-between transition-colors cursor-pointer group">
+                  <span class="truncate">{{ st.text | t }}</span>
+                  @if (st.code === activeStatus) {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-uel-blue dark:text-sky-400">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  }
+                </button>
+              }
+            </div>
+          }
         </div>
 
-        <!-- Sort Dropdown (Phổ biến nhất) -->
-        <div class="relative flex-1 sm:flex-none sm:w-40 group">
-          <select [(ngModel)]="sortBy"
-                  (change)="onSortChange()"
-                  [class.border-uel-blue]="sortBy !== 'popular'"
+        <!-- Custom Sort Dropdown -->
+        <div class="relative flex-1 sm:flex-none sm:w-48">
+          <button type="button"
+                  (click)="toggleSortDropdown($event)"
+                  [class.border-uel-blue]="sortBy !== 'popular' || isSortOpen"
                   [class.text-uel-blue]="sortBy !== 'popular'"
                   [class.bg-uel-blue/5]="sortBy !== 'popular'"
-                  [class.dark:border-sky-400]="sortBy !== 'popular'"
+                  [class.dark:border-sky-400]="sortBy !== 'popular' || isSortOpen"
                   [class.dark:text-sky-300]="sortBy !== 'popular'"
-                  class="w-full pl-3.5 pr-8 py-2.5 rounded-2xl bg-slate-50 hover:bg-slate-100/70 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none cursor-pointer focus:border-uel-blue dark:focus:border-sky-400 focus:ring-2 focus:ring-uel-blue/15 dark:focus:ring-sky-400/20 transition-all appearance-none">
-            <option value="popular">{{ 'Phổ biến nhất' | t }}</option>
-            <option value="price-asc">{{ 'Giá: Thấp đến Cao' | t }}</option>
-            <option value="price-desc">{{ 'Giá: Cao đến Thấp' | t }}</option>
-            <option value="rating">{{ 'Đánh giá cao nhất' | t }}</option>
-            <option value="capacity">{{ 'Sức chứa lớn nhất' | t }}</option>
-          </select>
-          <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400 group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-          </div>
+                  [class.ring-2]="isSortOpen"
+                  [class.ring-uel-blue/20]="isSortOpen"
+                  [class.dark:ring-sky-400/20]="isSortOpen"
+                  class="w-full h-11 pl-4 pr-3 rounded-2xl bg-slate-50 hover:bg-slate-100/80 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center justify-between gap-2 transition-all cursor-pointer shadow-2xs">
+            <span class="truncate">{{ getActiveSortName() }}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 [class.rotate-180]="isSortOpen"
+                 class="text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </button>
+
+          <!-- Dropdown Panel -->
+          @if (isSortOpen) {
+            <div class="absolute top-full left-0 mt-2 z-50 w-52 max-h-80 overflow-y-auto rounded-2xl bg-white dark:bg-[#0B132B] border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/20 dark:shadow-black/80 p-1.5 space-y-1 animate-[fade-in-up_0.15s_cubic-bezier(0.16,1,0.3,1)]">
+              @for (opt of sortOptions; track opt.id) {
+                <button type="button"
+                        (click)="selectSort(opt.id)"
+                        [class.bg-uel-blue/10]="sortBy === opt.id"
+                        [class.text-uel-blue]="sortBy === opt.id"
+                        [class.dark:bg-sky-400/20]="sortBy === opt.id"
+                        [class.dark:text-sky-300]="sortBy === opt.id"
+                        class="w-full px-3.5 py-2.5 rounded-xl text-left text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/90 hover:text-uel-blue dark:hover:text-sky-300 flex items-center justify-between transition-colors cursor-pointer group">
+                  <span class="truncate">{{ opt.text | t }}</span>
+                  @if (opt.id === sortBy) {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-uel-blue dark:text-sky-400">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  }
+                </button>
+              }
+            </div>
+          }
         </div>
 
         <!-- Reset Button -->
         @if (searchQuery || activeCategory !== 'all' || activeStatus !== 'all' || sortBy !== 'popular') {
           <button (click)="resetFilters()" 
-                  class="px-3.5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer transition-colors shrink-0 flex items-center gap-1.5"
+                  class="h-11 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer transition-colors shrink-0 flex items-center gap-1.5"
                   title="{{ 'Đặt lại bộ lọc' | t }}">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
             <span class="hidden sm:inline">{{ 'Đặt lại' | t }}</span>
