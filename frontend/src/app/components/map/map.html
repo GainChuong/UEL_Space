@@ -78,16 +78,9 @@
                         [class.dark:text-sky-300]="activeCategory === cat.id"
                         class="w-full px-3.5 py-2.5 rounded-xl text-left text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/90 hover:text-uel-blue dark:hover:text-sky-300 flex items-center justify-between transition-colors cursor-pointer group">
                   <span class="truncate">{{ cat.name | t }}</span>
-                  <div class="flex items-center gap-2 shrink-0">
-                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 group-hover:bg-uel-blue/10 group-hover:text-uel-blue dark:group-hover:text-sky-300">
-                      {{ cat.count }}
-                    </span>
-                    @if (cat.id === activeCategory) {
-                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-uel-blue dark:text-sky-400">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
-                    }
-                  </div>
+                  <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 group-hover:bg-uel-blue/10 group-hover:text-uel-blue dark:group-hover:text-sky-300 shrink-0">
+                    {{ cat.count }}
+                  </span>
                 </button>
               }
             </div>
@@ -127,11 +120,6 @@
                         [class.dark:text-sky-300]="activeStatus === st.code"
                         class="w-full px-3.5 py-2.5 rounded-xl text-left text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/90 hover:text-uel-blue dark:hover:text-sky-300 flex items-center justify-between transition-colors cursor-pointer group">
                   <span class="truncate">{{ st.text | t }}</span>
-                  @if (st.code === activeStatus) {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-uel-blue dark:text-sky-400">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                  }
                 </button>
               }
             </div>
@@ -171,11 +159,6 @@
                         [class.dark:text-sky-300]="sortBy === opt.id"
                         class="w-full px-3.5 py-2.5 rounded-xl text-left text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/90 hover:text-uel-blue dark:hover:text-sky-300 flex items-center justify-between transition-colors cursor-pointer group">
                   <span class="truncate">{{ opt.text | t }}</span>
-                  @if (opt.id === sortBy) {
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-uel-blue dark:text-sky-400">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                  }
                 </button>
               }
             </div>
