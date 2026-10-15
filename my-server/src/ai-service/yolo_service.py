@@ -108,10 +108,11 @@ def detect_occupancy(req: DetectRequest):
         img_w, img_h = pil_image.size
 
         # Run YOLO11 inference focusing on class 0 (person)
-        conf = req.confidenceThreshold if req.confidenceThreshold is not None else 0.25
+        # Bỏ qua mọi giới hạn: độ nhạy cao 0.18, chấp nhận mọi góc độ và khoảng cách
+        conf = req.confidenceThreshold if req.confidenceThreshold is not None else 0.18
         iou = req.iouThreshold if req.iouThreshold is not None else 0.45
 
-        # classes=[0] filters exclusively for person objects
+        # classes=[0] filters exclusively for person objects from SOTA COCO pretrained dataset
         results = yolo_model.predict(
             source=pil_image,
             conf=conf,
@@ -137,14 +138,15 @@ def detect_occupancy(req: DetectRequest):
                 bw = min(float(img_w), x2) - bx
                 bh = min(float(img_h), y2) - by
 
-                if bw > 10 and bh > 10:
+                # Chấp nhận mọi kích thước người (ngồi xa, ngồi gần, bán thân)
+                if bw > 6 and bh > 6:
                     detected_boxes.append(BoundingBox(
                         x=round(bx, 1),
                         y=round(by, 1),
                         w=round(bw, 1),
                         h=round(bh, 1),
                         confidence=round(score * 100, 1),
-                        label="Khách thuê / Nhân sự"
+                        label="Khách thuê (YOLOv11 SOTA)"
                     ))
                     confidences.append(score)
 

@@ -104,7 +104,7 @@ const MARKETPLACE_SPACES = [
   {
     _id: 'a2-1',
     code: 'A2-1',
-    name: 'Phòng Họp VIP Executive A2.1',
+    name: 'Phòng Họp VIP Executive A2.1 (Meeting Room)',
     sellerId: 'seller-techpark',
     spaceType: 'Phòng họp VIP',
     categoryName: 'Phòng họp VIP',
@@ -120,20 +120,26 @@ const MARKETPLACE_SPACES = [
     reviewsCount: 88,
     instantBooking: true,
     status: SPACE_STATUS.AVAILABLE,
-    image: 'spaces/space_a2_1_meeting_vip.jpg',
+    image: 'spaces/indoor_meeting_room_1.jpg',
     images: [
-      'spaces/space_a2_1_meeting_vip.jpg',
-      'spaces/space_b2_101_private_office.jpg',
-      'spaces/space_thu_vien_coworking.jpg'
+      'spaces/indoor_meeting_room_1.jpg',
+      'spaces/indoor_meeting_room_2.jpg',
+      'spaces/indoor_meeting_room_3.jpg'
     ],
     tags: ['SuperHost', 'AI Occupancy', 'Màn hình 4K', 'Đặt tức thì'],
-    description: 'Phòng họp VIP cách âm tuyệt đối, hệ thống Teleconference 4K Samsung Flip, micro chống ồn đa hướng và phục vụ teabreak cao cấp.',
+    dataset: {
+      name: 'FatimaSaadNaik/indoor-scenes-dataset',
+      category: 'meeting_room',
+      caption: 'This meeting room there is a long table with chairs around it in a room with a picture hanging on the wall',
+      fileName: 'Conference_640x480.jpg'
+    },
+    description: 'Phòng họp VIP cách âm chuẩn quốc tế, trang bị hệ thống Teleconference 4K, micro chống ồn đa hướng. • Scene Description: "This meeting room there is a long table with chairs around it in a room with a picture hanging on the wall"',
     equipment: ['Màn hình 4K cảm ứng', 'Micro hội nghị đa hướng', 'Cáp quang 1Gbps', 'Bảng kính cường lực', 'AI Occupancy Sensor']
   },
   {
     _id: 'b2-101',
     code: 'B2-101',
-    name: 'Văn phòng riêng Private Suite B2.101',
+    name: 'Văn phòng riêng Private Suite B2.101 (Office)',
     sellerId: 'seller-techpark',
     spaceType: 'Văn phòng riêng',
     categoryName: 'Văn phòng riêng',
@@ -149,19 +155,26 @@ const MARKETPLACE_SPACES = [
     reviewsCount: 42,
     instantBooking: true,
     status: SPACE_STATUS.AVAILABLE,
-    image: 'spaces/space_b2_101_private_office.jpg',
+    image: 'spaces/indoor_office_1.jpg',
     images: [
-      'spaces/space_b2_101_private_office.jpg',
-      'spaces/space_a2_1_meeting_vip.jpg'
+      'spaces/indoor_office_1.jpg',
+      'spaces/indoor_office_2.jpg',
+      'spaces/indoor_office_3.jpg'
     ],
     tags: ['SuperHost', 'Khóa vân tay', 'Điều hòa 24/7', 'Bàn giám đốc'],
-    description: 'Văn phòng riêng khép kín bảo mật cao với Smart Lock, bàn làm việc công thái học, tủ tài liệu bảo mật và đường truyền mạng độc lập.',
+    dataset: {
+      name: 'FatimaSaadNaik/indoor-scenes-dataset',
+      category: 'office',
+      caption: 'This office there is a laptop computer sitting on a table in front of a bookshelf filled with books',
+      fileName: 'office_001.jpg'
+    },
+    description: 'Văn phòng riêng cao cấp với Smart Lock, bàn làm việc công thái học và tủ tài liệu bảo mật. • Scene Description: "This office there is a laptop computer sitting on a table in front of a bookshelf filled with books"',
     equipment: ['Khóa Smart Lock', 'Bàn làm việc giám đốc', 'Điều hòa độc lập 24/7', 'Bảng từ kính', 'Tủ hồ sơ bảo mật']
   },
   {
     _id: 'thu-vien-2',
     code: 'LIB-F2',
-    name: 'Khu Bàn làm việc linh hoạt Co-working Hub',
+    name: 'Khu Bàn làm việc linh hoạt Co-working Hub (Library)',
     sellerId: 'seller-innovate',
     spaceType: 'Bàn làm việc linh hoạt',
     categoryName: 'Bàn làm việc linh hoạt',
@@ -177,19 +190,26 @@ const MARKETPLACE_SPACES = [
     reviewsCount: 215,
     instantBooking: true,
     status: SPACE_STATUS.AVAILABLE,
-    image: 'spaces/space_thu_vien_coworking.jpg',
+    image: 'spaces/indoor_library_1.jpg',
     images: [
-      'spaces/space_thu_vien_coworking.jpg',
-      'spaces/space_choi_1_focus_pod.jpg'
+      'spaces/indoor_library_1.jpg',
+      'spaces/indoor_library_2.jpg',
+      'spaces/indoor_library_3.jpg'
     ],
     tags: ['Co-working', 'Cổng sạc Type-C', 'Pantry cà phê', 'Yên tĩnh'],
-    description: 'Không gian làm việc mở tràn ngập ánh sáng tự nhiên, bàn làm việc công thái học trang bị cổng sạc Type-C, tủ locker và quầy pantry cà phê miễn phí.',
+    dataset: {
+      name: 'FatimaSaadNaik/indoor-scenes-dataset',
+      category: 'library',
+      caption: 'these two men are sitting at a table playing a game of chess in a library with bookshelves in the background',
+      fileName: 'library_0023.jpg'
+    },
+    description: 'Không gian làm việc mở tràn ngập ánh sáng tự nhiên, quầy pantry cà phê miễn phí và bàn làm việc yên tĩnh. • Scene Description: "these two men are sitting at a table playing a game of chess in a library with bookshelves in the background"',
     equipment: ['Wifi công suất lớn Aruba', 'Cổng sạc Type-C & Power Plug', 'Đèn chống cận Ergonomic', 'Tủ locker cá nhân', 'Pantry trà & cà phê']
   },
   {
     _id: 'choi-1',
     code: 'CHOI-01',
-    name: 'Focus Pod 1 Cách Âm Smart Booth',
+    name: 'Focus Pod 1 Cách Âm Smart Booth (Office Pod)',
     sellerId: 'seller-innovate',
     spaceType: 'Meeting Pod cách âm',
     categoryName: 'Meeting Pod cách âm',
@@ -205,19 +225,25 @@ const MARKETPLACE_SPACES = [
     reviewsCount: 56,
     instantBooking: true,
     status: SPACE_STATUS.AVAILABLE,
-    image: 'spaces/space_choi_1_focus_pod.jpg',
+    image: 'spaces/indoor_office_4.jpg',
     images: [
-      'spaces/space_choi_1_focus_pod.jpg',
-      'spaces/space_choi_2_solo_pod.jpg'
+      'spaces/indoor_office_4.jpg',
+      'spaces/indoor_office_5.jpg'
     ],
     tags: ['Cách âm 35dB', 'Màn hình họp Zoom', 'Quạt thông gió'],
-    description: 'Cabin cách âm thế hệ mới đạt chuẩn 35dB, trang bị màn hình họp trực tuyến, cổng sạc nhanh và hệ thống lọc khí lưu thông liên tục.',
+    dataset: {
+      name: 'FatimaSaadNaik/indoor-scenes-dataset',
+      category: 'office',
+      caption: 'hardwood flooring in a home office with a desk, chair and computer on top of a wooden desk',
+      fileName: 'office_004.jpg'
+    },
+    description: 'Cabin cách âm 35dB thế hệ mới, trang bị màn hình họp trực tuyến và hệ thống lọc khí lưu thông liên tục. • Scene Description: "hardwood flooring in a home office with a desk, chair and computer on top of a wooden desk"',
     equipment: ['Kính cách âm 3 lớp', 'Màn hình họp trực tuyến 32 inch', 'Hệ thống thông gió cưỡng bức', 'Đèn LED tùy chỉnh độ sáng']
   },
   {
     _id: 'choi-2',
     code: 'CHOI-02',
-    name: 'Meeting Pod Solo Booth 02',
+    name: 'Meeting Pod Solo Booth 02 (Lobby Lounge)',
     sellerId: 'seller-innovate',
     spaceType: 'Meeting Pod cách âm',
     categoryName: 'Meeting Pod cách âm',
@@ -233,19 +259,25 @@ const MARKETPLACE_SPACES = [
     reviewsCount: 38,
     instantBooking: true,
     status: SPACE_STATUS.AVAILABLE,
-    image: 'spaces/space_choi_2_solo_pod.jpg',
+    image: 'spaces/indoor_lobby_1.jpg',
     images: [
-      'spaces/space_choi_2_solo_pod.jpg',
-      'spaces/space_choi_1_focus_pod.jpg'
+      'spaces/indoor_lobby_1.jpg',
+      'spaces/indoor_lobby_2.jpg'
     ],
     tags: ['Solo Booth', 'Cuộc gọi bảo mật', 'Sạc không dây'],
-    description: 'Pod làm việc cá nhân yên tĩnh tuyệt đối, lý tưởng cho các cuộc gọi phỏng vấn, đàm phán quan trọng và làm việc tập trung sâu.',
+    dataset: {
+      name: 'FatimaSaadNaik/indoor-scenes-dataset',
+      category: 'waitingroom',
+      caption: 'This waitingroom several chairs and tables in a room with bookshelves and a book case in the corner of the room',
+      fileName: 'waitingroom_0012.jpg'
+    },
+    description: 'Pod làm việc cá nhân yên tĩnh tuyệt đối, lý tưởng cho các cuộc gọi phỏng vấn, đàm phán quan trọng. • Scene Description: "This waitingroom several chairs and tables in a room with bookshelves and a book case in the corner of the room"',
     equipment: ['Cách âm cao cấp', 'Bàn làm việc gọn nhẹ', 'Sạc không dây Qi', 'Đèn cảm ứng chuyển động']
   },
   {
     _id: 'a3-301',
     code: 'A3-301',
-    name: 'Hội trường & Event Hall Landmark A3',
+    name: 'Hội trường & Event Hall Landmark A3 (Auditorium)',
     sellerId: 'seller-landmark',
     spaceType: 'Không gian sự kiện',
     categoryName: 'Không gian sự kiện',
@@ -261,19 +293,26 @@ const MARKETPLACE_SPACES = [
     reviewsCount: 76,
     instantBooking: true,
     status: SPACE_STATUS.AVAILABLE,
-    image: 'spaces/space_a3_301_event_hall.jpg',
+    image: 'spaces/indoor_auditorium_1.jpg',
     images: [
-      'spaces/space_a3_301_event_hall.jpg',
-      'spaces/space_a_hoi_truong_grand.jpg'
+      'spaces/indoor_auditorium_1.jpg',
+      'spaces/indoor_auditorium_2.jpg',
+      'spaces/indoor_auditorium_3.jpg'
     ],
     tags: ['Sự kiện 100 khách', 'Màn hình LED', 'Âm thanh vòm', 'Bục phát biểu'],
-    description: 'Không gian sự kiện sang trọng đẳng cấp với view toàn cảnh thành phố, màn hình LED P2.5 siêu nét và hệ thống âm thanh vòm kỹ thuật số.',
+    dataset: {
+      name: 'FatimaSaadNaik/indoor-scenes-dataset',
+      category: 'auditorium',
+      caption: 'rows of blue chairs in a large auditorium with a podium on the side of the stage and a podium on the other side of the stage',
+      fileName: 'auditorium_0001.jpg'
+    },
+    description: 'Không gian sự kiện sang trọng đẳng cấp với view toàn cảnh thành phố, màn hình LED P2.5 siêu nét và dàn âm thanh vòm. • Scene Description: "rows of blue chairs in a large auditorium with a podium on the side of the stage and a podium on the other side of the stage"',
     equipment: ['Màn hình LED P2.5', 'Dàn âm thanh Line Array', 'Micro Shure không dây', 'Bục phát biểu', 'Khu vực check-in riêng']
   },
   {
     _id: 'a-hoi-truong',
     code: 'A-HT',
-    name: 'Hội trường Lớn Tòa A (Grand Auditorium)',
+    name: 'Hội trường Lớn Tòa A - Grand Auditorium',
     sellerId: 'seller-landmark',
     spaceType: 'Không gian sự kiện',
     categoryName: 'Không gian sự kiện',
@@ -289,19 +328,25 @@ const MARKETPLACE_SPACES = [
     reviewsCount: 51,
     instantBooking: true,
     status: SPACE_STATUS.AVAILABLE,
-    image: 'spaces/space_a_hoi_truong_grand.jpg',
+    image: 'spaces/indoor_auditorium_4.jpg',
     images: [
-      'spaces/space_a_hoi_truong_grand.jpg',
-      'spaces/space_a3_301_event_hall.jpg'
+      'spaces/indoor_auditorium_4.jpg',
+      'spaces/indoor_auditorium_1.jpg'
     ],
     tags: ['Quy mô 350 khách', 'Sân khấu lớn', 'Ánh sáng biểu diễn'],
-    description: 'Hội trường lớn bậc thang trang bị hệ thống âm thanh ánh sáng đạt chuẩn biểu diễn, sân khấu rộng và phòng kỹ thuật điều khiển riêng biệt.',
+    dataset: {
+      name: 'FatimaSaadNaik/indoor-scenes-dataset',
+      category: 'auditorium',
+      caption: 'this is an old photo of a large auditorium with red seats and a chandelier hanging from the ceiling',
+      fileName: 'auditorium_0045.jpg'
+    },
+    description: 'Hội trường lớn bậc thang trang bị hệ thống âm thanh ánh sáng biểu diễn, sân khấu rộng và phòng kỹ thuật riêng. • Scene Description: "this is an old photo of a large auditorium with red seats and a chandelier hanging from the ceiling"',
     equipment: ['Sân khấu lớn 60m²', 'Dàn ánh sáng sân khấu DMX', 'Hệ thống lạnh trung tâm', 'Phòng kỹ thuật điều khiển âm thanh']
   },
   {
     _id: 'b1-104',
     code: 'B1-104',
-    name: 'Phòng B1.104 - Giảng đường đa năng',
+    name: 'Phòng B1.104 - Giảng đường đa năng (Classroom)',
     sellerId: 'seller-uel',
     spaceType: 'Giảng đường',
     categoryName: 'Giảng đường',
@@ -317,13 +362,20 @@ const MARKETPLACE_SPACES = [
     reviewsCount: 64,
     instantBooking: true,
     status: SPACE_STATUS.AVAILABLE,
-    image: 'spaces/space_b1_104_lecture_hall.jpg',
+    image: 'spaces/indoor_classroom_1.jpg',
     images: [
-      'spaces/space_b1_104_lecture_hall.jpg',
-      'spaces/space_b1_lab202_computer_lab.jpg'
+      'spaces/indoor_classroom_1.jpg',
+      'spaces/indoor_classroom_2.jpg',
+      'spaces/indoor_classroom_3.jpg'
     ],
     tags: ['Giảng đường 50 chỗ', 'Máy chiếu Sony', 'Điều hòa 2 chiều'],
-    description: 'Phòng học đa năng tiêu chuẩn học thuật, trang bị máy chiếu công suất lớn, bảng từ chống lóa và điều hòa 2 chiều phục vụ giảng dạy, hội thảo.',
+    dataset: {
+      name: 'FatimaSaadNaik/indoor-scenes-dataset',
+      category: 'classroom',
+      caption: 'rows of desks with red chairs in a classroom with windows and drapes on the windowsills',
+      fileName: 'classroom_0008.jpg'
+    },
+    description: 'Phòng học đa năng tiêu chuẩn học thuật, trang bị máy chiếu công suất lớn, bảng từ chống lóa và điều hòa 2 chiều. • Scene Description: "rows of desks with red chairs in a classroom with windows and drapes on the windowsills"',
     equipment: ['Máy chiếu Full HD', 'Điều hòa công suất lớn', 'Bảng từ bút lông', 'Hệ thống micro trợ giảng']
   },
   {
@@ -345,19 +397,26 @@ const MARKETPLACE_SPACES = [
     reviewsCount: 39,
     instantBooking: true,
     status: SPACE_STATUS.AVAILABLE,
-    image: 'spaces/space_b1_lab202_computer_lab.jpg',
+    image: 'spaces/indoor_computerroom_1.jpg',
     images: [
-      'spaces/space_b1_lab202_computer_lab.jpg',
-      'spaces/space_b1_104_lecture_hall.jpg'
+      'spaces/indoor_computerroom_1.jpg',
+      'spaces/indoor_computerroom_2.jpg',
+      'spaces/indoor_computerroom_3.jpg'
     ],
     tags: ['40 PC Core i7', 'Mạng Gigabit', 'Máy chiếu'],
-    description: 'Phòng máy thực hành hiện đại trang bị 40 máy tính Core i7 16GB RAM, mạng gigabit tốc độ cao, cài sẵn phần mềm phân tích dữ liệu và lập trình.',
+    dataset: {
+      name: 'FatimaSaadNaik/indoor-scenes-dataset',
+      category: 'computerroom',
+      caption: 'This computerroom there are many computers sitting on the desks in a room with wood flooring and a large window',
+      fileName: 'computerroom_0019.jpg'
+    },
+    description: 'Phòng máy thực hành hiện đại trang bị 40 máy tính Core i7 16GB RAM, mạng gigabit tốc độ cao phục vụ phân tích dữ liệu và lập trình. • Scene Description: "This computerroom there are many computers sitting on the desks in a room with wood flooring and a large window"',
     equipment: ['40 Máy tính Core i7 16GB', 'Hạ tầng switch mạng Gigabit', 'Máy chiếu giảng viên', 'Phần mềm bản quyền']
   },
   {
     _id: 'a-105',
     code: 'A-105',
-    name: 'Studio Sáng tạo Creative Media A.105',
+    name: 'Studio Sáng tạo Creative Media A.105 (Studio)',
     sellerId: 'seller-creative',
     spaceType: 'Studio sáng tạo',
     categoryName: 'Studio sáng tạo',
@@ -373,13 +432,20 @@ const MARKETPLACE_SPACES = [
     reviewsCount: 63,
     instantBooking: true,
     status: SPACE_STATUS.AVAILABLE,
-    image: 'spaces/space_a_105_creative_media.jpg',
+    image: 'spaces/indoor_studio_1.jpg',
     images: [
-      'spaces/space_a_105_creative_media.jpg',
-      'spaces/space_a2_1_meeting_vip.jpg'
+      'spaces/indoor_studio_1.jpg',
+      'spaces/indoor_studio_2.jpg',
+      'spaces/indoor_studio_3.jpg'
     ],
     tags: ['Phông xanh', 'Đèn quay Nanlite', 'Micro Rode', 'Livestream 4K'],
-    description: 'Studio ghi hình và podcast chuyên nghiệp tích hợp hệ thống phông xanh, đèn chiếu sáng studio Nanlite, micro thu âm Rode và bàn trộn âm thanh.',
+    dataset: {
+      name: 'FatimaSaadNaik/indoor-scenes-dataset',
+      category: 'tv_studio',
+      caption: 'This tv studio there is a group of people that are standing in front of a news set with a television set in the background',
+      fileName: 'tv_studio_0004.jpg'
+    },
+    description: 'Studio ghi hình và podcast chuyên nghiệp tích hợp hệ thống phông xanh, đèn chiếu sáng studio Nanlite, micro thu âm Rode. • Scene Description: "This tv studio there is a group of people that are standing in front of a news set with a television set in the background"',
     equipment: ['Phông xanh kéo tự động', 'Bộ đèn LED studio Nanlite', 'Micro Rode PodMic', 'Bàn trộn âm thanh RodeCaster Pro', 'Màn hình preview 4K']
   }
 ];

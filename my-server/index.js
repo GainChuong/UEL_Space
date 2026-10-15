@@ -32,6 +32,7 @@ const { analyticsRoutes } = require('./src/modules/analytics/analytics.routes');
 const { scheduleRoutes } = require('./src/modules/schedules/schedule.routes');
 const { notificationRoutes } = require('./src/modules/notifications/notification.routes');
 const { paymentRoutes } = require('./src/modules/payments/payment.routes');
+const { chatbotRoutes } = require('./src/modules/chatbot/chatbot.routes');
 
 // Import Repositories & Services để lắp ráp Dependency Injection
 const { CatalogRepository } = require('./src/modules/catalog/catalog.repository');
@@ -125,7 +126,8 @@ async function bootstrap() {
     incidents: getCollection('incidents'),
     feedback: getCollection('feedback'),
     auditLogs: getCollection('audit_logs'),
-    schedules: getCollection('schedules')
+    schedules: getCollection('schedules'),
+    chatSessions: getCollection('chat_sessions')
   };
 
   // 4. Lắp ráp Services & Repositories dùng chung
@@ -235,6 +237,7 @@ async function bootstrap() {
   app.use('/api/analytics', analyticsRoutes(collections));
   app.use('/api/schedules', scheduleRoutes(collections));
   app.use('/api/notifications', notificationRoutes({ ...collections, notificationService }));
+  app.use('/api/chatbot', chatbotRoutes({ spaces: collections.spaces, chatSessions: collections.chatSessions }));
 
   // 6. LEGACY ROUTES (Tương thích ngược 100% với Frontend hiện tại)
   // GET /spaces - Đọc trực tiếp từ MongoDB Atlas
@@ -272,7 +275,31 @@ async function bootstrap() {
     console.log(`🚀 UEL Space Server đang chạy tại: http://localhost:${port}`);
     console.log(`📡 Cơ sở dữ liệu: MongoDB Atlas Cloud (${db.databaseName})`);
     console.log(`🖼️ Static Images phục vụ tại: http://localhost:${port}/images/`);
+    ensureYoloAiService();
   });
+}
+
+function ensureYoloAiService() {
+  fetch('http://127.0.0.1:5001/health')
+    .then(r => r.json())
+    .then(data => {
+      console.log(`🤖 YOLOv11 Computer Vision Microservice sẵn sàng (${data.model}) tại cổng 5001`);
+    })
+    .catch(() => {
+      console.log('🚀 Đang khởi động SOTA YOLOv11 Computer Vision AI Service (port 5001)...');
+      const { spawn } = require('child_process');
+      const pyCmd = process.platform === 'win32' ? 'py' : 'python3';
+      try {
+        const aiProc = spawn(pyCmd, ['src/ai-service/yolo_service.py'], {
+          cwd: __dirname,
+          detached: true,
+          stdio: 'ignore'
+        });
+        aiProc.unref();
+      } catch (err) {
+        console.warn('Không thể khởi chạy YOLO service:', err.message);
+      }
+    });
 }
 
 bootstrap().catch((error) => {

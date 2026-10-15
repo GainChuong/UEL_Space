@@ -1798,12 +1798,12 @@ export class Admin implements OnInit, OnDestroy {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image: base64Image,
-          confidenceThreshold: this.occSensitivity === 'high' ? 0.20 : (this.occSensitivity === 'normal' ? 0.32 : 0.48),
+          confidenceThreshold: this.occSensitivity === 'high' ? 0.15 : (this.occSensitivity === 'normal' ? 0.20 : 0.30),
           iouThreshold: 0.45,
           spaceId: this.occSelectedSpace?.id || 'general',
           spaceName: this.occSelectedSpace?.name || 'UEL Space Room'
         }),
-        signal: AbortSignal.timeout(5000)
+        signal: AbortSignal.timeout(1800)
       });
 
       if (!res.ok) {
@@ -1819,7 +1819,7 @@ export class Admin implements OnInit, OnDestroy {
 
       this.occServerStatus = 'online';
       this.occServerLatencyMs = Math.round(performance.now() - t0);
-      this.occModelName = `YOLOv11 Server AI (${data.processingTimeMs}ms • ${data.device ? data.device.toUpperCase() : 'CPU'})`;
+      this.occModelName = `YOLOv11 SOTA AI (${data.processingTimeMs}ms • ${data.device ? data.device.toUpperCase() : 'CPU'})`;
 
       const boxes: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
       if (Array.isArray(data.boxes)) {
@@ -1830,7 +1830,7 @@ export class Admin implements OnInit, OnDestroy {
             w: Math.round(b.w / scale),
             h: Math.round(b.h / scale),
             score: Math.round(b.confidence),
-            label: b.label || 'Khách thuê (YOLOv11)'
+            label: b.label || 'Khách thuê (YOLOv11 SOTA)'
           });
         }
       }
@@ -1882,22 +1882,16 @@ export class Admin implements OnInit, OnDestroy {
 
       const cocoSsd = await import('@tensorflow-models/coco-ssd');
       
-      // Tải mô hình COCO-SSD với MobileNetV2 (chuẩn xác cao, ít nhiễu)
+      // Tải mô hình Pretrained COCO-SSD SOTA (Lite MobileNetV2 siêu tốc hoặc MobileNetV2)
       let loadedModel: any = null;
       try {
-        loadedModel = await Promise.race([
-          cocoSsd.load({ base: 'mobilenet_v2' }),
-          new Promise<null>((_, rej) => setTimeout(() => rej(new Error('mobilenet_v2 timeout')), 18000))
-        ]);
+        loadedModel = await cocoSsd.load({ base: 'lite_mobilenet_v2' });
       } catch (e1) {
-        console.warn('mobilenet_v2 timeout, trying lite_mobilenet_v2:', e1);
+        console.warn('lite_mobilenet_v2 failed, fallback to default coco-ssd:', e1);
         try {
-          loadedModel = await Promise.race([
-            cocoSsd.load({ base: 'lite_mobilenet_v2' }),
-            new Promise<null>((_, rej) => setTimeout(() => rej(new Error('lite timeout')), 25000))
-          ]);
+          loadedModel = await cocoSsd.load();
         } catch (e2) {
-          console.warn('lite_mobilenet_v2 also failed:', e2);
+          console.warn('Default cocoSsd also failed:', e2);
         }
       }
 
@@ -1911,8 +1905,8 @@ export class Admin implements OnInit, OnDestroy {
         this.occModelLoaded = true;
         this.occModelName = 'Hardware Face AI (Neural Engine)';
       } else {
-        this.occModelError = 'Không thể tải mô hình AI. Vui lòng kiểm tra kết nối mạng.';
-        this.occModelName = 'AI Offline';
+        this.occModelError = 'Mô hình Client AI chưa sẵn sàng. Bạn có thể bật Server AI (YOLOv11) để nhận diện tức thì.';
+        this.occModelName = 'AI Standby';
       }
     } catch (err: any) {
       console.warn('AI Model load error:', err);
@@ -1941,16 +1935,10 @@ export class Admin implements OnInit, OnDestroy {
   ): Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> {
     if (boxes.length === 0) return [];
 
-    // 1. Lọc bỏ các box có kích thước hoặc tỷ lệ khung hình bất thường (bàn ghế, sàn, sọc tường)
+    // Bỏ qua mọi giới hạn gắt gao: chấp nhận người ngồi, đứng, nghiêng, cúi, bán thân hoặc toàn thân
     const validBoxes = boxes.filter(b => {
-      // Bỏ box quá nhỏ (nhiễu pixel)
-      if (b.w < 28 || b.h < 38) return false;
-      // Dáng người thật không bao giờ có chiều rộng gấp 2.2 lần chiều cao (như mép bàn, băng ghế)
-      const aspectWH = b.w / b.h;
-      if (aspectWH > 2.0) return false;
-      // Không bao giờ có chiều cao gấp 4 lần chiều rộng (như nẹp cửa, cột)
-      const aspectHW = b.h / b.w;
-      if (aspectHW > 4.2) return false;
+      // Chỉ bỏ box quá nhỏ (nhiễu pixel dưới 8px)
+      if (b.w < 8 || b.h < 8) return false;
       return true;
     });
 
@@ -2217,8 +2205,8 @@ export class Admin implements OnInit, OnDestroy {
     this.isDetectingOccFrame = true;
     this.lastOccDetectionTimestamp = now;
 
-    // Ngưỡng điểm tin cậy tương ứng với cấu hình (tránh nhiễu bóng đổ, cạnh bàn ghế)
-    const minScore = this.occSensitivity === 'high' ? 0.38 : (this.occSensitivity === 'normal' ? 0.50 : 0.65);
+    // Ngưỡng điểm tin cậy siêu nhạy chuẩn SOTA Pretrained Models (YOLOv11 & COCO)
+    const minScore = this.occSensitivity === 'high' ? 0.15 : (this.occSensitivity === 'normal' ? 0.20 : 0.30);
 
     try {
       const rawDetected: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
@@ -2241,7 +2229,7 @@ export class Admin implements OnInit, OnDestroy {
         let cocoPredictions: any[] = [];
         if (this.occCocoModel) {
           try {
-            cocoPredictions = await this.occCocoModel.detect(videoEl, 15, minScore);
+            cocoPredictions = await this.occCocoModel.detect(videoEl, 20, minScore);
           } catch (errCoco) {
             console.warn('COCO detect error:', errCoco);
           }
@@ -2257,8 +2245,8 @@ export class Admin implements OnInit, OnDestroy {
           }
         }
 
-        // C. Thu thập kết quả Deep Learning COCO-SSD: LỌC CHÍNH XÁC CLASS 'person'
-        const bodyPeople = cocoPredictions.filter((p: any) => p.class === 'person' && p.score >= minScore);
+        // C. Thu thập kết quả Deep Learning COCO-SSD: LỌC CHÍNH XÁC CLASS 'person' HOẶC 'face'
+        const bodyPeople = cocoPredictions.filter((p: any) => (p.class === 'person' || p.class === 'face') && p.score >= minScore);
         for (const p of bodyPeople) {
           rawDetected.push({
             x: Math.round(p.bbox[0]),
@@ -2266,7 +2254,7 @@ export class Admin implements OnInit, OnDestroy {
             w: Math.round(p.bbox[2]),
             h: Math.round(p.bbox[3]),
             score: Math.round(p.score * 100),
-            label: 'Khách thuê (Neural AI)'
+            label: 'Khách thuê (Pretrained COCO)'
           });
         }
 

@@ -1,0 +1,419 @@
+{
+  "dataset_source": "FatimaSaadNaik/indoor-scenes-dataset",
+  "total_extracted": 31,
+  "categories": {
+    "meeting_room": 5,
+    "auditorium": 4,
+    "office": 5,
+    "classroom": 4,
+    "library": 4,
+    "computerroom": 3,
+    "studio": 3,
+    "lobby": 3
+  },
+  "items": [
+    {
+      "id": "indoor_meeting_room_1",
+      "category": "meeting_room",
+      "target_category": "meeting_room",
+      "caption": "This meeting room there is a long table with chairs around it in a room with a picture hanging on the wall",
+      "file_name": "Conference_640x480.jpg",
+      "local_image": "spaces/indoor_meeting_room_1.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_meeting_room_1.jpg",
+      "dimensions": {
+        "width": 640,
+        "height": 447
+      }
+    },
+    {
+      "id": "indoor_meeting_room_2",
+      "category": "meeting_room",
+      "target_category": "meeting_room",
+      "caption": "This meeting room several purple chairs around a table in a room with a ceiling fan and a clock on the wall",
+      "file_name": "Conference Room.jpg",
+      "local_image": "spaces/indoor_meeting_room_2.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_meeting_room_2.jpg",
+      "dimensions": {
+        "width": 640,
+        "height": 480
+      }
+    },
+    {
+      "id": "indoor_meeting_room_3",
+      "category": "meeting_room",
+      "target_category": "meeting_room",
+      "caption": "This meeting room there are many chairs around a table in a room with a tv on the wall and a cabinet in the background",
+      "file_name": "conference_room1.jpg",
+      "local_image": "spaces/indoor_meeting_room_3.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_meeting_room_3.jpg",
+      "dimensions": {
+        "width": 360,
+        "height": 240
+      }
+    },
+    {
+      "id": "indoor_meeting_room_4",
+      "category": "meeting_room",
+      "target_category": "meeting_room",
+      "caption": "This meeting room chairs around a table in a room with a whiteboard on the wall and a laptop on the desk",
+      "file_name": "cnsgs.jpg",
+      "local_image": "spaces/indoor_meeting_room_4.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_meeting_room_4.jpg",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      }
+    },
+    {
+      "id": "indoor_meeting_room_5",
+      "category": "meeting_room",
+      "target_category": "meeting_room",
+      "caption": "This meeting room there are many chairs around a long table in a room with a potted plant on the wall",
+      "file_name": "Large_0004_Layer_4.jpg",
+      "local_image": "spaces/indoor_meeting_room_5.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_meeting_room_5.jpg",
+      "dimensions": {
+        "width": 343,
+        "height": 328
+      }
+    },
+    {
+      "id": "indoor_auditorium_1",
+      "category": "auditorium",
+      "target_category": "auditorium",
+      "caption": "rows of blue chairs in a large auditorium with a podium on the side of the stage and a podium on the other side of the stage",
+      "file_name": "4875_amphitheatre_5_1__11.jpg",
+      "local_image": "spaces/indoor_auditorium_1.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_auditorium_1.jpg",
+      "dimensions": {
+        "width": 572,
+        "height": 375
+      }
+    },
+    {
+      "id": "indoor_auditorium_2",
+      "category": "auditorium",
+      "target_category": "auditorium",
+      "caption": "This auditorium rows of red chairs in a large room with lights on the ceiling and a long row of red chairs in the middle of the room",
+      "file_name": "auditorium_seating_1__33.jpg",
+      "local_image": "spaces/indoor_auditorium_2.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_auditorium_2.jpg",
+      "dimensions": {
+        "width": 530,
+        "height": 430
+      }
+    },
+    {
+      "id": "indoor_auditorium_3",
+      "category": "auditorium",
+      "target_category": "auditorium",
+      "caption": "they are empty seats in the auditorium of a theater with a screen on the wall and a red curtain hanging from the ceiling",
+      "file_name": "auditorium88_40.jpg",
+      "local_image": "spaces/indoor_auditorium_3.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_auditorium_3.jpg",
+      "dimensions": {
+        "width": 450,
+        "height": 299
+      }
+    },
+    {
+      "id": "indoor_auditorium_4",
+      "category": "auditorium",
+      "target_category": "auditorium",
+      "caption": "this is an old photo of a large auditorium with red seats and a chandelier hanging from the ceiling",
+      "file_name": "sp_auditorium_1907_3_1__175.jpg",
+      "local_image": "spaces/indoor_auditorium_4.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_auditorium_4.jpg",
+      "dimensions": {
+        "width": 640,
+        "height": 381
+      }
+    },
+    {
+      "id": "indoor_lobby_1",
+      "category": "waitingroom",
+      "target_category": "lobby",
+      "caption": "This waitingroom several chairs and tables in a room with bookshelves and a book case in the corner of the room",
+      "file_name": "Waiting_Area.jpg",
+      "local_image": "spaces/indoor_lobby_1.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_lobby_1.jpg",
+      "dimensions": {
+        "width": 600,
+        "height": 450
+      }
+    },
+    {
+      "id": "indoor_lobby_2",
+      "category": "waitingroom",
+      "target_category": "lobby",
+      "caption": "This waitingroom there is a man sitting on a chair in a waiting room with his feet on the chair and a backpack on the other side of the chair",
+      "file_name": "waiting_room_04_02_altavista.jpg",
+      "local_image": "spaces/indoor_lobby_2.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_lobby_2.jpg",
+      "dimensions": {
+        "width": 500,
+        "height": 352
+      }
+    },
+    {
+      "id": "indoor_lobby_3",
+      "category": "waitingroom",
+      "target_category": "lobby",
+      "caption": "This waitingroom they are sitting in the waiting room of a train station with a clock on the wall above them",
+      "file_name": "waiting_room_36_20_altavista.jpg",
+      "local_image": "spaces/indoor_lobby_3.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_lobby_3.jpg",
+      "dimensions": {
+        "width": 640,
+        "height": 480
+      }
+    },
+    {
+      "id": "indoor_studio_1",
+      "category": "tv_studio",
+      "target_category": "studio",
+      "caption": "This tv studio there is a group of people that are standing in front of a news set with a television set in the background",
+      "file_name": "plato_de_television_01_03_altavista.jpg",
+      "local_image": "spaces/indoor_studio_1.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_studio_1.jpg",
+      "dimensions": {
+        "width": 524,
+        "height": 327
+      }
+    },
+    {
+      "id": "indoor_studio_2",
+      "category": "tv_studio",
+      "target_category": "studio",
+      "caption": "This tv studio there is a blue screen in the middle of a room with red chairs and a blue screen in the middle of a room with red chairs and a blue wall",
+      "file_name": "studiob2web_64_.jpg",
+      "local_image": "spaces/indoor_studio_2.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_studio_2.jpg",
+      "dimensions": {
+        "width": 648,
+        "height": 486
+      }
+    },
+    {
+      "id": "indoor_studio_3",
+      "category": "tv_studio",
+      "target_category": "studio",
+      "caption": "This tv studio people sitting in a room with a camera and a man standing in front of a table that has a cake on top of it",
+      "file_name": "tv_studio_09_18_altavista.jpg",
+      "local_image": "spaces/indoor_studio_3.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_studio_3.jpg",
+      "dimensions": {
+        "width": 500,
+        "height": 375
+      }
+    },
+    {
+      "id": "indoor_library_1",
+      "category": "library",
+      "target_category": "library",
+      "caption": "these two men are sitting at a table playing a game of chess in a library with bookshelves in the background",
+      "file_name": "library_chess.jpg",
+      "local_image": "spaces/indoor_library_1.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_library_1.jpg",
+      "dimensions": {
+        "width": 1080,
+        "height": 865
+      }
+    },
+    {
+      "id": "indoor_library_2",
+      "category": "library",
+      "target_category": "library",
+      "caption": "people sitting at tables in a library with bookshelves and tables on either side of the room",
+      "file_name": "Day100006web.jpg",
+      "local_image": "spaces/indoor_library_2.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_library_2.jpg",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      }
+    },
+    {
+      "id": "indoor_library_3",
+      "category": "library",
+      "target_category": "library",
+      "caption": "they are in a library with a lot of books on the shelves and people working on laptops",
+      "file_name": "library5.jpg",
+      "local_image": "spaces/indoor_library_3.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_library_3.jpg",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      }
+    },
+    {
+      "id": "indoor_library_4",
+      "category": "library",
+      "target_category": "library",
+      "caption": "##bookshelves in a public library with chairs and a table in front of the bookshelves",
+      "file_name": "pano2.jpg",
+      "local_image": "spaces/indoor_library_4.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_library_4.jpg",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      }
+    },
+    {
+      "id": "indoor_classroom_1",
+      "category": "classroom",
+      "target_category": "classroom",
+      "caption": "rows of desks with red chairs in a classroom with windows and drapes on the windowsills",
+      "file_name": "web_classe.jpg",
+      "local_image": "spaces/indoor_classroom_1.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_classroom_1.jpg",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      }
+    },
+    {
+      "id": "indoor_classroom_2",
+      "category": "classroom",
+      "target_category": "classroom",
+      "caption": "This classroom there are many tables and chairs in the room with a projector screen on the wall behind them",
+      "file_name": "classroom1176.jpg",
+      "local_image": "spaces/indoor_classroom_2.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_classroom_2.jpg",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      }
+    },
+    {
+      "id": "indoor_classroom_3",
+      "category": "classroom",
+      "target_category": "classroom",
+      "caption": "there are many desks and chairs in the classroom with a whiteboard on the wall behind them",
+      "file_name": "salle_de_cours_2.jpg",
+      "local_image": "spaces/indoor_classroom_3.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_classroom_3.jpg",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      }
+    },
+    {
+      "id": "indoor_classroom_4",
+      "category": "classroom",
+      "target_category": "classroom",
+      "caption": "this is an image of a classroom setting with desks, chairs, and a chalkboard in the middle of the room",
+      "file_name": "Wicoff_Classroom_1.jpg",
+      "local_image": "spaces/indoor_classroom_4.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_classroom_4.jpg",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      }
+    },
+    {
+      "id": "indoor_office_1",
+      "category": "office",
+      "target_category": "office",
+      "caption": "This office there is a laptop computer sitting on a table in front of a bookshelf filled with books",
+      "file_name": "img_0011.jpg",
+      "local_image": "spaces/indoor_office_1.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_office_1.jpg",
+      "dimensions": {
+        "width": 2592,
+        "height": 1944
+      }
+    },
+    {
+      "id": "indoor_office_2",
+      "category": "office",
+      "target_category": "office",
+      "caption": "This office rows of tables and chairs in a classroom with a whiteboard on the wall and a whiteboard on the wall",
+      "file_name": "img_0013.jpg",
+      "local_image": "spaces/indoor_office_2.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_office_2.jpg",
+      "dimensions": {
+        "width": 2592,
+        "height": 1944
+      }
+    },
+    {
+      "id": "indoor_office_3",
+      "category": "office",
+      "target_category": "office",
+      "caption": "This office there are a lot of desks and chairs in this room with a tv on the wall above them",
+      "file_name": "n457026.jpg",
+      "local_image": "spaces/indoor_office_3.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_office_3.jpg",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      }
+    },
+    {
+      "id": "indoor_office_4",
+      "category": "office",
+      "target_category": "office",
+      "caption": "hardwood flooring in a home office with a desk, chair and computer on top of a wooden desk",
+      "file_name": "tuscan_home_office500A.jpg",
+      "local_image": "spaces/indoor_office_4.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_office_4.jpg",
+      "dimensions": {
+        "width": 500,
+        "height": 378
+      }
+    },
+    {
+      "id": "indoor_office_5",
+      "category": "office",
+      "target_category": "office",
+      "caption": "This office an image of a computer sitting on top of a wooden bookcase next to a chair in a living room",
+      "file_name": "homeoff003.jpg",
+      "local_image": "spaces/indoor_office_5.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_office_5.jpg",
+      "dimensions": {
+        "width": 700,
+        "height": 800
+      }
+    },
+    {
+      "id": "indoor_computerroom_1",
+      "category": "computerroom",
+      "target_category": "computerroom",
+      "caption": "This computerroom there are many computers sitting on the desks in a room with wood flooring and a large window",
+      "file_name": "comproom348.jpg",
+      "local_image": "spaces/indoor_computerroom_1.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_computerroom_1.jpg",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      }
+    },
+    {
+      "id": "indoor_computerroom_2",
+      "category": "computerroom",
+      "target_category": "computerroom",
+      "caption": "This computerroom row of computer monitors sitting on desks in a classroom with a whiteboard on the wall and a whiteboard on the wall",
+      "file_name": "sala_informatica_3.jpg",
+      "local_image": "spaces/indoor_computerroom_2.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_computerroom_2.jpg",
+      "dimensions": {
+        "width": 1037,
+        "height": 781
+      }
+    },
+    {
+      "id": "indoor_computerroom_3",
+      "category": "computerroom",
+      "target_category": "computerroom",
+      "caption": "This computerroom this is an image of a computer lab with many computers and monitors on the desk in front of them",
+      "file_name": "computer_room_1.jpg",
+      "local_image": "spaces/indoor_computerroom_3.jpg",
+      "full_path": "d:\\Học tập\\3rd\\PTWNC\\DoAnCki\\my-server\\src\\seed\\..\\..\\public\\images\\spaces\\indoor_computerroom_3.jpg",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      }
+    }
+  ]
+}

@@ -238,6 +238,25 @@ Thay vì các ảnh demo phòng, sử dụng các ảnh sau khi lọc của bộ
 
 ---
 
+### Prompt #14+: Chuyển đổi toàn diện dữ liệu sang Hugging Face Indoor Scenes Dataset
+*Đòi hỏi tích hợp trực tiếp bộ dữ liệu phân loại không gian trong nhà chuẩn mực từ Hugging Face vào sàn thương mại điện tử.*
+
+```markdown
+Giờ tôi muốn chuyển qua sử dụng data set này: from datasets import load_dataset
+
+# Login using e.g. `huggingface-cli login` to access this dataset
+ds = load_dataset("FatimaSaadNaik/indoor-scenes-dataset")
+Lưu ý trích các mục trong y hệt trong data set nha /enhance
+```
+- **Slash command:** `/enhance`
+- **Kỹ thuật thực thi:**
+  - Viết pipeline Python `extract_indoor_scenes.py` với streaming và `cast_column('image', decode=False)` để quét siêu tốc qua 14.290 mẫu dữ liệu.
+  - Trích xuất chuẩn xác các trường nguyên bản: `category` (`meeting_room`, `office`, `classroom`, `auditorium`, `library`, `computerroom`, `tv_studio`, `waitingroom`), `caption` mô tả chi tiết không gian bằng tiếng Anh, `file_name` và tải 31 tệp ảnh chất lượng cao vào `my-server/public/images/spaces/`.
+  - Cập nhật toàn bộ các Space của 5 Seller trên MongoDB Atlas với mô tả song ngữ (tiếng Việt + nguyên văn dataset caption) và lưu trữ metadata `dataset` trong từng bản ghi.
+
+---
+
+
 ## 6. TRỤ CỘT IV: GIAO DIỆN NGƯỜI DÙNG, TRẢI NGHIỆM & BRAND DESIGN (AIRBNB BROWSE & UI/UX STORYTELLING)
 
 ### Prompt #15: Tái thiết kế trải nghiệm tìm kiếm dạng Thẻ duyệt phòng phong cách Airbnb

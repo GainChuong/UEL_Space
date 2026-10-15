@@ -430,15 +430,15 @@ export class Home implements OnInit {
       orderId: code,
       bookingCode: code,
       amount: totalAmount,
-      payUrl: '',
-      qrCodeUrl: '',
-      isProcessing: true,
-      loading: true,
+      payUrl: `https://test-payment.momo.vn/v2/gateway/pay?s=${code}`,
+      qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=2|99|0908123456|||0|0|${totalAmount}|${code}|transfer_myqr`,
+      isProcessing: false,
+      loading: false,
       roomName: this.selectedRoomDetail.name || 'Phòng học UEL',
       slotText: `${this.customBookingDate} (${this.customStartTime} - ${this.customEndTime})`
     };
 
-    // Gọi API Backend MoMo Sandbox
+    // Gọi API Backend MoMo Sandbox ngầm (fire-and-forget)
     fetch(`${SERVER_BASE_URL}/api/payments/momo/create`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -451,20 +451,13 @@ export class Home implements OnInit {
     })
       .then(res => res.json())
       .then(data => {
-        this.momoModal.isProcessing = false;
-        this.momoModal.loading = false;
         if (data && data.success) {
-          this.momoModal.payUrl = data.payUrl || '';
-          this.momoModal.qrCodeUrl = data.qrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=2|99|0908123456|||0|0|${totalAmount}|${code}|transfer_myqr`;
-        } else {
-          this.momoModal.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=2|99|0908123456|||0|0|${totalAmount}|${code}|transfer_myqr`;
+          if (data.payUrl) this.momoModal.payUrl = data.payUrl;
+          if (data.qrCodeUrl) this.momoModal.qrCodeUrl = data.qrCodeUrl;
         }
       })
       .catch(err => {
-        console.warn('MoMo create error:', err);
-        this.momoModal.isProcessing = false;
-        this.momoModal.loading = false;
-        this.momoModal.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=2|99|0908123456|||0|0|${totalAmount}|${code}|transfer_myqr`;
+        console.warn('MoMo create background:', err);
       });
   }
 

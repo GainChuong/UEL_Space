@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
 import { SERVER_IMAGES_LINK, SERVER_BASE_URL } from './api-config';
 import { GoogleCalendarService } from './google-calendar.service';
 
@@ -10,7 +11,7 @@ export interface ChatbotSpace {
   spaceType: string;
   capacity: number;
   capacityText: string;
-  areaSize: number;
+  areaSize?: number;
   hourlyPrice: number;
   status: 'available' | 'in-use' | 'reserved' | 'maintenance' | 'restricted';
   statusText: string;
@@ -26,7 +27,7 @@ export interface ChatMessage {
   text: string;
   timestamp: Date;
   suggestedSpaces?: ChatbotSpace[];
-  quickActions?: { label: string; query: string }[];
+  quickActions?: { label: string; query: string; icon?: string }[];
   bookingSummary?: {
     bookingCode: string;
     spaceName: string;
@@ -39,22 +40,59 @@ export interface ChatMessage {
     googleCalendarUrl?: string;
   };
   isTyping?: boolean;
+  source?: 'gemini' | 'local_fallback';
+  model?: string;
+}
+
+export interface ChatSessionSummary {
+  sessionId: string;
+  title: string;
+  preview: string;
+  messageCount: number;
+  updatedAt: string | Date;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChatbotService {
-  // Kho dữ liệu không gian thực tế đồng bộ với UEL Space
-  private spacesDatabase: ChatbotSpace[] = [
+  private http = inject(HttpClient);
+  private googleCalendarService = inject(GoogleCalendarService);
+
+  private isOpenSubject = new BehaviorSubject<boolean>(false);
+  public isOpen$: Observable<boolean> = this.isOpenSubject.asObservable();
+
+  private messagesSubject = new BehaviorSubject<ChatMessage[]>([]);
+  public messages$: Observable<ChatMessage[]> = this.messagesSubject.asObservable();
+
+  private isThinkingSubject = new BehaviorSubject<boolean>(false);
+  public isThinking$: Observable<boolean> = this.isThinkingSubject.asObservable();
+
+  private currentModelSubject = new BehaviorSubject<string>('gemini-3.8-flash');
+  public currentModel$: Observable<string> = this.currentModelSubject.asObservable();
+
+  private currentSourceSubject = new BehaviorSubject<'gemini' | 'local_fallback'>('gemini');
+  public currentSource$: Observable<'gemini' | 'local_fallback'> = this.currentSourceSubject.asObservable();
+
+  // Khóa định danh phiên trò chuyện lưu trữ trên MongoDB Atlas & LocalStorage
+  public sessionId = '';
+
+  private defaultQuickPrompts = [
+    { icon: 'meeting', label: 'Phòng họp 10 người có máy chiếu', query: 'Tìm phòng họp khoảng 10 người có máy chiếu và màn hình 4K' },
+    { icon: 'study', label: 'Chỗ ngồi tự học yên tĩnh giá rẻ', query: 'Gợi ý bàn tự học yên tĩnh cho sinh viên giá tiết kiệm' },
+    { icon: 'pod', label: 'Focus Pod cách âm cá nhân', query: 'Tôi cần một Focus Pod cách âm để gọi điện và phỏng vấn trực tuyến' },
+    { icon: 'event', label: 'Hội trường sự kiện 100 khách', query: 'Tìm hội trường tổ chức sự kiện workshop khoảng 100 người' }
+  ];
+
+  // Kho dữ liệu không gian cục bộ (Dùng cho Local Heuristics Fallback khi mất mạng)
+  private fallbackSpacesDatabase: ChatbotSpace[] = [
     {
       id: 'b1-104',
       name: 'Boardroom VIP B1',
-      building: 'Central Tower Q.1 - Tầng 12',
+      building: 'Tòa B1 - Tầng 1 (UEL)',
       spaceType: 'Phòng họp VIP',
       capacity: 24,
       capacityText: '24 chỗ ngồi',
-      areaSize: 60,
       hourlyPrice: 250000,
       status: 'available',
       statusText: 'Trống',
@@ -64,11 +102,10 @@ export class ChatbotService {
     {
       id: 'a2-1',
       name: 'Private Suite A2',
-      building: 'TechPark Executive - Tầng 5',
+      building: 'Tòa A2 - Tầng 2 (UEL)',
       spaceType: 'Văn phòng riêng',
       capacity: 12,
       capacityText: '12 người',
-      areaSize: 35,
       hourlyPrice: 180000,
       status: 'available',
       statusText: 'Trống',
@@ -78,11 +115,10 @@ export class ChatbotService {
     {
       id: 'thu-vien-2',
       name: 'Khu Hot Desk Coworking',
-      building: 'Innovation Hub - Tầng 2',
+      building: 'Thư viện Trung tâm UEL - Tầng 2',
       spaceType: 'Bàn làm việc linh hoạt',
       capacity: 60,
       capacityText: '60 chỗ ngồi',
-      areaSize: 180,
       hourlyPrice: 35000,
       status: 'available',
       statusText: 'Trống',
@@ -92,11 +128,10 @@ export class ChatbotService {
     {
       id: 'a3-301',
       name: 'Hội trường Event & Workshop A3',
-      building: 'Landmark Lounge - Tầng 8',
+      building: 'Tòa A3 Multiplex - Tầng 3 (UEL)',
       spaceType: 'Không gian sự kiện',
       capacity: 100,
       capacityText: '100 khách',
-      areaSize: 150,
       hourlyPrice: 450000,
       status: 'available',
       statusText: 'Trống',
@@ -106,70 +141,91 @@ export class ChatbotService {
     {
       id: 'choi-1',
       name: 'Focus Pod 1 Cách Âm',
-      building: 'Green Office Suites - Tầng 3',
+      building: 'Chòi Tự Học Suối Nhum (UEL)',
       spaceType: 'Meeting Pod',
       capacity: 4,
       capacityText: '4 người',
-      areaSize: 12,
       hourlyPrice: 70000,
       status: 'available',
       statusText: 'Trống',
       equipment: ['Cách âm chuẩn', 'Màn hình họp trực tuyến', 'Cáp quang 1Gbps', 'Điều hòa cá nhân'],
       image: SERVER_IMAGES_LINK + 'spaces/space_choi_1_focus_pod.jpg'
-    },
-    {
-      id: 'b2-101',
-      name: 'Creative Studio Lab B2',
-      building: 'Creative Hub Center - Tầng 4',
-      spaceType: 'Studio sáng tạo',
-      capacity: 16,
-      capacityText: '16 người',
-      areaSize: 45,
-      hourlyPrice: 200000,
-      status: 'available',
-      statusText: 'Trống',
-      equipment: ['Phông xanh livestream', 'Đèn quay chuyên nghiệp', 'Micro thu âm', 'Màn hình 4K'],
-      image: SERVER_IMAGES_LINK + 'spaces/space_a_105_creative_media.jpg'
-    },
-    {
-      id: 'a1-202',
-      name: 'Phòng Thảo Luận Nhóm A1',
-      building: 'Innovation Hub - Tầng 3',
-      spaceType: 'Phòng học nhóm',
-      capacity: 8,
-      capacityText: '8 người',
-      areaSize: 22,
-      hourlyPrice: 90000,
-      status: 'available',
-      statusText: 'Trống',
-      equipment: ['Bảng kính tương tác', 'Màn hình 4K', 'Cáp quang 1Gbps', 'Ổ cắm điện đa năng'],
-      image: SERVER_IMAGES_LINK + 'spaces/space_b1_104_lecture_hall.jpg'
     }
   ];
 
-  // Danh sách gợi ý truy vấn nhanh (Quick prompt chips)
-  public readonly defaultQuickPrompts = [
-    { label: '👥 Học nhóm 4-6 người', query: 'Tìm phòng học nhóm 4-6 người có bảng kính' },
-    { label: '🖥️ Phòng có máy chiếu trống', query: 'Phòng có màn hình hoặc máy chiếu đang trống' },
-    { label: '🤫 Tự học yên tĩnh giá rẻ', query: 'Không gian tự học yên tĩnh giá sinh viên' },
-    { label: '⚡ Đặt nhanh phòng gần nhất', query: 'Gợi ý phòng trống khả dụng ngay bây giờ' },
-    { label: '🏢 Phòng họp VIP trên 15 người', query: 'Phòng họp VIP trên 15 người có mic' }
-  ];
+  constructor() {
+    this.initSession();
+    this.loadSessionHistory();
+  }
 
-  // Trạng thái mở/đóng cửa sổ chat
-  private isOpenSubject = new BehaviorSubject<boolean>(false);
-  public isOpen$: Observable<boolean> = this.isOpenSubject.asObservable();
+  /**
+   * Khởi tạo Session ID cố định trong phiên làm việc
+   */
+  private initSession(): void {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      let savedSession = localStorage.getItem('uel_space_chat_session_id');
+      if (!savedSession) {
+        savedSession = 'sess_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+        localStorage.setItem('uel_space_chat_session_id', savedSession);
+      }
+      this.sessionId = savedSession;
+    } else {
+      this.sessionId = 'sess_' + Date.now();
+    }
+  }
 
-  // Trạng thái tin nhắn
-  private messagesSubject = new BehaviorSubject<ChatMessage[]>([]);
-  public messages$: Observable<ChatMessage[]> = this.messagesSubject.asObservable();
+  /**
+   * Tải lịch sử tin nhắn từ Backend MongoDB hoặc LocalStorage fallback
+   */
+  public async loadSessionHistory(): Promise<void> {
+    try {
+      const url = `${SERVER_BASE_URL}/api/chatbot/history?sessionId=${encodeURIComponent(this.sessionId)}`;
+      const res: any = await firstValueFrom(this.http.get(url));
 
-  // Trạng thái đang trả lời (Typing indicator)
-  private isThinkingSubject = new BehaviorSubject<boolean>(false);
-  public isThinking$: Observable<boolean> = this.isThinkingSubject.asObservable();
+      if (res && res.ok && Array.isArray(res.messages) && res.messages.length > 0) {
+        const parsedMsgs: ChatMessage[] = res.messages.map((m: any) => ({
+          ...m,
+          timestamp: new Date(m.timestamp)
+        }));
+        this.messagesSubject.next(parsedMsgs);
+        return;
+      }
+    } catch (e) {
+      console.warn('[ChatbotService] Không thể tải lịch sử từ Backend, kiểm tra LocalStorage...', e);
+    }
 
-  constructor(private googleCalendarService: GoogleCalendarService) {
-    this.initWelcomeMessage();
+    // Kiểm tra LocalStorage nếu Backend chưa có lịch sử
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const localHistory = localStorage.getItem('uel_space_chat_messages_' + this.sessionId);
+      if (localHistory) {
+        try {
+          const parsed = JSON.parse(localHistory).map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) }));
+          if (parsed.length > 0) {
+            this.messagesSubject.next(parsed);
+            return;
+          }
+        } catch (err) {}
+      }
+    }
+
+    // Nếu hoàn toàn mới, nạp tin nhắn Chào mừng
+    this.setInitialWelcomeMessage();
+  }
+
+  /**
+   * Thiết lập lời chào mở đầu thân thiện, chuyên nghiệp của Trợ lý AI UEL Space
+   */
+  public setInitialWelcomeMessage(): void {
+    const welcomeMsg: ChatMessage = {
+      id: 'welcome-init',
+      sender: 'bot',
+      text: `Xin chào! Tôi là **Trợ lý Không gian UEL Space**, luôn sẵn sàng hỗ trợ bạn:\n\n- Tìm nhanh phòng họp, chòi tự học, hội trường phù hợp sĩ số & tiện ích.\n- Tra cứu lịch trống, đối chiếu bảng giá và hỗ trợ giữ chỗ trong 1 chạm.\n- Tự động đồng bộ Google Calendar và hướng dẫn thanh toán MoMo tiện lợi.\n\nBạn đang cần tìm không gian cho bao nhiêu người hoặc có nhu cầu đặc biệt nào không?`,
+      timestamp: new Date(),
+      quickActions: this.defaultQuickPrompts,
+      source: 'gemini',
+      model: 'uel-assistant'
+    };
+    this.messagesSubject.next([welcomeMsg]);
   }
 
   public toggleChat(): void {
@@ -184,30 +240,106 @@ export class ChatbotService {
     this.isOpenSubject.next(false);
   }
 
-  public resetChat(): void {
-    this.messagesSubject.next([]);
-    this.initWelcomeMessage();
-  }
-
-  private initWelcomeMessage(): void {
-    const welcomeMsg: ChatMessage = {
-      id: 'msg-welcome',
-      sender: 'bot',
-      text: 'Xin chào! 👋 Tôi là **UEL Space Assistant** – Trợ lý đặt phòng thông minh.\n\nNếu bạn đang bận rộn và không có thời gian tìm kiếm thủ công, chỉ cần nhắn yêu cầu (số người, thời gian, thiết bị) hoặc chọn nhanh gợi ý bên dưới, tôi sẽ tìm và hỗ trợ **đặt chỗ tự động trong 1 chạm** ngay!',
-      timestamp: new Date(),
-      quickActions: this.defaultQuickPrompts
-    };
-    this.messagesSubject.next([welcomeMsg]);
+  /**
+   * Khởi động một cuộc trò chuyện hoàn toàn mới
+   */
+  public startNewSession(): void {
+    const newSessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+    this.sessionId = newSessionId;
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('uel_space_chat_session_id', newSessionId);
+    }
+    this.setInitialWelcomeMessage();
   }
 
   /**
-   * Xử lý gửi tin nhắn từ người dùng
+   * Lấy danh sách các cuộc hội thoại đã lưu để người dùng xem lại
+   */
+  public async getSessionsList(): Promise<ChatSessionSummary[]> {
+    let localIndex: ChatSessionSummary[] = [];
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const raw = localStorage.getItem('uel_space_chat_sessions_index');
+        if (raw) localIndex = JSON.parse(raw);
+      } catch (e) {}
+    }
+
+    try {
+      const sessionIds = localIndex.map(s => s.sessionId).join(',');
+      const url = `${SERVER_BASE_URL}/api/chatbot/sessions?sessionIds=${encodeURIComponent(sessionIds)}`;
+      const res: any = await firstValueFrom(this.http.get(url));
+      if (res && res.ok && Array.isArray(res.sessions) && res.sessions.length > 0) {
+        const map = new Map<string, ChatSessionSummary>();
+        localIndex.forEach(s => map.set(s.sessionId, s));
+        res.sessions.forEach((s: any) => map.set(s.sessionId, { ...s, updatedAt: new Date(s.updatedAt) }));
+        const merged = Array.from(map.values()).sort(
+          (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        );
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('uel_space_chat_sessions_index', JSON.stringify(merged));
+        }
+        return merged;
+      }
+    } catch (e) {
+      console.warn('[ChatbotService] Dùng danh sách phiên lưu cục bộ:', e);
+    }
+
+    return localIndex;
+  }
+
+  /**
+   * Chuyển sang một phiên trò chuyện cũ để xem lại và tiếp tục chat
+   */
+  public async switchSession(targetSessionId: string): Promise<void> {
+    if (!targetSessionId) return;
+    this.sessionId = targetSessionId;
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('uel_space_chat_session_id', targetSessionId);
+    }
+    await this.loadSessionHistory();
+  }
+
+  /**
+   * Xóa một cuộc hội thoại cụ thể
+   */
+  public async deleteSession(targetSessionId: string): Promise<void> {
+    try {
+      const url = `${SERVER_BASE_URL}/api/chatbot/history?sessionId=${encodeURIComponent(targetSessionId)}`;
+      await firstValueFrom(this.http.delete(url));
+    } catch (err) {}
+
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.removeItem('uel_space_chat_messages_' + targetSessionId);
+      try {
+        const raw = localStorage.getItem('uel_space_chat_sessions_index');
+        if (raw) {
+          const list: ChatSessionSummary[] = JSON.parse(raw);
+          const filtered = list.filter(s => s.sessionId !== targetSessionId);
+          localStorage.setItem('uel_space_chat_sessions_index', JSON.stringify(filtered));
+        }
+      } catch (e) {}
+    }
+
+    if (this.sessionId === targetSessionId) {
+      this.startNewSession();
+    }
+  }
+
+  /**
+   * Xóa sạch lịch sử hội thoại hiện tại
+   */
+  public async resetChat(): Promise<void> {
+    await this.deleteSession(this.sessionId);
+  }
+
+  /**
+   * Xử lý gửi tin nhắn từ người dùng - Gọi Backend Gemini API hoặc Local Fallback
    */
   public async handleUserMessage(userQuery: string): Promise<void> {
     const trimmed = userQuery.trim();
     if (!trimmed) return;
 
-    // 1. Thêm tin nhắn của User
+    // 1. Cập nhật ngay tin nhắn của người dùng lên giao diện (Optimistic UI)
     const userMsg: ChatMessage = {
       id: 'usr-' + Date.now(),
       sender: 'user',
@@ -215,186 +347,105 @@ export class ChatbotService {
       timestamp: new Date()
     };
     const currentList = this.messagesSubject.value;
-    this.messagesSubject.next([...currentList, userMsg]);
+    const updatedWithUser = [...currentList, userMsg];
+    this.messagesSubject.next(updatedWithUser);
+    this.saveToLocalStorage(updatedWithUser);
 
-    // 2. Kích hoạt hiệu ứng đang suy nghĩ
+    // 2. Kích hoạt trạng thái suy nghĩ
     this.isThinkingSubject.next(true);
 
-    // 3. Xử lý NLU và tìm kiếm không gian (mô phỏng độ trễ tự nhiên 600ms)
-    setTimeout(() => {
-      const { replyText, recommendedSpaces } = this.processNlpQuery(trimmed);
-
-      const botReply: ChatMessage = {
-        id: 'bot-' + Date.now(),
-        sender: 'bot',
-        text: replyText,
-        timestamp: new Date(),
-        suggestedSpaces: recommendedSpaces,
-        quickActions: recommendedSpaces.length === 0 ? this.defaultQuickPrompts : undefined
+    // 3. Gửi request đến Backend Node.js (/api/chatbot/message)
+    try {
+      const payload = {
+        sessionId: this.sessionId,
+        userMessage: trimmed,
+        history: currentList.slice(-10).map(m => ({
+          sender: m.sender,
+          text: m.text
+        }))
       };
 
+      const res: any = await firstValueFrom(
+        this.http.post(`${SERVER_BASE_URL}/api/chatbot/message`, payload)
+      );
+
+      if (res && res.ok && res.botReply) {
+        const botReply: ChatMessage = {
+          ...res.botReply,
+          timestamp: new Date(res.botReply.timestamp || Date.now())
+        };
+
+        if (res.source) this.currentSourceSubject.next(res.source);
+        if (res.model) this.currentModelSubject.next(res.model);
+
+        const finalList = [...this.messagesSubject.value, botReply];
+        this.messagesSubject.next(finalList);
+        this.saveToLocalStorage(finalList);
+        this.isThinkingSubject.next(false);
+        return;
+      }
+    } catch (err) {
+      console.warn('[ChatbotService] API Backend không phản hồi, tự động kích hoạt Local Client Fallback:', err);
+    }
+
+    // 4. Nếu mất mạng hoàn toàn hoặc Server Backend chưa bật -> Kích hoạt Local Heuristics
+    setTimeout(() => {
+      const fallbackResult = this.processLocalFallback(trimmed);
+      const botReply: ChatMessage = {
+        id: 'bot-fallback-' + Date.now(),
+        sender: 'bot',
+        text: fallbackResult.replyText,
+        timestamp: new Date(),
+        suggestedSpaces: fallbackResult.recommendedSpaces,
+        quickActions: fallbackResult.recommendedSpaces.length === 0 ? this.defaultQuickPrompts : undefined,
+        source: 'local_fallback',
+        model: 'uel-rule-engine-v2'
+      };
+
+      this.currentSourceSubject.next('local_fallback');
+      this.currentModelSubject.next('uel-rule-engine-v2');
+
+      const finalList = [...this.messagesSubject.value, botReply];
+      this.messagesSubject.next(finalList);
+      this.saveToLocalStorage(finalList);
       this.isThinkingSubject.next(false);
-      this.messagesSubject.next([...this.messagesSubject.value, botReply]);
-    }, 600);
+    }, 500);
   }
 
   /**
-   * Bộ xử lý NLP Rule-based & Heuristics tiếng Việt chuyên sâu cho UEL Space
+   * Lưu tin nhắn vào LocalStorage làm bản sao lưu an toàn và cập nhật chỉ mục phiên
    */
-  private processNlpQuery(query: string): { replyText: string; recommendedSpaces: ChatbotSpace[] } {
-    const lower = query.toLowerCase();
-    const normalized = this.removeVietnameseTones(lower);
+  private saveToLocalStorage(messages: ChatMessage[]): void {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        localStorage.setItem(
+          'uel_space_chat_messages_' + this.sessionId,
+          JSON.stringify(messages.slice(-50))
+        );
 
-    // 1. Trích xuất sức chứa (Capacity)
-    let requestedCapacity: number | null = null;
-    const capacityMatch = lower.match(/(?:cho|nhom|tam|khoang|can|tim)?\s*(\d{1,3})\s*(?:nguoi|ban|cho|slot|thanh vien)/i)
-      || lower.match(/(\d{1,3})\s*nguoi/i);
-    if (capacityMatch && capacityMatch[1]) {
-      requestedCapacity = parseInt(capacityMatch[1], 10);
-    } else if (normalized.includes('1 minh') || normalized.includes('ca nhan') || normalized.includes('1 nguoi')) {
-      requestedCapacity = 1;
-    } else if (normalized.includes('4-6') || normalized.includes('4 den 6')) {
-      requestedCapacity = 5;
-    } else if (normalized.includes('tren 15') || normalized.includes('hon 15')) {
-      requestedCapacity = 18;
-    } else if (normalized.includes('tren 20') || normalized.includes('hon 20')) {
-      requestedCapacity = 24;
-    }
-
-    // 2. Trích xuất loại không gian (Space Type)
-    const wantsMeeting = normalized.includes('hop') || normalized.includes('meeting') || normalized.includes('vip') || normalized.includes('thao luan');
-    const wantsPrivate = normalized.includes('rieng') || normalized.includes('suite') || normalized.includes('van phong');
-    const wantsQuietSelfStudy = normalized.includes('tu hoc') || normalized.includes('yen tinh') || normalized.includes('hot desk') || normalized.includes('coworking');
-    const wantsEvent = normalized.includes('su kien') || normalized.includes('event') || normalized.includes('workshop') || normalized.includes('hoi truong');
-    const wantsPod = normalized.includes('pod') || normalized.includes('cach am') || normalized.includes('goi dien') || normalized.includes('phong nho');
-    const wantsStudio = normalized.includes('studio') || normalized.includes('lab') || normalized.includes('quay phim') || normalized.includes('livestream');
-
-    // 3. Trích xuất tiện ích (Amenities)
-    const wantsDisplay = normalized.includes('may chieu') || normalized.includes('man hinh') || normalized.includes('4k') || normalized.includes('tivi') || normalized.includes('screen');
-    const wantsBoard = normalized.includes('bang') || normalized.includes('bang kinh') || normalized.includes('smartboard');
-    const wantsSoundMic = normalized.includes('mic') || normalized.includes('micro') || normalized.includes('am thanh') || normalized.includes('loa');
-    const wantsBudget = normalized.includes('re') || normalized.includes('tiet kiem') || normalized.includes('sinh vien') || normalized.includes('gia thap');
-
-    // 4. Chấm điểm & Xếp hạng (Scoring & Ranking)
-    const scoredSpaces = this.spacesDatabase.map(space => {
-      let score = 0;
-      const reasons: string[] = [];
-
-      // Ưu tiên cao nhất: Đang trống
-      if (space.status === 'available') {
-        score += 50;
-        reasons.push('Khả dụng ngay');
-      }
-
-      // Khớp sức chứa
-      if (requestedCapacity !== null) {
-        if (space.capacity >= requestedCapacity) {
-          const capDiff = space.capacity - requestedCapacity;
-          if (capDiff <= 5) {
-            score += 45;
-            reasons.push(`Sức chứa tối ưu (${space.capacityText})`);
-          } else if (capDiff <= 15) {
-            score += 30;
-            reasons.push(`Sức chứa rộng rãi (${space.capacityText})`);
+        // Tự động ghi lại metadata của phiên để người dùng xem lại lịch sử
+        const firstUserMsg = messages.find(m => m.sender === 'user');
+        const lastMsg = messages[messages.length - 1];
+        if (firstUserMsg) {
+          const raw = localStorage.getItem('uel_space_chat_sessions_index');
+          let list: ChatSessionSummary[] = raw ? JSON.parse(raw) : [];
+          const idx = list.findIndex(s => s.sessionId === this.sessionId);
+          const meta: ChatSessionSummary = {
+            sessionId: this.sessionId,
+            title: firstUserMsg.text.length > 45 ? firstUserMsg.text.substring(0, 42) + '...' : firstUserMsg.text,
+            preview: lastMsg ? (lastMsg.text ? (lastMsg.text.length > 65 ? lastMsg.text.substring(0, 62) + '...' : lastMsg.text) : '') : '',
+            messageCount: messages.length,
+            updatedAt: new Date().toISOString()
+          };
+          if (idx >= 0) {
+            list[idx] = meta;
           } else {
-            score += 15;
+            list.unshift(meta);
           }
-        } else {
-          score -= 40; // Không đủ sức chứa
+          localStorage.setItem('uel_space_chat_sessions_index', JSON.stringify(list.slice(0, 25)));
         }
-      }
-
-      // Khớp loại không gian
-      if (wantsMeeting && (space.spaceType.includes('Phòng họp') || space.spaceType.includes('Thảo luận'))) {
-        score += 35;
-        reasons.push('Chuyên dụng hội họp');
-      }
-      if (wantsPrivate && space.spaceType.includes('Văn phòng riêng')) {
-        score += 35;
-        reasons.push('Không gian riêng tư');
-      }
-      if (wantsQuietSelfStudy && (space.spaceType.includes('Bàn làm việc') || space.spaceType.includes('Pod') || space.spaceType.includes('Thảo luận'))) {
-        score += 35;
-        reasons.push('Yên tĩnh, phù hợp tự học');
-      }
-      if (wantsEvent && space.spaceType.includes('sự kiện')) {
-        score += 40;
-        reasons.push('Sân khấu & Hội trường chuẩn sự kiện');
-      }
-      if (wantsPod && space.spaceType.includes('Pod')) {
-        score += 40;
-        reasons.push('Cách âm tuyệt đối');
-      }
-      if (wantsStudio && space.spaceType.includes('Studio')) {
-        score += 40;
-        reasons.push('Đầy đủ thiết bị quay chụp');
-      }
-
-      // Khớp tiện ích
-      if (wantsDisplay) {
-        const hasDisplay = space.equipment.some(e => e.includes('Màn hình') || e.includes('4K'));
-        if (hasDisplay) {
-          score += 25;
-          reasons.push('Có màn hình 4K / máy chiếu');
-        }
-      }
-      if (wantsBoard) {
-        const hasBoard = space.equipment.some(e => e.includes('Bảng'));
-        if (hasBoard) {
-          score += 20;
-          reasons.push('Có bảng kính tương tác');
-        }
-      }
-      if (wantsSoundMic) {
-        const hasMic = space.equipment.some(e => e.includes('Micro') || e.includes('âm thanh'));
-        if (hasMic) {
-          score += 25;
-          reasons.push('Trang bị micro & âm thanh chuẩn');
-        }
-      }
-
-      // Khớp tiêu chí tiết kiệm
-      if (wantsBudget) {
-        if (space.hourlyPrice <= 100000) {
-          score += 30;
-          reasons.push(`Giá ưu đãi (${space.hourlyPrice.toLocaleString('vi-VN')}đ/h)`);
-        }
-      }
-
-      return {
-        ...space,
-        score,
-        matchReason: reasons.slice(0, 3).join(' • ')
-      };
-    });
-
-    // Lọc và sắp xếp theo điểm số
-    const sorted = scoredSpaces
-      .filter(s => (s.score || 0) > 20)
-      .sort((a, b) => (b.score || 0) - (a.score || 0));
-
-    // Nếu không khớp chính xác, trả về các phòng còn trống tốt nhất
-    const finalResults = sorted.length > 0
-      ? sorted.slice(0, 2)
-      : this.spacesDatabase.filter(s => s.status === 'available').slice(0, 2);
-
-    // Xây dựng câu thoại phản hồi tự nhiên
-    let replyText = '';
-    if (finalResults.length > 0) {
-      if (requestedCapacity) {
-        replyText = `🎯 Tôi đã phân tích yêu cầu nhóm khoảng **${requestedCapacity} người** và tìm thấy **${finalResults.length} không gian tối ưu nhất** đang trống cho bạn:`;
-      } else if (wantsDisplay) {
-        replyText = `🖥️ Dưới đây là các không gian **có sẵn màn hình 4K / máy chiếu sắc nét** và đang khả dụng để đặt ngay:`;
-      } else if (wantsQuietSelfStudy) {
-        replyText = `🤫 Gợi ý các không gian **tự học yên tĩnh, đường truyền 1Gbps ổn định và chi phí tối ưu nhất**:`;
-      } else {
-        replyText = `⚡ Dựa trên trạng thái thời gian thực, đây là các **không gian trống lý tưởng nhất** bạn có thể đặt nhanh:`;
-      }
-    } else {
-      replyText = `Hiện tại tôi chưa tìm thấy phòng phù hợp tuyệt đối 100% với tiêu chí. Bạn hãy thử chọn các gợi ý nhanh bên dưới hoặc điều chỉnh lại yêu cầu nhé!`;
+      } catch (e) {}
     }
-
-    return { replyText, recommendedSpaces: finalResults };
   }
 
   /**
@@ -424,7 +475,6 @@ export class ChatbotService {
       bookerName: 'Khách hàng UEL Space'
     });
 
-    // Thêm tin nhắn xác nhận hoàn tất vào hội thoại
     const confirmationMsg: ChatMessage = {
       id: 'cfm-' + Date.now(),
       sender: 'bot',
@@ -440,10 +490,14 @@ export class ChatbotService {
         amount: totalAmount,
         status: 'CONFIRMED',
         googleCalendarUrl
-      }
+      },
+      source: this.currentSourceSubject.value,
+      model: this.currentModelSubject.value
     };
 
-    this.messagesSubject.next([...this.messagesSubject.value, confirmationMsg]);
+    const finalList = [...this.messagesSubject.value, confirmationMsg];
+    this.messagesSubject.next(finalList);
+    this.saveToLocalStorage(finalList);
 
     return {
       bookingCode,
@@ -455,8 +509,60 @@ export class ChatbotService {
   }
 
   /**
-   * Chuyển đổi tiếng Việt có dấu sang không dấu để phân tích từ khóa
+   * Bộ xử lý NLP Local Fallback khi hoàn toàn offline
    */
+  private processLocalFallback(query: string): { replyText: string; recommendedSpaces: ChatbotSpace[] } {
+    const lower = query.toLowerCase();
+    const normalized = this.removeVietnameseTones(lower);
+
+    let requestedCapacity: number | null = null;
+    const capacityMatch = lower.match(/(\d{1,3})\s*(?:nguoi|ban|cho|slot)/i);
+    if (capacityMatch && capacityMatch[1]) {
+      requestedCapacity = parseInt(capacityMatch[1], 10);
+    } else if (normalized.includes('1 minh') || normalized.includes('ca nhan')) {
+      requestedCapacity = 1;
+    } else if (normalized.includes('4-6') || normalized.includes('nhom 5')) {
+      requestedCapacity = 5;
+    }
+
+    const wantsMeeting = normalized.includes('hop') || normalized.includes('meeting') || normalized.includes('vip');
+    const wantsQuiet = normalized.includes('tu hoc') || normalized.includes('yen tinh') || normalized.includes('hot desk');
+    const wantsPod = normalized.includes('pod') || normalized.includes('cach am');
+    const wantsDisplay = normalized.includes('man hinh') || normalized.includes('may chieu') || normalized.includes('4k');
+
+    const scored = this.fallbackSpacesDatabase.map(space => {
+      let score = 0;
+      if (space.status === 'available') score += 40;
+      if (requestedCapacity !== null) {
+        if (space.capacity >= requestedCapacity) {
+          score += (space.capacity - requestedCapacity <= 5) ? 40 : 20;
+        } else {
+          score -= 30;
+        }
+      }
+      if (wantsMeeting && space.spaceType.includes('họp')) score += 30;
+      if (wantsQuiet && space.spaceType.includes('Bàn')) score += 30;
+      if (wantsPod && space.spaceType.includes('Pod')) score += 35;
+      if (wantsDisplay && space.equipment.some(e => e.includes('Màn hình') || e.includes('4K'))) score += 25;
+
+      return { ...space, score };
+    });
+
+    scored.sort((a, b) => (b.score || 0) - (a.score || 0));
+    const topMatches = scored.slice(0, 2);
+
+    let replyText = '';
+    if (requestedCapacity) {
+      replyText = `🎯 [Offline Mode] Đã lọc không gian cho nhóm **${requestedCapacity} người** phù hợp nhất:`;
+    } else if (wantsDisplay) {
+      replyText = `🖥️ [Offline Mode] Các không gian **có sẵn màn hình 4K / máy chiếu** đang trống:`;
+    } else {
+      replyText = `⚡ [Offline Mode] Dưới đây là các **không gian trống lý tưởng nhất** bạn có thể đặt nhanh:`;
+    }
+
+    return { replyText, recommendedSpaces: topMatches };
+  }
+
   private removeVietnameseTones(str: string): string {
     return str
       .normalize('NFD')

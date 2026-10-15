@@ -1,16 +1,16 @@
 const { connectToDb, closeDb } = require('../config/db');
 
 const SPACE_IMAGE_MAPPING = {
-  'a2-1': 'spaces/space_a2_1_meeting_vip.jpg',
-  'b1-104': 'spaces/space_b1_104_lecture_hall.jpg',
-  'thu-vien-2': 'spaces/space_thu_vien_coworking.jpg',
-  'a3-301': 'spaces/space_a3_301_event_hall.jpg',
-  'b2-101': 'spaces/space_b2_101_private_office.jpg',
-  'choi-1': 'spaces/space_choi_1_focus_pod.jpg',
-  'b1-lab202': 'spaces/space_b1_lab202_computer_lab.jpg',
-  'a-hoi-truong': 'spaces/space_a_hoi_truong_grand.jpg',
-  'choi-2': 'spaces/space_choi_2_solo_pod.jpg',
-  'a-105': 'spaces/space_a_105_creative_media.jpg'
+  'a2-1': 'spaces/indoor_meeting_room_1.jpg',
+  'b1-104': 'spaces/indoor_classroom_1.jpg',
+  'thu-vien-2': 'spaces/indoor_library_1.jpg',
+  'a3-301': 'spaces/indoor_auditorium_1.jpg',
+  'b2-101': 'spaces/indoor_office_1.jpg',
+  'choi-1': 'spaces/indoor_office_4.jpg',
+  'b1-lab202': 'spaces/indoor_computerroom_1.jpg',
+  'a-hoi-truong': 'spaces/indoor_auditorium_4.jpg',
+  'choi-2': 'spaces/indoor_lobby_1.jpg',
+  'a-105': 'spaces/indoor_studio_1.jpg'
 };
 
 async function updateSpacesImages() {

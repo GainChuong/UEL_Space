@@ -1,1236 +1,793 @@
-<div class="pt-2 sm:pt-3 pb-24 lg:pb-4 px-3 sm:px-6 max-w-[1600px] mx-auto h-[calc(100vh-72px-16px)] flex flex-col dark:bg-[#070D18]">
-  <div class="flex-1 flex gap-6 overflow-hidden relative">
+<div class="min-h-screen bg-[#F8FAFC] dark:bg-[#070D18] py-4 sm:py-6 px-3 sm:px-6 lg:px-8 max-w-[1600px] mx-auto flex flex-col gap-6">
+
+  <!-- ==================== HEADER & UNIFIED FILTER BAR ==================== -->
+  <header class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-3xl border border-slate-200/90 dark:border-slate-800 p-4 sm:p-6 shadow-sm flex flex-col gap-4 transition-all">
     
-    <!-- Mobile Filter Backdrop Overlay -->
-    @if (isMobileFilterOpen) {
-      <div (click)="isMobileFilterOpen = false" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 lg:hidden animate-fade-in"></div>
-    }
+    <!-- Top Row: Title + Badges & Results Counter -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex flex-wrap items-center gap-2.5">
+        <span class="px-2.5 py-1 rounded-xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 text-xs font-black tracking-wide uppercase">
+          {{ 'Sàn Không Gian Số' | t }}
+        </span>
+        <h1 class="text-lg sm:text-2xl font-black text-dark-text dark:text-white">
+          {{ 'Danh Mục & Đặt Không Gian UEL Space' | t }}
+        </h1>
+      </div>
 
-    <!-- Left Panel: Categories (Desktop sidebar / Mobile drawer) -->
-    <aside [class.translate-x-0]="isMobileFilterOpen"
-           [class.-translate-x-full]="!isMobileFilterOpen"
-           class="fixed lg:static inset-y-0 left-0 w-72 sm:w-80 bg-white dark:bg-slate-900 z-50 lg:z-10 rounded-r-3xl lg:rounded-3xl shadow-2xl lg:shadow-sm border border-border-gray dark:border-slate-800 p-6 flex flex-col flex-shrink-0 h-full overflow-y-auto custom-scrollbar transition-transform duration-300 lg:translate-x-0">
-      
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-bold text-uel-blue dark:text-sky-400">{{ 'Lọc không gian' | t }}</h2>
-        <button (click)="isMobileFilterOpen = false" 
-                class="lg:hidden p-1.5 rounded-xl text-slate-400 hover:text-dark-text dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                title="Đóng bộ lọc">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
-      
-      <div class="flex flex-col gap-2">
-        <button (click)="filterByCategory('Tất cả'); isMobileFilterOpen = false"
-                [ngClass]="activeCategory === 'Tất cả' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> {{ 'Tất cả không gian' | t }}
-        </button>
-        <button (click)="filterByCategory('Phòng họp VIP'); isMobileFilterOpen = false"
-                [ngClass]="activeCategory === 'Phòng họp VIP' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> {{ 'Phòng họp VIP' | t }}
-        </button>
-        <button (click)="filterByCategory('Văn phòng riêng'); isMobileFilterOpen = false"
-                [ngClass]="activeCategory === 'Văn phòng riêng' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="20" x2="22" y2="20"></line></svg> {{ 'Văn phòng riêng' | t }}
-        </button>
-        <button (click)="filterByCategory('Bàn làm việc linh hoạt'); isMobileFilterOpen = false"
-                [ngClass]="activeCategory === 'Bàn làm việc linh hoạt' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg> {{ 'Bàn làm việc linh hoạt' | t }}
-        </button>
-        <button (click)="filterByCategory('Không gian sự kiện'); isMobileFilterOpen = false"
-                [ngClass]="activeCategory === 'Không gian sự kiện' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 3h20M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3m6 13v4m4-4v4m-4 0h4"></path></svg> {{ 'Không gian sự kiện' | t }}
-        </button>
-        <button (click)="filterByCategory('Meeting Pod cách âm'); isMobileFilterOpen = false"
-                [ngClass]="activeCategory === 'Meeting Pod cách âm' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg> {{ 'Meeting Pod cách âm' | t }}
-        </button>
-        <button (click)="filterByCategory('Studio sáng tạo'); isMobileFilterOpen = false"
-                [ngClass]="activeCategory === 'Studio sáng tạo' && !activeStatus ? 'bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 font-bold border-uel-blue/30' : 'hover:bg-bg-gray dark:hover:bg-slate-800 text-text-muted dark:text-slate-400 font-medium border-transparent hover:border-border-gray'"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> {{ 'Studio sáng tạo' | t }}
-        </button>
-      </div>
-      
-      <div class="mt-auto pt-8">
-        <h3 class="text-sm font-bold text-text-muted dark:text-slate-400 uppercase tracking-wider mb-4">{{ 'Trạng thái' | t }}</h3>
-        <div class="flex flex-col gap-2">
-          @for (s of statuses; track s.code) {
-            <button (click)="filterByStatus(s)"
-                    [ngClass]="activeStatus === s.code ? 'bg-bg-gray dark:bg-slate-800 border-border-gray dark:border-slate-700 font-bold' : 'border-transparent hover:bg-bg-gray/60 dark:hover:bg-slate-800/60 font-medium'"
-                    class="flex items-center gap-3 text-sm text-dark-text dark:text-slate-200 px-3 py-2.5 rounded-xl border transition-all cursor-pointer w-full text-left">
-              <span class="w-3.5 h-3.5 rounded-full {{s.color}} {{s.shadow}} flex-shrink-0"></span>
-              {{s.text | t}}
-            </button>
-          }
+      <div class="flex items-center gap-2 self-start sm:self-auto">
+        <div class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5 border border-slate-200/60 dark:border-slate-700/60">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="font-black text-uel-blue dark:text-sky-400">{{ filteredSpaces.length }}</span>
+          <span>{{ 'không gian sẵn sàng' | t }}</span>
         </div>
       </div>
+    </div>
 
-      <!-- Quick Timetable Action Card -->
-      <div class="mt-4 pt-4 border-t border-border-gray">
-        <button (click)="openGoogleCalendarExternal()"
-                class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-uel-blue text-white hover:bg-uel-blue/90 font-bold text-xs shadow-md transition-all cursor-pointer group">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-uel-orange">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-            </div>
-            <div class="text-left">
-              <div class="font-black text-white text-xs">{{ 'Lịch Google' | t }}</div>
-              <div class="text-[10px] text-slate-300 font-medium">{{ 'Đối chiếu & Đặt nhanh' | t }}</div>
-            </div>
-          </div>
-          <svg class="w-4 h-4 text-uel-orange group-hover:translate-x-0.5 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
-        </button>
-      </div>
-
-    </aside>
-  
-    <!-- Center Panel: Airbnb Browse Marketplace & Campus Map -->
-    <main class="flex-1 bg-[#F8FAFC] dark:bg-slate-900 rounded-3xl shadow-sm border border-border-gray dark:border-slate-800 relative overflow-hidden flex flex-col h-full">
-      
-      <!-- Top Control Bar (Search, Count, View Switcher & Sort) -->
-      <header class="p-3.5 sm:p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-border-gray dark:border-slate-800 z-20 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shrink-0">
-        
-        <!-- Search Input -->
-        <div class="relative flex-1 max-w-md">
-          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          </div>
-          <input type="text"
-                 [(ngModel)]="searchQuery"
-                 (input)="onSearchChange()"
-                 placeholder="{{ 'Tìm tên không gian, vị trí, thương hiệu seller...' | t }}"
-                 class="w-full pl-10 pr-10 py-2.5 rounded-2xl bg-slate-100/80 dark:bg-slate-800 border border-transparent focus:border-uel-blue dark:focus:border-sky-400 text-xs sm:text-sm text-dark-text dark:text-slate-100 placeholder-slate-400 outline-none transition-all">
-          @if (searchQuery) {
-            <button (click)="searchQuery = ''; onSearchChange()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          }
+    <!-- Compact Unified Search & Dropdown Filters Bar -->
+    <div class="flex flex-col lg:flex-row items-stretch gap-2.5">
+      <!-- Search Input -->
+      <div class="relative flex-1 min-w-[220px]">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </div>
-
-        <!-- Right Action Controls (Results counter, Sort & View Toggle) -->
-        <div class="flex items-center justify-between md:justify-end gap-2.5">
-          <!-- Mobile Filter Button -->
-          <button (click)="isMobileFilterOpen = true" 
-                  class="lg:hidden px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-uel-blue dark:text-sky-400 flex items-center gap-1.5 border border-border-gray dark:border-slate-700 cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-            <span>{{ 'Lọc' | t }}</span>
+        <input type="text"
+               [(ngModel)]="searchQuery"
+               (input)="onSearchChange()"
+               placeholder="{{ 'Tìm nhanh theo tên phòng, vị trí, tiện ích, thiết bị...' | t }}"
+               class="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-dark-text dark:text-slate-100 placeholder-slate-400 outline-none focus:border-uel-blue dark:focus:border-sky-400 focus:bg-white dark:focus:bg-slate-900 transition-all">
+        @if (searchQuery) {
+          <button (click)="searchQuery = ''; onSearchChange()" 
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
+        }
+      </div>
 
-          <!-- Result Counter Badge -->
-          <div class="hidden sm:flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-slate-400 px-2.5 py-1.5 rounded-lg bg-slate-100/60 dark:bg-slate-800/60">
-            <span>{{ filteredSpaces.length }}</span>
-            <span>{{ 'kết quả' | t }}</span>
+      <!-- Dropdowns Group: Category, Status, Sort & Reset -->
+      <div class="flex flex-wrap sm:flex-nowrap items-center gap-2">
+        
+        <!-- Category Dropdown (Indoor Scenes Categories) -->
+        <div class="relative flex-1 sm:flex-none sm:w-48 group">
+          <select [(ngModel)]="activeCategory"
+                  (change)="filterSpaces()"
+                  [class.border-uel-blue]="activeCategory !== 'all'"
+                  [class.text-uel-blue]="activeCategory !== 'all'"
+                  [class.bg-uel-blue/5]="activeCategory !== 'all'"
+                  [class.dark:border-sky-400]="activeCategory !== 'all'"
+                  [class.dark:text-sky-300]="activeCategory !== 'all'"
+                  class="w-full pl-3.5 pr-8 py-2.5 rounded-2xl bg-slate-50 hover:bg-slate-100/70 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none cursor-pointer focus:border-uel-blue dark:focus:border-sky-400 focus:ring-2 focus:ring-uel-blue/15 dark:focus:ring-sky-400/20 transition-all appearance-none">
+            <option value="all">{{ 'Tất cả phân loại' | t }} ({{ spaces.length }})</option>
+            @for (cat of categories; track cat.id) {
+              @if (cat.id !== 'all') {
+                <option [value]="cat.id">
+                  {{ cat.name | t }} ({{ cat.count }})
+                </option>
+              }
+            }
+          </select>
+          <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400 group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
           </div>
+        </div>
 
-          <!-- Sort Dropdown -->
+        <!-- Status Dropdown -->
+        <div class="relative flex-1 sm:flex-none sm:w-40 group">
+          <select [(ngModel)]="activeStatus"
+                  (change)="filterSpaces()"
+                  [class.border-uel-blue]="activeStatus !== 'all'"
+                  [class.text-uel-blue]="activeStatus !== 'all'"
+                  [class.bg-uel-blue/5]="activeStatus !== 'all'"
+                  [class.dark:border-sky-400]="activeStatus !== 'all'"
+                  [class.dark:text-sky-300]="activeStatus !== 'all'"
+                  class="w-full pl-3.5 pr-8 py-2.5 rounded-2xl bg-slate-50 hover:bg-slate-100/70 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none cursor-pointer focus:border-uel-blue dark:focus:border-sky-400 focus:ring-2 focus:ring-uel-blue/15 dark:focus:ring-sky-400/20 transition-all appearance-none">
+            <option value="all">{{ 'Tất cả trạng thái' | t }}</option>
+            <option value="available">{{ 'Trống (Khả dụng)' | t }}</option>
+            <option value="in-use">{{ 'Đang sử dụng' | t }}</option>
+            <option value="reserved">{{ 'Đã đặt' | t }}</option>
+            <option value="maintenance">{{ 'Bảo trì' | t }}</option>
+          </select>
+          <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400 group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+        </div>
+
+        <!-- Sort Dropdown (Phổ biến nhất) -->
+        <div class="relative flex-1 sm:flex-none sm:w-40 group">
           <select [(ngModel)]="sortBy"
                   (change)="onSortChange()"
-                  class="px-3 py-2 rounded-xl bg-slate-100/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-dark-text dark:text-slate-200 outline-none cursor-pointer">
+                  [class.border-uel-blue]="sortBy !== 'popular'"
+                  [class.text-uel-blue]="sortBy !== 'popular'"
+                  [class.bg-uel-blue/5]="sortBy !== 'popular'"
+                  [class.dark:border-sky-400]="sortBy !== 'popular'"
+                  [class.dark:text-sky-300]="sortBy !== 'popular'"
+                  class="w-full pl-3.5 pr-8 py-2.5 rounded-2xl bg-slate-50 hover:bg-slate-100/70 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none cursor-pointer focus:border-uel-blue dark:focus:border-sky-400 focus:ring-2 focus:ring-uel-blue/15 dark:focus:ring-sky-400/20 transition-all appearance-none">
             <option value="popular">{{ 'Phổ biến nhất' | t }}</option>
             <option value="price-asc">{{ 'Giá: Thấp đến Cao' | t }}</option>
             <option value="price-desc">{{ 'Giá: Cao đến Thấp' | t }}</option>
             <option value="rating">{{ 'Đánh giá cao nhất' | t }}</option>
             <option value="capacity">{{ 'Sức chứa lớn nhất' | t }}</option>
           </select>
-
-          <!-- View Mode Toggle (Grid vs Map) -->
-          <div class="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-border-gray dark:border-slate-700">
-            <button (click)="viewMode = 'grid'"
-                    [ngClass]="viewMode === 'grid' ? 'bg-white dark:bg-slate-900 text-uel-blue dark:text-sky-400 shadow-xs font-bold' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 font-medium'"
-                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer"
-                    title="{{ 'Chế độ xem dạng thẻ Airbnb' | t }}">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-              <span class="hidden sm:inline">{{ 'Thẻ phòng' | t }}</span>
-            </button>
-            <button (click)="viewMode = 'map'"
-                    [ngClass]="viewMode === 'map' ? 'bg-white dark:bg-slate-900 text-uel-blue dark:text-sky-400 shadow-xs font-bold' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 font-medium'"
-                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer"
-                    title="{{ 'Chế độ xem bản đồ vị trí' | t }}">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-              <span class="hidden sm:inline">{{ 'Bản đồ' | t }}</span>
-            </button>
+          <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400 group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
           </div>
         </div>
-      </header>
 
-      <!-- Content Area -->
-      <div class="flex-1 overflow-y-auto custom-scrollbar p-3.5 sm:p-5 relative">
-        
-        <!-- MODE 1: Airbnb Space Cards Grid -->
-        @if (viewMode === 'grid') {
-          @if (filteredSpaces.length === 0) {
-            <!-- Empty state when no spaces match filter -->
-            <div class="flex flex-col items-center justify-center py-16 text-center max-w-md mx-auto">
-              <div class="w-16 h-16 rounded-3xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              </div>
-              <h3 class="text-lg font-bold text-dark-text dark:text-white mb-1">{{ 'Không tìm thấy không gian phù hợp' | t }}</h3>
-              <p class="text-xs text-text-muted dark:text-slate-400 mb-5">{{ 'Hãy thử điều chỉnh lại bộ lọc phân loại hoặc từ khóa tìm kiếm.' | t }}</p>
-              <button (click)="resetFilters()" class="btn-primary text-xs px-5 py-2.5 rounded-xl cursor-pointer">
-                {{ 'Xóa tất cả bộ lọc' | t }}
-              </button>
-            </div>
-          } @else {
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 animate-fade-in">
-              @for (space of filteredSpaces; track (space._id || space.id)) {
-                <div class="bg-white dark:bg-slate-900 rounded-3xl border border-border-gray/90 dark:border-slate-800 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden group cursor-pointer"
-                     (click)="openRoomDetail(space)">
-                  
-                  <!-- Top Image with Badges -->
-                  <div class="relative w-full aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-800">
-                    <img [src]="getImageUrl(space)"
-                         [alt]="space.name"
-                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                         loading="lazy">
-                    
-                    <!-- Gradient overlay on bottom of image -->
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
-
-                    <!-- Category Chip (Top Left) -->
-                    <div class="absolute top-3 left-3 flex items-center gap-1.5">
-                      <span class="px-2.5 py-1 rounded-xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-md text-[11px] font-black text-uel-blue dark:text-sky-300 shadow-sm border border-white/20">
-                        {{ space.type | t }}
-                      </span>
-                    </div>
-
-                    <!-- Favorite Button (Top Right) -->
-                    <button type="button"
-                            (click)="toggleFavorite(space._id || space.id, $event)"
-                            class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md text-white flex items-center justify-center transition-all cursor-pointer active:scale-90"
-                            [title]="'Yêu thích' | t">
-                      <svg xmlns="http://www.w3.org/2000/svg"
-                           width="16" height="16"
-                           viewBox="0 0 24 24"
-                           [attr.fill]="favorites.has(space._id || space.id) ? '#EF4444' : 'none'"
-                           [attr.stroke]="favorites.has(space._id || space.id) ? '#EF4444' : 'currentColor'"
-                           stroke-width="2.2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                    </button>
-
-                    <!-- Status Indicator Badge (Bottom Left) -->
-                    <div class="absolute bottom-3 left-3 flex items-center gap-1.5">
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg backdrop-blur-md text-[10px] font-bold shadow-xs text-white"
-                            [ngClass]="{
-                              'bg-emerald-600/90': space.status === 'available',
-                              'bg-uel-blue/90': space.status === 'in-use',
-                              'bg-amber-600/90': space.status === 'reserved',
-                              'bg-slate-600/90': space.status === 'maintenance' || space.status === 'restricted'
-                            }">
-                        <span class="w-2 h-2 rounded-full"
-                              [ngClass]="{
-                                'bg-white animate-pulse': space.status === 'available',
-                                'bg-sky-200': space.status === 'in-use',
-                                'bg-amber-200': space.status === 'reserved',
-                                'bg-slate-300': space.status === 'maintenance' || space.status === 'restricted'
-                              }"></span>
-                        {{ space.statusText | t }}
-                      </span>
-                    </div>
-
-                    <!-- Rating & Reviews (Bottom Right) -->
-                    <div class="absolute bottom-3 right-3 px-2 py-0.5 rounded-lg bg-black/60 backdrop-blur-md text-white text-[11px] font-bold flex items-center gap-1">
-                      <span class="text-amber-400">★</span>
-                      <span>{{ space.rating || 4.9 }}</span>
-                      <span class="text-[10px] text-slate-300">({{ space.reviewsCount || 45 }})</span>
-                    </div>
-                  </div>
-
-                  <!-- Card Body -->
-                  <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
-                    <div>
-                      <!-- Seller Information Header -->
-                      @if (space.seller) {
-                        <div class="flex items-center justify-between gap-2 mb-2 pb-2.5 border-b border-border-gray/50 dark:border-slate-800">
-                          <div class="flex items-center gap-2 min-w-0">
-                            <img [src]="space.seller.avatar"
-                                 [alt]="space.seller.name"
-                                 class="w-6 h-6 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700">
-                            <div class="min-w-0">
-                              <div class="text-xs font-bold text-dark-text dark:text-slate-200 truncate flex items-center gap-1">
-                                <span>{{ space.seller.brandName || space.seller.name }}</span>
-                                <span class="text-emerald-500 text-[10px]" title="Xác thực">✓</span>
-                              </div>
-                            </div>
-                          </div>
-                          @if (space.seller.badge) {
-                            <span class="text-[9px] font-bold text-uel-blue dark:text-sky-300 bg-uel-blue/10 dark:bg-sky-400/10 px-2 py-0.5 rounded-md shrink-0">
-                              {{ space.seller.badge.split('•')[0] }}
-                            </span>
-                          }
-                        </div>
-                      }
-
-                      <!-- Space Title -->
-                      <h3 class="text-base font-extrabold text-dark-text dark:text-white group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors line-clamp-1 mb-1.5"
-                          [title]="space.name">
-                        {{ space.name }}
-                      </h3>
-
-                      <!-- Location & Floor -->
-                      <div class="flex items-center gap-1.5 text-xs text-text-muted dark:text-slate-400 mb-2.5">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 text-slate-400"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <span class="truncate">{{ space.location || space.building }}</span>
-                      </div>
-
-                      <!-- Capacity & Area Specs -->
-                      <div class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300 mb-3">
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px]">
-                          👥 {{ space.capacity }} {{ 'chỗ' | t }}
-                        </span>
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px]">
-                          📐 {{ space.areaSize }} m²
-                        </span>
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px]">
-                          🏢 {{ space.floor }}
-                        </span>
-                      </div>
-
-                      <!-- Feature Tags -->
-                      @if (space.tags && space.tags.length > 0) {
-                        <div class="flex flex-wrap gap-1.5 mb-3.5">
-                          @for (tag of space.tags.slice(0, 2); track tag) {
-                            <span class="text-[10px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 px-2 py-0.5 rounded-md">
-                              {{ tag }}
-                            </span>
-                          }
-                        </div>
-                      }
-                    </div>
-
-                    <!-- Footer: Price & Book Actions -->
-                    <div class="pt-3 border-t border-border-gray/60 dark:border-slate-800 flex items-center justify-between gap-2 mt-auto">
-                      <div>
-                        <div class="flex items-baseline gap-1">
-                          <span class="text-base font-black text-uel-blue dark:text-sky-400">
-                            {{ space.hourlyPrice | number }}đ
-                          </span>
-                          <span class="text-[11px] font-semibold text-slate-400">/giờ</span>
-                        </div>
-                        <div class="text-[10px] text-slate-400 font-medium">
-                          hoặc {{ space.dailyPrice | number }}đ/ngày
-                        </div>
-                      </div>
-
-                      <div class="flex items-center gap-1.5" (click)="$event.stopPropagation()">
-                        <button type="button"
-                                (click)="openRoomDetail(space)"
-                                class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
-                                title="{{ 'Xem chi tiết' | t }}">
-                          {{ 'Chi tiết' | t }}
-                        </button>
-                        <button type="button"
-                                (click)="openBookingModal(space)"
-                                class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-uel-blue to-sky-600 hover:from-uel-blue/90 hover:to-sky-700 text-white text-xs font-bold shadow-xs hover:shadow-md transition-all cursor-pointer flex items-center gap-1">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                          <span>{{ 'Đặt ngay' | t }}</span>
-                        </button>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-              }
-            </div>
-          }
-        }
-
-        <!-- MODE 2: Interactive Campus Map -->
-        @if (viewMode === 'map') {
-          <div class="w-full h-full min-h-[500px] flex items-center justify-center p-2 sm:p-4">
-            <div class="relative max-w-full max-h-full" style="aspect-ratio: 1253 / 768; height: 100%;">
-              <img [src]="server_images_link + 'main_map.png'" alt="Campus Map" class="w-full h-full object-contain pointer-events-none rounded-2xl shadow-md">
-              
-              <!-- Location Markers -->
-              @for (b of buildings; track b.id) {
-                <button class="absolute z-10 w-12 h-12 -translate-x-1/2 -translate-y-full flex flex-col items-center justify-center group cursor-pointer"
-                        [style.top]="b.top" [style.left]="b.left"
-                        (click)="selectBuilding(b)">
-                  
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-11 h-11 text-uel-orange drop-shadow-md group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300">
-                    <path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
-                  </svg>
-
-                  <div class="absolute top-[-30px] opacity-0 group-hover:opacity-100 group-hover:-translate-y-1 bg-dark-text/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg whitespace-nowrap pointer-events-none transition-all duration-200">
-                    {{b.name | t}}
-                    <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-dark-text/90 rotate-45"></div>
-                  </div>
-                </button>
-              }
-            </div>
-          </div>
+        <!-- Reset Button -->
+        @if (searchQuery || activeCategory !== 'all' || activeStatus !== 'all' || sortBy !== 'popular') {
+          <button (click)="resetFilters()" 
+                  class="px-3.5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer transition-colors shrink-0 flex items-center gap-1.5"
+                  title="{{ 'Đặt lại bộ lọc' | t }}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            <span class="hidden sm:inline">{{ 'Đặt lại' | t }}</span>
+          </button>
         }
 
       </div>
-      
-      <!-- Empty State / Suggestion overlay -->
-      @if (showEmptyState) {
-        <div class="absolute inset-0 bg-white/60 dark:bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-6 z-[1000]">
-          <div class="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-md w-full shadow-2xl border border-border-gray dark:border-slate-800 text-center animate-[fade-in-up_0.3s_ease-out]">
-            <div class="w-16 h-16 bg-uel-orange/10 text-uel-orange rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
-            </div>
-            <h3 class="text-xl font-bold text-dark-text dark:text-white mb-2">{{ 'Không tìm thấy phòng phù hợp' | t }}</h3>
-            <p class="text-text-muted dark:text-slate-400 mb-6">{{ 'Hiện không có phòng 50 chỗ trống vào khung giờ này.' | t }}</p>
+    </div>
+
+  </header>
+
+  <!-- ==================== MAIN CONTENT: SPACE CARDS GRID ==================== -->
+  <main class="w-full">
+    @if (isLoading) {
+      <div class="flex flex-col items-center justify-center py-20 text-center">
+        <div class="w-12 h-12 border-4 border-uel-blue/30 border-t-uel-blue rounded-full animate-spin mb-4"></div>
+        <p class="text-sm font-bold text-slate-500 dark:text-slate-400">{{ 'Đang đồng bộ dữ liệu không gian...' | t }}</p>
+      </div>
+    } @else if (filteredSpaces.length === 0) {
+      <!-- Empty state when no spaces match filter -->
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-border-gray dark:border-slate-800 p-12 text-center max-w-xl mx-auto shadow-sm my-8">
+        <div class="w-16 h-16 rounded-3xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 flex items-center justify-center mx-auto mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <h3 class="text-lg font-bold text-dark-text dark:text-white mb-2">{{ 'Không tìm thấy không gian phù hợp' | t }}</h3>
+        <p class="text-xs text-text-muted dark:text-slate-400 mb-6 leading-relaxed">
+          {{ 'Không có không gian nào khớp với phân loại, từ khóa tìm kiếm hoặc trạng thái đang chọn.' | t }}
+        </p>
+        <button (click)="resetFilters()" 
+                class="px-5 py-2.5 rounded-2xl bg-uel-blue hover:bg-uel-blue/90 text-white text-xs font-bold transition-all shadow-md cursor-pointer">
+          {{ 'Xóa tất cả bộ lọc' | t }}
+        </button>
+      </div>
+    } @else {
+      <!-- Streamlined Space Cards Grid (Brand Guidelines Aligned) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-5 sm:gap-6 animate-fade-in">
+        @for (space of filteredSpaces; track (space._id || space.id)) {
+          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col overflow-hidden group cursor-pointer"
+               (click)="openRoomDetail(space)">
             
-            <div class="text-left bg-bg-gray dark:bg-slate-800 rounded-2xl p-4 mb-6">
-              <h4 class="text-sm font-bold text-dark-text dark:text-white mb-3">{{ 'Gợi ý thay thế:' | t }}</h4>
-              <div class="flex flex-col gap-2">
-                <button class="w-full text-left px-4 py-3 rounded-xl bg-white dark:bg-slate-800 dark:border-slate-700 border border-border-gray hover:border-uel-blue dark:hover:border-sky-400 hover:text-uel-blue dark:hover:text-sky-300 transition-colors text-sm font-medium">{{ 'Phòng B1.104 (Sức chứa 40, Trống)' | t }}</button>
-                <button class="w-full text-left px-4 py-3 rounded-xl bg-white dark:bg-slate-800 dark:border-slate-700 border border-border-gray hover:border-uel-blue dark:hover:border-sky-400 hover:text-uel-blue dark:hover:text-sky-300 transition-colors text-sm font-medium">{{ 'Phòng A2.201 (Sức chứa 50, Trống từ 15:00)' | t }}</button>
+            <!-- Room Image Container -->
+            <div class="relative w-full aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-800">
+              <img [src]="getImageUrl(space)"
+                   [alt]="space.name"
+                   class="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300 ease-out"
+                   loading="lazy">
+              
+              <!-- Subtle bottom gradient -->
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
+
+              <!-- Top Left: Space Type Tag -->
+              <div class="absolute top-3 left-3">
+                <span class="px-2.5 py-1 rounded-lg bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-[11px] font-bold text-uel-blue dark:text-sky-300 shadow-xs border border-white/20">
+                  {{ space.type | t }}
+                </span>
+              </div>
+
+              <!-- Top Right: Favorite Button -->
+              <button type="button"
+                      (click)="toggleFavorite(space._id || space.id, $event)"
+                      class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md text-white flex items-center justify-center transition-all cursor-pointer active:scale-90"
+                      [title]="'Yêu thích' | t">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="15" height="15"
+                     viewBox="0 0 24 24"
+                     [attr.fill]="favorites.has(space._id || space.id) ? '#EF4444' : 'none'"
+                     [attr.stroke]="favorites.has(space._id || space.id) ? '#EF4444' : 'currentColor'"
+                     stroke-width="2.2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </button>
+
+              <!-- Bottom Left: Status Badge (No dot) -->
+              <div class="absolute bottom-2.5 left-2.5 flex items-center">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-md backdrop-blur-md text-[10px] font-bold text-white shadow-xs"
+                      [ngClass]="{
+                        'bg-emerald-600/90': space.status === 'available',
+                        'bg-uel-blue/90': space.status === 'in-use',
+                        'bg-amber-600/90': space.status === 'reserved',
+                        'bg-slate-600/90': space.status === 'maintenance'
+                      }">
+                  {{ space.statusText | t }}
+                </span>
+              </div>
+
+              <!-- Bottom Right: Minimal Rating -->
+              <div class="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-white text-[11px] font-bold flex items-center gap-1">
+                <span class="text-amber-400">★</span>
+                <span>{{ space.rating || 4.9 }}</span>
               </div>
             </div>
-            <button class="btn-primary w-full" (click)="closeEmptyState()">{{ 'Đã hiểu' | t }}</button>
+
+            <!-- Card Content -->
+            <div class="p-4 flex-1 flex flex-col justify-between gap-3">
+              <div>
+                <!-- Space Name -->
+                <h3 class="text-base font-bold text-dark-text dark:text-white group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors line-clamp-1 mb-1"
+                    [title]="space.name">
+                  {{ space.name }}
+                </h3>
+
+                <!-- Location & Building Info (Clean, no dot separator) -->
+                <p class="text-xs text-slate-500 dark:text-slate-400 truncate mb-2">
+                  {{ space.location || space.building }}, {{ space.floor }}
+                </p>
+
+                <!-- Essential Specs: Capacity & Area (Clean badges, no dot separator) -->
+                <div class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 mb-2.5 font-medium">
+                  <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[11px]">
+                    {{ space.capacity }} {{ 'chỗ' | t }}
+                  </span>
+                  <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[11px]">
+                    {{ space.areaSize }} m²
+                  </span>
+                </div>
+
+                <!-- Minimal Amenities (Max 2-3 essential tags in neutral style) -->
+                @if (space.facilities && space.facilities.length > 0) {
+                  <div class="flex flex-wrap gap-1.5">
+                    @for (item of space.facilities.slice(0, 2); track item) {
+                      <span class="text-[10px] text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 px-2 py-0.5 rounded">
+                        {{ item }}
+                      </span>
+                    }
+                  </div>
+                }
+              </div>
+
+              <!-- Card Footer: Hourly Price & CTAs -->
+              <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 mt-auto">
+                <div class="flex items-baseline gap-1">
+                  <span class="text-base font-black text-uel-blue dark:text-sky-400">
+                    {{ space.hourlyPrice | number }}đ
+                  </span>
+                  <span class="text-xs text-slate-400 font-medium">/giờ</span>
+                </div>
+
+                <div class="flex items-center gap-1.5" (click)="$event.stopPropagation()">
+                  <button type="button"
+                          (click)="openRoomDetail(space)"
+                          class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+                          title="{{ 'Xem chi tiết' | t }}">
+                    {{ 'Chi tiết' | t }}
+                  </button>
+                  <button type="button"
+                          (click)="openBookingModal(space)"
+                          class="px-3.5 py-1.5 rounded-xl bg-uel-blue hover:bg-uel-blue/90 text-white text-xs font-bold shadow-xs transition-all cursor-pointer">
+                    {{ 'Đặt ngay' | t }}
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </main>
+
+</div>
+
+<!-- ==================== ROOT LEVEL MODALS ==================== -->
+
+<!-- 1. DETAILED ROOM INFORMATION MODAL -->
+@if (selectedRoomDetail) {
+  <div class="fixed inset-0 z-[10001] flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-[#001D3D]/65 backdrop-blur-xs transition-opacity" (click)="closeRoomDetail()"></div>
+
+    <!-- Detail Modal Container -->
+    <div class="relative bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-7 max-w-2xl w-full shadow-2xl border border-border-gray dark:border-slate-800 animate-[fade-in-up_0.2s_ease-out] flex flex-col max-h-[92vh] overflow-hidden z-10">
+      
+      <!-- Header -->
+      <div class="flex items-start justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+        <div class="flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-2xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 flex items-center justify-center font-black border border-uel-blue/20 dark:border-sky-400/20 shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9h1"/><path d="M9 13h1"/><path d="M9 17h1"/>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-xl sm:text-2xl font-black text-uel-blue dark:text-sky-400">{{ selectedRoomDetail.name }}</h3>
+            </div>
+            <p class="text-xs text-text-muted dark:text-slate-400 font-medium mt-0.5">
+              {{ selectedRoomDetail.floor }}, {{ selectedRoomDetail.building }}, {{ selectedRoomDetail.location }}
+            </p>
+          </div>
+        </div>
+
+        <button (click)="closeRoomDetail()" 
+                class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-dark-text dark:text-slate-200 flex items-center justify-center cursor-pointer transition-colors"
+                [title]="'Đóng' | t">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <!-- Body Content (Scrollable) -->
+      <div class="py-4 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+        
+        <!-- Main Image Preview with Badges -->
+        <div class="relative w-full h-56 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xs">
+          <img [src]="getImageUrl(selectedRoomDetail)"
+               [alt]="selectedRoomDetail.name"
+               class="w-full h-full object-cover">
+          
+          <div class="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-white text-xs font-bold flex items-center gap-1.5">
+            <span class="text-amber-400">★</span>
+            <span>{{ selectedRoomDetail.rating || 4.9 }}</span>
+            <span class="text-[11px] text-slate-300">({{ selectedRoomDetail.reviewsCount || 45 }} {{ 'đánh giá' | t }})</span>
+          </div>
+
+          @if (selectedRoomDetail.dataset?.category) {
+            <div class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur-md text-emerald-300 text-xs font-mono border border-emerald-400/30">
+              Dataset: #{{ selectedRoomDetail.dataset.category }}
+            </div>
+          }
+        </div>
+
+        <!-- Thumbnail Gallery if multiple images -->
+        @if (selectedRoomDetail.images && selectedRoomDetail.images.length > 1) {
+          <div class="flex items-center gap-2 overflow-x-auto pb-1">
+            @for (img of selectedRoomDetail.images; track img) {
+              <div class="w-16 h-12 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 cursor-pointer">
+                <img [src]="getRawImageUrl(img)" 
+                     alt="Preview" 
+                     class="w-full h-full object-cover">
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Dataset Extraction Badge Card -->
+        @if (selectedRoomDetail.dataset?.caption) {
+          <div class="p-3.5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] font-mono font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider">
+                HuggingFace Dataset: {{ selectedRoomDetail.dataset.name }}
+              </span>
+              <span class="text-[10px] font-mono text-emerald-700 dark:text-emerald-400">
+                {{ selectedRoomDetail.dataset.fileName }}
+              </span>
+            </div>
+            <p class="text-xs text-emerald-900 dark:text-emerald-200 italic leading-relaxed">
+              “{{ selectedRoomDetail.dataset.caption }}”
+            </p>
+          </div>
+        }
+
+        <!-- Seller / Space Host Information -->
+        @if (selectedRoomDetail.seller) {
+          <div class="p-3.5 rounded-2xl bg-gradient-to-r from-slate-50 to-blue-50/60 dark:from-slate-800 dark:to-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <img [src]="selectedRoomDetail.seller.avatar"
+                   [alt]="selectedRoomDetail.seller.name"
+                   class="w-11 h-11 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-xs">
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="font-extrabold text-sm text-dark-text dark:text-white">{{ selectedRoomDetail.seller.brandName || selectedRoomDetail.seller.name }}</span>
+                  <span class="text-emerald-500 font-bold text-xs" title="Đã xác thực">✓</span>
+                </div>
+                <span class="text-xs text-text-muted dark:text-slate-400 font-medium">{{ selectedRoomDetail.seller.badge || ('Đối tác Không gian đã xác thực' | t) }}</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-xs font-black text-uel-blue dark:text-sky-400">⭐ {{ selectedRoomDetail.seller.rating || 4.9 }}</div>
+              <div class="text-[10px] text-slate-500">{{ selectedRoomDetail.seller.reviewsCount || 50 }} {{ 'đánh giá' | t }}</div>
+            </div>
+          </div>
+        }
+        
+        <!-- Dynamic Status Banner -->
+        @if (selectedRoomDetail.status === 'available') {
+          <div class="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 flex items-center justify-between">
+            <span class="font-bold text-xs sm:text-sm">{{ 'Phòng đang trống (Khả dụng ngay)' | t }}</span>
+            <span class="text-xs font-black text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg">
+              {{ 'Sẵn sàng đặt' | t }}
+            </span>
+          </div>
+        } @else if (selectedRoomDetail.status === 'in-use') {
+          <div class="p-3 rounded-2xl bg-uel-blue/10 border border-uel-blue/20 text-uel-blue dark:text-sky-300 flex items-center justify-between">
+            <span class="font-bold text-xs sm:text-sm">{{ 'Đang có người sử dụng' | t }}</span>
+            <span class="text-xs font-bold text-uel-blue dark:text-sky-300 bg-white/70 dark:bg-slate-800/70 px-2.5 py-1 rounded-lg border border-uel-blue/20">
+              {{ selectedRoomDetail.expectedFreeTime | t }}
+            </span>
+          </div>
+        } @else if (selectedRoomDetail.status === 'reserved') {
+          <div class="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-300 flex items-center justify-between">
+            <span class="font-bold text-xs sm:text-sm">{{ 'Phòng đã được đặt trước' | t }}</span>
+            <span class="text-xs font-bold text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-2.5 py-1 rounded-lg">
+              {{ selectedRoomDetail.expectedFreeTime | t }}
+            </span>
+          </div>
+        } @else {
+          <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-between">
+            <span class="font-bold text-xs sm:text-sm">{{ 'Tạm bảo trì định kỳ' | t }}</span>
+            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">{{ 'Tạm dừng tiếp nhận' | t }}</span>
+          </div>
+        }
+
+        <!-- Specs Grid (4 Key Metrics) -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+          <div class="p-3 rounded-xl bg-slate-100/70 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700">
+            <span class="text-slate-400 dark:text-slate-500 block text-[10px] font-semibold mb-0.5">{{ 'Loại không gian' | t }}</span>
+            <span class="font-black text-dark-text dark:text-white text-xs truncate block">{{ selectedRoomDetail.type | t }}</span>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-100/70 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700">
+            <span class="text-slate-400 dark:text-slate-500 block text-[10px] font-semibold mb-0.5">{{ 'Sức chứa' | t }}</span>
+            <span class="font-black text-uel-blue dark:text-sky-400 text-xs">{{ selectedRoomDetail.capacity }} {{ 'chỗ ngồi' | t }}</span>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-100/70 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700">
+            <span class="text-slate-400 dark:text-slate-500 block text-[10px] font-semibold mb-0.5">{{ 'Diện tích' | t }}</span>
+            <span class="font-black text-dark-text dark:text-white text-xs">{{ selectedRoomDetail.areaSize }} m²</span>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-100/70 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700">
+            <span class="text-slate-400 dark:text-slate-500 block text-[10px] font-semibold mb-0.5">{{ 'Hiện trạng' | t }}</span>
+            <span class="font-bold text-dark-text dark:text-white text-xs">{{ selectedRoomDetail.statusText | t }}</span>
+          </div>
+        </div>
+
+        <!-- Facilities & Equipment -->
+        @if (selectedRoomDetail.facilities && selectedRoomDetail.facilities.length > 0) {
+          <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-2xs">
+            <h4 class="text-xs font-black text-uel-blue dark:text-sky-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              {{ 'Trang thiết bị & Tiện ích' | t }}
+            </h4>
+            <div class="flex flex-wrap gap-2 text-xs">
+              @for (facility of selectedRoomDetail.facilities; track facility) {
+                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-dark-text dark:text-slate-200 font-semibold border border-slate-200 dark:border-slate-700 whitespace-nowrap">
+                  ✓ {{ facility }}
+                </span>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Today's Schedule Shifts (5 Shifts Overview) -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-2xs">
+          <div class="flex items-center justify-between mb-2.5">
+            <h4 class="text-xs font-black text-uel-blue dark:text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+              {{ 'Khung giờ các ca hôm nay' | t }}
+            </h4>
+            <button type="button" 
+                    (click)="openGoogleCalendarExternal(selectedRoomDetail)" 
+                    class="text-[11px] font-bold text-uel-blue dark:text-sky-400 hover:underline cursor-pointer flex items-center gap-1">
+              <span>{{ 'Mở Google Calendar' | t }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            @for (slot of selectedRoomDetail.todaySlots; track slot.period) {
+              <div class="flex items-center justify-between px-3 py-2 rounded-xl border transition-all"
+                   [ngClass]="{
+                     'border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-300': slot.status === 'available',
+                     'border-uel-blue/20 bg-uel-blue/5 text-uel-blue dark:text-sky-300': slot.status === 'in-use',
+                     'border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30 text-amber-900 dark:text-amber-300': slot.status === 'reserved',
+                     'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400': slot.status === 'maintenance'
+                   }">
+                <span class="font-bold text-[11px]">{{ slot.period | t }}</span>
+                <span class="text-[10px] font-black px-2 py-0.5 rounded whitespace-nowrap"
+                      [ngClass]="{
+                        'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300': slot.status === 'available',
+                        'bg-uel-blue/20 text-uel-blue dark:text-sky-300': slot.status === 'in-use',
+                        'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300': slot.status === 'reserved',
+                        'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300': slot.status === 'maintenance'
+                      }">
+                  {{ slot.text | t }}
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Pricing Summary Card -->
+        <div class="p-3.5 rounded-2xl bg-gradient-to-r from-pink-50/80 via-amber-50/60 to-pink-50/80 dark:from-pink-950/30 dark:via-amber-950/20 dark:to-pink-950/30 border border-pink-200/80 dark:border-pink-800/60 flex items-center justify-between text-xs">
+          <div>
+            <span class="text-[11px] font-black text-[#a50064] dark:text-pink-300 uppercase tracking-wider block">
+              {{ 'Đơn giá thuê (Hỗ trợ MoMo QR):' | t }}
+            </span>
+            <span class="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+              {{ (selectedRoomDetail.hourlyPrice || 120000) | number }}đ / giờ • {{ (selectedRoomDetail.dailyPrice || 800000) | number }}đ / ngày
+            </span>
+          </div>
+          <div class="text-right">
+            <span class="text-base font-black text-[#a50064] dark:text-pink-400 block">
+              {{ ((selectedRoomDetail.hourlyPrice || 120000) * 2) | number }} VNĐ
+            </span>
+            <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
+              ✓ MoMo Sandbox Test
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Actions Footer -->
+      <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-3">
+        <button type="button" 
+                (click)="closeRoomDetail()" 
+                class="flex-1 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-dark-text dark:text-slate-200 transition-colors cursor-pointer text-sm text-center">
+          {{ 'Đóng' | t }}
+        </button>
+        <button type="button"
+                (click)="proceedToBookingFromDetail()"
+                [disabled]="selectedRoomDetail.status !== 'available'"
+                class="flex-1 py-3 rounded-2xl font-bold transition-all text-sm text-center shadow-md flex items-center justify-center gap-2"
+                [ngClass]="{
+                  'bg-uel-blue hover:bg-uel-blue/90 text-white cursor-pointer': selectedRoomDetail.status === 'available',
+                  'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-300 dark:border-slate-600 shadow-none': selectedRoomDetail.status !== 'available'
+                }">
+          <span>{{ (selectedRoomDetail.status === 'available' ? 'Đặt phòng này ngay' : 'Hiện chưa khả dụng') | t }}</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- 2. QUICK BOOKING MODAL WITH GOOGLE CALENDAR & SCHEDULE CROSS-REFERENCE -->
+@if (selectedRoomToBook) {
+  <div class="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-[#001D3D]/65 backdrop-blur-xs transition-opacity" (click)="closeBookingModal()"></div>
+    
+    <!-- Modal Card Container -->
+    <div class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 animate-[fade-in-up_0.25s_ease-out] w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden z-10">
+      
+      @if (!bookingSuccess) {
+        <!-- Modal Header -->
+        <div class="px-6 py-4 sm:px-7 sm:py-5 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 flex items-center justify-center font-bold border border-uel-blue/20 dark:border-sky-400/20 shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-lg sm:text-xl font-black text-uel-blue dark:text-sky-400">
+                {{ 'Đặt chỗ không gian' | t }}: {{ selectedRoomToBook.name }}
+              </h3>
+              <p class="text-xs text-text-muted dark:text-slate-400 font-medium">
+                {{ selectedRoomToBook.floor }} • {{ selectedRoomToBook.building }} • {{ selectedRoomToBook.capacity }} chỗ ngồi
+              </p>
+            </div>
+          </div>
+          <button (click)="closeBookingModal()" 
+                  class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-dark-text dark:text-slate-200 flex items-center justify-center cursor-pointer transition-colors"
+                  [title]="'Đóng' | t">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <!-- Modal Body (Two-Column Layout) -->
+        <div class="p-6 sm:p-7 overflow-y-auto custom-scrollbar flex-1 bg-slate-50/50 dark:bg-[#0B1220]">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left Column: Booking Form -->
+            <div class="lg:col-span-7 flex flex-col gap-4">
+              
+              <!-- Date & Time Picker Card -->
+              <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
+                <h4 class="text-xs font-black text-uel-blue dark:text-sky-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  {{ 'Chọn ngày & giờ thuê' | t }}
+                </h4>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">{{ 'Ngày đặt' | t }}</label>
+                    <input type="date"
+                           [(ngModel)]="customBookingDate"
+                           (change)="onTimeOrDateChange()"
+                           class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-dark-text dark:text-white outline-none">
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">{{ 'Bắt đầu' | t }}</label>
+                    <input type="time"
+                           [(ngModel)]="customStartTime"
+                           (change)="onTimeOrDateChange()"
+                           class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-dark-text dark:text-white outline-none">
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">{{ 'Kết thúc' | t }}</label>
+                    <input type="time"
+                           [(ngModel)]="customEndTime"
+                           (change)="onTimeOrDateChange()"
+                           class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-dark-text dark:text-white outline-none">
+                  </div>
+                </div>
+
+                <!-- Google Suggested Preset Slots -->
+                <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                  <span class="text-[11px] font-bold text-slate-400 block mb-2">{{ 'Khung giờ gợi ý theo ca:' | t }}</span>
+                  <div class="flex flex-wrap gap-1.5">
+                    @for (slot of suggestedGoogleSlots; track slot.label) {
+                      <button (click)="selectGooglePresetSlot(slot)"
+                              class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-uel-blue/10 hover:text-uel-blue dark:hover:text-sky-300 text-[11px] font-bold text-slate-600 dark:text-slate-300 transition-colors cursor-pointer border border-slate-200/80 dark:border-slate-700">
+                        {{ slot.label }} ({{ slot.start }} - {{ slot.end }})
+                      </button>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <!-- Conflict Status Notification -->
+              @if (hasConflict) {
+                <div class="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-900 dark:text-rose-200 flex items-start gap-2.5 text-xs">
+                  <span class="text-base shrink-0">⚠️</span>
+                  <div>
+                    <div class="font-bold">{{ 'Trùng lịch đặt' | t }}</div>
+                    <div class="text-[11px] mt-0.5 leading-relaxed">{{ conflictReason }}</div>
+                  </div>
+                </div>
+              } @else {
+                <div class="p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 flex items-center gap-2 text-xs">
+                  <span class="text-emerald-500 text-base">✓</span>
+                  <span class="font-bold">{{ 'Khung giờ hoàn toàn hợp lệ, không có xung đột lịch!' | t }}</span>
+                </div>
+              }
+
+              <!-- Price Breakdown & Payment Buttons -->
+              <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
+                <div class="flex items-center justify-between mb-3">
+                  <div>
+                    <div class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ 'Tổng thời lượng:' | t }}</div>
+                    <div class="text-sm font-black text-dark-text dark:text-white">{{ customDurationHours }} {{ 'giờ' | t }}</div>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ 'Tổng thanh toán:' | t }}</div>
+                    <div class="text-lg font-black text-uel-blue dark:text-sky-400">
+                      {{ ((selectedRoomToBook.hourlyPrice || 120000) * customDurationHours) | number }} VNĐ
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Buttons: MoMo and Direct Confirm -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <button type="button"
+                          (click)="openMomoPayment(selectedRoomToBook)"
+                          class="py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#A50064] to-[#D82D8B] hover:opacity-95 text-white text-xs font-bold shadow-md transition-all cursor-pointer flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
+                    <span>{{ 'Thanh toán MoMo QR' | t }}</span>
+                  </button>
+
+                  <button type="button"
+                          (click)="confirmBooking()"
+                          [disabled]="hasConflict"
+                          class="py-2.5 px-4 rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
+                          [ngClass]="hasConflict ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-uel-blue hover:bg-uel-blue/90 text-white cursor-pointer'">
+                    <span>{{ 'Xác nhận đặt ngay' | t }}</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Right Column: Schedule Cross-Reference & Calendar View -->
+            <div class="lg:col-span-5 flex flex-col gap-4">
+              <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-xs font-black text-uel-blue dark:text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    {{ 'Lịch trình cá nhân hôm nay' | t }}
+                  </h4>
+                  <span class="text-[10px] text-slate-400">{{ studentInfo.name }}</span>
+                </div>
+
+                <div class="space-y-2 text-xs">
+                  @for (item of studentSchedule; track item.id) {
+                    <div class="p-2.5 rounded-xl border flex items-center justify-between"
+                         [ngClass]="item.isBusy ? 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/40 text-rose-900 dark:text-rose-200' : 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40 text-emerald-900 dark:text-emerald-200'">
+                      <div>
+                        <div class="font-bold text-[11px]">{{ item.time }}</div>
+                        <div class="text-[10px] opacity-80">{{ item.title }}</div>
+                      </div>
+                      <span class="text-[9px] font-black px-2 py-0.5 rounded"
+                            [ngClass]="item.isBusy ? 'bg-rose-100 dark:bg-rose-900/50 text-rose-800 dark:text-rose-200' : 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200'">
+                        {{ item.isBusy ? 'Bận họp' : 'Trống' }}
+                      </span>
+                    </div>
+                  }
+                </div>
+
+                <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                  <button (click)="openGoogleCalendarExternal()" 
+                          class="text-xs font-bold text-uel-blue dark:text-sky-400 hover:underline cursor-pointer flex items-center gap-1">
+                    <span>{{ 'Mở Google Calendar' | t }}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  </button>
+                  <button (click)="downloadIcs()" 
+                          class="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white cursor-pointer">
+                    {{ 'Tải file .ics' | t }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      } @else {
+        <!-- Booking Success Confirmation Screen -->
+        <div class="p-8 sm:p-12 text-center flex flex-col items-center justify-center">
+          <div class="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h3 class="text-2xl font-black text-dark-text dark:text-white mb-2">{{ 'Đặt Không Gian Thành Công!' | t }}</h3>
+          <p class="text-xs text-text-muted dark:text-slate-400 max-w-md mb-6 leading-relaxed">
+            {{ 'Đơn đặt phòng của bạn đã được ghi nhận trên hệ thống UEL Space và đồng bộ vào Google Calendar của bạn.' | t }}
+          </p>
+
+          <div class="flex items-center gap-3">
+            <button (click)="closeBookingModal()" 
+                    class="px-6 py-2.5 rounded-2xl bg-uel-blue text-white text-xs font-bold shadow-md cursor-pointer hover:bg-uel-blue/90 transition-all">
+              {{ 'Hoàn tất' | t }}
+            </button>
+            <button (click)="openGoogleCalendarExternal()" 
+                    class="px-5 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-dark-text dark:text-slate-200 text-xs font-bold border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-200 transition-all">
+              {{ 'Kiểm tra trên Google Calendar' | t }}
+            </button>
           </div>
         </div>
       }
-    </main>
-    
-    <!-- Modal Popup cho Danh sách phòng -->
-    <!-- Building Room Selector Modal -->
-    @if (selectedBuilding) {
-      <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-[#001D3D]/60 backdrop-blur-sm transition-opacity" (click)="closeBuildingDetails()"></div>
-        
-        <!-- Modal Content Container -->
-        <div class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-[fade-in-up_0.25s_ease-out] border border-border-gray dark:border-slate-800">
-          
-          <!-- Header -->
-<div class="px-6 py-5 sm:px-8 sm:py-6 border-b border-border-gray/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between">
-              <div class="flex items-center gap-3.5">
-                <div class="w-11 h-11 rounded-2xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 flex items-center justify-center font-black text-lg border border-uel-blue/20 dark:border-sky-400/20">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9h1"/><path d="M9 13h1"/><path d="M9 17h1"/></svg>
-              </div>
-              <div>
-                <div class="flex items-center gap-2">
-                  <h2 class="text-2xl font-black text-uel-blue dark:text-sky-400">{{selectedBuilding.name | t}}</h2>
-                  <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300">{{ 'Khuôn viên UEL' | t }}</span>
-                </div>
-                <p class="text-xs sm:text-sm font-semibold text-text-muted dark:text-slate-400 mt-0.5">{{ 'Sơ đồ và trạng thái phòng thời gian thực • Bấm vào phòng trống để đặt chỗ' | t }}</p>
-              </div>
-            </div>
 
-            <button (click)="closeBuildingDetails()" 
-                    class="w-9 h-9 flex items-center justify-center rounded-full bg-bg-gray dark:bg-slate-800 hover:bg-border-gray dark:hover:bg-slate-700 text-dark-text dark:text-slate-200 transition-colors cursor-pointer"
-                    [title]="'Đóng' | t">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-          </div>
-          
-          <!-- Body -->
-          <div class="p-6 sm:p-8 overflow-y-auto custom-scrollbar flex-1 bg-[#F8FAFC] dark:bg-[#0B1220]">
-            
-            <!-- Modern Legend Bar -->
-            <!-- Modern Minimal Legend Bar (Brand Guidelines Focused) -->
-            <div class="flex flex-wrap items-center justify-between gap-3 mb-5 px-5 py-3 bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-border-gray dark:border-slate-800">
-              <div class="text-xs font-black text-uel-blue dark:text-sky-400 uppercase tracking-wider">
-                {{ 'Trạng thái phòng:' | t }}
-              </div>
-              <div class="flex flex-wrap items-center gap-4 sm:gap-6 text-xs font-bold text-dark-text dark:text-slate-200">
-                <div class="flex items-center gap-2">
-                  <span class="w-3 h-3 rounded-full bg-emerald-500 shadow-xs"></span>
-                  <span>{{ 'Khả dụng' | t }}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="w-3 h-3 rounded-full bg-uel-blue shadow-xs"></span>
-                  <span>{{ 'Đang dùng' | t }}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="w-3 h-3 rounded-full bg-uel-orange shadow-xs"></span>
-                  <span>{{ 'Đã đặt' | t }}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="w-3 h-3 rounded-full bg-slate-400"></span>
-                  <span>{{ 'Bảo trì / Hạn chế' | t }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Minimalist Room Cards Grid (Super Clean & Modern) -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-              @for (room of selectedBuilding.rooms; track room.name) {
-                <div (click)="openRoomDetail(room)"
-                     class="rounded-2xl p-3.5 flex items-center justify-between border bg-white dark:bg-slate-900 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 cursor-pointer group"
-                     [ngClass]="{
-                       'border-emerald-300/90 dark:border-emerald-800 hover:border-emerald-500 dark:hover:border-emerald-600 bg-emerald-50/[0.12] dark:bg-emerald-950/20': room.status === 'available',
-                       'border-uel-blue/30 dark:border-sky-400/30 hover:border-uel-blue dark:hover:border-sky-400 bg-uel-blue/[0.03] dark:bg-sky-400/5': room.status === 'in-use',
-                       'border-uel-orange/35 dark:border-amber-700/40 hover:border-uel-orange dark:hover:border-amber-500 bg-uel-orange/[0.03] dark:bg-amber-950/20': room.status === 'reserved',
-                       'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-slate-50/80 dark:bg-slate-800/80 opacity-70': room.status === 'maintenance' || room.status === 'restricted'
-                     }"
-                     [title]="('Bấm để xem chi tiết phòng' | t) + ' ' + room.name">
-                  
-                  <!-- Room Number (Prominent & Clean) -->
-                  <div class="flex items-baseline gap-1">
-                    <span class="text-[10px] font-bold text-text-muted dark:text-slate-400 group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors">P.</span>
-                    <span class="text-base font-black text-dark-text dark:text-white group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors tracking-tight">
-                      {{room.name.replace('P.', '')}}
-                    </span>
-                  </div>
-
-                  <!-- Status Indicator Dot -->
-                  <div class="flex items-center gap-1.5">
-                    <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs"
-                          [ngClass]="{
-                            'bg-emerald-500 animate-pulse': room.status === 'available',
-                            'bg-uel-blue': room.status === 'in-use',
-                            'bg-uel-orange': room.status === 'reserved',
-                            'bg-slate-400': room.status === 'maintenance' || room.status === 'restricted'
-                          }"></span>
-                  </div>
-
-                </div>
-              }
-            </div>
-
-          </div>
-        </div>
-      </div>
-    }
-
-    <!-- Detailed Room Information Modal (Pop-up on Room Click) -->
-    @if (selectedRoomDetail) {
-      <div class="fixed inset-0 z-[10001] flex items-center justify-center p-4">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-[#001D3D]/65 backdrop-blur-xs transition-opacity" (click)="closeRoomDetail()"></div>
-
-        <!-- Detail Modal Container -->
-        <div class="relative bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 max-w-xl w-full shadow-2xl border border-border-gray dark:border-slate-800 animate-[fade-in-up_0.2s_ease-out] flex flex-col max-h-[90vh] overflow-hidden">
-          
-          <!-- Header -->
-          <div class="flex items-start justify-between pb-4 border-b border-border-gray/70 dark:border-slate-800">
-            <div class="flex items-center gap-3.5">
-              <div class="w-12 h-12 rounded-2xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 flex items-center justify-center font-black border border-uel-blue/20 dark:border-sky-400/20 shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9h1"/><path d="M9 13h1"/><path d="M9 17h1"/>
-                </svg>
-              </div>
-              <div>
-                <div class="flex items-center gap-2">
-                  <h3 class="text-2xl font-black text-uel-blue dark:text-sky-400">{{selectedRoomDetail.name}}</h3>
-                  <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300">
-                    {{selectedRoomDetail.floor | t}}
-                  </span>
-                </div>
-                <p class="text-xs text-text-muted dark:text-slate-400 font-medium mt-0.5">
-                  {{selectedBuilding?.name | t}} • {{ 'Khuôn viên UEL' | t }}
-                </p>
-              </div>
-            </div>
-
-            <button (click)="closeRoomDetail()" 
-                    class="w-8 h-8 rounded-full bg-bg-gray dark:bg-slate-800 hover:bg-border-gray dark:hover:bg-slate-700 text-dark-text dark:text-slate-200 flex items-center justify-center cursor-pointer transition-colors"
-                    [title]="'Đóng' | t">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-          </div>
-
-          <!-- Body Content (Scrollable) -->
-          <div class="py-4 space-y-4 overflow-y-auto custom-scrollbar flex-1">
-            
-            <!-- Space Image Preview -->
-            <div class="relative w-full h-48 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xs">
-              <img [src]="getImageUrl(selectedRoomDetail)"
-                   [alt]="selectedRoomDetail.name"
-                   class="w-full h-full object-cover">
-              <div class="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-white text-xs font-bold flex items-center gap-1.5">
-                <span class="text-amber-400">★</span>
-                <span>{{ selectedRoomDetail.rating || 4.9 }}</span>
-                <span class="text-[11px] text-slate-300">({{ selectedRoomDetail.reviewsCount || 45 }} {{ 'đánh giá' | t }})</span>
-              </div>
-            </div>
-
-            <!-- Seller / Space Host Information -->
-            @if (selectedRoomDetail.seller) {
-              <div class="p-3.5 rounded-2xl bg-gradient-to-r from-slate-50 to-blue-50/60 dark:from-slate-800 dark:to-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <img [src]="selectedRoomDetail.seller.avatar"
-                       [alt]="selectedRoomDetail.seller.name"
-                       class="w-11 h-11 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-xs">
-                  <div>
-                    <div class="flex items-center gap-1.5">
-                      <span class="font-extrabold text-sm text-dark-text dark:text-white">{{ selectedRoomDetail.seller.brandName || selectedRoomDetail.seller.name }}</span>
-                      <span class="text-emerald-500 font-bold text-xs" title="Đã xác thực">✓</span>
-                    </div>
-                    <span class="text-xs text-text-muted dark:text-slate-400 font-medium">{{ selectedRoomDetail.seller.badge || ('Đối tác Không gian đã xác thực' | t) }}</span>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="text-xs font-black text-uel-blue dark:text-sky-400">⭐ {{ selectedRoomDetail.seller.rating || 4.9 }}</div>
-                  <div class="text-[10px] text-slate-500">{{ selectedRoomDetail.seller.reviewsCount || 50 }} {{ 'đánh giá' | t }}</div>
-                </div>
-              </div>
-            }
-            
-            <!-- Dynamic Status Banner -->
-            @if (selectedRoomDetail.status === 'available') {
-              <div class="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 flex items-center justify-between">
-                <div>
-                  <span class="font-bold text-sm">{{ 'Phòng đang trống (Khả dụng)' | t }}</span>
-                </div>
-                <span class="text-xs font-black text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2.5 py-1 rounded-md">
-                  {{ 'Sẵn sàng đặt' | t }}
-                </span>
-              </div>
-            } @else if (selectedRoomDetail.status === 'in-use') {
-              <div class="p-3.5 rounded-2xl bg-uel-blue/10 border border-uel-blue/20 text-uel-blue dark:text-sky-300 flex items-center justify-between">
-                <div>
-                  <span class="font-bold text-sm">{{ 'Đang có người sử dụng' | t }}</span>
-                </div>
-                <span class="text-xs font-bold text-uel-blue dark:text-sky-300 bg-white/70 dark:bg-slate-800/70 px-2 py-0.5 rounded-md border border-uel-blue/20">
-                  {{selectedRoomDetail.expectedFreeTime | t}}
-                </span>
-              </div>
-            } @else if (selectedRoomDetail.status === 'reserved') {
-              <div class="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-300 flex items-center justify-between">
-                <div>
-                  <span class="font-bold text-sm">{{ 'Phòng đã được đặt trước' | t }}</span>
-                </div>
-                <span class="text-xs font-bold text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 rounded-md">
-                  {{selectedRoomDetail.expectedFreeTime | t}}
-                </span>
-              </div>
-            } @else {
-              <div class="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                <div>
-                  <span class="font-bold text-sm">{{ 'Tạm khóa / Bảo trì định kỳ' | t }}</span>
-                </div>
-                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">{{ 'Tạm dừng tiếp nhận' | t }}</span>
-              </div>
-            }
-
-            <!-- Specs Grid (4 Key Metrics) -->
-            <div class="grid grid-cols-2 gap-2.5 text-xs">
-              <div class="p-3 rounded-xl bg-bg-gray dark:bg-slate-800 border border-border-gray/70 dark:border-slate-700">
-                <span class="text-text-muted dark:text-slate-400 block text-[11px] font-semibold mb-0.5">{{ 'Loại không gian' | t }}</span>
-                <span class="font-black text-dark-text dark:text-white text-sm">{{selectedRoomDetail.type | t}}</span>
-              </div>
-              <div class="p-3 rounded-xl bg-bg-gray dark:bg-slate-800 border border-border-gray/70 dark:border-slate-700">
-                <span class="text-text-muted dark:text-slate-400 block text-[11px] font-semibold mb-0.5">{{ 'Sức chứa tối đa' | t }}</span>
-                <span class="font-black text-uel-blue dark:text-sky-400 text-sm">{{selectedRoomDetail.capacity}} {{ 'chỗ ngồi' | t }}</span>
-              </div>
-              <div class="p-3 rounded-xl bg-bg-gray dark:bg-slate-800 border border-border-gray/70 dark:border-slate-700">
-                <span class="text-text-muted dark:text-slate-400 block text-[11px] font-semibold mb-0.5">{{ 'Vị trí' | t }}</span>
-                <span class="font-bold text-dark-text dark:text-white">{{selectedRoomDetail.floor | t}} • {{selectedBuilding?.name | t}}</span>
-              </div>
-              <div class="p-3 rounded-xl bg-bg-gray dark:bg-slate-800 border border-border-gray/70 dark:border-slate-700">
-                <span class="text-text-muted dark:text-slate-400 block text-[11px] font-semibold mb-0.5">{{ 'Hiện trạng' | t }}</span>
-                <span class="font-bold text-dark-text dark:text-white">{{selectedRoomDetail.statusText | t}}</span>
-              </div>
-            </div>
-
-            <!-- Facilities & Equipment -->
-            <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-border-gray/80 dark:border-slate-800 shadow-2xs">
-              <h4 class="text-xs font-black text-uel-blue dark:text-sky-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                {{ 'Trang thiết bị & Tiện ích phòng' | t }}
-              </h4>
-              <div class="flex flex-wrap gap-2 text-xs">
-                @for (facility of selectedRoomDetail.facilities; track facility) {
-                  <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-bg-gray dark:bg-slate-800 text-dark-text dark:text-slate-200 font-semibold border border-border-gray/60 dark:border-slate-700 whitespace-nowrap">
-                    {{facility | t}}
-                  </span>
-                }
-              </div>
-            </div>
-
-            <!-- Current Activity / Schedule Status Note -->
-            <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-border-gray/80 dark:border-slate-800 shadow-2xs">
-              <h4 class="text-xs font-black text-uel-blue dark:text-sky-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                {{ 'Tình trạng sử dụng hiện tại' | t }}
-              </h4>
-              <p class="text-xs text-text-muted dark:text-slate-400 font-medium leading-relaxed">
-                {{selectedRoomDetail.currentActivity | t}}
-              </p>
-            </div>
-
-            <!-- Today's Schedule Shifts (5 Shifts Overview) -->
-            <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-border-gray/80 dark:border-slate-800 shadow-2xs">
-              <div class="flex items-center justify-between mb-2.5">
-                <h4 class="text-xs font-black text-uel-blue dark:text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-                  {{ 'Lịch các ca trong ngày hôm nay' | t }}
-                </h4>
-                <button type="button" 
-                        (click)="openGoogleCalendarExternal(selectedRoomDetail)" 
-                        class="text-[11px] font-bold text-uel-blue dark:text-sky-400 hover:text-uel-orange transition-colors cursor-pointer flex items-center gap-1">
-                  <span>{{ 'Mở Google Calendar' | t }}</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                </button>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-                @for (slot of selectedRoomDetail.todaySlots; track slot.period) {
-                  <div class="flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all"
-                       [ngClass]="{
-                         'border-emerald-200 dark:border-emerald-800 bg-emerald-50/40 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-300': slot.status === 'available',
-                         'border-uel-blue/20 bg-uel-blue/5 text-uel-blue dark:text-sky-300': slot.status === 'in-use',
-                         'border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30 text-amber-900 dark:text-amber-300': slot.status === 'reserved',
-                         'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400': slot.status === 'maintenance' || slot.status === 'restricted'
-                       }">
-                    <span class="font-bold text-[11px] whitespace-nowrap tracking-tight">{{slot.period | t}}</span>
-                    <span class="text-[10px] font-black px-2 py-0.5 rounded whitespace-nowrap shrink-0 ml-2"
-                          [ngClass]="{
-                            'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300': slot.status === 'available',
-                            'bg-uel-blue/20 text-uel-blue dark:text-sky-300': slot.status === 'in-use',
-                            'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300': slot.status === 'reserved',
-                            'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300': slot.status === 'maintenance' || slot.status === 'restricted'
-                          }">
-                      {{slot.text | t}}
-                    </span>
-                  </div>
-                }
-              </div>
-            </div>
-
-            <!-- Pricing Summary Card -->
-            <div class="p-3.5 rounded-2xl bg-gradient-to-r from-pink-50/80 via-amber-50/60 to-pink-50/80 dark:from-pink-950/30 dark:via-amber-950/20 dark:to-pink-950/30 border border-pink-200/80 dark:border-pink-800/60 flex items-center justify-between text-xs">
-              <div>
-                <span class="text-[11px] font-black text-[#a50064] dark:text-pink-300 uppercase tracking-wider block">
-                  {{ 'Đơn giá thuê (MoMo QR):' | t }}
-                </span>
-                <span class="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
-                  {{ (selectedRoomDetail.hourlyPrice || 60000) | number }}đ / giờ × 2 giờ (Ca chuẩn)
-                </span>
-              </div>
-              <div class="text-right">
-                <span class="text-base font-black text-[#a50064] dark:text-pink-400 block">
-                  {{ ((selectedRoomDetail.hourlyPrice || 60000) * 2) | number }} VNĐ
-                </span>
-                <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
-                  ✓ MoMo Sandbox
-                </span>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Actions Footer -->
-          <div class="pt-4 border-t border-border-gray/70 dark:border-slate-800 flex items-center gap-3">
-            <button type="button" 
-                    (click)="closeRoomDetail()" 
-                    class="flex-1 py-3 rounded-xl bg-bg-gray dark:bg-slate-800 hover:bg-border-gray dark:hover:bg-slate-700 font-bold text-dark-text dark:text-slate-200 transition-colors cursor-pointer text-sm text-center">
-              {{ 'Đóng' | t }}
-            </button>
-            <button type="button"
-                    (click)="proceedToBookingFromDetail()"
-                    [disabled]="selectedRoomDetail.status !== 'available'"
-                    class="flex-1 py-3 rounded-xl font-bold transition-all text-sm text-center shadow-md flex items-center justify-center gap-2"
-                    [ngClass]="{
-                      'bg-uel-blue hover:bg-[#00284D] dark:bg-sky-600 dark:hover:bg-sky-700 text-white cursor-pointer': selectedRoomDetail.status === 'available',
-                      'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-300 dark:border-slate-600 shadow-none': selectedRoomDetail.status !== 'available'
-                    }">
-              <span>{{ (selectedRoomDetail.status === 'available' ? 'Đặt phòng này' : 'Không khả dụng') | t }}</span>
-            </button>
-          </div>
-
-        </div>
-      </div>
-    }
-
-    <!-- Quick Booking Modal with Student Schedule Cross-Reference Popup -->
-    @if (selectedRoomToBook) {
-      <div class="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-5">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-[#001D3D]/65 backdrop-blur-xs transition-opacity" (click)="closeBookingModal()"></div>
-        
-        <!-- Modal Card Container -->
-        <div class="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-border-gray dark:border-slate-800 animate-[fade-in-up_0.25s_ease-out] w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden">
-          @if (!bookingSuccess) {
-            <!-- Modal Header -->
-            <div class="px-6 py-4 sm:px-7 sm:py-5 border-b border-border-gray/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 flex items-center justify-center font-bold border border-uel-blue/20 dark:border-sky-400/20 shrink-0">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
-                    <line x1="16" x2="16" y1="2" y2="6"/>
-                    <line x1="8" x2="8" y1="2" y2="6"/>
-                    <line x1="3" x2="21" y1="10" y2="10"/>
-                    <path d="m9 16 2 2 4-4"/>
-                  </svg>
-                </div>
-                <div>
-                  <div class="flex items-center gap-2">
-                    <h3 class="text-xl font-extrabold text-uel-blue dark:text-sky-400 leading-snug">{{ 'Đặt' | t }} {{selectedRoomToBook.name}}</h3>
-                    <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300">{{ 'Đối chiếu TKB' | t }}</span>
-                  </div>
-                  <p class="text-xs text-text-muted dark:text-slate-400 font-medium">{{selectedRoomToBook.type | t}} • {{ 'Sức chứa' | t }} {{selectedRoomToBook.capacity}} {{ 'chỗ ngồi' | t }} • {{ 'Khuôn viên UEL' | t }}</p>
-                </div>
-              </div>
-
-              <button (click)="closeBookingModal()" 
-                      class="w-8 h-8 rounded-full bg-bg-gray dark:bg-slate-800 hover:bg-border-gray dark:hover:bg-slate-700 text-dark-text dark:text-slate-200 flex items-center justify-center cursor-pointer transition-colors" 
-                      [title]="'Đóng' | t">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
-            </div>
-
-            <!-- Modal Body: 2 Columns (Booking Selector & Student Schedule) -->
-            <div class="p-5 sm:p-6 overflow-y-auto custom-scrollbar flex-1 bg-[#F8FAFC] dark:bg-[#0B1220]">
-              <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
-                
-                <!-- Column 1: Room Details & Slot Selector (Left 7 cols) -->
-                <div class="lg:col-span-7 flex flex-col justify-between space-y-4">
-                  
-                  <!-- Google Calendar Live Integration Panel -->
-                  <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-border-gray dark:border-slate-800 shadow-xs space-y-3">
-                    
-                    <!-- Header with Google 4-color Branding & View Switcher -->
-                    <div class="flex items-center justify-between pb-2 border-b border-border-gray/60 dark:border-slate-800">
-                      <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                        </svg>
-                        <div>
-                          <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">
-                            Google Calendar
-                          </h4>
-                          <p class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
-                            {{ 'Lựa chọn ngày & khung giờ trực tiếp' | t }}
-                          </p>
-                        </div>
-                      </div>
-
-                      <!-- View Mode Switcher -->
-                      <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <button type="button" 
-                                (click)="calendarViewMode = 'picker'"
-                                [class.bg-white]="calendarViewMode === 'picker'"
-                                [class.dark:bg-slate-700]="calendarViewMode === 'picker'"
-                                [class.shadow-2xs]="calendarViewMode === 'picker'"
-                                [class.text-uel-blue]="calendarViewMode === 'picker'"
-                                [class.dark:text-sky-400]="calendarViewMode === 'picker'"
-                                class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer">
-                          {{ 'Chọn giờ' | t }}
-                        </button>
-                        <button type="button" 
-                                (click)="calendarViewMode = 'embed'"
-                                [class.bg-white]="calendarViewMode === 'embed'"
-                                [class.dark:bg-slate-700]="calendarViewMode === 'embed'"
-                                [class.shadow-2xs]="calendarViewMode === 'embed'"
-                                [class.text-uel-blue]="calendarViewMode === 'embed'"
-                                [class.dark:text-sky-400]="calendarViewMode === 'embed'"
-                                class="px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer">
-                          {{ 'Xem Lịch Google' | t }}
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- VIEW 1: Interactive Google Calendar Time Range Selector -->
-                    @if (calendarViewMode === 'picker') {
-                      <div class="space-y-3">
-                        <!-- Date & Time Pickers Row -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                          <div>
-                            <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
-                              {{ 'Ngày sử dụng:' | t }}
-                            </label>
-                            <input type="date"
-                                   [(ngModel)]="customBookingDate"
-                                   (change)="onTimeOrDateChange()"
-                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-semibold text-slate-800 dark:text-white focus:outline-none focus:border-uel-blue">
-                          </div>
-                          <div>
-                            <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
-                              {{ 'Giờ bắt đầu:' | t }}
-                            </label>
-                            <input type="time"
-                                   [(ngModel)]="customStartTime"
-                                   (change)="onTimeOrDateChange()"
-                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-semibold text-slate-800 dark:text-white focus:outline-none focus:border-uel-blue">
-                          </div>
-                          <div>
-                            <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
-                              {{ 'Giờ kết thúc:' | t }}
-                            </label>
-                            <input type="time"
-                                   [(ngModel)]="customEndTime"
-                                   (change)="onTimeOrDateChange()"
-                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-semibold text-slate-800 dark:text-white focus:outline-none focus:border-uel-blue">
-                          </div>
-                        </div>
-
-                        <!-- Quick Preset Slots (1-Click selection) -->
-                        <div>
-                          <div class="text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1.5 flex items-center justify-between">
-                            <span>{{ 'Khung giờ gợi ý trên Lịch Google:' | t }}</span>
-                            <button type="button" 
-                                    (click)="openGoogleCalendarExternal()" 
-                                    class="text-uel-blue dark:text-sky-400 hover:underline flex items-center gap-1 cursor-pointer">
-                              <span>{{ 'Mở App Google Calendar' | t }}</span>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                            </button>
-                          </div>
-                          <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                            @for (preset of suggestedGoogleSlots; track preset.period) {
-                              <button type="button"
-                                      (click)="selectGooglePresetSlot(preset)"
-                                      class="p-2 rounded-xl border text-left transition-all cursor-pointer"
-                                      [ngClass]="{
-                                        'ring-2 ring-uel-blue border-uel-blue bg-uel-blue/10 dark:bg-sky-950/40': customStartTime === preset.start && customEndTime === preset.end,
-                                        'border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 hover:border-uel-blue/50': customStartTime !== preset.start || customEndTime !== preset.end
-                                      }">
-                                <div class="font-bold text-[11px] text-slate-800 dark:text-slate-100">{{ preset.label | t }}</div>
-                                <div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">{{ preset.period }}</div>
-                              </button>
-                            }
-                          </div>
-                        </div>
-                      </div>
-                    } @else {
-                      <!-- VIEW 2: Google Calendar Direct Embed Iframe -->
-                      <div class="space-y-2">
-                        <div class="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 aspect-video sm:aspect-[16/9] min-h-[200px] max-h-[280px]">
-                          <iframe [src]="googleEmbedSafeUrl" 
-                                  class="w-full h-full border-0" 
-                                  loading="lazy"></iframe>
-                        </div>
-                        <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                          <span>* {{ 'Lịch hiển thị trực tiếp từ Google Calendar cơ sở UEL' | t }}</span>
-                          <button type="button" 
-                                  (click)="openGoogleCalendarExternal()" 
-                                  class="text-uel-blue dark:text-sky-400 font-bold hover:underline cursor-pointer">
-                            {{ 'Mở tab mới ↗' | t }}
-                          </button>
-                        </div>
-                      </div>
-                    }
-                  </div>
-
-                  <!-- Room Specs Summary -->
-                  <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-border-gray dark:border-slate-800 shadow-xs space-y-2.5 text-xs">
-                    <div class="flex items-center justify-between">
-                      <span class="text-text-muted dark:text-slate-400 font-semibold">{{ 'Trạng thái phòng:' | t }}</span>
-                      <span class="font-bold text-status-available">
-                        {{ 'Đang mở đặt chỗ' | t }}
-                      </span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-text-muted dark:text-slate-400 font-semibold">{{ 'Trang thiết bị:' | t }}</span>
-                      <span class="font-bold text-dark-text dark:text-white">{{ 'Máy chiếu, Điều hòa, Wifi UEL' | t }}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-text-muted dark:text-slate-400 font-semibold">{{ 'Khung giờ chọn:' | t }}</span>
-                      <span class="font-black text-uel-blue dark:text-sky-400">{{ customBookingDate }} • {{ customStartTime }} - {{ customEndTime }} ({{ customDurationHours }}h)</span>
-                    </div>
-                  </div>
-
-                  <!-- Conflict / Validation Alert Banner -->
-                  @if (hasConflict) {
-                    <div class="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300/80 dark:border-amber-800 text-amber-900 dark:text-amber-300 flex items-start gap-3 animate-[fade-in-up_0.2s_ease-out]">
-                      <div class="w-6 h-6 rounded-full bg-amber-200 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 flex items-center justify-center shrink-0 mt-0.5 font-bold">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                      </div>
-                      <div class="text-xs">
-                        <div class="font-black text-amber-900 dark:text-amber-300">{{ 'Phát hiện trùng lịch với ca thuê khác!' | t }}</div>
-                        <div class="text-amber-800 dark:text-amber-300 font-semibold mt-0.5">{{conflictReason | t}}</div>
-                        <div class="text-[11px] text-amber-700 dark:text-amber-400 mt-1">
-                          {{ 'Không gian đã có đối tác đặt trước trong khung giờ này. Vui lòng chọn khung giờ trống khác trên sàn.' | t }}
-                        </div>
-                      </div>
-                    </div>
-                  } @else {
-                    <div class="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300/80 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 flex items-start gap-3 animate-[fade-in-up_0.2s_ease-out]">
-                      <div class="w-6 h-6 rounded-full bg-emerald-200 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 flex items-center justify-center shrink-0 mt-0.5 font-bold">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                      </div>
-                      <div class="text-xs">
-                        <div class="font-black text-emerald-900 dark:text-emerald-300">{{ 'Khung giờ hoàn toàn khả dụng trên Google Calendar!' | t }}</div>
-                        <div class="text-emerald-800 dark:text-emerald-300 font-semibold mt-0.5">{{ 'Khung giờ hoàn toàn trống' | t }} {{ customStartTime }} - {{ customEndTime }}. {{ 'Đủ điều kiện tạo đơn thuê không gian.' | t }}</div>
-                      </div>
-                    </div>
-                  }
-
-                  <!-- Pricing Summary Box -->
-                  <div class="p-3.5 rounded-2xl bg-gradient-to-r from-pink-50/80 via-amber-50/60 to-pink-50/80 dark:from-pink-950/30 dark:via-amber-950/20 dark:to-pink-950/30 border border-pink-200/80 dark:border-pink-800/60 flex items-center justify-between text-xs">
-                    <div>
-                      <span class="text-[11px] font-black text-[#a50064] dark:text-pink-300 uppercase tracking-wider block">
-                        {{ 'Chi phí thuê không gian (MoMo QR):' | t }}
-                      </span>
-                      <span class="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
-                        {{ (selectedRoomToBook.hourlyPrice || 60000) | number }}đ / giờ × {{ customDurationHours }} giờ ({{ customStartTime }} - {{ customEndTime }})
-                      </span>
-                    </div>
-                    <div class="text-right">
-                      <span class="text-base font-black text-[#a50064] dark:text-pink-400 block">
-                        {{ ((selectedRoomToBook.hourlyPrice || 60000) * customDurationHours) | number }} VNĐ
-                      </span>
-                      <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
-                        ✓ MoMo Sandbox
-                      </span>
-                    </div>
-                  </div>
-
-                  <!-- Actions -->
-                  <div class="flex items-center gap-3 pt-2">
-                    <button type="button"
-                            (click)="closeBookingModal()" 
-                            class="w-1/3 py-3 rounded-xl border border-border-gray dark:border-slate-700 font-bold text-text-muted dark:text-slate-400 hover:bg-bg-gray dark:hover:bg-slate-800 transition-colors cursor-pointer text-sm text-center">
-                      {{ 'Hủy' | t }}
-                    </button>
-                    
-                    <button type="button"
-                            (click)="openMomoPayment(selectedRoomToBook, selectedSlot)" 
-                            [disabled]="hasConflict"
-                            class="w-2/3 py-3 rounded-xl font-bold transition-all text-xs sm:text-sm text-center shadow-md flex items-center justify-center gap-2"
-                            [ngClass]="{
-                              'bg-[#a50064] hover:bg-[#80004e] text-white cursor-pointer shadow-pink-500/20': !hasConflict,
-                              'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-300 dark:border-slate-600 shadow-none': hasConflict
-                            }">
-                      @if (hasConflict) {
-                        <span>{{ 'Trùng lịch (Không thể đặt)' | t }}</span>
-                      } @else {
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                        <span>{{ 'Thanh toán MoMo & Đặt chỗ' | t }} ({{ ((selectedRoomToBook.hourlyPrice || 60000) * 2) | number }}đ)</span>
-                      }
-                    </button>
-                  </div>
-
-                </div>
-
-                <!-- Column 2: Personal Student Schedule Today (Right 5 cols) -->
-                <div class="lg:col-span-5 bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-border-gray dark:border-slate-800 shadow-xs flex flex-col justify-between">
-                  <div>
-                    <!-- Student Schedule Card Header -->
-                    <div class="border-b border-border-gray/70 dark:border-slate-800 pb-3 mb-3.5">
-                      <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                          <div class="w-8 h-8 rounded-xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 flex items-center justify-center font-bold text-xs">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
-                          </div>
-                          <div>
-                            <h4 class="text-sm font-black text-uel-blue dark:text-sky-400">{{ 'Lịch công tác & Sự kiện hôm nay' | t }}</h4>
-                            <p class="text-[11px] font-semibold text-text-muted dark:text-slate-400">{{studentInfo.name}} • {{studentInfo.id}}</p>
-                          </div>
-                        </div>
-                        <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                          {{ 'Đồng bộ Google Calendar' | t }}
-                        </span>
-                      </div>
-                      <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                        <span class="text-[10px] text-text-muted dark:text-slate-400 font-medium">{{studentInfo.major}}</span>
-                        <button type="button"
-                                (click)="openGoogleCalendarExternal()"
-                                class="text-[11px] font-black text-uel-blue dark:text-sky-400 hover:text-uel-orange flex items-center gap-1 transition-colors cursor-pointer group">
-                          <span>{{ 'Mở Google Calendar' | t }}</span>
-                          <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- Schedule Timeline List -->
-                    <div class="space-y-2.5">
-                      @for (item of studentSchedule; track item.id) {
-                        <div class="rounded-xl p-3 border transition-colors text-xs"
-                             [ngClass]="{
-                                'border-l-4 border-l-amber-500 bg-amber-50/40 dark:bg-amber-950/20 border-amber-200/80 dark:border-amber-800/80': item.isBusy,
-                                'border-l-4 border-l-emerald-500 bg-emerald-50/30 dark:bg-emerald-950/20 border-emerald-200/80 dark:border-emerald-800/80': !item.isBusy
-                             }">
-                          <div class="flex items-center justify-between mb-1">
-                            <span class="font-black text-dark-text dark:text-white">{{item.time}}</span>
-                            @if (item.isBusy) {
-                              <span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">
-                                {{ 'BẬN LỊCH' | t }}
-                              </span>
-                            } @else {
-                              <span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
-                                {{ 'TRỐNG LỊCH' | t }}
-                              </span>
-                            }
-                          </div>
-
-                          <div class="font-bold text-dark-text dark:text-white leading-snug">
-                            {{item.title | t}}
-                          </div>
-
-                          @if (item.isBusy) {
-                            <div class="text-[11px] text-text-muted dark:text-slate-400 font-medium mt-1 flex items-center gap-1.5">
-                              <span>{{ 'Không gian' | t }}: <strong class="text-uel-blue dark:text-sky-400">{{item.room}}</strong></span>
-                              <span>•</span>
-                              <span>{{item.lecturer}}</span>
-                            </div>
-                          } @else {
-                            <div class="text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold mt-1">
-                              {{ 'Thời gian phù hợp để đặt phòng làm việc / hội họp' | t }}
-                            </div>
-                          }
-                        </div>
-                      }
-                    </div>
-                  </div>
-
-                  <!-- Footer Notice inside Column 2 -->
-                  <div class="mt-4 pt-3 border-t border-border-gray/70 dark:border-slate-800 text-[11px] text-text-muted dark:text-slate-400 flex items-start gap-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 mt-0.5 text-uel-blue dark:text-sky-400"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    <span>{{ 'Dữ liệu thời gian được tự động đối chiếu từ Google Calendar của doanh nghiệp.' | t }}</span>
-                  </div>
-
-                </div>
-
-              </div>
-            </div>
-          } @else {
-            <!-- Booking Success State -->
-            <div class="text-center py-8 px-6 sm:px-10 space-y-4">
-              <div class="w-16 h-16 bg-status-available/15 text-status-available rounded-full flex items-center justify-center mx-auto animate-bounce">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-              </div>
-              <div>
-                <h3 class="text-2xl font-black text-uel-blue dark:text-sky-400 mb-1.5">{{ 'Đặt phòng thành công!' | t }}</h3>
-                <p class="text-sm text-text-muted dark:text-slate-400 max-w-md mx-auto">
-                  {{ 'Mã xác nhận:' | t }} <span class="font-extrabold text-uel-orange">UEL-88392</span>. {{ 'Bạn đã đặt thành công phòng' | t }} <strong class="text-uel-blue dark:text-sky-400">{{selectedRoomToBook?.name}}</strong> {{ 'vào ca' | t }} <strong class="text-dark-text dark:text-white">{{selectedSlot?.time}}</strong>.
-                </p>
-              </div>
-
-              <div class="inline-flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-3.5 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                {{ 'Không xung đột lịch • Đã đồng bộ Google Calendar' | t }}
-              </div>
-
-              <!-- Google Calendar & Apple/Outlook Sync Actions -->
-              <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2.5">
-                <button type="button" 
-                        (click)="addToGoogleCalendar()"
-                        class="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border-2 border-slate-200 dark:border-slate-700 hover:border-uel-blue text-dark-text dark:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-xs hover:shadow-md cursor-pointer active:scale-98">
-                  <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                  </svg>
-                  <span>{{ 'Thêm vào Google Calendar 📅' | t }}</span>
-                </button>
-
-                <button type="button" 
-                        (click)="downloadIcs()"
-                        class="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  <span>{{ 'Tải file .ICS' | t }}</span>
-                </button>
-
-                <button type="button"
-                        (click)="closeBookingModal()"
-                        class="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-uel-blue dark:bg-sky-600 hover:bg-[#002D5C] text-white font-bold text-xs transition-colors cursor-pointer shadow-xs">
-                  {{ 'Hoàn tất & Đóng' | t }}
-                </button>
-              </div>
-            </div>
-          }
-        </div>
-      </div>
-    }
-
-
-    <!-- =========================================================================
-         MOMO SANDBOX PAYMENT QR MODAL
-         ========================================================================= -->
-    @if (momoModal.isOpen) {
-      <div class="fixed inset-0 z-[12000] flex items-center justify-center p-4">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-[#001D3D]/75 backdrop-blur-xs transition-opacity" (click)="closeMomoModal()"></div>
-
-        <!-- MoMo Modal Dialog -->
-        <div class="relative bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-pink-200 dark:border-pink-950 animate-[fade-in-up_0.2s_ease-out] flex flex-col text-center">
-          
-          <!-- Header -->
-          <div class="flex items-center justify-between pb-3 border-b border-border-gray/70 dark:border-slate-800">
-            <div class="flex items-center gap-2.5">
-              <div class="w-10 h-10 rounded-2xl bg-[#a50064] text-white flex items-center justify-center font-black shadow-md shadow-pink-500/20">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-              </div>
-              <div class="text-left">
-                <h3 class="text-lg font-black text-[#a50064] dark:text-pink-400">MoMo Sandbox</h3>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Cổng thanh toán điện tử UEL</p>
-              </div>
-            </div>
-            <button (click)="closeMomoModal()" 
-                    class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center cursor-pointer transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-          </div>
-
-          <!-- Body -->
-          <div class="py-4 space-y-4">
-            @if (momoModal.loading) {
-              <div class="py-12 flex flex-col items-center justify-center gap-3">
-                <div class="w-10 h-10 border-4 border-[#a50064] border-t-transparent rounded-full animate-spin"></div>
-                <p class="text-xs font-bold text-slate-600 dark:text-slate-300">Đang khởi tạo giao dịch MoMo Sandbox...</p>
-              </div>
-            } @else {
-              <!-- Payment Info -->
-              <div class="bg-pink-50/70 dark:bg-pink-950/30 border border-pink-200/80 dark:border-pink-900/50 rounded-2xl p-3.5 text-left">
-                <div class="flex justify-between items-center text-xs mb-1">
-                  <span class="text-slate-500 dark:text-slate-400">Không gian thuê:</span>
-                  <span class="font-extrabold text-[#003B71] dark:text-sky-300">{{ momoModal.roomName }}</span>
-                </div>
-                <div class="flex justify-between items-center text-xs mb-2">
-                  <span class="text-slate-500 dark:text-slate-400">Khung giờ:</span>
-                  <span class="font-bold text-slate-700 dark:text-slate-300">{{ momoModal.slotText }}</span>
-                </div>
-                <div class="flex justify-between items-center pt-2 border-t border-pink-200/60 dark:border-pink-900/50">
-                  <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Tổng thanh toán:</span>
-                  <span class="text-lg font-black text-[#a50064] dark:text-pink-400">{{ momoModal.amount | number }} VNĐ</span>
-                </div>
-              </div>
-
-              <!-- QR Code Display -->
-              <div class="flex flex-col items-center justify-center p-3 bg-white dark:bg-slate-800 rounded-2xl border border-border-gray dark:border-slate-700 shadow-inner">
-                <div class="relative p-2 bg-white rounded-xl shadow-xs">
-                  <img [src]="momoModal.qrCodeUrl" alt="MoMo QR Code" class="w-48 h-48 object-contain rounded-lg">
-                  <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div class="w-9 h-9 rounded-lg bg-[#a50064] text-white flex items-center justify-center font-black text-[10px] shadow-md border-2 border-white">
-                      MoMo
-                    </div>
-                  </div>
-                </div>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-2 font-medium">
-                  Quét mã qua app MoMo hoặc mở liên kết cổng test bên dưới
-                </p>
-              </div>
-
-              <!-- Action Buttons -->
-              <div class="space-y-2 pt-1">
-                <!-- Dev/Test Instant Success Confirmation (Option A) -->
-                <button type="button" 
-                        (click)="confirmMomoSuccessTest()"
-                        class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  <span>Xác nhận thanh toán MoMo thành công (Dev/Test)</span>
-                </button>
-
-                <!-- Open Direct MoMo Payment Gateway -->
-                @if (momoModal.payUrl) {
-                  <button type="button"
-                          (click)="openMomoGatewayDirect()"
-                          class="w-full py-2.5 px-4 rounded-xl bg-[#a50064] hover:bg-[#80004e] text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                    <span>Mở trang thanh toán MoMo Web/App</span>
-                  </button>
-                }
-              </div>
-            }
-          </div>
-
-          <!-- Footer -->
-          <div class="pt-2">
-            <button (click)="closeMomoModal()"
-                    class="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer">
-              Hủy giao dịch
-            </button>
-          </div>
-
-        </div>
-      </div>
-    }
-    
+    </div>
   </div>
-</div>
+}
+
+<!-- 3. MOMO PAYMENT MODAL -->
+@if (momoModal.isOpen) {
+  <div class="fixed inset-0 z-[10002] flex items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-xs" (click)="closeMomoModal()"></div>
+    
+    <div class="relative bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-800 z-10 text-center animate-[fade-in-up_0.2s_ease-out]">
+      <div class="w-12 h-12 rounded-2xl bg-[#A50064]/10 text-[#A50064] flex items-center justify-center mx-auto mb-3 font-black text-xl">
+        M
+      </div>
+      <h3 class="text-lg font-black text-dark-text dark:text-white mb-1">{{ 'Cổng Thanh Toán MoMo Sandbox' | t }}</h3>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">{{ momoModal.roomName }} • {{ momoModal.slotText }}</p>
+
+      <div class="p-3 rounded-2xl bg-pink-50 dark:bg-pink-950/30 border border-pink-200 dark:border-pink-900 text-sm font-black text-[#A50064] dark:text-pink-300 mb-4">
+        {{ momoModal.amount | number }} VNĐ
+      </div>
+
+      @if (momoModal.loading) {
+        <div class="py-8 flex flex-col items-center">
+          <div class="w-8 h-8 border-3 border-[#A50064]/30 border-t-[#A50064] rounded-full animate-spin mb-3"></div>
+          <span class="text-xs text-slate-500 font-bold">{{ 'Đang tạo phiên thanh toán MoMo...' | t }}</span>
+        </div>
+      } @else {
+        @if (momoModal.qrCodeUrl) {
+          <div class="w-48 h-48 mx-auto mb-4 p-2 bg-white rounded-2xl shadow-sm border border-slate-200">
+            <img [src]="momoModal.qrCodeUrl" alt="MoMo QR Code" class="w-full h-full object-contain">
+          </div>
+        }
+        <div class="flex flex-col gap-2">
+          @if (momoModal.payUrl) {
+            <button (click)="openMomoGatewayDirect()" 
+                    class="w-full py-2.5 rounded-xl bg-[#A50064] hover:bg-[#A50064]/90 text-white font-bold text-xs cursor-pointer shadow-md">
+              {{ 'Mở giao diện MoMo Gateway' | t }}
+            </button>
+          }
+          <button (click)="confirmMomoSuccessTest()" 
+                  class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs cursor-pointer shadow-md">
+            {{ 'Mô phỏng thanh toán thành công (Test)' | t }}
+          </button>
+          <button (click)="closeMomoModal()" 
+                  class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 font-bold text-xs cursor-pointer">
+            {{ 'Đóng' | t }}
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+}

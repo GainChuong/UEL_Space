@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
-import { ChatbotService, ChatMessage, ChatbotSpace } from '../../../services/chatbot.service';
+import { ChatbotService, ChatMessage, ChatbotSpace, ChatSessionSummary } from '../../../services/chatbot.service';
 import { GoogleCalendarService } from '../../../services/google-calendar.service';
 import { SERVER_BASE_URL } from '../../../services/api-config';
 
@@ -20,6 +21,11 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
   isThinking = false;
   messages: ChatMessage[] = [];
   userInput = '';
+
+  // Chế độ xem: 'chat' (đang trò chuyện) hoặc 'history' (danh sách lịch sử các cuộc hội thoại)
+  viewMode: 'chat' | 'history' = 'chat';
+  sessionsList: ChatSessionSummary[] = [];
+  isLoadingSessions = false;
 
   // Modal xác nhận đặt nhanh MoMo / Tiền mặt
   quickBookModal: {
@@ -44,14 +50,21 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     googleCalendarUrl: ''
   };
 
+  currentModel = 'gemini-3.8-flash';
+  currentSource: 'gemini' | 'local_fallback' = 'gemini';
+
   private subIsOpen?: Subscription;
   private subMessages?: Subscription;
   private subThinking?: Subscription;
+  private subModel?: Subscription;
+  private subSource?: Subscription;
   private shouldScrollBottom = false;
 
   constructor(
     public chatbotService: ChatbotService,
-    private googleCalendarService: GoogleCalendarService
+    private googleCalendarService: GoogleCalendarService,
+    private sanitizer: DomSanitizer,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -73,6 +86,14 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
         this.shouldScrollBottom = true;
       }
     });
+
+    this.subModel = this.chatbotService.currentModel$.subscribe(m => {
+      this.currentModel = m;
+    });
+
+    this.subSource = this.chatbotService.currentSource$.subscribe(s => {
+      this.currentSource = s;
+    });
   }
 
   ngAfterViewChecked(): void {
@@ -86,6 +107,8 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.subIsOpen?.unsubscribe();
     this.subMessages?.unsubscribe();
     this.subThinking?.unsubscribe();
+    this.subModel?.unsubscribe();
+    this.subSource?.unsubscribe();
   }
 
   toggleChat(): void {
@@ -98,6 +121,77 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   resetChat(): void {
     this.chatbotService.resetChat();
+  }
+
+  /**
+   * Bật/tắt màn hình xem lại lịch sử trò chuyện
+   */
+  async toggleHistoryView(): Promise<void> {
+    if (this.viewMode === 'history') {
+      this.viewMode = 'chat';
+    } else {
+      this.viewMode = 'history';
+      await this.loadSessions();
+    }
+    this.cdr.markForCheck();
+  }
+
+  switchToChatView(): void {
+    this.viewMode = 'chat';
+    this.shouldScrollBottom = true;
+    this.cdr.markForCheck();
+  }
+
+  async loadSessions(): Promise<void> {
+    this.isLoadingSessions = true;
+    this.cdr.markForCheck();
+    try {
+      this.sessionsList = await this.chatbotService.getSessionsList();
+    } catch (e) {
+      console.warn('Lỗi tải danh sách phiên:', e);
+    } finally {
+      this.isLoadingSessions = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  async selectSession(sessionId: string): Promise<void> {
+    if (sessionId === this.chatbotService.sessionId && this.viewMode === 'chat') return;
+    this.viewMode = 'chat';
+    await this.chatbotService.switchSession(sessionId);
+    this.shouldScrollBottom = true;
+    this.cdr.markForCheck();
+  }
+
+  startNewChat(): void {
+    this.chatbotService.startNewSession();
+    this.viewMode = 'chat';
+    this.shouldScrollBottom = true;
+    this.cdr.markForCheck();
+  }
+
+  async deleteSession(sessionId: string, event: Event): Promise<void> {
+    event.stopPropagation();
+    await this.chatbotService.deleteSession(sessionId);
+    this.sessionsList = this.sessionsList.filter(s => s.sessionId !== sessionId);
+    this.cdr.markForCheck();
+  }
+
+  formatSessionTime(timestamp: string | Date): string {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+
+    if (diffHours < 1) {
+      const diffMins = Math.max(1, Math.round(diffMs / (1000 * 60)));
+      return `${diffMins} phút trước`;
+    }
+    if (diffHours < 24 && date.getDate() === now.getDate()) {
+      return `Hôm nay ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    }
+    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
   }
 
   sendMessage(): void {
@@ -176,6 +270,59 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     if (url) {
       window.open(url, '_blank');
     }
+  }
+
+  /**
+   * Định dạng tin nhắn văn bản từ AI thành HTML an toàn, làm nổi bật in đậm, code và bullet list theo theme
+   */
+  formatBotMessage(rawText: string): SafeHtml {
+    if (!rawText) return '';
+
+    // 1. Thoát các ký tự HTML nguy hiểm
+    let safe = rawText
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    // 2. Chuyển đổi cú pháp in đậm **chữ** thành thẻ strong nổi bật theo UEL Navy & Sky
+    safe = safe.replace(/\*\*(.+?)\*\*/g, '<strong class="font-extrabold text-[#003B71] dark:text-sky-300">$1</strong>');
+
+    // 3. Chuyển đổi cú pháp in nghiêng *chữ*
+    safe = safe.replace(/\*(.+?)\*/g, '<em class="italic text-slate-700 dark:text-slate-300">$1</em>');
+
+    // 4. Chuyển đổi inline code `mã`
+    safe = safe.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded-md bg-sky-50 dark:bg-slate-700 text-[#003B71] dark:text-sky-300 font-mono text-[11px] font-bold border border-sky-100 dark:border-slate-600">$1</code>');
+
+    // 5. Chuẩn hóa các dòng gạch đầu dòng (- hoặc •) thành danh sách biểu tượng SVG Checkmark đồng bộ UEL
+    const lines = safe.split('\n');
+    const processedLines = lines.map(line => {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('- ') || trimmed.startsWith('• ') || trimmed.startsWith('* ')) {
+        const content = trimmed.replace(/^[-•*]\s*/, '');
+        return `<div class="flex items-start gap-2 my-1.5 pl-0.5 text-xs sm:text-[13px] leading-relaxed"><svg class="w-3.5 h-3.5 text-[#003B71] dark:text-sky-400 mt-1 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span class="text-slate-700 dark:text-slate-200 flex-1">${content}</span></div>`;
+      }
+      return line;
+    });
+
+    const combined = processedLines.join('\n');
+
+    // 6. Xử lý khoảng cách dòng
+    const html = combined
+      .replace(/\n\n+/g, '<div class="h-2.5"></div>')
+      .replace(/\n/g, '<br/>');
+
+    return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
+  /**
+   * Làm sạch nhãn gợi ý để loại bỏ các emoji thừa, ưu tiên render bằng SVG Icon
+   */
+  cleanPromptLabel(label: string): string {
+    if (!label) return '';
+    // Loại bỏ các emoji phổ biến ở đầu chuỗi
+    return label
+      .replace(/^[🏢🤫🎙️🎉✨🔍📅🤖⚡📌💡]\s*/u, '')
+      .trim();
   }
 
   private scrollToBottom(): void {

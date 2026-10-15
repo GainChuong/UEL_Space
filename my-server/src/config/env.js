@@ -24,7 +24,9 @@ const env = {
     .filter(Boolean),
   enableJobs: process.env.ENABLE_JOBS !== 'false',
   noShowIntervalMs: Number(process.env.NO_SHOW_INTERVAL_MS || 5 * 60 * 1000),
-  occupancySnapshotIntervalMs: Number(process.env.OCCUPANCY_SNAPSHOT_INTERVAL_MS || 15 * 60 * 1000)
+  occupancySnapshotIntervalMs: Number(process.env.OCCUPANCY_SNAPSHOT_INTERVAL_MS || 15 * 60 * 1000),
+  geminiApiKey: process.env.GEMINI_API_KEY || '',
+  geminiModel: process.env.GEMINI_MODEL || 'gemini-3.8-flash'
 };
 
 module.exports = { env };
