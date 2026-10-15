@@ -288,6 +288,9 @@ export class Admin implements OnInit, OnDestroy {
   occEngineMode: 'server' | 'client' = 'server';
   occServerStatus: 'online' | 'offline' | 'checking' = 'checking';
   occServerLatencyMs: number = 0;
+  private occServerFailCount: number = 0;
+  private occServerCooldownUntil: number = 0;
+  private occServerOfflineNotified: boolean = false;
   private offscreenCanvas: HTMLCanvasElement | null = null;
   private occLastFrameTime: number = 0;
   private occFrameCount: number = 0;
@@ -1749,28 +1752,69 @@ export class Admin implements OnInit, OnDestroy {
   async checkServerAiHealth(): Promise<boolean> {
     try {
       this.occServerStatus = 'checking';
-      const res = await fetch(`${SERVER_BASE_URL}/api/occupancy/live`, { signal: AbortSignal.timeout(3500) });
+      const res = await fetch(`${SERVER_BASE_URL}/api/occupancy/ai-health`, { signal: AbortSignal.timeout(3500) });
       if (res.ok) {
-        this.occServerStatus = 'online';
-        if (this.occEngineMode === 'server') {
-          this.occModelName = 'YOLOv11 Server AI (Sẵn sàng)';
+        const health = await res.json().catch(() => null);
+        if (health && health.ready) {
+          this.occServerStatus = 'online';
+          this.occServerFailCount = 0;
+          this.occServerCooldownUntil = 0;
+          this.occServerOfflineNotified = false;
+          if (this.occEngineMode === 'server') {
+            this.occModelName = 'YOLOv11 Server AI (Sẵn sàng)';
+          }
+          return true;
         }
-        return true;
       }
-      this.occServerStatus = 'offline';
+      this.markServerAiOffline();
       return false;
     } catch {
-      this.occServerStatus = 'offline';
+      this.markServerAiOffline();
       return false;
     } finally {
       this.cdr.detectChanges();
     }
   }
 
+  private markServerAiOffline(): void {
+    this.occServerStatus = 'offline';
+    this.occServerLatencyMs = 0;
+    if (this.occEngineMode === 'server' && !this.occServerOfflineNotified) {
+      this.occServerOfflineNotified = true;
+      this.occModelName = 'Server AI ngoại tuyến → Đang dùng Client Edge AI';
+      this.showToast(
+        this.i18n.t('Server AI (YOLOv11) đang ngoại tuyến - hệ thống tự chuyển sang Client Edge AI trên trình duyệt'),
+        'warning'
+      );
+    }
+  }
+
+  private handleServerYoloFailure(): void {
+    this.occServerFailCount++;
+    this.occServerStatus = 'offline';
+    // Circuit breaker: sau 3 lần liên tiếp lỗi thì ngừng gọi server 15s
+    // (tránh spam 503 mỗi frame, Client AI sẽ thay thế trong lúc này)
+    if (this.occServerFailCount >= 3) {
+      this.occServerCooldownUntil = performance.now() + 15000;
+      this.markServerAiOffline();
+      this.cdr.detectChanges();
+    }
+  }
+
+  private resetServerYoloHealth(): void {
+    this.occServerFailCount = 0;
+    this.occServerCooldownUntil = 0;
+    this.occServerOfflineNotified = false;
+    this.occServerStatus = 'online';
+  }
+
   private async detectWithServerYolo(
     videoEl: HTMLVideoElement
   ): Promise<Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> | null> {
     try {
+      // Circuit breaker: Server AI đang ngoại tuyến -> bỏ qua, dùng Client AI ngay lập tức
+      if (performance.now() < this.occServerCooldownUntil) return null;
+
       const vw = videoEl.videoWidth;
       const vh = videoEl.videoHeight;
       if (!vw || !vh) return null;
@@ -1807,17 +1851,17 @@ export class Admin implements OnInit, OnDestroy {
       });
 
       if (!res.ok) {
-        this.occServerStatus = 'offline';
+        this.handleServerYoloFailure();
         return null;
       }
 
-      const data = await res.json();
-      if (!data.success) {
-        this.occServerStatus = 'offline';
+      const data = await res.json().catch(() => null);
+      if (!data || !data.success) {
+        this.handleServerYoloFailure();
         return null;
       }
 
-      this.occServerStatus = 'online';
+      this.resetServerYoloHealth();
       this.occServerLatencyMs = Math.round(performance.now() - t0);
       this.occModelName = `YOLOv11 SOTA AI (${data.processingTimeMs}ms • ${data.device ? data.device.toUpperCase() : 'CPU'})`;
 
@@ -1836,7 +1880,7 @@ export class Admin implements OnInit, OnDestroy {
       }
       return boxes;
     } catch {
-      this.occServerStatus = 'offline';
+      this.handleServerYoloFailure();
       return null;
     }
   }
@@ -2196,7 +2240,8 @@ export class Admin implements OnInit, OnDestroy {
 
     const now = performance.now();
     // Tần suất suy luận: 140ms cho Server AI (tối ưu băng thông/mượt mà), 80ms cho Client Edge AI
-    const intervalThreshold = this.occEngineMode === 'server' ? 140 : 80;
+    const serverReady = this.occEngineMode === 'server' && now >= this.occServerCooldownUntil;
+    const intervalThreshold = serverReady ? 140 : 80;
     if (this.isDetectingOccFrame || (now - this.lastOccDetectionTimestamp < intervalThreshold)) {
       requestAnimationFrame(() => this.runDetectionLoop(videoEl));
       return;

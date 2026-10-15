@@ -57,7 +57,7 @@ export const ABOUT_EN: Record<string, string> = {
   'Khám phá và đặt không gian làm việc của bạn ngay hôm nay': 'Discover and book your ideal workspace today',
   'Tra cứu mạng lưới văn phòng đối tác, lựa chọn phòng họp VIP và trải nghiệm quản lý thông minh cùng AI Occupancy.':
     'Browse partner office hubs, select VIP meeting rooms, and experience intelligent management with AI Occupancy.',
-  'Trải nghiệm Bản đồ & Đặt phòng': 'Explore Map & Booking',
+  'Trải nghiệm Đặt không gian': 'Explore & Book Space',
   'Lịch sử đặt phòng': 'Booking History',
 
   // Photo Archives

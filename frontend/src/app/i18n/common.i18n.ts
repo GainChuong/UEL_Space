@@ -1,7 +1,7 @@
 export const COMMON_EN: Record<string, string> = {
   // Navigation / layout
   'Trang chủ': 'Home',
-  'Bản đồ & Đặt phòng': 'Map & Booking',
+  'Đặt không gian': 'Book Space',
   'Lịch sử đặt chỗ': 'My Bookings',
   'Về chúng tôi': 'About Us',
   'Đăng nhập': 'Log in',

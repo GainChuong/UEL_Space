@@ -16,29 +16,34 @@ MANIFEST_FILE = os.path.join(BASE_DIR, 'indoor_scenes_manifest.json')
 os.makedirs(OUTPUT_IMG_DIR, exist_ok=True)
 
 CATEGORY_RULES = {
-    'meeting_room': {'target': 'meeting_room', 'max': 5},
-    'auditorium': {'target': 'auditorium', 'max': 4},
-    'office': {'target': 'office', 'max': 5},
-    'classroom': {'target': 'classroom', 'max': 4},
-    'library': {'target': 'library', 'max': 4},
-    'computerroom': {'target': 'computerroom', 'max': 3},
-    'artstudio': {'target': 'studio', 'max': 3},
-    'tv_studio': {'target': 'studio', 'max': 3},
-    'studio': {'target': 'studio', 'max': 3},
-    'laboratory': {'target': 'laboratory', 'max': 3},
-    'lobby': {'target': 'lobby', 'max': 3},
-    'waitingroom': {'target': 'lobby', 'max': 3}
+    'meeting_room': {'target': 'meeting_room', 'max': 16},
+    'auditorium': {'target': 'auditorium', 'max': 10},
+    'concert_hall': {'target': 'auditorium', 'max': 6},
+    'movietheater': {'target': 'auditorium', 'max': 4},
+    'office': {'target': 'office', 'max': 16},
+    'classroom': {'target': 'classroom', 'max': 12},
+    'library': {'target': 'library', 'max': 12},
+    'computerroom': {'target': 'computerroom', 'max': 8},
+    'artstudio': {'target': 'studio', 'max': 5},
+    'tv_studio': {'target': 'studio', 'max': 5},
+    'studiomusic': {'target': 'studio', 'max': 5},
+    'laboratory': {'target': 'laboratory', 'max': 8},
+    'lobby': {'target': 'lobby', 'max': 10},
+    'waitingroom': {'target': 'lobby', 'max': 8},
+    'bookstore': {'target': 'coworking_lounge', 'max': 8}
 }
 
 REQUIRED_TARGETS = {
-    'meeting_room': 5,
-    'auditorium': 4,
-    'office': 5,
-    'classroom': 4,
-    'library': 4,
-    'computerroom': 3,
-    'studio': 3,
-    'lobby': 3
+    'meeting_room': 16,
+    'office': 16,
+    'auditorium': 12,
+    'classroom': 10,
+    'library': 12,
+    'computerroom': 8,
+    'studio': 8,
+    'laboratory': 6,
+    'lobby': 12,
+    'coworking_lounge': 6
 }
 
 print("=" * 60)

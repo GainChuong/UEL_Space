@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -6,6 +6,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { SERVER_BASE_URL, SERVER_IMAGES_LINK } from '../../services/api-config';
 import { TranslatePipe } from '../../services/translate.pipe';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
+import { normalizeSpace, getFallbackMarketplaceSpaces } from '../../services/spaces-data';
 
 export interface SpaceItem {
   id: string;
@@ -64,95 +65,59 @@ export class Home implements OnInit {
     { value: 'board', label: 'Bảng kính / Smartboard' }
   ];
 
-  spaces: SpaceItem[] = [
-    {
-      id: 'b1-104',
-      name: 'Boardroom VIP B1',
-      building: 'Central Tower Q.1 - Tầng 12',
-      spaceType: 'Phòng họp VIP',
-      capacity: 24,
-      capacityText: '24 chỗ ngồi',
-      areaSize: 60,
-      hourlyPrice: 250000,
-      status: 'available',
-      statusText: 'Trống',
-      equipment: ['AI Occupancy', 'Màn hình 4K', 'Cáp quang 1Gbps', 'Micro hội nghị'],
-      image: SERVER_IMAGES_LINK + 'spaces/space_a2_1_meeting_vip.jpg'
-    },
-    {
-      id: 'a2-1',
-      name: 'Private Suite A2',
-      building: 'TechPark Executive - Tầng 5',
-      spaceType: 'Văn phòng riêng',
-      capacity: 12,
-      capacityText: '12 người',
-      areaSize: 35,
-      hourlyPrice: 180000,
-      status: 'available',
-      statusText: 'Trống',
-      equipment: ['AI Occupancy', 'Điều hòa', 'Cáp quang 1Gbps', 'Bảng kính'],
-      image: SERVER_IMAGES_LINK + 'spaces/space_b2_101_private_office.jpg'
-    },
-    {
-      id: 'thu-vien-2',
-      name: 'Khu Hot Desk Coworking',
-      building: 'Innovation Hub - Tầng 2',
-      spaceType: 'Bàn làm việc linh hoạt',
-      capacity: 60,
-      capacityText: '60 chỗ ngồi',
-      areaSize: 180,
-      hourlyPrice: 35000,
-      status: 'available',
-      statusText: 'Trống',
-      equipment: ['Cáp quang 1Gbps', 'Điều hòa', 'Ổ cắm điện', 'Tủ locker'],
-      image: SERVER_IMAGES_LINK + 'spaces/space_thu_vien_coworking.jpg'
-    },
-    {
-      id: 'a3-301',
-      name: 'Hội trường Event & Workshop A3',
-      building: 'Landmark Lounge - Tầng 8',
-      spaceType: 'Không gian sự kiện',
-      capacity: 100,
-      capacityText: '100 khách',
-      areaSize: 150,
-      hourlyPrice: 450000,
-      status: 'available',
-      statusText: 'Trống',
-      equipment: ['AI Occupancy', 'Màn hình 4K', 'Âm thanh vòm', 'Cáp quang 1Gbps'],
-      image: SERVER_IMAGES_LINK + 'spaces/space_a3_301_event_hall.jpg'
-    },
-    {
-      id: 'choi-1',
-      name: 'Focus Pod 1 Cách Âm',
-      building: 'Green Office Suites - Tầng 3',
-      spaceType: 'Meeting Pod',
-      capacity: 4,
-      capacityText: '4 người',
-      areaSize: 12,
-      hourlyPrice: 70000,
-      status: 'available',
-      statusText: 'Trống',
-      equipment: ['Cách âm chuẩn', 'Màn hình họp trực tuyến', 'Cáp quang 1Gbps'],
-      image: SERVER_IMAGES_LINK + 'spaces/space_choi_1_focus_pod.jpg'
-    },
-    {
-      id: 'b2-101',
-      name: 'Creative Studio Lab B2',
-      building: 'TechPark Executive - Tầng 6',
-      spaceType: 'Phòng họp sáng tạo',
-      capacity: 20,
-      capacityText: '20 người',
-      areaSize: 45,
-      hourlyPrice: 150000,
-      status: 'available',
-      statusText: 'Trống',
-      equipment: ['AI Occupancy', 'Bảng tương tác', 'Cáp quang 1Gbps', 'Máy chiếu'],
-      image: SERVER_IMAGES_LINK + 'spaces/space_a_105_creative_media.jpg'
-    }
-  ];
+  spaces: any[] = [];
+
+  favorites: Set<string> = new Set<string>();
 
   ngOnInit() {
     this.suggestedGoogleSlots = this.googleCalendarService.getSuggestedSlots();
+    // Pre-populate from the same rich dataset as the map tab for instant rendering
+    this.spaces = getFallbackMarketplaceSpaces().map(s => normalizeSpace(s));
+    this.loadSpaces();
+  }
+
+  async loadSpaces() {
+    try {
+      const res = await fetch(`${SERVER_BASE_URL}/api/spaces`);
+      if (res.ok) {
+        const json = await res.json();
+        const dataList = json.data || (Array.isArray(json) ? json : []);
+        if (Array.isArray(dataList) && dataList.length > 0) {
+          this.spaces = dataList.map(s => normalizeSpace(s));
+          this.cdr.detectChanges();
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Cannot fetch from /api/spaces, using rich dataset marketplace fallback:', e);
+    }
+    this.cdr.detectChanges();
+  }
+
+  getImageUrl(space: any, index: number = 0): string {
+    if (!space) return 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format&fit=crop&q=80';
+    let img = '';
+    if (space.images && space.images.length > index) {
+      img = space.images[index];
+    } else if (space.image) {
+      img = space.image;
+    }
+    return this.getRawImageUrl(img);
+  }
+
+  getRawImageUrl(img: string): string {
+    if (!img) return 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format&fit=crop&q=80';
+    if (img.startsWith('http://') || img.startsWith('https://')) return img;
+    return `${this.server_images_link}${img.replace(/^\//, '')}`;
+  }
+
+  toggleFavorite(id: string, event?: Event) {
+    if (event) event.stopPropagation();
+    if (this.favorites.has(id)) {
+      this.favorites.delete(id);
+    } else {
+      this.favorites.add(id);
+    }
   }
 
   toggleDropdown(type: 'date' | 'time' | 'capacity' | 'equipment', event?: Event) {
@@ -253,13 +218,13 @@ export class Home implements OnInit {
     return found ? found.label : 'Thiết bị';
   }
 
-  get filteredSpaces(): SpaceItem[] {
+  get filteredSpaces(): any[] {
     return this.spaces.filter(s => {
       const query = this.searchQuery.toLowerCase().trim();
-      const matchQuery = !query || 
-        s.name.toLowerCase().includes(query) ||
-        s.building.toLowerCase().includes(query) ||
-        s.spaceType.toLowerCase().includes(query);
+      const matchQuery = !query ||
+        (s.name || '').toLowerCase().includes(query) ||
+        (s.building || s.location || '').toLowerCase().includes(query) ||
+        (s.type || '').toLowerCase().includes(query);
 
       let matchCapacity = true;
       if (this.selectedCapacity === 'small') {
@@ -271,14 +236,16 @@ export class Home implements OnInit {
       }
 
       let matchEquipment = true;
-      if (this.selectedEquipment === 'may-chieu') {
-        matchEquipment = s.equipment.includes('Máy chiếu');
-      } else if (this.selectedEquipment === 'dieu-hoa') {
-        matchEquipment = s.equipment.includes('Điều hòa');
+      const facilities: string[] = Array.isArray(s.facilities) ? s.facilities : [];
+      const has = (kw: string) => facilities.some(f => (f || '').toLowerCase().includes(kw.toLowerCase()));
+      if (this.selectedEquipment === 'ai-cam') {
+        matchEquipment = has('AI');
+      } else if (this.selectedEquipment === 'display') {
+        matchEquipment = has('Màn hình') || has('Máy chiếu');
       } else if (this.selectedEquipment === 'wifi') {
-        matchEquipment = s.equipment.includes('Wifi tốc độ cao');
-      } else if (this.selectedEquipment === 'bang-tu') {
-        matchEquipment = s.equipment.includes('Bảng từ');
+        matchEquipment = has('Cáp quang') || has('Wifi');
+      } else if (this.selectedEquipment === 'board') {
+        matchEquipment = has('Bảng');
       }
 
       return matchQuery && matchCapacity && matchEquipment;
@@ -314,9 +281,9 @@ export class Home implements OnInit {
     major: 'Đại diện Doanh nghiệp • FinTech Hub'
   };
 
-  openBookingModal(space: SpaceItem) {
-    const floorMatch = space.building.match(/Tầng\s*\d+/i);
-    const floor = floorMatch ? floorMatch[0] : 'Tầng 1';
+  openBookingModal(space: any) {
+    const floorMatch = (space.building || '').match(/Tầng\s*\d+/i);
+    const floor = space.floor || (floorMatch ? floorMatch[0] : 'Tầng 1');
 
     let currentActivity = 'Không gian hiện hoàn toàn trống, sẵn sàng tiếp nhận đặt chỗ ngay';
     let expectedFreeTime = 'Khả dụng cả ngày';
@@ -345,14 +312,14 @@ export class Home implements OnInit {
       name: space.name,
       building: space.building,
       floor: floor,
-      type: space.spaceType,
+      type: space.type || space.spaceType,
       capacity: space.capacity,
       status: space.status,
       statusText: space.statusText,
       hourlyPrice: pricePerHour,
       totalPrice: pricePerHour * this.customDurationHours,
-      facilities: space.equipment && space.equipment.length > 0 
-        ? space.equipment.map(e => e.includes('Wifi') ? 'Cáp quang 1Gbps' : e.includes('Điều hòa') ? 'Điều hòa 2 chiều' : e.includes('Máy chiếu') ? 'Màn hình 4K / Máy chiếu' : e)
+      facilities: space.facilities && space.facilities.length > 0
+        ? space.facilities
         : ['Màn hình 4K / Máy chiếu', 'Điều hòa 2 chiều', 'Cáp quang 1Gbps', 'Ổ cắm điện'],
       currentActivity: currentActivity,
       expectedFreeTime: expectedFreeTime
@@ -511,7 +478,8 @@ export class Home implements OnInit {
 
   constructor(
     private googleCalendarService: GoogleCalendarService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private cdr: ChangeDetectorRef
   ) {}
 
   confirmBooking() {

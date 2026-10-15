@@ -38,6 +38,38 @@ function occupancyRoutes(collections) {
     res.status(201).json({ success: true, record: doc });
   }));
 
+  // Kiểm tra trạng thái THẬT của YOLOv11 Microservice (khác /live - chỉ tra DB)
+  let aiHealthCache = { at: 0, data: null };
+  router.get('/ai-health', asyncHandler(async (req, res) => {
+    const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://127.0.0.1:5001';
+    const now = Date.now();
+    if (aiHealthCache.data && now - aiHealthCache.at < 10000) {
+      return res.json(aiHealthCache.data);
+    }
+
+    let data;
+    try {
+      const r = await fetch(`${AI_SERVICE_URL}/health`, { signal: AbortSignal.timeout(2500) });
+      if (!r.ok) {
+        data = { success: true, ready: false, message: `AI Microservice error (HTTP ${r.status})` };
+      } else {
+        const health = await r.json();
+        data = {
+          success: true,
+          ready: Boolean(health.ready),
+          model: health.model,
+          serviceStatus: health.status,
+          message: health.ready ? 'YOLOv11 Service ready' : 'YOLOv11 model not loaded'
+        };
+      }
+    } catch (err) {
+      data = { success: true, ready: false, message: `YOLOv11 Service offline: ${err.message}` };
+    }
+
+    aiHealthCache = { at: now, data };
+    res.json(data);
+  }));
+
   // SOTA Server AI (Option B): YOLOv11 Microservice Proxy
   router.post('/detect-server', asyncHandler(async (req, res) => {
     const { image, confidenceThreshold, iouThreshold, spaceId, spaceName, capacity, saveRecord } = req.body;

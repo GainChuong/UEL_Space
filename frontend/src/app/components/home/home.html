@@ -187,77 +187,118 @@
           <h2 class="text-2xl font-black text-[#111827] dark:text-white">{{ 'Không gian sẵn sàng phục vụ' | t }}</h2>
           <p class="text-sm text-text-muted dark:text-slate-400 font-medium mt-1">{{ 'Tìm thấy' | t }} {{filteredSpaces.length}} {{ 'phòng phù hợp theo điều kiện lọc' | t }}</p>
         </div>
-        <a routerLink="/map" class="text-uel-blue dark:text-sky-400 font-bold text-sm hover:underline flex items-center gap-1">{{ 'Xem trên bản đồ' | t }} <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg></a>
+        <a routerLink="/map" class="text-uel-blue dark:text-sky-400 font-bold text-sm hover:underline flex items-center gap-1">{{ 'Xem tất cả' | t }} <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg></a>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        @for (space of filteredSpaces; track space.id) {
-          <!-- Dynamic Space Card -->
-          <div (click)="openBookingModal(space)"
-               class="bg-white dark:bg-slate-900 border border-border-gray dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:-translate-y-1 hover:shadow-md transition-all duration-300 group cursor-pointer flex flex-col justify-between">
-            <div>
-              <!-- Image -->
-              <div class="relative h-48 overflow-hidden">
-                <img [src]="space.image" [alt]="space.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute top-4 left-4 bg-[#10B981] text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
-                  {{ space.statusText | t }}
-                </div>
-                <div class="absolute top-4 right-4 bg-black/40 backdrop-blur-md text-white text-xs font-semibold px-2.5 py-1 rounded-md">
-                  {{ space.spaceType | t }}
-                </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+        @for (space of filteredSpaces; track (space._id || space.id)) {
+          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col overflow-hidden group cursor-pointer"
+               (click)="openBookingModal(space)">
+
+            <!-- Room Image Container -->
+            <div class="relative w-full aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-800">
+              <img [src]="getImageUrl(space)"
+                   [alt]="space.name"
+                   class="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300 ease-out"
+                   loading="lazy">
+
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
+
+              <!-- Top Left: Space Type Tag -->
+              <div class="absolute top-3 left-3">
+                <span class="px-2.5 py-1 rounded-lg bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-[11px] font-bold text-uel-blue dark:text-sky-300 shadow-xs border border-white/20">
+                  {{ space.type | t }}
+                </span>
               </div>
 
-              <!-- Content -->
-              <div class="p-5">
-                <h3 class="text-lg font-bold text-[#111827] dark:text-white mb-1 group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors">{{space.name}}</h3>
-                <div class="flex items-center gap-1.5 text-xs font-semibold text-[#6B7280] dark:text-slate-400 mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-uel-orange"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                  {{ space.building | t }}
-                </div>
+              <!-- Top Right: Favorite Button -->
+              <button type="button"
+                      (click)="toggleFavorite(space._id || space.id, $event)"
+                      class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md text-white flex items-center justify-center transition-all cursor-pointer active:scale-90"
+                      [title]="'Yêu thích' | t">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="15" height="15"
+                     viewBox="0 0 24 24"
+                     [attr.fill]="favorites.has(space._id || space.id) ? '#EF4444' : 'none'"
+                     [attr.stroke]="favorites.has(space._id || space.id) ? '#EF4444' : 'currentColor'"
+                     stroke-width="2.2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </button>
 
-                <!-- Price Tag -->
-                <div class="flex items-center justify-between text-xs font-bold text-uel-orange dark:text-amber-400 mb-2.5">
-                  <span class="flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    {{ (space.hourlyPrice || 60000) | number }} VNĐ / giờ
-                  </span>
-                  <span class="text-[10px] text-[#a50064] dark:text-pink-400 font-bold bg-pink-50 dark:bg-pink-950/50 px-2 py-0.5 rounded-full border border-pink-200 dark:border-pink-800">
-                    MoMo QR
-                  </span>
-                </div>
+              <!-- Bottom Left: Status Badge -->
+              <div class="absolute bottom-2.5 left-2.5 flex items-center">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-md backdrop-blur-md text-[10px] font-bold text-white shadow-xs"
+                      [ngClass]="{
+                        'bg-emerald-600/90': space.status === 'available',
+                        'bg-uel-blue/90': space.status === 'in-use',
+                        'bg-amber-600/90': space.status === 'reserved',
+                        'bg-slate-600/90': space.status === 'maintenance'
+                      }">
+                  {{ space.statusText | t }}
+                </span>
+              </div>
 
-                <!-- Specs -->
-                <div class="flex items-center justify-between text-xs font-semibold text-[#4B5563] dark:text-slate-300 mb-4 bg-[#F9FAFB] dark:bg-slate-800 p-3 rounded-xl border border-[#F3F4F6] dark:border-slate-700">
-                  <div class="flex items-center gap-1.5" [title]="'Sức chứa' | t">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-uel-blue dark:text-sky-400"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    {{ space.capacityText | t }}
-                  </div>
-                  <div class="w-[1px] h-4 bg-[#D1D5DB] dark:bg-slate-600"></div>
-                  <div class="flex items-center gap-1.5" [title]="'Diện tích' | t">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-uel-blue dark:text-sky-400"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><path d="M3 9h18"></path><path d="M9 21V9"></path></svg>
-                    {{space.areaSize}} m²
-                  </div>
-                </div>
-
-                <!-- Equipment Badges -->
-                <div class="flex flex-wrap gap-1.5 mb-2">
-                  @for (eq of space.equipment; track eq) {
-                    <span class="text-[10px] font-bold text-uel-blue dark:text-sky-300 bg-uel-blue/5 dark:bg-sky-400/10 px-2.5 py-1 rounded-md border border-uel-blue/10 dark:border-sky-400/20">
-                      {{ eq | t }}
-                    </span>
-                  }
-                </div>
+              <!-- Bottom Right: Minimal Rating -->
+              <div class="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-white text-[11px] font-bold flex items-center gap-1">
+                <span class="text-amber-400">★</span>
+                <span>{{ space.rating || 4.9 }}</span>
               </div>
             </div>
 
-            <!-- Action -->
-            <div class="p-5 pt-0">
-              <button type="button"
-                      (click)="openBookingModal(space); $event.stopPropagation()" 
-                      class="w-full bg-uel-blue hover:bg-[#00284D] dark:bg-sky-600 dark:hover:bg-sky-700 text-white font-bold py-2.5 rounded-xl transition-colors shadow-sm hover:shadow-md cursor-pointer flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="m9 16 2 2 4-4"/></svg>
-                <span>{{ 'Đặt chỗ ngay' | t }}</span>
-              </button>
+            <!-- Card Content -->
+            <div class="p-4 flex-1 flex flex-col justify-between gap-3">
+              <div>
+                <h3 class="text-base font-bold text-dark-text dark:text-white group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors line-clamp-1 mb-1"
+                    [title]="space.name">
+                  {{ space.name }}
+                </h3>
+
+                <p class="text-xs text-slate-500 dark:text-slate-400 truncate mb-2">
+                  {{ space.location || space.building }}, {{ space.floor }}
+                </p>
+
+                <div class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 mb-2.5 font-medium">
+                  <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[11px]">
+                    {{ space.capacity }} {{ 'chỗ' | t }}
+                  </span>
+                  <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[11px]">
+                    {{ space.areaSize }} m²
+                  </span>
+                </div>
+
+                @if (space.facilities && space.facilities.length > 0) {
+                  <div class="flex flex-wrap gap-1.5">
+                    @for (item of space.facilities.slice(0, 2); track item) {
+                      <span class="text-[10px] text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 px-2 py-0.5 rounded">
+                        {{ item | t }}
+                      </span>
+                    }
+                  </div>
+                }
+              </div>
+
+              <!-- Card Footer: Hourly Price & CTAs -->
+              <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 mt-auto">
+                <div class="flex items-baseline gap-1">
+                  <span class="text-base font-black text-uel-blue dark:text-sky-400">
+                    {{ space.hourlyPrice | number }}đ
+                  </span>
+                  <span class="text-xs text-slate-400 font-medium">/giờ</span>
+                </div>
+
+                <div class="flex items-center gap-1.5" (click)="$event.stopPropagation()">
+                  <button type="button"
+                          (click)="openBookingModal(space)"
+                          class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+                          title="{{ 'Xem chi tiết' | t }}">
+                    {{ 'Chi tiết' | t }}
+                  </button>
+                  <button type="button"
+                          (click)="openBookingModal(space)"
+                          class="px-3.5 py-1.5 rounded-xl bg-uel-blue hover:bg-uel-blue/90 text-white text-xs font-bold shadow-xs transition-all cursor-pointer">
+                    {{ 'Đặt ngay' | t }}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         } @empty {
