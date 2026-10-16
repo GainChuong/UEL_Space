@@ -37,6 +37,8 @@ export class Map implements OnInit, AfterViewInit {
 
   spaces: any[] = [];
   filteredSpaces: any[] = [];
+  currentPage: number = 1;
+  pageSize: number = 9;
 
   // Dataset categories from FatimaSaadNaik/indoor-scenes-dataset
   categories = [
@@ -351,18 +353,21 @@ export class Map implements OnInit, AfterViewInit {
 
   selectCategory(catId: string) {
     this.activeCategory = catId;
+    this.currentPage = 1;
     this.closeAllDropdowns();
     this.filterSpaces();
   }
 
   selectStatus(statusCode: string) {
     this.activeStatus = statusCode;
+    this.currentPage = 1;
     this.closeAllDropdowns();
     this.filterSpaces();
   }
 
   selectSort(sortId: string) {
     this.sortBy = sortId;
+    this.currentPage = 1;
     this.closeAllDropdowns();
     this.filterSpaces();
   }
@@ -394,10 +399,12 @@ export class Map implements OnInit, AfterViewInit {
   }
 
   onSearchChange() {
+    this.currentPage = 1;
     this.filterSpaces();
   }
 
   onSortChange() {
+    this.currentPage = 1;
     this.filterSpaces();
   }
 
@@ -406,6 +413,7 @@ export class Map implements OnInit, AfterViewInit {
     this.activeStatus = 'all';
     this.searchQuery = '';
     this.sortBy = 'popular';
+    this.currentPage = 1;
     this.closeAllDropdowns();
     this.filterSpaces();
   }
@@ -454,6 +462,53 @@ export class Map implements OnInit, AfterViewInit {
     }
 
     this.filteredSpaces = list;
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredSpaces.length / this.pageSize));
+  }
+
+  get paginatedSpaces(): any[] {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    return this.filteredSpaces.slice(startIndex, startIndex + this.pageSize);
+  }
+
+  get pagesList(): (number | string)[] {
+    const total = this.totalPages;
+    const current = this.currentPage;
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+    const pages: (number | string)[] = [];
+    pages.push(1);
+    if (current > 3) {
+      pages.push('...');
+    }
+    const start = Math.max(2, current - 1);
+    const end = Math.min(total - 1, current + 1);
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    if (current < total - 2) {
+      pages.push('...');
+    }
+    pages.push(total);
+    return pages;
+  }
+
+  changePage(page: number | string) {
+    if (typeof page !== 'number') return;
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      if (typeof window !== 'undefined') {
+        const el = document.getElementById('map-spaces-grid-section');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+    }
   }
 
   // Room Detail & Booking Modal Controllers

@@ -203,9 +203,9 @@
         </button>
       </div>
     } @else {
-      <!-- Streamlined Space Cards Grid (Brand Guidelines Aligned) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-5 sm:gap-6 animate-fade-in">
-        @for (space of filteredSpaces; track (space._id || space.id)) {
+      <!-- Streamlined Space Cards Grid (Brand Guidelines Aligned - 9 cards per page) -->
+      <div id="map-spaces-grid-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3 gap-5 sm:gap-6 animate-fade-in">
+        @for (space of paginatedSpaces; track (space._id || space.id)) {
           <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col overflow-hidden group cursor-pointer"
                (click)="openRoomDetail(space)">
             
@@ -324,6 +324,66 @@
           </div>
         }
       </div>
+
+      <!-- Pagination Navigation Bar (9 cards per page) -->
+      @if (totalPages > 1) {
+        <div class="mt-8 pt-6 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+            {{ 'Đang xem' | t }} <span class="font-bold text-dark-text dark:text-white">{{ (currentPage - 1) * pageSize + 1 }}</span> - 
+            <span class="font-bold text-dark-text dark:text-white">{{ (currentPage * pageSize) > filteredSpaces.length ? filteredSpaces.length : (currentPage * pageSize) }}</span> 
+            {{ 'trong tổng số' | t }} <span class="font-bold text-uel-blue dark:text-sky-400">{{ filteredSpaces.length }}</span> {{ 'không gian' | t }}
+          </div>
+
+          <div class="flex items-center gap-1.5 flex-wrap justify-center">
+            <!-- Prev Button -->
+            <button type="button"
+                    (click)="changePage(currentPage - 1)"
+                    [disabled]="currentPage === 1"
+                    [class.opacity-40]="currentPage === 1"
+                    [class.cursor-not-allowed]="currentPage === 1"
+                    class="h-9 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors flex items-center gap-1 cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+              <span>{{ 'Trước' | t }}</span>
+            </button>
+
+            <!-- Page Number Buttons -->
+            @for (p of pagesList; track $index) {
+              @if (p === '...') {
+                <span class="w-9 h-9 flex items-center justify-center text-xs text-slate-400 font-bold select-none">...</span>
+              } @else {
+                <button type="button"
+                        (click)="changePage(p)"
+                        [class.bg-uel-blue]="currentPage === p"
+                        [class.text-white]="currentPage === p"
+                        [class.shadow-sm]="currentPage === p"
+                        [class.border-uel-blue]="currentPage === p"
+                        [class.border-slate-200]="currentPage !== p"
+                        [class.dark:border-slate-700]="currentPage !== p"
+                        [class.bg-white]="currentPage !== p"
+                        [class.dark:bg-slate-800]="currentPage !== p"
+                        [class.text-slate-700]="currentPage !== p"
+                        [class.dark:text-slate-200]="currentPage !== p"
+                        [class.hover:bg-slate-50]="currentPage !== p"
+                        [class.dark:hover:bg-slate-700]="currentPage !== p"
+                        class="w-9 h-9 rounded-xl border text-xs font-bold transition-all flex items-center justify-center cursor-pointer">
+                  {{ p }}
+                </button>
+              }
+            }
+
+            <!-- Next Button -->
+            <button type="button"
+                    (click)="changePage(currentPage + 1)"
+                    [disabled]="currentPage === totalPages"
+                    [class.opacity-40]="currentPage === totalPages"
+                    [class.cursor-not-allowed]="currentPage === totalPages"
+                    class="h-9 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors flex items-center gap-1 cursor-pointer">
+              <span>{{ 'Sau' | t }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+      }
     }
   </main>
 

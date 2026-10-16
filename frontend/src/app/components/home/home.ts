@@ -66,6 +66,8 @@ export class Home implements OnInit {
   ];
 
   spaces: any[] = [];
+  currentPage: number = 1;
+  pageSize: number = 9;
 
   favorites: Set<string> = new Set<string>();
 
@@ -105,8 +107,16 @@ export class Home implements OnInit {
     return this.getRawImageUrl(img);
   }
 
+  defaultFallbackImage = 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format&fit=crop&q=80';
+
+  handleImageError(event: any) {
+    if (event && event.target && event.target.src !== this.defaultFallbackImage) {
+      event.target.src = this.defaultFallbackImage;
+    }
+  }
+
   getRawImageUrl(img: string): string {
-    if (!img) return 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format&fit=crop&q=80';
+    if (!img) return this.defaultFallbackImage;
     if (img.startsWith('http://') || img.startsWith('https://')) return img;
     return `${this.server_images_link}${img.replace(/^\//, '')}`;
   }
@@ -252,12 +262,63 @@ export class Home implements OnInit {
     });
   }
 
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredSpaces.length / this.pageSize));
+  }
+
+  get paginatedSpaces(): any[] {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    return this.filteredSpaces.slice(startIndex, startIndex + this.pageSize);
+  }
+
+  get pagesList(): (number | string)[] {
+    const total = this.totalPages;
+    const current = this.currentPage;
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+    const pages: (number | string)[] = [];
+    pages.push(1);
+    if (current > 3) {
+      pages.push('...');
+    }
+    const start = Math.max(2, current - 1);
+    const end = Math.min(total - 1, current + 1);
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    if (current < total - 2) {
+      pages.push('...');
+    }
+    pages.push(total);
+    return pages;
+  }
+
+  changePage(page: number | string) {
+    if (typeof page !== 'number') return;
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      // Scroll smoothly to space grid
+      if (typeof window !== 'undefined') {
+        const el = document.getElementById('spaces-grid-section');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    }
+  }
+
+  onFilterChange() {
+    this.currentPage = 1;
+  }
+
   resetHomeFilters() {
     this.searchQuery = '';
     this.selectedDateFilter = 'Hôm nay';
     this.selectedTimeSlot = '08:00 - 17:00';
     this.selectedCapacity = 'all';
     this.selectedEquipment = 'all';
+    this.currentPage = 1;
     this.closeDropdowns();
   }
 
