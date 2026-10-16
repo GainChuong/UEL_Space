@@ -88,12 +88,12 @@ class GeminiService {
       }));
 
       const systemInstruction = `
-Bạn là Trợ lý AI chuyên nghiệp của Hệ thống Quản lý & Chia sẻ Không gian UEL Space (Trường Đại học Kinh tế - Luật, ĐHQG-HCM).
+Bạn là Trợ lý AI chuyên nghiệp của Hệ thống Cho Thuê & Quản trị Không gian UEL Space (Hỗ trợ đa dạng nhu cầu: Phòng họp VIP, Hội trường sự kiện, Văn phòng doanh nghiệp, Studio sáng tạo, Co-working Hot Desk & Không gian tự học).
 Nhiệm vụ của bạn:
 1. Trả lời thân thiện, lịch sự, chuyên nghiệp bằng tiếng Việt.
 2. Dựa vào danh sách không gian thực tế sau đây để tư vấn chính xác:
 ${JSON.stringify(spacesContext, null, 2)}
-3. Khớp nhu cầu người dùng (số người, loại phòng họp/tự học/workshop, tiện ích màn hình/bảng/micro, giá tiền).
+3. Khớp nhu cầu người dùng (họp đối tác, hội thảo, đào tạo, làm việc nhóm, cá nhân, sự kiện, giá tiền, trang thiết bị).
 4. BẮT BUỘC trả về kết quả định dạng JSON chuẩn (Structured Output) theo schema sau:
 {
   "replyText": "Văn bản phản hồi tự nhiên, giải thích lý do gợi ý phòng",
@@ -264,13 +264,13 @@ ${JSON.stringify(spacesContext, null, 2)}
     if (wantsBook && topMatches.length > 0) {
       replyText = `Tôi đã tìm được không gian **${topMatches[0].name}** tại **${topMatches[0].building}** hoàn toàn phù hợp để bạn đặt giữ chỗ ngay:`;
     } else if (reqCapacity) {
-      replyText = `Dựa trên yêu cầu nhóm khoảng **${reqCapacity} người**, đây là các không gian tối ưu nhất đang sẵn sàng phục vụ bạn:`;
+      replyText = `Dựa trên yêu cầu quy mô khoảng **${reqCapacity} người**, đây là các không gian tối ưu nhất đang sẵn sàng cho thuê:`;
     } else if (wantsDisplay) {
       replyText = `Dưới đây là các không gian **có sẵn màn hình 4K / máy chiếu sắc nét** và đường truyền ổn định:`;
     } else if (wantsQuiet) {
-      replyText = `Gợi ý các không gian **tự học yên tĩnh, đầy đủ tiện ích và chi phí tối ưu nhất** cho sinh viên:`;
+      replyText = `Gợi ý các không gian **yên tĩnh, đầy đủ tiện ích và chi phí tối ưu nhất** dành cho bạn:`;
     } else {
-      replyText = `Dưới đây là các **không gian tiêu biểu và đang trống** lý tưởng cho nhu cầu của bạn:`;
+      replyText = `Dưới đây là các **không gian cho thuê tiêu biểu và đang trống** lý tưởng cho nhu cầu của bạn:`;
     }
 
     return {
@@ -278,9 +278,9 @@ ${JSON.stringify(spacesContext, null, 2)}
       intent: wantsBook ? 'BOOK_SPACE' : 'RECOMMEND_SPACE',
       recommendedSpaceIds,
       quickPrompts: [
-        'Phòng họp 10 người có máy chiếu',
-        'Bàn làm việc Hot Desk tự học',
-        'Focus Pod cách âm 4 người'
+        'Phòng họp VIP 10 người có máy chiếu',
+        'Bàn làm việc Hot Desk / Coworking',
+        'Focus Pod cách âm riêng tư'
       ],
       bookingProposal: wantsBook && topMatches.length > 0 ? {
         spaceId: topMatches[0].id,

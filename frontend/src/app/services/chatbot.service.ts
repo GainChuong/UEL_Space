@@ -78,10 +78,10 @@ export class ChatbotService {
   public sessionId = '';
 
   private defaultQuickPrompts = [
-    { icon: 'meeting', label: 'Phòng họp 10 người có máy chiếu', query: 'Tìm phòng họp khoảng 10 người có máy chiếu và màn hình 4K' },
-    { icon: 'study', label: 'Chỗ ngồi tự học yên tĩnh giá rẻ', query: 'Gợi ý bàn tự học yên tĩnh cho sinh viên giá tiết kiệm' },
-    { icon: 'pod', label: 'Focus Pod cách âm cá nhân', query: 'Tôi cần một Focus Pod cách âm để gọi điện và phỏng vấn trực tuyến' },
-    { icon: 'event', label: 'Hội trường sự kiện 100 khách', query: 'Tìm hội trường tổ chức sự kiện workshop khoảng 100 người' }
+    { icon: 'meeting', label: 'Phòng họp VIP 10 người có máy chiếu', query: 'Tìm phòng họp khoảng 10 người có máy chiếu và màn hình 4K' },
+    { icon: 'study', label: 'Bàn làm việc Hot Desk / Coworking', query: 'Gợi ý bàn làm việc linh hoạt Hot Desk Coworking yên tĩnh giá tiết kiệm' },
+    { icon: 'pod', label: 'Focus Pod cách âm riêng tư', query: 'Tôi cần một Focus Pod cách âm để gọi điện, họp đối tác và phỏng vấn trực tuyến' },
+    { icon: 'event', label: 'Hội trường sự kiện & Workshop 100 khách', query: 'Tìm hội trường tổ chức sự kiện workshop khoảng 100 người' }
   ];
 
   // Kho dữ liệu không gian cục bộ (Dùng cho Local Heuristics Fallback khi mất mạng)
@@ -219,7 +219,7 @@ export class ChatbotService {
     const welcomeMsg: ChatMessage = {
       id: 'welcome-init',
       sender: 'bot',
-      text: `Xin chào! Tôi là **Trợ lý Không gian UEL Space**, luôn sẵn sàng hỗ trợ bạn:\n\n- Tìm nhanh phòng họp, chòi tự học, hội trường phù hợp sĩ số & tiện ích.\n- Tra cứu lịch trống, đối chiếu bảng giá và hỗ trợ giữ chỗ trong 1 chạm.\n- Tự động đồng bộ Google Calendar và hướng dẫn thanh toán MoMo tiện lợi.\n\nBạn đang cần tìm không gian cho bao nhiêu người hoặc có nhu cầu đặc biệt nào không?`,
+      text: `Xin chào! Tôi là **Trợ lý Không gian UEL Space**, luôn sẵn sàng hỗ trợ bạn:\n\n- Tìm nhanh phòng họp VIP, văn phòng làm việc, hội trường sự kiện, studio sáng tạo & khu tự học linh hoạt.\n- Tra cứu lịch trống, đối chiếu bảng giá minh bạch và hỗ trợ đặt giữ chỗ tức thì trong 1 chạm.\n- Tự động đồng bộ lịch Google Calendar và hỗ trợ thanh toán MoMo / chuyển khoản tiện lợi.\n\nBạn đang cần tìm không gian cho mục đích gì hoặc quy mô bao nhiêu người?`,
       timestamp: new Date(),
       quickActions: this.defaultQuickPrompts,
       source: 'gemini',
@@ -471,7 +471,7 @@ export class ChatbotService {
       building: space.building,
       date: today,
       timeSlot: `${startTime} - ${endTime}`,
-      purpose: 'Học tập & Làm việc tự động hoá qua Chatbot UEL',
+      purpose: 'Thuê & Đặt chỗ không gian tự động hoá qua Chatbot UEL Space',
       bookerName: 'Khách hàng UEL Space'
     });
 
