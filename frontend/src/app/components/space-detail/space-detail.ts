@@ -152,6 +152,9 @@ export class SpaceDetailComponent implements OnInit {
     }
   }
 
+  // Recommended Similar Spaces State
+  recommendedSpaces: any[] = [];
+
   initCalendarAndReviews() {
     this.customDurationHours = this.googleCalendarService.calculateDuration(this.customStartTime, this.customEndTime);
     const rawUrl = this.googleCalendarService.generateEmbedUrl(this.space.name, 'AGENDA');
@@ -159,6 +162,39 @@ export class SpaceDetailComponent implements OnInit {
 
     // Nạp reviews và tính rating
     this.loadReviews();
+    // Nạp các không gian tương tự đề xuất
+    this.loadRecommendedSpaces();
+  }
+
+  loadRecommendedSpaces() {
+    const allSpaces = getFallbackMarketplaceSpaces().map(s => normalizeSpace(s));
+    const currentId = this.space._id || this.space.id || this.spaceId;
+    const currentCategory = (this.space.dataset?.category || this.space.datasetCategory || '').toLowerCase();
+    const currentType = (this.space.type || this.space.spaceType || '').toLowerCase();
+
+    // Lọc các phòng khác phòng hiện tại, ưu tiên cùng phân loại hoặc cùng loại hình
+    const otherSpaces = allSpaces.filter(s => (s._id || s.id) !== currentId);
+
+    const scored = otherSpaces.map(s => {
+      let score = 0;
+      const sCat = (s.dataset?.category || s.datasetCategory || '').toLowerCase();
+      const sType = (s.type || s.spaceType || '').toLowerCase();
+      if (sCat && currentCategory && sCat === currentCategory) score += 50;
+      if (sType && currentType && sType === currentType) score += 30;
+      if (s.status === 'available') score += 10;
+      return { ...s, score };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    this.recommendedSpaces = scored.slice(0, 4);
+  }
+
+  navigateToSpace(targetSpace: any) {
+    if (!targetSpace) return;
+    const targetId = targetSpace._id || targetSpace.id || targetSpace.code;
+    if (targetId) {
+      this.router.navigate(['/spaces', targetId]);
+    }
   }
 
   loadReviews() {
