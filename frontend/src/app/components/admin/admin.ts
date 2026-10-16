@@ -1847,7 +1847,8 @@ export class Admin implements OnInit, OnDestroy {
           spaceId: this.occSelectedSpace?.id || 'general',
           spaceName: this.occSelectedSpace?.name || 'UEL Space Room'
         }),
-        signal: AbortSignal.timeout(1800)
+        // Timeout 5s: đủ cho lần suy luận đầu tiên (cold start ~4s) mà không chặn quá lâu
+        signal: AbortSignal.timeout(5000)
       });
 
       if (!res.ok) {

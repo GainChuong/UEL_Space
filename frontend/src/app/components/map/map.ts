@@ -40,15 +40,15 @@ export class Map implements OnInit, AfterViewInit {
 
   // Dataset categories from FatimaSaadNaik/indoor-scenes-dataset
   categories = [
-    { id: 'all', name: 'Tất cả phân loại', en: 'All Categories', icon: 'grid', count: 10 },
-    { id: 'meeting_room', name: 'Phòng họp VIP', en: 'Meeting Room', icon: 'users', count: 2 },
-    { id: 'office', name: 'Văn phòng riêng', en: 'Private Office', icon: 'briefcase', count: 2 },
-    { id: 'library', name: 'Thư viện & Co-study', en: 'Library & Co-working', icon: 'book', count: 1 },
-    { id: 'classroom', name: 'Giảng đường đa năng', en: 'Smart Classroom', icon: 'graduation-cap', count: 1 },
-    { id: 'auditorium', name: 'Hội trường sự kiện', en: 'Auditorium Hall', icon: 'theater', count: 2 },
-    { id: 'computerroom', name: 'Phòng máy tính Lab', en: 'Computer Lab', icon: 'monitor', count: 1 },
-    { id: 'studio', name: 'Media Studio & Pod', en: 'Media Studio', icon: 'mic', count: 1 },
-    { id: 'lobby', name: 'Sảnh chờ & Pods', en: 'Lobby & Pods', icon: 'coffee', count: 1 }
+    { id: 'all', name: 'Tất cả phân loại', en: 'All Categories', icon: 'grid', count: 100 },
+    { id: 'meeting_room', name: 'Phòng họp VIP', en: 'Meeting Room', icon: 'users', count: 16 },
+    { id: 'office', name: 'Văn phòng riêng', en: 'Private Office', icon: 'briefcase', count: 16 },
+    { id: 'library', name: 'Thư viện & Co-study', en: 'Library & Co-working', icon: 'book', count: 12 },
+    { id: 'classroom', name: 'Giảng đường đa năng', en: 'Smart Classroom', icon: 'graduation-cap', count: 10 },
+    { id: 'auditorium', name: 'Hội trường sự kiện', en: 'Auditorium Hall', icon: 'theater', count: 12 },
+    { id: 'computerroom', name: 'Phòng máy tính Lab', en: 'Computer Lab', icon: 'monitor', count: 8 },
+    { id: 'studio', name: 'Media Studio & Pod', en: 'Media Studio', icon: 'mic', count: 8 },
+    { id: 'lobby', name: 'Sảnh chờ & Pods', en: 'Lobby & Pods', icon: 'coffee', count: 18 }
   ];
 
   // Room Statuses
@@ -271,7 +271,7 @@ export class Map implements OnInit, AfterViewInit {
       return dsCat === 'studio' || dsCat === 'tv_studio' || type.includes('studio') || name.includes('studio') || name.includes('podcast');
     }
     if (catLower === 'lobby') {
-      return dsCat === 'lobby' || dsCat === 'waitingroom' || type.includes('sảnh') || type.includes('pod') || name.includes('booth') || name.includes('lounge') || name.includes('lobby');
+      return dsCat === 'lobby' || dsCat === 'waitingroom' || dsCat === 'coworking_lounge' || type.includes('sảnh') || type.includes('pod') || name.includes('booth') || name.includes('lounge') || name.includes('lobby');
     }
     return false;
   }

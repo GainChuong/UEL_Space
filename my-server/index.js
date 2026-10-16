@@ -280,20 +280,48 @@ async function bootstrap() {
 }
 
 function ensureYoloAiService() {
+  const externalUrl = process.env.AI_SERVICE_URL;
   fetch('http://127.0.0.1:5001/health')
     .then(r => r.json())
     .then(data => {
       console.log(`🤖 YOLOv11 Computer Vision Microservice sẵn sàng (${data.model}) tại cổng 5001`);
     })
     .catch(() => {
+      // Nếu AI service được deploy tách riêng (Cloud) thì không tự khởi chạy cục bộ
+      if (externalUrl) {
+        console.log(`🤖 YOLOv11 Microservice cấu hình ngoài (AI_SERVICE_URL=${externalUrl}), bỏ qua khởi chạy cục bộ.`);
+        return;
+      }
+
       console.log('🚀 Đang khởi động SOTA YOLOv11 Computer Vision AI Service (port 5001)...');
       const { spawn } = require('child_process');
+      const fs = require('fs');
+      const path = require('path');
+
+      // BẮT BUỘC chuyển hướng stdout/stderr ra file log:
+      // nếu dùng stdio: 'ignore', tiến trình Python (py launcher + uvicorn)
+      // sẽ không khởi động được trên Windows.
+      const logPath = path.join(__dirname, 'src', 'ai-service', 'yolo_service.log');
+      let logFd = null;
+      try {
+        logFd = fs.openSync(logPath, 'a');
+      } catch (err) {
+        console.warn('Không mở được file log YOLO service:', err.message);
+      }
+
       const pyCmd = process.platform === 'win32' ? 'py' : 'python3';
       try {
         const aiProc = spawn(pyCmd, ['src/ai-service/yolo_service.py'], {
           cwd: __dirname,
           detached: true,
-          stdio: 'ignore'
+          stdio: logFd === null ? 'ignore' : ['ignore', logFd, logFd],
+          windowsHide: true,
+          // Ghi đè PORT: nếu không, tiến trình con kế thừa PORT=3000 của Express
+          // (hoặc PORT do Render cấp) và bị lỗi "address already in use".
+          env: { ...process.env, PORT: '5001' }
+        });
+        aiProc.on('error', (err) => {
+          console.warn(`Không thể khởi chạy YOLO service (${pyCmd}):`, err.message);
         });
         aiProc.unref();
       } catch (err) {
