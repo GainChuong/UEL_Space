@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
+import { BehaviorSubject, Observable, firstValueFrom, timeout } from 'rxjs';
 import { SERVER_IMAGES_LINK, SERVER_BASE_URL } from './api-config';
 import { GoogleCalendarService } from './google-calendar.service';
 
@@ -366,7 +366,9 @@ export class ChatbotService {
       };
 
       const res: any = await firstValueFrom(
-        this.http.post(`${SERVER_BASE_URL}/api/chatbot/message`, payload)
+        this.http.post(`${SERVER_BASE_URL}/api/chatbot/message`, payload).pipe(
+          timeout(3500)
+        )
       );
 
       if (res && res.ok && res.botReply) {
@@ -385,31 +387,29 @@ export class ChatbotService {
         return;
       }
     } catch (err) {
-      console.warn('[ChatbotService] API Backend không phản hồi, tự động kích hoạt Local Client Fallback:', err);
+      console.warn('[ChatbotService] API Backend không phản hồi kịp thời, kích hoạt ngay lập tức Local Client Fallback:', err);
     }
 
-    // 4. Nếu mất mạng hoàn toàn hoặc Server Backend chưa bật -> Kích hoạt Local Heuristics
-    setTimeout(() => {
-      const fallbackResult = this.processLocalFallback(trimmed);
-      const botReply: ChatMessage = {
-        id: 'bot-fallback-' + Date.now(),
-        sender: 'bot',
-        text: fallbackResult.replyText,
-        timestamp: new Date(),
-        suggestedSpaces: fallbackResult.recommendedSpaces,
-        quickActions: fallbackResult.recommendedSpaces.length === 0 ? this.defaultQuickPrompts : undefined,
-        source: 'local_fallback',
-        model: 'uel-rule-engine-v2'
-      };
+    // 4. Nếu mất mạng hoàn toàn hoặc Server Backend chưa bật -> Kích hoạt ngay lập tức Local Heuristics (0ms delay)
+    const fallbackResult = this.processLocalFallback(trimmed);
+    const botReply: ChatMessage = {
+      id: 'bot-fallback-' + Date.now(),
+      sender: 'bot',
+      text: fallbackResult.replyText,
+      timestamp: new Date(),
+      suggestedSpaces: fallbackResult.recommendedSpaces,
+      quickActions: fallbackResult.recommendedSpaces.length === 0 ? this.defaultQuickPrompts : undefined,
+      source: 'local_fallback',
+      model: 'uel-rule-engine-v2'
+    };
 
-      this.currentSourceSubject.next('local_fallback');
-      this.currentModelSubject.next('uel-rule-engine-v2');
+    this.currentSourceSubject.next('local_fallback');
+    this.currentModelSubject.next('uel-rule-engine-v2');
 
-      const finalList = [...this.messagesSubject.value, botReply];
-      this.messagesSubject.next(finalList);
-      this.saveToLocalStorage(finalList);
-      this.isThinkingSubject.next(false);
-    }, 500);
+    const finalList = [...this.messagesSubject.value, botReply];
+    this.messagesSubject.next(finalList);
+    this.saveToLocalStorage(finalList);
+    this.isThinkingSubject.next(false);
   }
 
   /**

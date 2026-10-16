@@ -10,6 +10,9 @@ class GeminiService {
   constructor() {
     this.apiKey = env.geminiApiKey || '';
     this.model = env.geminiModel || 'gemini-3.8-flash';
+    // Circuit Breaker: nếu API gặp lỗi 403 / 429 hoặc offline, tạm ngừng gọi trong 5 phút để tránh nghẽn
+    this.circuitBreakerUntil = 0;
+    this.failCount = 0;
   }
 
   /**
@@ -29,17 +32,19 @@ class GeminiService {
       equipment: Array.isArray(s.equipment) ? s.equipment : []
     }));
 
-    // 2. Thử gọi Google Gemini API với Structured Output JSON
-    if (this.apiKey) {
+    // 2. Thử gọi Google Gemini API nếu còn khả dụng và chưa bị ngắt bởi Circuit Breaker
+    const now = Date.now();
+    if (this.apiKey && now >= this.circuitBreakerUntil) {
       try {
         const geminiResult = await this.callGeminiWithTimeout({
           userMessage,
           history,
           spacesContext,
-          timeoutMs: 8000
+          timeoutMs: 3000 // Tối ưu thời gian chờ tối đa 3 giây
         });
 
         if (geminiResult && geminiResult.replyText) {
+          this.failCount = 0;
           return {
             ...geminiResult,
             source: 'gemini',
@@ -47,11 +52,19 @@ class GeminiService {
           };
         }
       } catch (err) {
-        console.warn('[GeminiService] Gemini API gặp sự cố, tự động kích hoạt Local Fallback:', err.message);
+        this.failCount++;
+        // Kích hoạt Circuit Breaker: Nếu bị từ chối truy cập (403/404) hoặc lỗi 2 lần liên tiếp -> cooldown 5 phút
+        const isAccessDenied = err.message.includes('denied') || err.message.includes('403') || err.message.includes('404');
+        if (isAccessDenied || this.failCount >= 2) {
+          this.circuitBreakerUntil = Date.now() + 5 * 60 * 1000;
+          console.warn(`[GeminiService] Kích hoạt Circuit Breaker trong 5 phút (Lỗi: ${err.message}). Chuyển sang Ultra-Fast Heuristic Engine.`);
+        } else {
+          console.warn('[GeminiService] Gemini API gặp sự cố, tự động kích hoạt Local Fallback:', err.message);
+        }
       }
     }
 
-    // 3. Fallback sang Local Heuristic Engine thông minh
+    // 3. Fallback sang Local Heuristic Engine thông minh siêu tốc (<5ms)
     const fallbackResult = this.runLocalHeuristicFallback(userMessage, spacesContext);
     return {
       ...fallbackResult,
