@@ -1,0 +1,678 @@
+<div class="min-h-screen bg-slate-50/70 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors pb-24">
+  
+  <!-- =========================================================================
+       TOP NAVIGATION BAR / BREADCRUMB
+       ========================================================================= -->
+  <nav class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-30 border-b border-slate-200/80 dark:border-slate-800 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between text-xs sm:text-sm font-medium">
+      <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+        <a routerLink="/map" class="hover:text-uel-blue dark:hover:text-sky-400 flex items-center gap-1.5 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          <span>{{ 'Tất cả không gian' | t }}</span>
+        </a>
+        <span>/</span>
+        <span class="text-slate-400 dark:text-slate-500">{{ space?.type || 'Không gian' }}</span>
+        <span>/</span>
+        <span class="font-bold text-dark-text dark:text-white truncate max-w-[200px] sm:max-w-[320px]">{{ space?.name }}</span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a routerLink="/map" class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+          <span class="hidden sm:inline">{{ 'Xem danh mục phòng' | t }}</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  @if (isLoading) {
+    <!-- Skeleton Loading State -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-pulse space-y-6">
+      <div class="h-8 bg-slate-200 dark:bg-slate-800 rounded-xl w-2/3"></div>
+      <div class="h-4 bg-slate-200 dark:bg-slate-800 rounded-lg w-1/3"></div>
+      <div class="h-[420px] bg-slate-200 dark:bg-slate-800 rounded-3xl w-full"></div>
+    </div>
+  } @else if (space) {
+    <!-- =========================================================================
+         AIRBNB-STYLE SPACE HEADER
+         ========================================================================= -->
+    <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2 flex-wrap mb-1.5">
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-uel-blue/10 text-uel-blue dark:text-sky-300 border border-uel-blue/20">
+              {{ space.type | t }}
+            </span>
+            @if (space.status === 'available') {
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                {{ 'Trống (Khả dụng ngay)' | t }}
+              </span>
+            } @else {
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                {{ space.statusText | t }}
+              </span>
+            }
+            @if (space.dataset?.category) {
+              <span class="px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px] font-mono text-emerald-600 dark:text-emerald-400">
+                #{{ space.dataset.category }}
+              </span>
+            }
+          </div>
+
+          <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-[#002B54] dark:text-sky-300 tracking-tight leading-tight">
+            {{ space.name }}
+          </h1>
+
+          <div class="flex items-center gap-3 text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 flex-wrap">
+            <div class="flex items-center gap-1 font-bold text-slate-800 dark:text-slate-100">
+              <span class="text-amber-500">★</span>
+              <span>{{ averageRating }}</span>
+              <span class="text-slate-400 font-normal">({{ totalReviewsCount }} {{ 'đánh giá' | t }})</span>
+            </div>
+            <span>•</span>
+            <span class="underline hover:text-uel-blue cursor-pointer">{{ space.building }}</span>
+            <span>•</span>
+            <span>{{ space.floor }}</span>
+            <span>•</span>
+            <span class="text-slate-400">{{ space.location }}</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 self-start md:self-auto">
+          <button type="button" 
+                  (click)="openGoogleCalendarExternal()"
+                  class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>Google Calendar</span>
+          </button>
+          <button type="button" 
+                  (click)="downloadIcsFile()"
+                  class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Tải file .ICS</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- =========================================================================
+         AIRBNB-STYLE PHOTO GRID GALLERY (HERO SECTION)
+         ========================================================================= -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-4">
+      <div class="relative rounded-3xl overflow-hidden shadow-md bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+        
+        <!-- Large Desktop Multi-photo Grid (1 Main + 4 Sub-thumbnails) -->
+        <div class="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-[460px] p-2 bg-slate-950">
+          <!-- Main Hero Image (Spans 2 columns & 2 rows) -->
+          <div class="col-span-2 row-span-2 relative rounded-2xl overflow-hidden group cursor-pointer"
+               (click)="setSelectedImage(0)">
+            <img [src]="getRawImageUrl(space.images ? space.images[0] : space.image)"
+                 [alt]="space.name"
+                 (error)="handleImageError($event)"
+                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103">
+            <div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
+            @if (space.dataset?.category) {
+              <div class="absolute top-4 left-4 px-3 py-1.5 rounded-xl bg-black/70 backdrop-blur-md text-emerald-300 text-xs font-mono border border-emerald-400/30">
+                Dataset: #{{ space.dataset.category }}
+              </div>
+            }
+          </div>
+
+          <!-- 4 Grid Photos -->
+          @for (img of (space.images || [space.image]).slice(1, 5); track $index) {
+            <div class="relative rounded-2xl overflow-hidden group cursor-pointer"
+                 (click)="setSelectedImage($index + 1)">
+              <img [src]="getRawImageUrl(img)"
+                   [alt]="space.name"
+                   (error)="handleImageError($event)"
+                   class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+              <div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
+            </div>
+          }
+        </div>
+
+        <!-- Mobile Carousel View -->
+        <div class="block md:hidden relative h-72 sm:h-96 w-full">
+          <img [src]="getMainImageUrl()"
+               [alt]="space.name"
+               (error)="handleImageError($event)"
+               class="w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+          
+          <!-- Prev / Next Controls -->
+          @if (space.images && space.images.length > 1) {
+            <button type="button" 
+                    (click)="prevImage()"
+                    class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 text-slate-800 shadow-md flex items-center justify-center cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button type="button" 
+                    (click)="nextImage()"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 text-slate-800 shadow-md flex items-center justify-center cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+
+            <!-- Counter -->
+            <div class="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/70 text-white text-xs font-medium backdrop-blur-md">
+              {{ selectedImageIndex + 1 }} / {{ space.images.length }}
+            </div>
+          }
+        </div>
+
+        <!-- Thumbnail Strip Switcher (Click to jump image or switch card) -->
+        @if (space.images && space.images.length > 1) {
+          <div class="p-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2 overflow-x-auto custom-scrollbar">
+            @for (img of space.images; track img; let i = $index) {
+              <button type="button"
+                      (click)="setSelectedImage(i)"
+                      class="relative w-20 h-14 rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer"
+                      [ngClass]="{
+                        'border-uel-blue dark:border-sky-400 ring-2 ring-uel-blue/30 scale-102': selectedImageIndex === i,
+                        'border-slate-200 dark:border-slate-700 opacity-60 hover:opacity-100': selectedImageIndex !== i
+                      }">
+                <img [src]="getRawImageUrl(img)" 
+                     alt="Thumbnail" 
+                     (error)="handleImageError($event)"
+                     class="w-full h-full object-cover">
+              </button>
+            }
+          </div>
+        }
+
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         MAIN TWO-COLUMN LAYOUT (LEFT: DETAILS & REVIEWS, RIGHT: STICKY BOOKING CARD)
+         ========================================================================= -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+
+        <!-- ==================== LEFT COLUMN: CONTENT (8 COLUMNS) ==================== -->
+        <div class="lg:col-span-7 xl:col-span-8 space-y-10">
+
+          <!-- 1. Host / Seller Profile Card (Airbnb Style) -->
+          <div class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs flex items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+              <div class="relative w-16 h-16 rounded-2xl overflow-hidden shrink-0 border-2 border-uel-blue/20">
+                <img [src]="space.seller?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop'"
+                     [alt]="space.seller?.brandName || space.seller?.name"
+                     class="w-full h-full object-cover">
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="font-extrabold text-base text-slate-900 dark:text-white">
+                    {{ space.seller?.brandName || space.seller?.name || 'TechPark Executive Spaces' }}
+                  </h3>
+                  <span class="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold" title="Đối tác đã xác thực">✓</span>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  {{ space.seller?.badge || 'SuperHost • Đối tác quản trị cơ sở vật chất UEL Space' }}
+                </p>
+                <div class="flex items-center gap-3 text-xs text-slate-600 dark:text-slate-300 mt-1 font-medium">
+                  <span>⭐ {{ space.seller?.rating || 4.96 }} đánh giá</span>
+                  <span>•</span>
+                  <span>{{ space.seller?.reviewsCount || 128 }} lượt phản hồi tích cực</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="hidden sm:flex flex-col items-end text-right">
+              <span class="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold">
+                Đối tác Hạng Vàng
+              </span>
+            </div>
+          </div>
+
+          <!-- 2. Room Key Attributes (Capacity, Floor, Area, Instant Booking) -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+              <span class="text-xs text-slate-400 block mb-1 font-semibold">{{ 'Sức chứa' | t }}</span>
+              <span class="text-lg font-black text-uel-blue dark:text-sky-400">{{ space.capacity }} {{ 'chỗ' | t }}</span>
+            </div>
+            <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+              <span class="text-xs text-slate-400 block mb-1 font-semibold">{{ 'Diện tích' | t }}</span>
+              <span class="text-lg font-black text-slate-900 dark:text-white">{{ space.areaSize }} m²</span>
+            </div>
+            <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+              <span class="text-xs text-slate-400 block mb-1 font-semibold">{{ 'Vị trí sàn' | t }}</span>
+              <span class="text-lg font-black text-slate-900 dark:text-white">{{ space.floor }}</span>
+            </div>
+            <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+              <span class="text-xs text-slate-400 block mb-1 font-semibold">{{ 'Đặt tức thì' | t }}</span>
+              <span class="text-lg font-black text-emerald-600 dark:text-emerald-400">1 Chạm</span>
+            </div>
+          </div>
+
+          <!-- 3. HuggingFace Dataset Metadata Context Card -->
+          @if (space.dataset?.caption) {
+            <div class="p-6 rounded-3xl bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/60 shadow-xs">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span class="text-xs font-mono font-bold text-emerald-900 dark:text-emerald-300 uppercase tracking-wider">
+                    Hugging Face AI Dataset: {{ space.dataset.name }}
+                  </span>
+                </div>
+                <span class="text-xs font-mono text-emerald-700 dark:text-emerald-400 bg-white/70 dark:bg-slate-900/60 px-2.5 py-1 rounded-lg border border-emerald-300/40">
+                  {{ space.dataset.fileName }}
+                </span>
+              </div>
+              <p class="text-sm text-emerald-950 dark:text-emerald-100 italic leading-relaxed">
+                “{{ space.dataset.caption }}”
+              </p>
+            </div>
+          }
+
+          <!-- 4. Facilities & Equipment (Airbnb Style) -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-5 flex items-center gap-2">
+              <span>{{ 'Tiện ích & Trang thiết bị có sẵn' | t }}</span>
+              <span class="text-xs text-slate-400 font-normal">({{ space.facilities?.length || 0 }} mục)</span>
+            </h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              @for (item of space.facilities; track item) {
+                <div class="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                  <div class="w-8 h-8 rounded-xl bg-uel-blue/10 text-uel-blue dark:text-sky-400 flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">{{ item }}</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- 5. Today's Shift Schedule (Live Availability) -->
+          @if (space.todaySlots && space.todaySlots.length > 0) {
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+              <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                {{ 'Khung giờ sử dụng hôm nay' | t }}
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mb-5">
+                {{ 'Hệ thống cập nhật thời gian thực dựa trên cảm biến AI Occupancy & lịch đặt chỗ.' | t }}
+              </p>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                @for (slot of space.todaySlots; track slot.period) {
+                  <div class="p-3 rounded-2xl border flex items-center justify-between text-xs font-semibold"
+                       [ngClass]="{
+                         'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300': slot.status === 'available',
+                         'bg-uel-blue/8 dark:bg-sky-950/30 border-uel-blue/20 dark:border-sky-800 text-uel-blue dark:text-sky-300': slot.status === 'in-use',
+                         'bg-amber-50/70 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300': slot.status === 'reserved'
+                       }">
+                    <span>{{ slot.period }}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                          [ngClass]="{
+                            'bg-emerald-200 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-200': slot.status === 'available',
+                            'bg-uel-blue/20 text-uel-blue dark:text-sky-300': slot.status === 'in-use',
+                            'bg-amber-200 text-amber-900': slot.status === 'reserved'
+                          }">
+                      {{ slot.text }}
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- =========================================================================
+               6. REVIEWS & COMMENTS SECTION (AIRBNB STYLE - RICH MOCK DATA)
+               ========================================================================= -->
+          <section id="reviews-section" class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-8">
+            
+            <!-- Overall Rating Header (Airbnb Style) -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
+              <div class="flex items-center gap-3">
+                <div class="text-4xl sm:text-5xl font-black text-[#002B54] dark:text-sky-400 flex items-center gap-1.5">
+                  <span class="text-amber-400">★</span>
+                  <span>{{ averageRating }}</span>
+                </div>
+                <div>
+                  <h2 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
+                    {{ totalReviewsCount }} {{ 'lượt đánh giá từ khách thuê thực tế' | t }}
+                  </h2>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    100% đánh giá từ khách hàng đã hoàn thành phiên làm việc tại UEL Space
+                  </p>
+                </div>
+              </div>
+
+              <!-- Star Rating Filter Chips -->
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <button type="button" 
+                        (click)="filterReviewsByRating(0)"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                        [ngClass]="activeRatingFilter === 0 ? 'bg-uel-blue text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'">
+                  {{ 'Tất cả' | t }}
+                </button>
+                <button type="button" 
+                        (click)="filterReviewsByRating(5)"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                        [ngClass]="activeRatingFilter === 5 ? 'bg-uel-blue text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'">
+                  <span>5 ★</span>
+                </button>
+                <button type="button" 
+                        (click)="filterReviewsByRating(4)"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                        [ngClass]="activeRatingFilter === 4 ? 'bg-uel-blue text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'">
+                  <span>4 ★</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Write a Comment Form Card -->
+            <div class="p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80">
+              <h3 class="text-base font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>{{ 'Chia sẻ trải nghiệm của bạn về không gian này' | t }}</span>
+              </h3>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-3">
+                <!-- Author Name -->
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Tên của bạn</label>
+                  <input type="text"
+                         [(ngModel)]="newCommentAuthorName"
+                         placeholder="VD: ThS. Minh Quân..."
+                         class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs focus:ring-2 focus:ring-uel-blue">
+                </div>
+
+                <!-- Rating -->
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Mức độ hài lòng</label>
+                  <select [(ngModel)]="newCommentRating"
+                          class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold focus:ring-2 focus:ring-uel-blue">
+                    <option [value]="5">⭐⭐⭐⭐⭐ Tuyệt vời (5/5)</option>
+                    <option [value]="4">⭐⭐⭐⭐ Rất tốt (4/5)</option>
+                    <option [value]="3">⭐⭐⭐ Hài lòng (3/5)</option>
+                  </select>
+                </div>
+
+                <!-- Purpose -->
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Mục đích thuê</label>
+                  <input type="text"
+                         [(ngModel)]="newCommentPurpose"
+                         placeholder="VD: Họp dự án, Workshop..."
+                         class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs focus:ring-2 focus:ring-uel-blue">
+                </div>
+              </div>
+
+              <!-- Comment Textarea -->
+              <div class="mt-2">
+                <textarea [(ngModel)]="newCommentText"
+                          rows="3"
+                          placeholder="Không gian có yên tĩnh không? Thiết bị màn hình, micro, điều hòa hoạt động như thế nào?..."
+                          class="w-full p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-uel-blue resize-none"></textarea>
+              </div>
+
+              <div class="flex items-center justify-between mt-3">
+                <span class="text-[11px] text-slate-400">Đánh giá sẽ hiển thị công khai ngay lập tức</span>
+                <button type="button"
+                        (click)="submitNewComment()"
+                        [disabled]="!newCommentText.trim() || isSubmittingComment"
+                        class="px-5 py-2.5 rounded-xl bg-uel-blue hover:bg-uel-blue/90 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs cursor-pointer">
+                  {{ 'Gửi đánh giá' | t }}
+                </button>
+              </div>
+
+              @if (commentSuccessToast) {
+                <div class="mt-3 p-3 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-xs font-bold flex items-center gap-2">
+                  <span>✓</span> Cảm ơn bạn! Đánh giá đã được xuất bản thành công trên trang phòng.
+                </div>
+              }
+            </div>
+
+            <!-- Comments Stream (Airbnb 2-Column Grid on Desktop) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              @for (rev of filteredReviews; track rev.id) {
+                <div class="p-5 rounded-2xl bg-white dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between gap-3 shadow-2xs hover:shadow-xs transition-shadow">
+                  
+                  <div>
+                    <!-- Review Author Header -->
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
+                          <img [src]="rev.userAvatar" [alt]="rev.userName" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                          <div class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <span>{{ rev.userName }}</span>
+                            @if (rev.verifiedStay) {
+                              <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded">Đã thuê</span>
+                            }
+                          </div>
+                          <p class="text-[11px] text-slate-400 truncate max-w-[200px]">
+                            {{ rev.userRole || rev.organization }}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div class="text-right">
+                        <div class="text-amber-400 text-xs font-bold">
+                          {{ '★'.repeat(rev.rating) }}
+                        </div>
+                        <span class="text-[10px] text-slate-400">{{ rev.date }}</span>
+                      </div>
+                    </div>
+
+                    <!-- Purpose badge -->
+                    @if (rev.rentalPurpose) {
+                      <div class="mb-2">
+                        <span class="text-[10px] font-semibold text-uel-blue dark:text-sky-300 bg-uel-blue/5 dark:bg-sky-950/40 px-2 py-0.5 rounded-md">
+                          Mục đích: {{ rev.rentalPurpose }}
+                        </span>
+                      </div>
+                    }
+
+                    <!-- Comment Body -->
+                    <p class="text-xs sm:text-[13px] text-slate-700 dark:text-slate-300 leading-relaxed">
+                      {{ rev.comment }}
+                    </p>
+
+                    <!-- Host Reply if any (Airbnb SuperHost style) -->
+                    @if (rev.reply) {
+                      <div class="mt-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/80 border-l-3 border-uel-blue text-xs text-slate-600 dark:text-slate-300">
+                        <div class="flex items-center gap-1.5 font-bold text-uel-blue dark:text-sky-400 mb-1">
+                          <span>Phản hồi từ Chủ gian hàng ({{ rev.reply.hostName }}):</span>
+                        </div>
+                        <p class="italic text-[12px] leading-relaxed">{{ rev.reply.comment }}</p>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Review Footer: Like counter -->
+                  <div class="pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-xs text-slate-400">
+                    <button type="button" 
+                            (click)="toggleReviewLike(rev)"
+                            class="flex items-center gap-1.5 hover:text-uel-blue cursor-pointer transition-colors"
+                            [ngClass]="{ 'text-pink-600 font-bold': rev.userLiked }">
+                      <span>{{ rev.userLiked ? '❤️' : '🤍' }}</span>
+                      <span>Hữu ích ({{ rev.likes }})</span>
+                    </button>
+                    <span class="text-[11px]">Đã xác thực phòng</span>
+                  </div>
+
+                </div>
+              }
+            </div>
+
+          </section>
+
+        </div>
+
+        <!-- ==================== RIGHT COLUMN: AIRBNB STICKY BOOKING CARD (4-5 COLUMNS) ==================== -->
+        <div class="lg:col-span-5 xl:col-span-4">
+          <div class="sticky top-20 bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-slate-200/90 dark:border-slate-800 shadow-xl space-y-6">
+            
+            <!-- Price Header -->
+            <div class="flex items-baseline justify-between pb-5 border-b border-slate-100 dark:border-slate-800">
+              <div>
+                <span class="text-2xl sm:text-3xl font-black text-uel-blue dark:text-sky-400">
+                  {{ space.hourlyPrice | number }}đ
+                </span>
+                <span class="text-xs text-slate-400 font-medium"> / giờ</span>
+              </div>
+              <div class="flex items-center gap-1 text-xs font-bold text-slate-700 dark:text-slate-200">
+                <span class="text-amber-400">★</span>
+                <span>{{ averageRating }}</span>
+                <span class="text-slate-400 underline cursor-pointer">({{ totalReviewsCount }})</span>
+              </div>
+            </div>
+
+            <!-- Booking Inputs Box (Date + Time Selector) -->
+            <div class="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden text-xs">
+              <!-- Date row -->
+              <div class="p-3 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700">
+                <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">{{ 'Ngày sử dụng' | t }}</label>
+                <input type="date"
+                       [(ngModel)]="customBookingDate"
+                       (change)="onTimeOrDateChange()"
+                       class="w-full bg-transparent font-bold text-slate-800 dark:text-slate-100 focus:outline-hidden">
+              </div>
+
+              <!-- Time row -->
+              <div class="grid grid-cols-2 divide-x divide-slate-200 dark:divide-slate-700">
+                <div class="p-3 bg-white dark:bg-slate-900">
+                  <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">{{ 'Bắt đầu' | t }}</label>
+                  <input type="time"
+                         [(ngModel)]="customStartTime"
+                         (change)="onTimeOrDateChange()"
+                         class="w-full bg-transparent font-bold text-slate-800 dark:text-slate-100 focus:outline-hidden">
+                </div>
+                <div class="p-3 bg-white dark:bg-slate-900">
+                  <label class="block text-[10px] uppercase font-bold text-slate-400 mb-1">{{ 'Kết thúc' | t }}</label>
+                  <input type="time"
+                         [(ngModel)]="customEndTime"
+                         (change)="onTimeOrDateChange()"
+                         class="w-full bg-transparent font-bold text-slate-800 dark:text-slate-100 focus:outline-hidden">
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Presets -->
+            <div>
+              <span class="text-[11px] font-bold text-slate-400 block mb-2">{{ 'Ca đặt đề xuất (Google Calendar):' | t }}</span>
+              <div class="grid grid-cols-2 gap-1.5">
+                @for (preset of suggestedGoogleSlots; track preset.period) {
+                  <button type="button"
+                          (click)="selectGooglePresetSlot(preset)"
+                          class="p-2 rounded-xl border text-left transition-all cursor-pointer text-xs"
+                          [ngClass]="{
+                            'ring-2 ring-uel-blue border-uel-blue bg-uel-blue/10 dark:bg-sky-950/40 font-bold': customStartTime === preset.start && customEndTime === preset.end,
+                            'border-slate-200 dark:border-slate-700 hover:border-uel-blue/50': customStartTime !== preset.start || customEndTime !== preset.end
+                          }">
+                    <div class="font-bold text-[11px] truncate">{{ preset.label | t }}</div>
+                    <div class="text-[10px] text-slate-400 font-mono">{{ preset.period }}</div>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Main CTA Button -->
+            <div>
+              @if (!bookingSuccess) {
+                <button type="button"
+                        (click)="proceedDirectBooking()"
+                        [disabled]="space.status !== 'available'"
+                        class="w-full py-3.5 px-4 rounded-2xl text-white font-extrabold text-sm sm:text-base shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
+                        [ngClass]="{
+                          'bg-gradient-to-r from-uel-blue via-[#003B71] to-[#0284c7] hover:scale-101 active:scale-98 shadow-uel-blue/30': space.status === 'available',
+                          'bg-slate-300 dark:bg-slate-700 cursor-not-allowed opacity-60 shadow-none': space.status !== 'available'
+                        }">
+                  <span>⚡</span>
+                  <span>{{ (space.status === 'available' ? 'Đặt phòng này ngay' : 'Không gian hiện chưa trống') | t }}</span>
+                </button>
+                <p class="text-center text-[11px] text-slate-400 mt-2">
+                  Bạn chưa bị trừ tiền cho đến khi quét mã MoMo xác nhận
+                </p>
+              } @else {
+                <!-- Success State Box -->
+                <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-center space-y-2">
+                  <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto text-lg font-bold">✓</div>
+                  <h4 class="font-extrabold text-sm text-emerald-900 dark:text-emerald-200">Đặt chỗ thành công!</h4>
+                  <p class="text-xs text-emerald-800 dark:text-emerald-300 font-mono">Mã: {{ confirmedBookingCode }}</p>
+                  <p class="text-[11px] text-emerald-700 dark:text-emerald-400">Đã đồng bộ lịch vào Google Calendar</p>
+                </div>
+              }
+            </div>
+
+            <!-- Price Breakdown Calculation -->
+            <div class="space-y-2 text-xs text-slate-600 dark:text-slate-300 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <div class="flex items-center justify-between">
+                <span>{{ space.hourlyPrice | number }}đ × {{ customDurationHours }} giờ</span>
+                <span>{{ calculateTotalPrice() | number }}đ</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>Phí dịch vụ UEL Campus</span>
+                <span class="text-emerald-600 font-bold">Miễn phí 0đ</span>
+              </div>
+              <div class="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700 font-bold text-sm text-slate-900 dark:text-white">
+                <span>Tổng cộng (Tạm tính)</span>
+                <span class="text-uel-blue dark:text-sky-400 font-black text-base">{{ calculateTotalPrice() | number }} VNĐ</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- =========================================================================
+       MOMO PAYMENT GATEWAY MODAL (TEST SANDBOX)
+       ========================================================================= -->
+  @if (momoModal.isOpen) {
+    <div class="fixed inset-0 z-[10005] flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/70 backdrop-blur-xs" (click)="closeMomoModal()"></div>
+      <div class="relative bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-800 animate-[fade-in-up_0.2s_ease-out] text-center space-y-4">
+        
+        <div class="w-14 h-14 rounded-2xl bg-[#a50064] text-white flex items-center justify-center mx-auto shadow-md font-bold text-xl">
+          MoMo
+        </div>
+
+        <div>
+          <h3 class="text-xl font-black text-slate-900 dark:text-white">Cổng Thanh Toán MoMo Sandbox</h3>
+          <p class="text-xs text-slate-400 mt-1">Quét mã QR hoặc xác nhận thanh toán thử nghiệm</p>
+        </div>
+
+        <div class="p-4 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+          <div class="text-2xl font-black text-[#a50064]">
+            {{ momoModal.amount | number }} VNĐ
+          </div>
+
+          @if (momoModal.qrCodeUrl) {
+            <div class="w-48 h-48 mx-auto bg-white p-2 rounded-xl shadow-xs border">
+              <img [src]="momoModal.qrCodeUrl" alt="MoMo QR" class="w-full h-full object-contain">
+            </div>
+          }
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button type="button" 
+                  (click)="closeMomoModal()"
+                  class="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 cursor-pointer">
+            Hủy bỏ
+          </button>
+          <button type="button"
+                  (click)="confirmMomoPaymentSuccess()"
+                  class="flex-1 py-3 rounded-xl bg-[#a50064] hover:bg-[#80004e] text-white text-xs font-bold transition-all shadow-md cursor-pointer">
+            Xác nhận thanh toán
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Toast Notification -->
+  @if (showToast) {
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl bg-slate-900/90 text-white text-xs font-bold shadow-2xl backdrop-blur-md border border-slate-700 animate-fade-in flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+      <span>{{ toastMessage }}</span>
+    </div>
+  }
+
+</div>

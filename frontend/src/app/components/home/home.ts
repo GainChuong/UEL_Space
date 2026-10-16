@@ -1,7 +1,7 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { SERVER_BASE_URL, SERVER_IMAGES_LINK } from '../../services/api-config';
 import { TranslatePipe } from '../../services/translate.pipe';
@@ -30,8 +30,20 @@ export interface SpaceItem {
   styleUrl: './home.scss',
 })
 export class Home implements OnInit {
+  private router = inject(Router);
   server_images_link = SERVER_IMAGES_LINK;
   searchQuery: string = '';
+
+  openSpaceDetail(space: any, event?: Event) {
+    if (event) event.stopPropagation();
+    if (!space) return;
+    const targetId = space._id || space.id || space.code;
+    if (targetId) {
+      this.router.navigate(['/spaces', targetId]);
+    } else {
+      this.openBookingModal(space);
+    }
+  }
   selectedDateFilter: string = 'Hôm nay';
   selectedTimeSlot: string = '08:00 - 17:00';
   selectedCapacity: string = 'all';

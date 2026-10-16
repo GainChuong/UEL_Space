@@ -195,7 +195,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
         @for (space of paginatedSpaces; track (space._id || space.id)) {
           <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col overflow-hidden group cursor-pointer"
-               (click)="openBookingModal(space)">
+               (click)="openSpaceDetail(space)">
 
             <!-- Room Image Container -->
             <div class="relative w-full aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-800">
@@ -290,7 +290,7 @@
 
                 <div class="flex items-center gap-1.5" (click)="$event.stopPropagation()">
                   <button type="button"
-                          (click)="openBookingModal(space)"
+                          (click)="openSpaceDetail(space, $event)"
                           class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
                           title="{{ 'Xem chi tiết' | t }}">
                     {{ 'Chi tiết' | t }}

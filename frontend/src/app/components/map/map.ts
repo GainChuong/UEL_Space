@@ -1,6 +1,7 @@
-import { Component, OnInit, AfterViewInit, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ChangeDetectorRef, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { SERVER_IMAGES_LINK, SERVER_BASE_URL } from '../../services/api-config';
 import { TranslatePipe } from '../../services/translate.pipe';
@@ -8,12 +9,13 @@ import { GoogleCalendarService } from '../../services/google-calendar.service';
 import { normalizeSpace, getFallbackMarketplaceSpaces } from '../../services/spaces-data';
 
 @Component({
-  imports: [CommonModule, FormsModule, TranslatePipe],
+  imports: [CommonModule, FormsModule, RouterModule, TranslatePipe],
   selector: 'app-map',
   styleUrl: './map.scss',
   templateUrl: './map.html',
 })
 export class Map implements OnInit, AfterViewInit {
+  private router = inject(Router);
   server_images_link = SERVER_IMAGES_LINK;
   
   // Selection & Modal States
@@ -511,8 +513,14 @@ export class Map implements OnInit, AfterViewInit {
     }
   }
 
-  // Room Detail & Booking Modal Controllers
+  // Room Detail & Booking Modal Controllers: Mở sang trang chi tiết chuyên biệt (/spaces/:id)
   openRoomDetail(room: any) {
+    if (!room) return;
+    const targetId = room._id || room.id || room.code;
+    if (targetId) {
+      this.router.navigate(['/spaces', targetId]);
+      return;
+    }
     this.selectedRoomDetail = normalizeSpace(room);
     this.cdr.detectChanges();
   }
