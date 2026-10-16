@@ -1792,13 +1792,12 @@ export class Admin implements OnInit, OnDestroy {
   private handleServerYoloFailure(): void {
     this.occServerFailCount++;
     this.occServerStatus = 'offline';
-    // Circuit breaker: sau 3 lần liên tiếp lỗi thì ngừng gọi server 15s
-    // (tránh spam 503 mỗi frame, Client AI sẽ thay thế trong lúc này)
-    if (this.occServerFailCount >= 3) {
-      this.occServerCooldownUntil = performance.now() + 15000;
-      this.markServerAiOffline();
-      this.cdr.detectChanges();
-    }
+    // Circuit breaker: Nếu server trả về 503 hoặc lỗi kết nối, lập tức hạ cánh an toàn sang Client Edge AI
+    // Tự động chuyển mode sang 'client' để ngừng hoàn toàn các cuộc gọi lên server
+    this.occEngineMode = 'client';
+    this.occServerCooldownUntil = performance.now() + 60000; // Cooldown 60s
+    this.markServerAiOffline();
+    this.cdr.detectChanges();
   }
 
   private resetServerYoloHealth(): void {
@@ -1925,19 +1924,26 @@ export class Admin implements OnInit, OnDestroy {
       const currentBackend = tf.getBackend();
       console.log('TensorFlow.js ready on backend:', currentBackend);
 
-      const cocoSsd = await import('@tensorflow-models/coco-ssd');
-      
+      const cocoSsdModule: any = await import('@tensorflow-models/coco-ssd');
+      const cocoLoadFn = typeof cocoSsdModule.load === 'function'
+        ? cocoSsdModule.load
+        : (cocoSsdModule.default && typeof cocoSsdModule.default.load === 'function' ? cocoSsdModule.default.load : null);
+
       // Tải mô hình Pretrained COCO-SSD SOTA (Lite MobileNetV2 siêu tốc hoặc MobileNetV2)
       let loadedModel: any = null;
-      try {
-        loadedModel = await cocoSsd.load({ base: 'lite_mobilenet_v2' });
-      } catch (e1) {
-        console.warn('lite_mobilenet_v2 failed, fallback to default coco-ssd:', e1);
+      if (typeof cocoLoadFn === 'function') {
         try {
-          loadedModel = await cocoSsd.load();
-        } catch (e2) {
-          console.warn('Default cocoSsd also failed:', e2);
+          loadedModel = await cocoLoadFn({ base: 'lite_mobilenet_v2' });
+        } catch (e1) {
+          console.warn('lite_mobilenet_v2 failed, fallback to default coco-ssd:', e1);
+          try {
+            loadedModel = await cocoLoadFn();
+          } catch (e2) {
+            console.warn('Default cocoSsd also failed:', e2);
+          }
         }
+      } else {
+        console.warn('COCO-SSD module does not export a load function directly or as default:', cocoSsdModule);
       }
 
       if (loadedModel) {
