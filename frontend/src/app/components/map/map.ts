@@ -517,6 +517,34 @@ export class Map implements OnInit, AfterViewInit {
     this.cdr.detectChanges();
   }
 
+  switchSpaceByImage(targetImg: string) {
+    if (!targetImg) return;
+    const cleanTarget = targetImg.replace(/^\//, '');
+
+    // 1. Tìm xem có space nào có ảnh chính hoặc mã tương ứng với ảnh này không
+    const matchedSpace = this.spaces.find(s => {
+      const mainImg = (s.image || '').replace(/^\//, '');
+      if (mainImg === cleanTarget || mainImg.includes(cleanTarget) || cleanTarget.includes(mainImg)) {
+        return true;
+      }
+      // Khớp theo ID ảnh (ví dụ: indoor_meeting_room_3)
+      const targetId = cleanTarget.replace(/\.[^/.]+$/, '').replace(/^spaces\//, '');
+      if (s._id === targetId || s.id === targetId || s.code === targetId) {
+        return true;
+      }
+      return false;
+    });
+
+    if (matchedSpace && (matchedSpace._id || matchedSpace.id) !== (this.selectedRoomDetail?._id || this.selectedRoomDetail?.id)) {
+      this.selectedRoomDetail = normalizeSpace(matchedSpace);
+      this.cdr.detectChanges();
+    } else if (this.selectedRoomDetail) {
+      // Nếu không tìm thấy space card khác, chuyển ảnh hiển thị chính của space hiện tại
+      this.selectedRoomDetail.image = targetImg;
+      this.cdr.detectChanges();
+    }
+  }
+
   closeRoomDetail() {
     this.selectedRoomDetail = null;
     this.cdr.detectChanges();

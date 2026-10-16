@@ -452,7 +452,13 @@
         @if (selectedRoomDetail.images && selectedRoomDetail.images.length > 1) {
           <div class="flex items-center gap-2 overflow-x-auto pb-1">
             @for (img of selectedRoomDetail.images; track img) {
-              <div class="w-16 h-12 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 cursor-pointer">
+              <div class="w-16 h-12 rounded-xl overflow-hidden border-2 shrink-0 cursor-pointer transition-all hover:scale-105"
+                   [ngClass]="{
+                     'border-uel-blue dark:border-sky-400 ring-2 ring-uel-blue/30 shadow-md': (selectedRoomDetail.image === img || (selectedRoomDetail.images && selectedRoomDetail.images[0] === img && !selectedRoomDetail.image)),
+                     'border-slate-200 dark:border-slate-700 opacity-75 hover:opacity-100': !(selectedRoomDetail.image === img || (selectedRoomDetail.images && selectedRoomDetail.images[0] === img && !selectedRoomDetail.image))
+                   }"
+                   (click)="switchSpaceByImage(img)"
+                   [title]="'Xem chi tiết không gian này' | t">
                 <img [src]="getRawImageUrl(img)" 
                      alt="Preview"
                      (error)="handleImageError($event)"
