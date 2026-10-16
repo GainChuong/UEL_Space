@@ -288,8 +288,16 @@ export class Map implements OnInit, AfterViewInit {
     return this.getRawImageUrl(img);
   }
 
+  defaultFallbackImage = 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format&fit=crop&q=80';
+
+  handleImageError(event: any) {
+    if (event && event.target && event.target.src !== this.defaultFallbackImage) {
+      event.target.src = this.defaultFallbackImage;
+    }
+  }
+
   getRawImageUrl(img: string): string {
-    if (!img) return 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format&fit=crop&q=80';
+    if (!img) return this.defaultFallbackImage;
     if (img.startsWith('http://') || img.startsWith('https://')) return img;
     return `${this.server_images_link}${img.replace(/^\//, '')}`;
   }
