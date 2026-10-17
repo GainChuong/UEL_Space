@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
 import { ReviewsService, SpaceReview } from '../../services/reviews.service';
+import { SellersService, SellerProfile } from '../../services/sellers.service';
 import { getFallbackMarketplaceSpaces, normalizeSpace } from '../../services/spaces-data';
 import { SERVER_BASE_URL, SERVER_IMAGES_LINK } from '../../services/api-config';
 import { TranslatePipe } from '../../services/translate.pipe';
@@ -21,6 +22,7 @@ export class SpaceDetailComponent implements OnInit {
   private router = inject(Router);
   private googleCalendarService = inject(GoogleCalendarService);
   private reviewsService = inject(ReviewsService);
+  private sellersService = inject(SellersService);
   private sanitizer = inject(DomSanitizer);
   private cdr = inject(ChangeDetectorRef);
 
@@ -28,6 +30,13 @@ export class SpaceDetailComponent implements OnInit {
   space: any = null;
   isLoading: boolean = true;
   selectedImageIndex: number = 0;
+
+  // Seller Profile Modal State
+  showSellerModal: boolean = false;
+  selectedSellerProfile: SellerProfile | null = null;
+  sellerSpaces: any[] = [];
+  activeSellerTab: 'spaces' | 'reviews' | 'about' = 'spaces';
+  copiedSellerLink: boolean = false;
 
   // Reviews & Comments State
   reviews: SpaceReview[] = [];
@@ -99,6 +108,14 @@ export class SpaceDetailComponent implements OnInit {
         this.loadSpaceDetails(this.spaceId);
       } else {
         this.router.navigate(['/map']);
+      }
+    });
+
+    // Mở trực tiếp Seller Modal nếu có ?seller=xxx trên URL
+    this.route.queryParamMap.subscribe(queryParams => {
+      const sellerQuery = queryParams.get('seller');
+      if (sellerQuery) {
+        setTimeout(() => this.openSellerModal(sellerQuery), 350);
       }
     });
   }
@@ -409,5 +426,58 @@ export class SpaceDetailComponent implements OnInit {
       this.showToast = false;
       this.cdr.detectChanges();
     }, 3000);
+  }
+
+  // ==================== SELLER PROFILE MODAL ACTIONS ====================
+  openSellerModal(sellerIdOrBrand?: string): void {
+    const targetId = sellerIdOrBrand || 
+                     this.space?.sellerId || 
+                     this.space?.seller?.id || 
+                     this.space?.seller?.code ||
+                     this.space?.seller?.brandName || 
+                     this.space?.seller?.name ||
+                     'seller-techpark';
+
+    const profile = this.sellersService.getSellerById(targetId);
+    if (profile) {
+      this.selectedSellerProfile = profile;
+      this.sellerSpaces = this.sellersService.getSpacesBySeller(profile.id);
+      this.activeSellerTab = 'spaces';
+      this.showSellerModal = true;
+      this.cdr.detectChanges();
+    } else {
+      this.triggerToast('Không tìm thấy thông tin đối tác cho thuê.');
+    }
+  }
+
+  closeSellerModal(): void {
+    this.showSellerModal = false;
+    this.cdr.detectChanges();
+  }
+
+  switchSellerTab(tab: 'spaces' | 'reviews' | 'about'): void {
+    this.activeSellerTab = tab;
+    this.cdr.detectChanges();
+  }
+
+  navigateToSpaceFromSeller(spaceId: string): void {
+    this.closeSellerModal();
+    if (spaceId) {
+      this.router.navigate(['/spaces', spaceId]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  copySellerProfileLink(): void {
+    if (typeof window !== 'undefined' && navigator.clipboard) {
+      const shareUrl = `${window.location.origin}/spaces/${this.space?.id || ''}?seller=${this.selectedSellerProfile?.id || ''}`;
+      navigator.clipboard.writeText(shareUrl);
+      this.copiedSellerLink = true;
+      this.triggerToast('Đã sao chép liên kết hồ sơ đối tác vào bộ nhớ tạm!');
+      setTimeout(() => {
+        this.copiedSellerLink = false;
+        this.cdr.detectChanges();
+      }, 2500);
+    }
   }
 }

@@ -57,7 +57,9 @@ export function normalizeSpace(space: any) {
       dailyPrice: dailyPrice,
       rating: space.rating || 4.9,
       reviewsCount: space.reviewsCount || 45,
+      sellerId: space.sellerId || (space.seller && space.seller.id) || 'seller-uel',
       seller: space.seller || {
+        id: 'seller-uel',
         name: 'Ban Quản trị UEL Space',
         brandName: 'Ban Quản trị Cơ sở vật chất UEL Space',
         avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop',

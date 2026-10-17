@@ -38,6 +38,7 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     isSuccess: boolean;
     momoQrUrl: string;
     googleCalendarUrl: string;
+    showQr: boolean;
   } = {
     isOpen: false,
     space: null,
@@ -47,7 +48,8 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     isProcessing: false,
     isSuccess: false,
     momoQrUrl: '',
-    googleCalendarUrl: ''
+    googleCalendarUrl: '',
+    showQr: false
   };
 
   currentModel = 'gemini-3.8-flash';
@@ -236,7 +238,8 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
       isProcessing: false,
       isSuccess: false,
       momoQrUrl: qrUrl,
-      googleCalendarUrl
+      googleCalendarUrl,
+      showQr: false
     };
   }
 
@@ -244,11 +247,21 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.quickBookModal.isOpen = false;
   }
 
-  confirmQuickBookingSuccess(): void {
+  /**
+   * Kích hoạt ra mã QR thanh toán
+   */
+  activateQrCode(): void {
+    this.quickBookModal.showQr = true;
+  }
+
+  /**
+   * Quét xong mock-up hiện thanh toán thành công và tự động đóng modal quay về đoạn chat
+   */
+  simulateScanSuccess(): void {
     if (!this.quickBookModal.space) return;
     this.quickBookModal.isProcessing = true;
 
-    // Giả lập kết nối API xác nhận thanh toán MoMo Sandbox / Đặt chỗ
+    // Giả lập quét QR và xử lý giao dịch thanh toán MoMo Sandbox
     setTimeout(() => {
       this.quickBookModal.isProcessing = false;
       this.quickBookModal.isSuccess = true;
@@ -259,11 +272,15 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
         this.quickBookModal.hours
       );
 
-      // Đóng modal xác nhận sau 1.2s để người dùng thấy xác nhận trong khung chat
+      // Đóng modal sau 1.2s để người dùng trở lại ngay đoạn chat và thấy thẻ đơn hàng đã tạo
       setTimeout(() => {
         this.quickBookModal.isOpen = false;
       }, 1200);
-    }, 600);
+    }, 700);
+  }
+
+  confirmQuickBookingSuccess(): void {
+    this.simulateScanSuccess();
   }
 
   openGoogleCalendar(url?: string): void {
