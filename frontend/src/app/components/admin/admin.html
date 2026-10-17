@@ -913,32 +913,127 @@
         
         <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-border-gray dark:border-slate-800 shadow-xs space-y-6">
           
+          <!-- Top Bar: Title & Primary CTA -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 class="text-base font-black text-dark-text dark:text-white tracking-tight">{{ 'Danh sách Không gian cho thuê & Bảng giá niêm yết' | t }}</h3>
-              <p class="text-xs text-text-muted dark:text-slate-400">{{ 'Quản lý bảng giá thuê theo giờ/ngày, tiện ích đi kèm và trạng thái khả dụng của từng listing' | t }}</p>
+              <div class="flex items-center gap-2">
+                <h3 class="text-base font-black text-dark-text dark:text-white tracking-tight">{{ 'Danh sách Không gian cho thuê & Bảng giá niêm yết' | t }}</h3>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 border border-uel-blue/20">
+                  {{ spaces.length }} {{ 'không gian' | t }}
+                </span>
+                @if (pendingSpacesCount > 0) {
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 animate-pulse">
+                    {{ pendingSpacesCount }} {{ 'chờ duyệt' | t }}
+                  </span>
+                }
+              </div>
+              <p class="text-xs text-text-muted dark:text-slate-400 mt-0.5">{{ 'Quản lý bảng giá thuê theo giờ/ngày, tiện ích đi kèm, phê duyệt niêm yết và trạng thái khả dụng của từng listing' | t }}</p>
             </div>
-            <button class="px-4 py-2 rounded-xl bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 text-white text-xs font-bold hover:bg-uel-blue/90 transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer self-start sm:self-auto">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              {{ 'Đăng tải Không gian mới' | t }}
-            </button>
+            
+            <div class="flex items-center gap-2 self-start sm:self-auto">
+              <button (click)="openCreateSpaceModal()"
+                      class="px-4 py-2.5 rounded-xl bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 text-white text-xs font-bold hover:bg-uel-blue/90 transition-all shadow-sm hover:shadow flex items-center gap-2 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                {{ 'Đăng tải Không gian mới' | t }}
+              </button>
+            </div>
           </div>
+
+          <!-- Filter & Search Controls Bar -->
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <!-- Search Keyword Input -->
+            <div class="relative flex-1 max-w-md">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </span>
+              <input type="text"
+                     [(ngModel)]="spaceSearchKeyword"
+                     placeholder="{{ 'Tìm tên không gian, mã SP, tòa nhà, loại phòng...' | t }}"
+                     class="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-uel-blue dark:focus:border-sky-400 transition-colors" />
+            </div>
+
+            <!-- Status Filter Pills -->
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button (click)="spaceStatusFilter = 'ALL'"
+                      [class]="spaceStatusFilter === 'ALL' ? 'bg-uel-blue text-white shadow-xs font-bold' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-medium'"
+                      class="px-3 py-1.5 rounded-xl text-xs transition-colors cursor-pointer flex items-center gap-1.5">
+                {{ 'Tất cả' | t }}
+                <span class="px-1.5 py-0.2 rounded-full text-[10px]" [class]="spaceStatusFilter === 'ALL' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
+                  {{ spaces.length }}
+                </span>
+              </button>
+              
+              <button (click)="spaceStatusFilter = 'AVAILABLE'"
+                      [class]="spaceStatusFilter === 'AVAILABLE' ? 'bg-emerald-600 text-white shadow-xs font-bold' : 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 border border-emerald-200/60 dark:border-emerald-800/60 font-medium'"
+                      class="px-3 py-1.5 rounded-xl text-xs transition-colors cursor-pointer flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                {{ 'Đang mở thuê' | t }}
+              </button>
+
+              <button (click)="spaceStatusFilter = 'PENDING_APPROVAL'"
+                      [class]="spaceStatusFilter === 'PENDING_APPROVAL' ? 'bg-amber-600 text-white shadow-xs font-bold' : 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 border border-amber-200/60 dark:border-amber-800/60 font-medium'"
+                      class="px-3 py-1.5 rounded-xl text-xs transition-colors cursor-pointer flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                {{ 'Chờ duyệt niêm yết' | t }}
+                @if (pendingSpacesCount > 0) {
+                  <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500 text-white font-bold">
+                    {{ pendingSpacesCount }}
+                  </span>
+                }
+              </button>
+
+              <button (click)="spaceStatusFilter = 'MAINTENANCE'"
+                      [class]="spaceStatusFilter === 'MAINTENANCE' ? 'bg-slate-700 text-white shadow-xs font-bold' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-medium'"
+                      class="px-3 py-1.5 rounded-xl text-xs transition-colors cursor-pointer flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                {{ 'Bảo trì / Tạm ngưng' | t }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          @if (filteredSpaces.length === 0) {
+            <div class="py-12 text-center space-y-3 bg-slate-50 dark:bg-slate-800/40 rounded-3xl border border-dashed border-slate-200 dark:border-slate-700">
+              <div class="w-12 h-12 rounded-2xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 flex items-center justify-center mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+              </div>
+              <h4 class="text-sm font-bold text-slate-800 dark:text-white">{{ 'Không tìm thấy không gian phù hợp' | t }}</h4>
+              <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">{{ 'Thử thay đổi từ khóa tìm kiếm hoặc bấm nút bên dưới để tạo mới một listing không gian.' | t }}</p>
+              <button (click)="openCreateSpaceModal()"
+                      class="px-4 py-2 rounded-xl bg-uel-blue text-white text-xs font-bold hover:bg-uel-blue/90 transition-colors shadow-xs">
+                + {{ 'Tạo không gian mới ngay' | t }}
+              </button>
+            </div>
+          }
 
           <!-- Spaces Grid -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            @for (s of spaces; track s.id) {
-              <div class="rounded-3xl border border-border-gray dark:border-slate-800 p-5 space-y-4 hover:shadow-md transition-shadow bg-white dark:bg-slate-900 flex flex-col justify-between">
+            @for (s of filteredSpaces; track s.id) {
+              <div class="rounded-3xl border border-border-gray dark:border-slate-800 p-5 space-y-4 hover:shadow-md transition-shadow bg-white dark:bg-slate-900 flex flex-col justify-between relative overflow-hidden">
                 
+                <!-- Review Attention Ribbon if PENDING_APPROVAL -->
+                @if (s.status === 'PENDING_APPROVAL') {
+                  <div class="absolute -top-1 right-0 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[10px] font-black uppercase tracking-wider py-1 px-4 rounded-bl-xl shadow-xs flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                    {{ 'Cần kiểm duyệt' | t }}
+                  </div>
+                }
+
                 <div class="space-y-3">
                   <div class="flex items-start justify-between gap-3">
-                    <div>
-                      <div class="flex items-center gap-1.5 mb-1">
+                    <div class="pr-6">
+                      <div class="flex items-center gap-1.5 mb-1 flex-wrap">
                         <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 border border-uel-blue/20">
                           {{ s.type | t }}
                         </span>
+                        @if (s.code) {
+                          <span class="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
+                            {{ s.code }}
+                          </span>
+                        }
                         @if (s.rating) {
                           <span class="text-[11px] font-bold text-amber-500 flex items-center gap-0.5">
-                            ★ {{ s.rating }} <span class="text-slate-400 font-normal text-[10px]">({{ s.reviewsCount }})</span>
+                            ★ {{ s.rating }} <span class="text-slate-400 font-normal text-[10px]">({{ s.reviewsCount || 0 }})</span>
                           </span>
                         }
                       </div>
@@ -946,73 +1041,130 @@
                       <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ s.building | t }} • {{ s.floor | t }}</div>
                     </div>
                     
-                    <div>
+                    <div class="shrink-0">
                       @if (s.status === 'AVAILABLE') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shrink-0">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                           {{ 'ĐANG MỞ THUÊ' | t }}
                         </span>
                       }
                       @if (s.status === 'IN_USE') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 shrink-0">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
                           {{ 'KHÁCH ĐANG DÙNG' | t }}
                         </span>
                       }
                       @if (s.status === 'RESERVED') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shrink-0">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                           {{ 'ĐÃ ĐƯỢC ĐẶT' | t }}
                         </span>
                       }
+                      @if (s.status === 'PENDING_APPROVAL') {
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700">
+                          {{ 'CHỜ DUYỆT' | t }}
+                        </span>
+                      }
+                      @if (s.status === 'REJECTED') {
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                          {{ 'TỪ CHỐI' | t }}
+                        </span>
+                      }
                       @if (s.status === 'MAINTENANCE') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 shrink-0">
-                          {{ 'TẠM NGƯNG CHO THUÊ' | t }}
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700">
+                          {{ 'TẠM BẢO TRÌ' | t }}
                         </span>
                       }
                     </div>
                   </div>
+
+                  <!-- Space Listing Approval Action Banner (For PENDING_APPROVAL status) -->
+                  @if (s.status === 'PENDING_APPROVAL') {
+                    <div class="p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/80 space-y-2">
+                      <div class="text-[11px] font-bold text-amber-900 dark:text-amber-200 flex items-center justify-between">
+                        <span>{{ 'Yêu cầu duyệt niêm yết không gian mới' | t }}</span>
+                        <span class="text-[10px] font-normal text-amber-700 dark:text-amber-300">{{ 'Sẵn sàng kiểm duyệt' | t }}</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <button (click)="approveSpaceListing(s)"
+                                class="flex-1 py-1.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1 shadow-xs">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                          {{ 'Duyệt mở thuê' | t }}
+                        </button>
+                        <button (click)="openRejectSpaceListingModal(s)"
+                                class="py-1.5 px-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                          {{ 'Từ chối' | t }}
+                        </button>
+                      </div>
+                    </div>
+                  }
 
                   <!-- Commercial Pricing Box -->
                   <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between">
                     <div>
                       <div class="text-[10px] uppercase font-bold text-slate-400">{{ 'Giá thuê theo giờ' | t }}</div>
-                      <div class="text-sm font-black text-uel-blue dark:text-sky-400">{{ s.pricePerHour | number:'1.0-0' }} ₫ <span class="text-[10px] font-normal text-slate-400">/h</span></div>
+                      <div class="text-sm font-black text-uel-blue dark:text-sky-400">{{ (s.pricePerHour || s.hourlyPrice || 150000) | number:'1.0-0' }} ₫ <span class="text-[10px] font-normal text-slate-400">/h</span></div>
                     </div>
                     <div class="h-6 w-[1px] bg-slate-200 dark:bg-slate-700"></div>
                     <div class="text-right">
                       <div class="text-[10px] uppercase font-bold text-slate-400">{{ 'Giá trọn gói ngày' | t }}</div>
-                      <div class="text-sm font-black text-amber-600 dark:text-amber-400">{{ s.pricePerDay | number:'1.0-0' }} ₫ <span class="text-[10px] font-normal text-slate-400">/ngày</span></div>
+                      <div class="text-sm font-black text-amber-600 dark:text-amber-400">{{ (s.pricePerDay || s.dailyPrice || 1050000) | number:'1.0-0' }} ₫ <span class="text-[10px] font-normal text-slate-400">/ngày</span></div>
                     </div>
                   </div>
 
-                  <!-- Specs -->
+                  <!-- Specs Grid -->
                   <div class="bg-white dark:bg-slate-800 p-3 rounded-2xl border border-border-gray dark:border-slate-800 text-xs space-y-1.5">
                     <div class="flex items-center justify-between">
                       <span class="text-text-muted dark:text-slate-400">{{ 'Sức chứa tối đa:' | t }}</span>
                       <span class="font-bold text-dark-text dark:text-white">{{s.capacity}} {{ 'khách' | t }}</span>
                     </div>
                     <div class="flex items-center justify-between">
-                      <span class="text-text-muted dark:text-slate-400">{{ 'Tự động hủy khi vắng:' | t }}</span>
-                      <span class="font-bold text-slate-700 dark:text-slate-200">{{s.awayWarningMinutes}} {{ 'phút' | t }}</span>
+                      <span class="text-text-muted dark:text-slate-400">{{ 'Diện tích sử dụng:' | t }}</span>
+                      <span class="font-bold text-slate-700 dark:text-slate-200">{{ s.area || s.areaSize || 30 }} m²</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-text-muted dark:text-slate-400">{{ 'Tự động hủy khi vắng (BR15):' | t }}</span>
+                      <span class="font-bold text-slate-700 dark:text-slate-200">{{s.awayWarningMinutes || 10}}p / {{s.autoCheckoutMinutes || 20}}p</span>
                     </div>
                   </div>
 
                   <!-- Equipments Tag List -->
-                  <div class="flex flex-wrap gap-1.5">
-                    @for (eq of s.equipment; track eq) {
-                      <span class="px-2 py-0.5 rounded-md bg-slate-200/60 dark:bg-slate-700/60 text-slate-700 dark:text-slate-200 text-[10px] font-medium">
-                        {{ eq | t }}
-                      </span>
-                    }
-                  </div>
+                  @if (s.equipment && s.equipment.length > 0) {
+                    <div class="flex flex-wrap gap-1.5 max-h-16 overflow-y-auto">
+                      @for (eq of s.equipment; track eq) {
+                        <span class="px-2 py-0.5 rounded-md bg-slate-200/60 dark:bg-slate-700/60 text-slate-700 dark:text-slate-200 text-[10px] font-medium">
+                          {{ eq | t }}
+                        </span>
+                      }
+                    </div>
+                  }
                 </div>
 
-                <!-- Toggle Maintenance / Status Button -->
-                <div class="pt-2">
+                <!-- Card Action Bar: Edit, Delete, Toggle Maintenance -->
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                  <div class="flex items-center gap-2">
+                    <!-- Edit Button -->
+                    <button (click)="openEditSpaceModal(s)"
+                            class="flex-1 py-1.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                      {{ 'Chỉnh sửa' | t }}
+                    </button>
+                    <!-- Delete Button -->
+                    <button (click)="openDeleteSpaceModal(s)"
+                            class="py-1.5 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60 text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1"
+                            title="{{ 'Xóa không gian này' | t }}">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                      {{ 'Xóa' | t }}
+                    </button>
+                  </div>
+
+                  <!-- Toggle Maintenance / Status Button -->
                   <button (click)="toggleSpaceMaintenance(s)"
                           [class]="s.status === 'MAINTENANCE' ? 'bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 hover:bg-[#002D5C] text-white' : 'bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800'"
-                          class="w-full py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-center">
+                          class="w-full py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5">
                     @if (s.status === 'MAINTENANCE') {
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
                       {{ 'Kích hoạt mở lại cho thuê' | t }}
                     } @else {
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                       {{ 'Tạm ngưng niêm yết (Bảo trì)' | t }}
                     }
                   </button>
@@ -2206,6 +2358,395 @@
           <button (click)="viewSpacesTab()"
                   class="py-2.5 px-3 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer text-center shadow-xs">
             {{ 'Xem Phòng đang dùng →' | t }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- =====================================================================
+       MODAL: CREATE / EDIT SPACE MODAL (F15-F18 & BR15)
+       ===================================================================== -->
+  @if (spaceModal.isOpen) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-5 max-h-[90vh] overflow-y-auto">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div>
+              <h3 class="text-base font-black text-slate-900 dark:text-white tracking-tight">
+                {{ (spaceModal.isEdit ? 'Chỉnh sửa Thông số & Bảng giá Không gian' : 'Đăng tải Không gian cho thuê mới') | t }}
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                {{ 'Thiết lập đầy đủ thông tin kỹ thuật, chính sách vận hành và bảng giá thương mại UEL' | t }}
+              </p>
+            </div>
+          </div>
+          <button (click)="closeSpaceModal()"
+                  class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-colors cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <!-- Error Message Banner -->
+        @if (spaceModal.errorMessage) {
+          <div class="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span class="font-medium">{{ spaceModal.errorMessage }}</span>
+          </div>
+        }
+
+        <!-- Form Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          
+          <!-- Space Name -->
+          <div class="space-y-1.5 sm:col-span-2">
+            <label class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
+              {{ 'Tên không gian' | t }} <span class="text-rose-500">*</span>
+            </label>
+            <input type="text"
+                   [(ngModel)]="spaceModal.name"
+                   placeholder="{{ 'VD: Hội trường Executive Hall Landmark A3' | t }}"
+                   class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-uel-blue dark:focus:border-sky-400 font-medium" />
+          </div>
+
+          <!-- Space Code -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-slate-700 dark:text-slate-200">
+              {{ 'Mã định danh (Code)' | t }}
+            </label>
+            <input type="text"
+                   [(ngModel)]="spaceModal.code"
+                   placeholder="VD: SP-1024"
+                   class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono uppercase focus:outline-none focus:border-uel-blue dark:focus:border-sky-400 font-bold" />
+          </div>
+
+          <!-- Space Category / Type -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-slate-700 dark:text-slate-200">
+              {{ 'Loại hình không gian' | t }}
+            </label>
+            <select [(ngModel)]="spaceModal.type"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-uel-blue dark:focus:border-sky-400 font-medium">
+              <option value="Phòng họp VIP">{{ 'Phòng họp VIP' | t }}</option>
+              <option value="Không gian sự kiện">{{ 'Không gian sự kiện' | t }}</option>
+              <option value="Văn phòng riêng">{{ 'Văn phòng riêng' | t }}</option>
+              <option value="Bàn làm việc linh hoạt">{{ 'Bàn làm việc linh hoạt' | t }}</option>
+              <option value="Meeting Pod cách âm">{{ 'Meeting Pod cách âm' | t }}</option>
+              <option value="Phòng học / Hội thảo">{{ 'Phòng học / Hội thảo' | t }}</option>
+              <option value="Không gian đa năng">{{ 'Không gian đa năng' | t }}</option>
+            </select>
+          </div>
+
+          <!-- Building -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-slate-700 dark:text-slate-200">
+              {{ 'Tòa nhà / Cơ sở' | t }}
+            </label>
+            <select [(ngModel)]="spaceModal.building"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-uel-blue dark:focus:border-sky-400 font-medium">
+              <option value="Tòa nhà A1">Tòa nhà A1 - Phòng họp VIP</option>
+              <option value="Tòa nhà A2">Tòa nhà A2 - Ban điều hành</option>
+              <option value="Tòa nhà A3">Tòa nhà A3 - Trung tâm Hội thảo</option>
+              <option value="Tòa nhà B1">Tòa nhà B1 - Phòng đào tạo</option>
+              <option value="Tòa nhà B2">Tòa nhà B2 - Giảng đường</option>
+              <option value="Central Tower Q.1">Central Tower Q.1</option>
+              <option value="TechPark Executive">TechPark Executive Hub</option>
+              <option value="Innovation Hub Q.2">Innovation Hub Q.2</option>
+              <option value="Landmark Lounge">Landmark Lounge</option>
+              <option value="Startup Pod Hub">Startup Pod Hub</option>
+              <option value="Khuôn viên Ngoài trời">Khuôn viên Ngoài trời</option>
+            </select>
+          </div>
+
+          <!-- Floor -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-slate-700 dark:text-slate-200">
+              {{ 'Tầng / Vị trí cụ thể' | t }}
+            </label>
+            <input type="text"
+                   [(ngModel)]="spaceModal.floor"
+                   placeholder="{{ 'VD: Tầng 3, Phòng A3.301' | t }}"
+                   class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-uel-blue dark:focus:border-sky-400 font-medium" />
+          </div>
+
+          <!-- Capacity -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-slate-700 dark:text-slate-200 flex items-center justify-between">
+              <span>{{ 'Sức chứa tối đa (người)' | t }} <span class="text-rose-500">*</span></span>
+            </label>
+            <input type="number"
+                   min="1"
+                   max="1000"
+                   [(ngModel)]="spaceModal.capacity"
+                   class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-uel-blue dark:focus:border-sky-400 font-bold" />
+          </div>
+
+          <!-- Area -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-slate-700 dark:text-slate-200 flex items-center justify-between">
+              <span>{{ 'Diện tích phòng (m²)' | t }} <span class="text-rose-500">*</span></span>
+            </label>
+            <input type="number"
+                   min="1"
+                   max="5000"
+                   [(ngModel)]="spaceModal.area"
+                   class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-uel-blue dark:focus:border-sky-400 font-bold" />
+          </div>
+
+          <!-- Hourly Price -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-slate-700 dark:text-slate-200">
+              {{ 'Giá thuê theo giờ (VNĐ/h)' | t }}
+            </label>
+            <div class="relative">
+              <input type="number"
+                     min="0"
+                     step="10000"
+                     [(ngModel)]="spaceModal.pricePerHour"
+                     class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-uel-blue dark:text-sky-400 font-black focus:outline-none focus:border-uel-blue dark:focus:border-sky-400" />
+              <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-[10px] text-slate-400 font-bold pointer-events-none">₫/h</span>
+            </div>
+          </div>
+
+          <!-- Daily Price -->
+          <div class="space-y-1.5">
+            <label class="font-bold text-slate-700 dark:text-slate-200">
+              {{ 'Giá thuê trọn gói ngày (VNĐ/ngày)' | t }}
+            </label>
+            <div class="relative">
+              <input type="number"
+                     min="0"
+                     step="50000"
+                     [(ngModel)]="spaceModal.pricePerDay"
+                     class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-amber-600 dark:text-amber-400 font-black focus:outline-none focus:border-uel-blue dark:focus:border-sky-400" />
+              <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-[10px] text-slate-400 font-bold pointer-events-none">₫/ngày</span>
+            </div>
+          </div>
+
+          <!-- Status Select -->
+          <div class="space-y-1.5 sm:col-span-2">
+            <label class="font-bold text-slate-700 dark:text-slate-200">
+              {{ 'Trạng thái ban đầu' | t }}
+            </label>
+            <select [(ngModel)]="spaceModal.status"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-uel-blue dark:focus:border-sky-400 font-bold">
+              <option value="AVAILABLE">{{ 'ĐANG MỞ THUÊ (Công khai trên chợ không gian)' | t }}</option>
+              <option value="PENDING_APPROVAL">{{ 'CHỜ DUYỆT (Gửi hội đồng thẩm định trước khi mở)' | t }}</option>
+              <option value="MAINTENANCE">{{ 'TẠM BẢO TRÌ (Khóa tạm thời khỏi cổng đặt chỗ)' | t }}</option>
+            </select>
+          </div>
+
+          <!-- Presence & Auto-Release Policy (BR15: awayWarningMinutes < autoCheckoutMinutes) -->
+          <div class="sm:col-span-2 p-3.5 rounded-2xl bg-uel-blue/5 dark:bg-sky-400/5 border border-uel-blue/20 dark:border-sky-400/20 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-uel-blue dark:text-sky-300 text-xs flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {{ 'Quy tắc quản lý hiện diện & Giải phóng phòng (BR15)' | t }}
+              </span>
+              <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400">awayWarning &lt; autoCheckout</span>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1 block">
+                  {{ 'Cảnh báo vắng mặt (phút):' | t }}
+                </label>
+                <input type="number"
+                       min="1"
+                       [(ngModel)]="spaceModal.awayWarningMinutes"
+                       class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold" />
+              </div>
+              <div>
+                <label class="text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1 block">
+                  {{ 'Tự động hủy phòng khi vắng (phút):' | t }}
+                </label>
+                <input type="number"
+                       min="2"
+                       [(ngModel)]="spaceModal.autoCheckoutMinutes"
+                       class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold" />
+              </div>
+            </div>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 italic">
+              {{ '* Camera AI sẽ gửi thông báo cảnh báo sau số phút đầu tiên, và cưỡng chế giải phóng không gian khi chạm ngưỡng tự động hủy.' | t }}
+            </p>
+          </div>
+
+          <!-- Equipment Tags -->
+          <div class="space-y-1.5 sm:col-span-2">
+            <label class="font-bold text-slate-700 dark:text-slate-200">
+              {{ 'Thiết bị & Tiện ích đi kèm (cách nhau bởi dấu phẩy)' | t }}
+            </label>
+            <textarea [(ngModel)]="spaceModal.equipmentString"
+                      rows="2"
+                      placeholder="VD: Màn hình tương tác 4K, Micro hội thảo, Wifi 1Gbps, Điều hòa Daikin, Quầy teabreak"
+                      class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-uel-blue dark:focus:border-sky-400 font-medium"></textarea>
+          </div>
+
+          <!-- Image Path -->
+          <div class="space-y-1.5 sm:col-span-2">
+            <label class="font-bold text-slate-700 dark:text-slate-200">
+              {{ 'Đường dẫn ảnh đại diện (Tương đối hoặc URL)' | t }}
+            </label>
+            <input type="text"
+                   [(ngModel)]="spaceModal.image"
+                   placeholder="VD: spaces/indoor_office_1.jpg hoặc https://..."
+                   class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-uel-blue dark:focus:border-sky-400 font-mono text-[11px]" />
+          </div>
+
+          <!-- Description -->
+          <div class="space-y-1.5 sm:col-span-2">
+            <label class="font-bold text-slate-700 dark:text-slate-200">
+              {{ 'Mô tả chi tiết không gian' | t }}
+            </label>
+            <textarea [(ngModel)]="spaceModal.description"
+                      rows="2"
+                      placeholder="{{ 'Mô tả công năng phòng, hướng ánh sáng, quy chuẩn phục vụ...' | t }}"
+                      class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-uel-blue dark:focus:border-sky-400 font-medium"></textarea>
+          </div>
+
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button (click)="closeSpaceModal()"
+                  type="button"
+                  class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer">
+            {{ 'Hủy bỏ' | t }}
+          </button>
+          
+          <button (click)="saveSpace()"
+                  [disabled]="spaceModal.isSaving"
+                  type="button"
+                  class="px-5 py-2.5 rounded-xl bg-uel-blue dark:bg-sky-600 dark:hover:bg-sky-700 text-white text-xs font-bold hover:bg-uel-blue/90 transition-all shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+            @if (spaceModal.isSaving) {
+              <svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              <span>{{ 'Đang lưu...' | t }}</span>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>{{ (spaceModal.isEdit ? 'Lưu thay đổi' : 'Đăng tải niêm yết') | t }}</span>
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- =====================================================================
+       MODAL: DELETE SPACE CONFIRMATION MODAL (SOFT DELETE & AUDIT LOG)
+       ===================================================================== -->
+  @if (deleteSpaceModal.isOpen && deleteSpaceModal.space) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+        
+        <div class="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+
+        <div class="text-center space-y-1.5">
+          <h3 class="text-base font-black text-slate-900 dark:text-white tracking-tight">
+            {{ 'Xác nhận xóa không gian' | t }}
+          </h3>
+          <p class="text-xs text-slate-600 dark:text-slate-300">
+            {{ 'Bạn có chắc chắn muốn xóa không gian' | t }} <span class="font-bold text-slate-900 dark:text-white">{{ deleteSpaceModal.space.name }}</span> ({{ deleteSpaceModal.space.code || deleteSpaceModal.space.id }})?
+          </p>
+          <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-[11px] text-slate-500 dark:text-slate-400 text-left">
+            ℹ️ <span class="font-semibold">{{ 'Cơ chế Soft-Delete:' | t }}</span> {{ 'Không gian sẽ bị ẩn khỏi danh sách khả dụng nhưng toàn bộ hợp đồng, hóa đơn và lịch sử đặt chỗ cũ vẫn được lưu trữ nguyên vẹn để kiểm toán.' | t }}
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <button (click)="closeDeleteSpaceModal()"
+                  type="button"
+                  class="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer text-center">
+            {{ 'Hủy bỏ' | t }}
+          </button>
+          <button (click)="confirmDeleteSpace()"
+                  [disabled]="deleteSpaceModal.isDeleting"
+                  type="button"
+                  class="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors cursor-pointer text-center shadow-xs disabled:opacity-50">
+            @if (deleteSpaceModal.isDeleting) {
+              {{ 'Đang xóa...' | t }}
+            } @else {
+              {{ 'Xác nhận xóa ngay' | t }}
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- =====================================================================
+       MODAL: REJECT SPACE LISTING REASON DIALOG
+       ===================================================================== -->
+  @if (spaceListingRejectModal.isOpen && spaceListingRejectModal.space) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+        
+        <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+          <h3 class="text-sm font-black text-slate-900 dark:text-white">
+            {{ 'Từ chối duyệt niêm yết không gian' | t }}
+          </h3>
+          <button (click)="closeRejectSpaceListingModal()"
+                  class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <p class="text-slate-600 dark:text-slate-300">
+            {{ 'Không gian:' | t }} <span class="font-bold text-slate-900 dark:text-white">{{ spaceListingRejectModal.space.name }}</span>
+          </p>
+          <label class="font-bold text-slate-700 dark:text-slate-200 block">
+            {{ 'Lý do từ chối gửi tới đối tác:' | t }}
+          </label>
+          <textarea [(ngModel)]="spaceListingRejectModal.reason"
+                    rows="3"
+                    placeholder="{{ 'VD: Hồ sơ hình ảnh chưa đạt chuẩn hoặc thiếu giấy phép an toàn PCCC...' | t }}"
+                    class="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-uel-blue dark:focus:border-sky-400 font-medium"></textarea>
+          
+          <!-- Suggested Quick Reasons -->
+          <div class="flex flex-wrap gap-1.5 pt-1">
+            <button (click)="spaceListingRejectModal.reason = 'Hồ sơ hình ảnh thực tế chưa đạt tiêu chuẩn nhận diện thương hiệu UEL Space.'"
+                    type="button"
+                    class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
+              {{ 'Thiếu hình ảnh chuẩn' | t }}
+            </button>
+            <button (click)="spaceListingRejectModal.reason = 'Sức chứa khai báo không tương thích với diện tích thực tế.'"
+                    type="button"
+                    class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
+              {{ 'Sai lệch sức chứa' | t }}
+            </button>
+            <button (click)="spaceListingRejectModal.reason = 'Chính sách tự động hủy và cảm biến vắng mặt chưa cấu hình theo quy định BR15.'"
+                    type="button"
+                    class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
+              {{ 'Chưa đạt chuẩn BR15' | t }}
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <button (click)="closeRejectSpaceListingModal()"
+                  type="button"
+                  class="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer text-center">
+            {{ 'Hủy bỏ' | t }}
+          </button>
+          <button (click)="confirmRejectSpaceListing()"
+                  [disabled]="spaceListingRejectModal.isSubmitting"
+                  type="button"
+                  class="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors cursor-pointer text-center shadow-xs disabled:opacity-50">
+            @if (spaceListingRejectModal.isSubmitting) {
+              {{ 'Đang xử lý...' | t }}
+            } @else {
+              {{ 'Xác nhận từ chối' | t }}
+            }
           </button>
         </div>
 

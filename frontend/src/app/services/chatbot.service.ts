@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, firstValueFrom, timeout } from 'rxjs';
 import { SERVER_IMAGES_LINK, SERVER_BASE_URL } from './api-config';
 import { GoogleCalendarService } from './google-calendar.service';
+import { BookingService } from './booking.service';
 
 export interface ChatbotSpace {
   id: string;
@@ -58,6 +59,7 @@ export interface ChatSessionSummary {
 export class ChatbotService {
   private http = inject(HttpClient);
   private googleCalendarService = inject(GoogleCalendarService);
+  private bookingService = inject(BookingService);
 
   private isOpenSubject = new BehaviorSubject<boolean>(false);
   public isOpen$: Observable<boolean> = this.isOpenSubject.asObservable();
@@ -498,6 +500,19 @@ export class ChatbotService {
     const finalList = [...this.messagesSubject.value, confirmationMsg];
     this.messagesSubject.next(finalList);
     this.saveToLocalStorage(finalList);
+
+    // Đồng bộ Realtime sang Lịch sử đặt chỗ (BookingHistory) & Bắn thông báo chuông (Notification)
+    this.bookingService.addBooking({
+      id: bookingCode,
+      roomName: space.name,
+      building: space.building,
+      roomType: space.spaceType,
+      date: today,
+      timeSlot,
+      purpose: 'Thuê & Đặt chỗ không gian tự động hoá qua Chatbot UEL Space',
+      capacity: space.capacity,
+      totalAmount
+    });
 
     return {
       bookingCode,

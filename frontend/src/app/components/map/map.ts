@@ -6,6 +6,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { SERVER_IMAGES_LINK, SERVER_BASE_URL } from '../../services/api-config';
 import { TranslatePipe } from '../../services/translate.pipe';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
+import { BookingService } from '../../services/booking.service';
 import { normalizeSpace, getFallbackMarketplaceSpaces } from '../../services/spaces-data';
 
 @Component({
@@ -16,6 +17,7 @@ import { normalizeSpace, getFallbackMarketplaceSpaces } from '../../services/spa
 })
 export class Map implements OnInit, AfterViewInit {
   private router = inject(Router);
+  private bookingService = inject(BookingService);
   server_images_link = SERVER_IMAGES_LINK;
   
   // Selection & Modal States
@@ -91,16 +93,7 @@ export class Map implements OnInit, AfterViewInit {
   hasConflict: boolean = false;
   conflictReason: string = '';
 
-  studentSchedule: Array<{
-    id: string;
-    time: string;
-    title: string;
-    room: string;
-    lecturer?: string;
-    type: string;
-    isBusy: boolean;
-    conflictsWith: string[];
-  }> = [
+  studentSchedule: any[] = [
     {
       id: 'sched-1',
       time: '07:30 - 11:45',
@@ -151,13 +144,23 @@ export class Map implements OnInit, AfterViewInit {
   ];
 
   // Google Calendar Integration State
-  calendarViewMode: 'picker' | 'embed' = 'picker';
+  calendarViewMode: 'embed' | 'list' = 'embed';
+  embedCalendarViewMode: 'AGENDA' | 'WEEK' | 'MONTH' = 'AGENDA';
   customBookingDate: string = new Date().toISOString().split('T')[0];
   customStartTime: string = '13:00';
   customEndTime: string = '15:00';
   customDurationHours: number = 2;
   googleEmbedSafeUrl: SafeResourceUrl | null = null;
   suggestedGoogleSlots: any[] = [];
+
+  // Custom UEL Brand Date & Time Picker Dropdown State
+  isDatePickerOpen: boolean = false;
+  isStartTimePickerOpen: boolean = false;
+  isEndTimePickerOpen: boolean = false;
+  calendarViewYear: number = new Date().getFullYear();
+  calendarViewMonth: number = new Date().getMonth();
+  calendarDays: any[] = [];
+  timeOptions: any[] = [];
 
   // MoMo Sandbox Payment State
   momoModal = {
@@ -178,7 +181,8 @@ export class Map implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit() {
-    this.suggestedGoogleSlots = this.googleCalendarService.getSuggestedSlots();
+    this.initCalendar();
+    this.refreshCalendarAndSlots();
     
     // Check local storage for current user info
     try {
@@ -341,6 +345,217 @@ export class Map implements OnInit, AfterViewInit {
     this.isCategoryOpen = false;
     this.isStatusOpen = false;
     this.isSortOpen = false;
+    this.isDatePickerOpen = false;
+    this.isStartTimePickerOpen = false;
+    this.isEndTimePickerOpen = false;
+  }
+
+  // --- Custom UEL Brand Date & Time Picker Methods ---
+  initCalendar(): void {
+    if (this.customBookingDate) {
+      const parts = this.customBookingDate.split('-');
+      if (parts.length === 3) {
+        this.calendarViewYear = parseInt(parts[0], 10);
+        this.calendarViewMonth = parseInt(parts[1], 10) - 1;
+      }
+    }
+    this.generateCalendarDays();
+    this.generateTimeOptions();
+  }
+
+  generateCalendarDays(): void {
+    const year = this.calendarViewYear;
+    const month = this.calendarViewMonth;
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+
+    let startDayOfWeek = firstDay.getDay(); // 0 is Sunday
+    if (startDayOfWeek === 0) startDayOfWeek = 7; // Monday = 1 ... Sunday = 7
+    const prevDaysCount = startDayOfWeek - 1;
+
+    const days: any[] = [];
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    // Previous month trailing days
+    for (let i = prevDaysCount - 1; i >= 0; i--) {
+      const dayNum = prevMonthLastDay - i;
+      const prevDate = new Date(year, month - 1, dayNum);
+      const dStr = this.formatDateToString(prevDate);
+      days.push({
+        dateStr: dStr,
+        dayNumber: dayNum,
+        isCurrentMonth: false,
+        isToday: dStr === todayStr,
+        isSelected: dStr === this.customBookingDate,
+        isPast: dStr < todayStr
+      });
+    }
+
+    // Current month days
+    for (let i = 1; i <= lastDay.getDate(); i++) {
+      const curDate = new Date(year, month, i);
+      const dStr = this.formatDateToString(curDate);
+      days.push({
+        dateStr: dStr,
+        dayNumber: i,
+        isCurrentMonth: true,
+        isToday: dStr === todayStr,
+        isSelected: dStr === this.customBookingDate,
+        isPast: dStr < todayStr
+      });
+    }
+
+    // Next month leading days to complete full 35 or 42 grid
+    const totalCells = days.length <= 35 ? 35 : 42;
+    const remaining = totalCells - days.length;
+    for (let i = 1; i <= remaining; i++) {
+      const nextDate = new Date(year, month + 1, i);
+      const dStr = this.formatDateToString(nextDate);
+      days.push({
+        dateStr: dStr,
+        dayNumber: i,
+        isCurrentMonth: false,
+        isToday: dStr === todayStr,
+        isSelected: dStr === this.customBookingDate,
+        isPast: dStr < todayStr
+      });
+    }
+
+    this.calendarDays = days;
+  }
+
+  private formatDateToString(d: Date): string {
+    const y = d.getFullYear();
+    const m = (d.getMonth() + 1).toString().padStart(2, '0');
+    const day = d.getDate().toString().padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  generateTimeOptions(): void {
+    const list: any[] = [];
+    for (let h = 7; h <= 21; h++) {
+      for (const m of ['00', '30']) {
+        if (h === 21 && m === '30') continue;
+        const hh = h < 10 ? `0${h}` : `${h}`;
+        const timeStr = `${hh}:${m}`;
+        list.push({
+          time: timeStr,
+          label: timeStr
+        });
+      }
+    }
+    this.timeOptions = list;
+  }
+
+  toggleDatePicker(event: Event): void {
+    event.stopPropagation();
+    this.isDatePickerOpen = !this.isDatePickerOpen;
+    this.isStartTimePickerOpen = false;
+    this.isEndTimePickerOpen = false;
+    this.isCategoryOpen = false;
+    this.isStatusOpen = false;
+    this.isSortOpen = false;
+  }
+
+  toggleStartTimePicker(event: Event): void {
+    event.stopPropagation();
+    this.isStartTimePickerOpen = !this.isStartTimePickerOpen;
+    this.isDatePickerOpen = false;
+    this.isEndTimePickerOpen = false;
+    this.isCategoryOpen = false;
+    this.isStatusOpen = false;
+    this.isSortOpen = false;
+  }
+
+  toggleEndTimePicker(event: Event): void {
+    event.stopPropagation();
+    this.isEndTimePickerOpen = !this.isEndTimePickerOpen;
+    this.isDatePickerOpen = false;
+    this.isStartTimePickerOpen = false;
+    this.isCategoryOpen = false;
+    this.isStatusOpen = false;
+    this.isSortOpen = false;
+  }
+
+  prevMonth(event: Event): void {
+    event.stopPropagation();
+    if (this.calendarViewMonth === 0) {
+      this.calendarViewMonth = 11;
+      this.calendarViewYear--;
+    } else {
+      this.calendarViewMonth--;
+    }
+    this.generateCalendarDays();
+  }
+
+  nextMonth(event: Event): void {
+    event.stopPropagation();
+    if (this.calendarViewMonth === 11) {
+      this.calendarViewMonth = 0;
+      this.calendarViewYear++;
+    } else {
+      this.calendarViewMonth++;
+    }
+    this.generateCalendarDays();
+  }
+
+  selectCalendarDate(dateStr: string, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.customBookingDate = dateStr;
+    this.isDatePickerOpen = false;
+    this.generateCalendarDays();
+    this.onTimeOrDateChange();
+  }
+
+  selectQuickDate(preset: 'today' | 'tomorrow' | 'weekend', event?: Event): void {
+    if (event) event.stopPropagation();
+    const d = new Date();
+    if (preset === 'tomorrow') {
+      d.setDate(d.getDate() + 1);
+    } else if (preset === 'weekend') {
+      const day = d.getDay();
+      const diff = day === 6 ? 0 : (day === 0 ? 6 : 6 - day);
+      d.setDate(d.getDate() + diff);
+    }
+    this.calendarViewYear = d.getFullYear();
+    this.calendarViewMonth = d.getMonth();
+    this.selectCalendarDate(this.formatDateToString(d));
+  }
+
+  selectStartTime(timeStr: string, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.customStartTime = timeStr;
+    this.isStartTimePickerOpen = false;
+    this.onTimeOrDateChange();
+  }
+
+  selectEndTime(timeStr: string, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.customEndTime = timeStr;
+    this.isEndTimePickerOpen = false;
+    this.onTimeOrDateChange();
+  }
+
+  formatDisplayDate(dateStr: string): string {
+    if (!dateStr) return 'Chọn ngày';
+    try {
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return dateStr;
+    } catch {
+      return dateStr;
+    }
+  }
+
+  getMonthYearTitle(): string {
+    const monthNames = [
+      'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+      'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
+    ];
+    return `${monthNames[this.calendarViewMonth]}, ${this.calendarViewYear}`;
   }
 
   @HostListener('document:click')
@@ -574,9 +789,8 @@ export class Map implements OnInit, AfterViewInit {
     this.customStartTime = '13:00';
     this.customEndTime = '15:00';
     this.customDurationHours = 2;
-    const rawUrl = this.googleCalendarService.generateEmbedUrl(r.name, 'AGENDA');
-    this.googleEmbedSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl);
-    this.onTimeOrDateChange();
+    this.calendarViewMode = 'embed';
+    this.refreshCalendarAndSlots();
     this.cdr.detectChanges();
   }
 
@@ -586,7 +800,13 @@ export class Map implements OnInit, AfterViewInit {
     this.cdr.detectChanges();
   }
 
-  onTimeOrDateChange(): void {
+  refreshCalendarAndSlots(): void {
+    this.studentSchedule = this.googleCalendarService.getUserEventsForDate(this.customBookingDate, this.studentInfo.id);
+    this.suggestedGoogleSlots = this.googleCalendarService.getSuggestedSlots(this.customBookingDate, this.studentInfo.id);
+
+    const rawUrl = this.googleCalendarService.generateEmbedUrl(this.studentInfo.id, this.embedCalendarViewMode, this.customBookingDate);
+    this.googleEmbedSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl);
+
     this.customDurationHours = this.googleCalendarService.calculateDuration(this.customStartTime, this.customEndTime);
     if (this.selectedRoomToBook) {
       this.selectedRoomToBook.totalPrice = (this.selectedRoomToBook.hourlyPrice || 120000) * this.customDurationHours;
@@ -597,13 +817,38 @@ export class Map implements OnInit, AfterViewInit {
       period: `${this.customDurationHours} giờ`,
       date: this.customBookingDate
     };
+
     this.checkConflict();
+    this.cdr.detectChanges();
+  }
+
+  setCalendarViewMode(mode: 'embed' | 'list'): void {
+    this.calendarViewMode = mode;
+    this.cdr.detectChanges();
+  }
+
+  setEmbedCalendarMode(mode: 'AGENDA' | 'WEEK' | 'MONTH'): void {
+    this.embedCalendarViewMode = mode;
+    const rawUrl = this.googleCalendarService.generateEmbedUrl(this.studentInfo.id, this.embedCalendarViewMode, this.customBookingDate);
+    this.googleEmbedSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl);
+    this.cdr.detectChanges();
+  }
+
+  onTimeOrDateChange(): void {
+    this.refreshCalendarAndSlots();
   }
 
   selectGooglePresetSlot(slot: any): void {
     this.customStartTime = slot.start;
     this.customEndTime = slot.end;
     this.customDurationHours = slot.hours;
+    this.onTimeOrDateChange();
+  }
+
+  selectScheduleItem(item: any): void {
+    if (item.isBusy) return;
+    this.customStartTime = item.start;
+    this.customEndTime = item.end;
     this.onTimeOrDateChange();
   }
 
@@ -623,38 +868,14 @@ export class Map implements OnInit, AfterViewInit {
   }
 
   checkConflict() {
-    if (!this.customStartTime || !this.customEndTime) {
-      this.hasConflict = false;
-      this.conflictReason = '';
-      return;
-    }
-
-    const busyReservations = [
-      { start: '07:30', end: '11:45', title: 'Họp chiến lược Ban Điều Hành quý IV', room: 'Boardroom VIP B1' },
-      { start: '15:15', end: '17:15', title: 'Làm việc cùng Quỹ Đầu Tư mạo hiểm', room: 'Private Suite A2' }
-    ];
-
-    const toMinutes = (timeStr: string) => {
-      const [h, m] = timeStr.split(':').map(Number);
-      return (h || 0) * 60 + (m || 0);
-    };
-
-    const selStart = toMinutes(this.customStartTime);
-    const selEnd = toMinutes(this.customEndTime);
-
-    const conflict = busyReservations.find(c => {
-      const cStart = toMinutes(c.start);
-      const cEnd = toMinutes(c.end);
-      return Math.max(selStart, cStart) < Math.min(selEnd, cEnd);
-    });
-
-    if (conflict) {
-      this.hasConflict = true;
-      this.conflictReason = `Trùng lịch với ca thuê trước: "${conflict.title}" (${conflict.start} - ${conflict.end}) tại ${conflict.room}`;
-    } else {
-      this.hasConflict = false;
-      this.conflictReason = '';
-    }
+    const check = this.googleCalendarService.checkConflict(
+      this.customBookingDate,
+      this.customStartTime,
+      this.customEndTime,
+      this.studentInfo.id
+    );
+    this.hasConflict = check.hasConflict;
+    this.conflictReason = check.reason;
   }
 
   confirmBooking() {
@@ -662,7 +883,18 @@ export class Map implements OnInit, AfterViewInit {
       this.selectedRoomToBook.status = 'in-use';
       this.selectedRoomToBook.statusText = 'Đang sử dụng';
       this.bookingSuccess = true;
-      this.addToGoogleCalendar(this.selectedRoomToBook, this.selectedSlot);
+
+      // Lưu sự kiện mới vào lịch cá nhân người dùng
+      this.googleCalendarService.addBookingToCalendar({
+        roomName: this.selectedRoomToBook.name,
+        date: this.customBookingDate,
+        startTime: this.customStartTime,
+        endTime: this.customEndTime,
+        code: 'BK-' + Date.now().toString().slice(-6),
+        userEmail: this.studentInfo.id
+      });
+
+      this.refreshCalendarAndSlots();
     }
   }
 
@@ -774,6 +1006,19 @@ export class Map implements OnInit, AfterViewInit {
         if (this.selectedRoomToBook) {
           this.selectedRoomToBook.status = 'in-use';
           this.selectedRoomToBook.statusText = 'Đang sử dụng';
+
+          this.bookingService.addBooking({
+            id: this.momoModal.orderId,
+            roomName: this.selectedRoomToBook.name,
+            building: this.selectedRoomToBook.building,
+            roomType: this.selectedRoomToBook.category || 'Không gian làm việc',
+            date: this.customBookingDate,
+            timeSlot: `${this.customStartTime} - ${this.customEndTime}`,
+            purpose: 'Làm việc & Học tập trên UEL Space',
+            capacity: this.selectedRoomToBook.capacity || 10,
+            totalAmount: this.momoModal.amount
+          });
+
           this.addToGoogleCalendar(this.selectedRoomToBook, this.selectedSlot);
         }
         this.bookingSuccess = true;
@@ -786,6 +1031,19 @@ export class Map implements OnInit, AfterViewInit {
       if (this.selectedRoomToBook) {
         this.selectedRoomToBook.status = 'in-use';
         this.selectedRoomToBook.statusText = 'Đang sử dụng';
+
+        this.bookingService.addBooking({
+          id: this.momoModal.orderId,
+          roomName: this.selectedRoomToBook.name,
+          building: this.selectedRoomToBook.building,
+          roomType: this.selectedRoomToBook.category || 'Không gian làm việc',
+          date: this.customBookingDate,
+          timeSlot: `${this.customStartTime} - ${this.customEndTime}`,
+          purpose: 'Làm việc & Học tập trên UEL Space',
+          capacity: this.selectedRoomToBook.capacity || 10,
+          totalAmount: this.momoModal.amount
+        });
+
         this.addToGoogleCalendar(this.selectedRoomToBook, this.selectedSlot);
       }
       this.bookingSuccess = true;

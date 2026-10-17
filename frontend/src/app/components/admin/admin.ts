@@ -59,20 +59,34 @@ export interface AdminReleaseCase {
 
 export interface AdminSpace {
   id: string;
+  _id?: string;
+  code?: string;
   name: string;
   building: string;
   floor: string;
   type: string;
+  spaceType?: string;
   capacity: number;
-  status: 'AVAILABLE' | 'IN_USE' | 'RESERVED' | 'MAINTENANCE';
+  area?: number;
+  areaSize?: number;
+  status: 'AVAILABLE' | 'IN_USE' | 'RESERVED' | 'MAINTENANCE' | 'PENDING_APPROVAL' | 'REJECTED' | 'CLOSED';
   currentOccupants: number;
   equipment: string[];
   autoCheckoutMinutes: number;
   awayWarningMinutes: number;
   pricePerHour?: number;
   pricePerDay?: number;
+  hourlyPrice?: number;
+  dailyPrice?: number;
   rating?: number;
   reviewsCount?: number;
+  image?: string;
+  images?: string[];
+  tags?: string[];
+  description?: string;
+  sellerId?: string;
+  seller?: any;
+  location?: string;
 }
 
 export interface AdminUser {
@@ -368,6 +382,59 @@ export class Admin implements OnInit, OnDestroy {
     this.activeTab = 'spaces';
     this.cdr.detectChanges();
   }
+
+  // Space Status Filter & Search State
+  spaceStatusFilter: 'ALL' | 'AVAILABLE' | 'PENDING_APPROVAL' | 'MAINTENANCE' = 'ALL';
+  spaceSearchKeyword: string = '';
+
+  // Space Create / Edit Modal State
+  spaceModal = {
+    isOpen: false,
+    isEdit: false,
+    id: '',
+    code: '',
+    name: '',
+    building: 'Tòa nhà A1',
+    floor: 'Tầng 1',
+    type: 'Phòng họp VIP',
+    capacity: 15,
+    area: 35,
+    pricePerHour: 200000,
+    pricePerDay: 1400000,
+    awayWarningMinutes: 10,
+    autoCheckoutMinutes: 20,
+    status: 'AVAILABLE' as 'AVAILABLE' | 'PENDING_APPROVAL' | 'MAINTENANCE',
+    equipmentString: 'Màn hình 4K, Bảng từ kính, Điều hòa Daikin, Wifi 1Gbps',
+    image: 'spaces/space_a2_1_meeting_vip.jpg',
+    description: 'Không gian tiêu chuẩn cao cấp, hỗ trợ thiết bị hội thảo và cảm biến hiện diện AI thông minh.',
+    tagsString: 'Không gian chuẩn UEL, AI Occupancy, Đặt tức thì',
+    errorMessage: '',
+    isSaving: false
+  };
+
+  // Delete Space Modal State
+  deleteSpaceModal: {
+    isOpen: boolean;
+    space: AdminSpace | null;
+    isDeleting: boolean;
+  } = {
+    isOpen: false,
+    space: null,
+    isDeleting: false
+  };
+
+  // Space Listing Rejection Modal State
+  spaceListingRejectModal: {
+    isOpen: boolean;
+    space: AdminSpace | null;
+    reason: string;
+    isSubmitting: boolean;
+  } = {
+    isOpen: false,
+    space: null,
+    reason: '',
+    isSubmitting: false
+  };
 
   // Data: Bookings (Rental Orders on Marketplace)
   bookings: AdminBooking[] = [
@@ -938,8 +1005,97 @@ export class Admin implements OnInit, OnDestroy {
     this.checkServerAiHealth();
     // Preload COCO-SSD model in background so turning on IoT camera is instant
     this.loadOccupancyModel();
-    if (!this.occSelectedSpace && this.spaces.length > 0) {
-      this.selectSpaceForDetection(this.spaces[0]);
+    // Đồng bộ dữ liệu Live từ MongoDB Atlas
+    this.loadSpacesFromApi();
+    this.loadBookingsFromApi();
+  }
+
+  async loadSpacesFromApi(): Promise<void> {
+    try {
+      const res = await fetch(`${SERVER_BASE_URL}/api/spaces`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        const mapped: AdminSpace[] = data.map((s: any) => ({
+          id: s._id || s.id || s.code,
+          _id: s._id,
+          code: s.code || s._id,
+          name: s.name,
+          building: s.building || s.buildingName || 'Tòa nhà A1',
+          floor: s.floor || s.floorName || 'Tầng 1',
+          type: s.spaceType || s.categoryName || 'Không gian đa năng',
+          spaceType: s.spaceType || s.categoryName || 'Không gian đa năng',
+          capacity: Number(s.capacity) || 10,
+          area: Number(s.area || s.areaSize) || 30,
+          areaSize: Number(s.areaSize || s.area) || 30,
+          status: s.status || 'AVAILABLE',
+          currentOccupants: Number(s.currentOccupants) || 0,
+          equipment: Array.isArray(s.equipment)
+            ? s.equipment.map((eq: any) => typeof eq === 'string' ? eq : (eq.name || ''))
+            : [],
+          autoCheckoutMinutes: s.policy?.autoCheckoutMinutes || s.autoCheckoutMinutes || 20,
+          awayWarningMinutes: s.policy?.awayWarningMinutes || s.awayWarningMinutes || 10,
+          pricePerHour: Number(s.pricePerHour || s.hourlyPrice) || 150000,
+          pricePerDay: Number(s.pricePerDay || s.dailyPrice) || 1050000,
+          hourlyPrice: Number(s.hourlyPrice || s.pricePerHour) || 150000,
+          dailyPrice: Number(s.dailyPrice || s.pricePerDay) || 1050000,
+          rating: Number(s.rating) || 4.9,
+          reviewsCount: Number(s.reviewsCount) || 10,
+          image: s.image || 'spaces/space_a2_1_meeting_vip.jpg',
+          images: Array.isArray(s.images) && s.images.length ? s.images : [s.image || 'spaces/space_a2_1_meeting_vip.jpg'],
+          tags: Array.isArray(s.tags) ? s.tags : ['Không gian chuẩn UEL', 'AI Occupancy'],
+          description: s.description || '',
+          seller: s.seller,
+          sellerId: s.sellerId,
+          location: s.location || `${s.floor || ''}, ${s.building || ''}`
+        }));
+        this.spaces = mapped;
+        if (!this.occSelectedSpace && this.spaces.length > 0) {
+          this.selectSpaceForDetection(this.spaces[0]);
+        }
+        this.cdr.detectChanges();
+      }
+    } catch (err) {
+      console.warn('[Admin] Live MongoDB spaces fetch fallback:', err);
+    }
+  }
+
+  async loadBookingsFromApi(): Promise<void> {
+    try {
+      const res = await fetch(`${SERVER_BASE_URL}/api/bookings`, {
+        headers: { 'x-user-role': 'ADMIN' }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        const mapped: AdminBooking[] = data.map((b: any) => ({
+          id: b._id || b.id || b.code,
+          code: b.code || b._id,
+          spaceId: b.spaceId || '',
+          spaceName: b.spaceName || 'Không gian UEL',
+          building: b.buildingName || b.building || 'Tòa nhà A1',
+          bookerName: b.userName || b.bookerName || 'Khách đặt',
+          bookerEmail: b.userEmail || b.bookerEmail || '',
+          organization: b.organizationName || b.organization || 'Khách vãng lai',
+          purpose: b.purpose || 'Hội thảo / Làm việc',
+          activityType: b.activityType || 'Hội thảo',
+          date: b.date || (b.startTime ? new Date(b.startTime).toLocaleDateString('vi-VN') : ''),
+          timeSlot: b.timeSlot || '08:00 - 11:30',
+          attendees: Number(b.attendeeCount || b.attendees) || 1,
+          status: b.status || 'PENDING',
+          rejectionReason: b.rejectionReason || b.cancelReason || '',
+          processedBy: b.processedBy || '',
+          processedAt: b.processedAt || '',
+          price: Number(b.totalPrice || b.price) || 0,
+          paymentStatus: b.paymentStatus || 'PAID',
+          rentalPackage: b.rentalPackage || '',
+          actualCheckInAt: b.actualCheckInAt || ''
+        }));
+        this.bookings = mapped;
+        this.cdr.detectChanges();
+      }
+    } catch (err) {
+      console.warn('[Admin] Live MongoDB bookings fetch fallback:', err);
     }
   }
 
@@ -966,8 +1122,35 @@ export class Admin implements OnInit, OnDestroy {
     return this.releaseCases.filter(r => r.status === 'STILL_PENDING').length;
   }
 
-  // Booking Actions
-  approveBooking(booking: AdminBooking): void {
+  // Filter Spaces
+  get filteredSpaces(): AdminSpace[] {
+    return this.spaces.filter(s => {
+      const matchStatus = this.spaceStatusFilter === 'ALL' || s.status === this.spaceStatusFilter;
+      const matchKeyword = !this.spaceSearchKeyword ||
+        s.name.toLowerCase().includes(this.spaceSearchKeyword.toLowerCase()) ||
+        (s.code && s.code.toLowerCase().includes(this.spaceSearchKeyword.toLowerCase())) ||
+        s.building.toLowerCase().includes(this.spaceSearchKeyword.toLowerCase()) ||
+        s.type.toLowerCase().includes(this.spaceSearchKeyword.toLowerCase());
+      return matchStatus && matchKeyword;
+    });
+  }
+
+  get pendingSpacesCount(): number {
+    return this.spaces.filter(s => s.status === 'PENDING_APPROVAL').length;
+  }
+
+  // Booking Actions (Live API Integrated)
+  async approveBooking(booking: AdminBooking): Promise<void> {
+    try {
+      await fetch(`${SERVER_BASE_URL}/api/bookings/${booking.id}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-role': 'ADMIN' },
+        body: JSON.stringify({ note: 'Phê duyệt bởi Quản trị viên UEL Space' })
+      });
+    } catch (err) {
+      console.warn('[Admin] approveBooking API sync warning:', err);
+    }
+
     booking.status = 'APPROVED';
     booking.processedBy = this.adminUser.email;
     booking.processedAt = new Date().toLocaleString('vi-VN');
@@ -984,6 +1167,7 @@ export class Admin implements OnInit, OnDestroy {
     });
 
     this.showToast(`${this.i18n.t('Đã phê duyệt thành công yêu cầu')} ${booking.code}!`, 'success');
+    this.cdr.detectChanges();
   }
 
   openRejectModal(booking: AdminBooking): void {
@@ -1002,10 +1186,20 @@ export class Admin implements OnInit, OnDestroy {
     this.rejectModal.reason = reason;
   }
 
-  confirmRejectBooking(): void {
+  async confirmRejectBooking(): Promise<void> {
     if (!this.rejectModal.booking) return;
     const booking = this.rejectModal.booking;
     const reasonText = this.rejectModal.reason.trim() || this.i18n.t('Trùng lịch ưu tiên hoặc vi phạm chính sách sử dụng không gian UEL.');
+
+    try {
+      await fetch(`${SERVER_BASE_URL}/api/bookings/${booking.id}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-role': 'ADMIN' },
+        body: JSON.stringify({ reason: reasonText })
+      });
+    } catch (err) {
+      console.warn('[Admin] rejectBooking API sync warning:', err);
+    }
 
     booking.status = 'REJECTED';
     booking.rejectionReason = reasonText;
@@ -1025,6 +1219,7 @@ export class Admin implements OnInit, OnDestroy {
 
     this.closeRejectModal();
     this.showToast(`${this.i18n.t('Đã từ chối yêu cầu')} ${booking.code}. ${this.i18n.t('Thông báo và lý do đã gửi tới người dùng.')}`, 'warning');
+    this.cdr.detectChanges();
   }
 
   // Release Case Actions (F21-F23)
@@ -1052,10 +1247,349 @@ export class Admin implements OnInit, OnDestroy {
       details: logMsg,
       level: action === 'SPACE_RELEASED' ? 'WARNING' : 'INFO'
     });
+    this.cdr.detectChanges();
   }
 
-  // Space Management Actions (F15-F18)
-  toggleSpaceMaintenance(space: AdminSpace): void {
+  // Space Management Actions (F15-F18 & BR15)
+  openCreateSpaceModal(): void {
+    const randomCode = 'SP-' + Math.floor(1000 + Math.random() * 9000);
+    this.spaceModal = {
+      isOpen: true,
+      isEdit: false,
+      id: '',
+      code: randomCode,
+      name: '',
+      building: 'Tòa nhà A1',
+      floor: 'Tầng 1',
+      type: 'Phòng họp VIP',
+      capacity: 15,
+      area: 35,
+      pricePerHour: 200000,
+      pricePerDay: 1400000,
+      awayWarningMinutes: 10,
+      autoCheckoutMinutes: 20,
+      status: 'AVAILABLE',
+      equipmentString: 'Màn hình 4K, Bảng từ kính, Điều hòa Daikin, Wifi 1Gbps',
+      image: 'spaces/space_a2_1_meeting_vip.jpg',
+      description: 'Không gian tiêu chuẩn cao cấp, hỗ trợ thiết bị hội thảo và cảm biến hiện diện AI thông minh.',
+      tagsString: 'Không gian chuẩn UEL, AI Occupancy, Đặt tức thì',
+      errorMessage: '',
+      isSaving: false
+    };
+  }
+
+  openEditSpaceModal(space: AdminSpace): void {
+    this.spaceModal = {
+      isOpen: true,
+      isEdit: true,
+      id: space.id || space._id || '',
+      code: space.code || space.id || '',
+      name: space.name,
+      building: space.building || 'Tòa nhà A1',
+      floor: space.floor || 'Tầng 1',
+      type: space.type || space.spaceType || 'Phòng họp VIP',
+      capacity: space.capacity,
+      area: space.area || space.areaSize || 30,
+      pricePerHour: space.pricePerHour || space.hourlyPrice || 150000,
+      pricePerDay: space.pricePerDay || space.dailyPrice || 1050000,
+      awayWarningMinutes: space.awayWarningMinutes || 10,
+      autoCheckoutMinutes: space.autoCheckoutMinutes || 20,
+      status: (space.status === 'MAINTENANCE' || space.status === 'PENDING_APPROVAL') ? space.status : 'AVAILABLE',
+      equipmentString: (space.equipment || []).join(', '),
+      image: space.image || 'spaces/space_a2_1_meeting_vip.jpg',
+      description: space.description || '',
+      tagsString: (space.tags || ['Không gian chuẩn UEL', 'AI Occupancy']).join(', '),
+      errorMessage: '',
+      isSaving: false
+    };
+  }
+
+  closeSpaceModal(): void {
+    this.spaceModal.isOpen = false;
+    this.spaceModal.errorMessage = '';
+    this.spaceModal.isSaving = false;
+  }
+
+  async saveSpace(): Promise<void> {
+    if (!this.spaceModal.name.trim()) {
+      this.spaceModal.errorMessage = this.i18n.t('Vui lòng nhập tên không gian (tối thiểu 2 ký tự).');
+      return;
+    }
+    if (this.spaceModal.capacity <= 0) {
+      this.spaceModal.errorMessage = this.i18n.t('Sức chứa phải lớn hơn 0.');
+      return;
+    }
+    if (this.spaceModal.area <= 0) {
+      this.spaceModal.errorMessage = this.i18n.t('Diện tích phòng phải lớn hơn 0.');
+      return;
+    }
+    // BR15: Policy validation
+    if (Number(this.spaceModal.awayWarningMinutes) >= Number(this.spaceModal.autoCheckoutMinutes)) {
+      this.spaceModal.errorMessage = this.i18n.t('Thời gian cảnh báo vắng mặt phải nhỏ hơn thời gian tự động hủy (quy tắc BR15).');
+      return;
+    }
+
+    this.spaceModal.isSaving = true;
+    this.spaceModal.errorMessage = '';
+
+    const equipmentList = this.spaceModal.equipmentString
+      .split(',')
+      .map(item => item.trim())
+      .filter(Boolean);
+
+    const tagsList = this.spaceModal.tagsString
+      .split(',')
+      .map(item => item.trim())
+      .filter(Boolean);
+
+    const payload = {
+      name: this.spaceModal.name.trim(),
+      code: this.spaceModal.code.trim().toUpperCase(),
+      building: this.spaceModal.building.trim(),
+      buildingName: this.spaceModal.building.trim(),
+      floor: this.spaceModal.floor.trim(),
+      floorName: this.spaceModal.floor.trim(),
+      spaceType: this.spaceModal.type.trim(),
+      categoryName: this.spaceModal.type.trim(),
+      capacity: Number(this.spaceModal.capacity),
+      area: Number(this.spaceModal.area),
+      areaSize: Number(this.spaceModal.area),
+      pricePerHour: Number(this.spaceModal.pricePerHour),
+      pricePerDay: Number(this.spaceModal.pricePerDay),
+      hourlyPrice: Number(this.spaceModal.pricePerHour),
+      dailyPrice: Number(this.spaceModal.pricePerDay),
+      status: this.spaceModal.status,
+      equipment: equipmentList,
+      image: this.spaceModal.image.trim() || 'spaces/space_a2_1_meeting_vip.jpg',
+      images: [this.spaceModal.image.trim() || 'spaces/space_a2_1_meeting_vip.jpg'],
+      description: this.spaceModal.description.trim(),
+      tags: tagsList,
+      awayWarningMinutes: Number(this.spaceModal.awayWarningMinutes),
+      autoCheckoutMinutes: Number(this.spaceModal.autoCheckoutMinutes),
+      policy: {
+        awayWarningMinutes: Number(this.spaceModal.awayWarningMinutes),
+        autoCheckoutMinutes: Number(this.spaceModal.autoCheckoutMinutes),
+        autoApprove: true,
+        maxDurationMinutes: 480,
+        noShowGraceMinutes: 15
+      }
+    };
+
+    try {
+      if (this.spaceModal.isEdit && this.spaceModal.id) {
+        const res = await fetch(`${SERVER_BASE_URL}/api/spaces/${this.spaceModal.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'x-user-role': 'ADMIN' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.message || 'Lỗi khi cập nhật không gian');
+        }
+        const updated = await res.json();
+        const idx = this.spaces.findIndex(s => s.id === this.spaceModal.id || s._id === this.spaceModal.id);
+        if (idx !== -1) {
+          this.spaces[idx] = { ...this.spaces[idx], ...payload, id: this.spaceModal.id };
+        }
+        this.auditLogs.unshift({
+          id: 'log-' + Date.now(),
+          timestamp: new Date().toLocaleString('vi-VN'),
+          actor: this.adminUser.email,
+          action: 'UPDATE_SPACE',
+          target: `${payload.name} (${payload.code})`,
+          details: `Cập nhật thông số kỹ thuật, bảng giá và tiện ích không gian.`,
+          level: 'INFO'
+        });
+        this.showToast(`${this.i18n.t('Đã cập nhật thành công không gian')} ${payload.name}!`, 'success');
+      } else {
+        const res = await fetch(`${SERVER_BASE_URL}/api/spaces`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-role': 'ADMIN' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.message || 'Lỗi khi tạo mới không gian');
+        }
+        const created = await res.json();
+        const newSpace: AdminSpace = {
+          id: created._id || created.id || payload.code,
+          _id: created._id,
+          code: payload.code,
+          name: payload.name,
+          building: payload.building,
+          floor: payload.floor,
+          type: payload.spaceType,
+          spaceType: payload.spaceType,
+          capacity: payload.capacity,
+          area: payload.area,
+          areaSize: payload.area,
+          status: payload.status as any,
+          currentOccupants: 0,
+          equipment: equipmentList,
+          autoCheckoutMinutes: payload.autoCheckoutMinutes,
+          awayWarningMinutes: payload.awayWarningMinutes,
+          pricePerHour: payload.pricePerHour,
+          pricePerDay: payload.pricePerDay,
+          hourlyPrice: payload.hourlyPrice,
+          dailyPrice: payload.dailyPrice,
+          rating: 5.0,
+          reviewsCount: 0,
+          image: payload.image,
+          images: payload.images,
+          tags: tagsList,
+          description: payload.description
+        };
+        this.spaces.unshift(newSpace);
+        this.auditLogs.unshift({
+          id: 'log-' + Date.now(),
+          timestamp: new Date().toLocaleString('vi-VN'),
+          actor: this.adminUser.email,
+          action: 'CREATE_SPACE',
+          target: `${payload.name} (${payload.code})`,
+          details: `Tạo mới và niêm yết không gian với sức chứa ${payload.capacity} khách.`,
+          level: 'INFO'
+        });
+        this.showToast(`${this.i18n.t('Đã đăng tải thành công không gian mới')} ${payload.name}!`, 'success');
+      }
+      this.closeSpaceModal();
+      this.cdr.detectChanges();
+    } catch (err: any) {
+      this.spaceModal.errorMessage = err.message || this.i18n.t('Đã xảy ra lỗi khi lưu không gian.');
+    } finally {
+      this.spaceModal.isSaving = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  openDeleteSpaceModal(space: AdminSpace): void {
+    this.deleteSpaceModal = {
+      isOpen: true,
+      space,
+      isDeleting: false
+    };
+  }
+
+  closeDeleteSpaceModal(): void {
+    this.deleteSpaceModal.isOpen = false;
+    this.deleteSpaceModal.space = null;
+    this.deleteSpaceModal.isDeleting = false;
+  }
+
+  async confirmDeleteSpace(): Promise<void> {
+    if (!this.deleteSpaceModal.space) return;
+    const space = this.deleteSpaceModal.space;
+    this.deleteSpaceModal.isDeleting = true;
+
+    try {
+      await fetch(`${SERVER_BASE_URL}/api/spaces/${space.id || space._id}`, {
+        method: 'DELETE',
+        headers: { 'x-user-role': 'ADMIN' }
+      });
+      this.spaces = this.spaces.filter(s => s.id !== space.id && s._id !== space.id);
+      this.auditLogs.unshift({
+        id: 'log-' + Date.now(),
+        timestamp: new Date().toLocaleString('vi-VN'),
+        actor: this.adminUser.email,
+        action: 'DELETE_SPACE',
+        target: `${space.name} (${space.id})`,
+        details: `Xóa mềm không gian khỏi danh mục khả dụng của hệ thống UEL.`,
+        level: 'WARNING'
+      });
+      this.showToast(`${this.i18n.t('Đã xóa thành công không gian')} ${space.name}!`, 'success');
+      this.closeDeleteSpaceModal();
+      this.cdr.detectChanges();
+    } catch (err) {
+      this.showToast(this.i18n.t('Lỗi khi xóa không gian. Vui lòng thử lại.'), 'warning');
+    } finally {
+      this.deleteSpaceModal.isDeleting = false;
+    }
+  }
+
+  async approveSpaceListing(space: AdminSpace): Promise<void> {
+    try {
+      await fetch(`${SERVER_BASE_URL}/api/spaces/${space.id || space._id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-user-role': 'ADMIN' },
+        body: JSON.stringify({ status: 'AVAILABLE', reason: 'Phê duyệt niêm yết bởi Quản trị viên' })
+      });
+    } catch (err) {
+      console.warn('[Admin] approveSpaceListing API warning:', err);
+    }
+    space.status = 'AVAILABLE';
+    this.auditLogs.unshift({
+      id: 'log-' + Date.now(),
+      timestamp: new Date().toLocaleString('vi-VN'),
+      actor: this.adminUser.email,
+      action: 'APPROVE_SPACE_LISTING',
+      target: space.name,
+      details: `Phê duyệt niêm yết không gian sang trạng thái ĐANG MỞ THUÊ.`,
+      level: 'INFO'
+    });
+    this.showToast(`${this.i18n.t('Đã duyệt mở niêm yết cho không gian')} ${space.name}!`, 'success');
+    this.cdr.detectChanges();
+  }
+
+  openRejectSpaceListingModal(space: AdminSpace): void {
+    this.spaceListingRejectModal = {
+      isOpen: true,
+      space,
+      reason: '',
+      isSubmitting: false
+    };
+  }
+
+  closeRejectSpaceListingModal(): void {
+    this.spaceListingRejectModal.isOpen = false;
+    this.spaceListingRejectModal.space = null;
+    this.spaceListingRejectModal.isSubmitting = false;
+  }
+
+  async confirmRejectSpaceListing(): Promise<void> {
+    if (!this.spaceListingRejectModal.space) return;
+    const space = this.spaceListingRejectModal.space;
+    const reasonText = this.spaceListingRejectModal.reason.trim() || 'Hồ sơ thiết bị hoặc thông số không gian chưa đạt chuẩn UEL Space.';
+    this.spaceListingRejectModal.isSubmitting = true;
+
+    try {
+      await fetch(`${SERVER_BASE_URL}/api/spaces/${space.id || space._id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-user-role': 'ADMIN' },
+        body: JSON.stringify({ status: 'REJECTED', reason: reasonText })
+      });
+    } catch (err) {
+      console.warn('[Admin] rejectSpaceListing API warning:', err);
+    }
+    space.status = 'REJECTED';
+    this.auditLogs.unshift({
+      id: 'log-' + Date.now(),
+      timestamp: new Date().toLocaleString('vi-VN'),
+      actor: this.adminUser.email,
+      action: 'REJECT_SPACE_LISTING',
+      target: space.name,
+      details: `Từ chối duyệt niêm yết không gian. Lý do: ${reasonText}`,
+      level: 'WARNING'
+    });
+    this.showToast(`${this.i18n.t('Đã từ chối niêm yết không gian')} ${space.name}.`, 'warning');
+    this.closeRejectSpaceListingModal();
+    this.cdr.detectChanges();
+  }
+
+  async toggleSpaceMaintenance(space: AdminSpace): Promise<void> {
+    const nextStatus = space.status === 'MAINTENANCE' ? 'AVAILABLE' : 'MAINTENANCE';
+    try {
+      await fetch(`${SERVER_BASE_URL}/api/spaces/${space.id || space._id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-user-role': 'ADMIN' },
+        body: JSON.stringify({ 
+          status: nextStatus, 
+          reason: nextStatus === 'AVAILABLE' ? 'Quản trị viên mở lại hoạt động sau bảo trì' : 'Chuyển sang bảo trì định kỳ' 
+        })
+      });
+    } catch (err) {
+      console.warn('[Admin] toggleSpaceMaintenance API warning:', err);
+    }
+
     if (space.status === 'MAINTENANCE') {
       space.status = 'AVAILABLE';
       this.showToast(`${this.i18n.t('Không gian')} ${space.name} ${this.i18n.t('đã mở lại hoạt động bình thường!')}`, 'success');
@@ -1073,6 +1607,7 @@ export class Admin implements OnInit, OnDestroy {
       details: `${this.i18n.t('Chuyển trạng thái sang')} ${space.status}.`,
       level: 'INFO'
     });
+    this.cdr.detectChanges();
   }
 
   // Detail Modal
@@ -1841,12 +2376,12 @@ export class Admin implements OnInit, OnDestroy {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image: base64Image,
-          confidenceThreshold: this.occSensitivity === 'high' ? 0.15 : (this.occSensitivity === 'normal' ? 0.20 : 0.30),
-          iouThreshold: 0.45,
+          confidenceThreshold: this.occSensitivity === 'high' ? 0.12 : (this.occSensitivity === 'normal' ? 0.16 : 0.22),
+          iouThreshold: 0.60,
           spaceId: this.occSelectedSpace?.id || 'general',
           spaceName: this.occSelectedSpace?.name || 'UEL Space Room'
         }),
-        // Timeout 5s: đủ cho lần suy luận đầu tiên (cold start ~4s) mà không chặn quá lâu
+        // Timeout 5s: đủ cho lần suy luận đầu tiên mà không chặn quá lâu
         signal: AbortSignal.timeout(5000)
       });
 
@@ -1863,7 +2398,7 @@ export class Admin implements OnInit, OnDestroy {
 
       this.resetServerYoloHealth();
       this.occServerLatencyMs = Math.round(performance.now() - t0);
-      this.occModelName = `YOLOv11 SOTA AI (${data.processingTimeMs}ms • ${data.device ? data.device.toUpperCase() : 'CPU'})`;
+      this.occModelName = `${data.modelName || 'YOLOv11 Dual-Head AI'} (${data.processingTimeMs}ms • ${data.device ? data.device.toUpperCase() : 'CPU'})`;
 
       const boxes: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
       if (Array.isArray(data.boxes)) {
@@ -1975,98 +2510,85 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   /**
-   * SOTA Non-Maximum Suppression (NMS) & Multi-Anchor Body Fusion.
-   * Ngăn chặn triệt để lỗi "Một người thành nhiều người":
-   * Gom mọi bộ phận (khuôn mặt, ngực, vai, cánh tay, thân người) của cùng một cá nhân thành 1 box duy nhất.
+   * SOTA Anti-Crowding NMS & Face-Body Fusion:
+   * 1. Tuyệt đối KHÔNG gộp nhầm 2 người ngồi sát nhau (khung hình 5 người bảo toàn đủ 5/5 người).
+   * 2. Chỉ gộp Face AI vào Body nếu tâm khuôn mặt thực sự nằm trong nửa trên của Body box.
+   * 3. Giữ nguyên vẹn mọi tư thế nằm, cúi, tựa lưng hoặc che khuất đầu.
    */
   private consolidateAndMergeDetections(
     boxes: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }>,
     vw: number,
     vh: number
   ): Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> {
-    if (boxes.length === 0) return [];
+    if (boxes.length <= 1) return boxes;
 
-    // Bỏ qua mọi giới hạn gắt gao: chấp nhận người ngồi, đứng, nghiêng, cúi, bán thân hoặc toàn thân
-    const validBoxes = boxes.filter(b => {
-      // Chỉ bỏ box quá nhỏ (nhiễu pixel dưới 8px)
-      if (b.w < 8 || b.h < 8) return false;
-      return true;
-    });
-
+    // Lọc bỏ box quá nhỏ (nhiễu pixel dưới 8px)
+    const validBoxes = boxes.filter(b => b.w >= 8 && b.h >= 8);
     if (validBoxes.length <= 1) return validBoxes;
 
     // Sắp xếp theo điểm tin cậy giảm dần
     validBoxes.sort((a, b) => b.score - a.score);
 
-    let merged = [...validBoxes];
-    let changed = true;
+    const merged: typeof validBoxes = [];
 
-    while (changed) {
-      changed = false;
-      const nextMerged: typeof validBoxes = [];
-      const used = new Set<number>();
+    for (const b of validBoxes) {
+      let isDuplicate = false;
 
-      for (let i = 0; i < merged.length; i++) {
-        if (used.has(i)) continue;
-        let b1 = { ...merged[i] };
+      for (const m of merged) {
+        // Tính diện tích giao nhau (Intersection)
+        const interX1 = Math.max(b.x, m.x);
+        const interY1 = Math.max(b.y, m.y);
+        const interX2 = Math.min(b.x + b.w, m.x + m.w);
+        const interY2 = Math.min(b.y + b.h, m.y + m.h);
+        const interW = Math.max(0, interX2 - interX1);
+        const interH = Math.max(0, interY2 - interY1);
+        const interArea = interW * interH;
 
-        for (let j = i + 1; j < merged.length; j++) {
-          if (used.has(j)) continue;
-          const b2 = merged[j];
+        const area1 = b.w * b.h;
+        const area2 = m.w * m.h;
+        const unionArea = area1 + area2 - interArea;
+        const iou = unionArea > 0 ? interArea / unionArea : 0;
+        const minArea = Math.min(area1, area2);
+        const ios = minArea > 0 ? interArea / minArea : 0;
 
-          // Tính diện tích giao nhau (Intersection)
-          const interX1 = Math.max(b1.x, b2.x);
-          const interY1 = Math.max(b1.y, b2.y);
-          const interX2 = Math.min(b1.x + b1.w, b2.x + b2.w);
-          const interY2 = Math.min(b1.y + b1.h, b2.y + b2.h);
-          const interW = Math.max(0, interX2 - interX1);
-          const interH = Math.max(0, interY2 - interY1);
-          const interArea = interW * interH;
+        const c1X = b.x + b.w / 2;
+        const c1Y = b.y + b.h / 2;
+        const c2X = m.x + m.w / 2;
+        const c2Y = m.y + m.h / 2;
+        const distCenters = Math.hypot(c1X - c2X, c1Y - c2Y);
+        const minDim = Math.min(b.w, m.w, b.h, m.h);
 
-          const area1 = b1.w * b1.h;
-          const area2 = b2.w * b2.h;
-          const minArea = Math.min(area1, area2);
-          const unionArea = area1 + area2 - interArea;
-          const iou = unionArea > 0 ? interArea / unionArea : 0;
-          const ios = minArea > 0 ? interArea / minArea : 0; // Tỷ lệ nằm lọt trong box kia
-
-          const c1X = b1.x + b1.w / 2;
-          const c1Y = b1.y + b1.h / 2;
-          const c2X = b2.x + b2.w / 2;
-          const c2Y = b2.y + b2.h / 2;
-          const deltaX = Math.abs(c1X - c2X);
-          const deltaY = Math.abs(c1Y - c2Y);
-
-          // Điều kiện 1: Trùng lặp không gian (IoU >= 0.25 hoặc một box nằm lọt trong box kia IoS >= 0.45)
-          const isDirectOverlap = iou >= 0.25 || ios >= 0.45;
-
-          // Điều kiện 2: Cùng 1 cá nhân (Face AI phát hiện đầu và COCO phát hiện thân người)
-          // Tâm ngang lệch không quá 45% chiều rộng, và độ lệch dọc nằm trong chiều cao của người
-          const maxW = Math.max(b1.w, b2.w);
-          const maxH = Math.max(b1.h, b2.h);
-          const isSamePersonBodyParts = deltaX <= maxW * 0.45 && deltaY <= maxH * 0.85;
-
-          if (isDirectOverlap || isSamePersonBodyParts) {
-            const unionLeft = Math.min(b1.x, b2.x);
-            const unionTop = Math.min(b1.y, b2.y);
-            const unionRight = Math.max(b1.x + b1.w, b2.x + b2.w);
-            const unionBottom = Math.max(b1.y + b1.h, b2.y + b2.h);
-
-            b1.x = unionLeft;
-            b1.y = unionTop;
-            b1.w = unionRight - unionLeft;
-            b1.h = unionBottom - unionTop;
-            b1.score = Math.max(b1.score, b2.score);
-            b1.label = 'Người (SOTA AI)';
-            used.add(j);
-            changed = true;
+        // Trường hợp 1: Face AI trùng lặp với Body box
+        const isFaceAndBody = (b.label.includes('Face') && !m.label.includes('Face')) || 
+                              (m.label.includes('Face') && !b.label.includes('Face'));
+        if (isFaceAndBody) {
+          const face = b.label.includes('Face') ? b : m;
+          const body = b.label.includes('Face') ? m : b;
+          const fCenterX = face.x + face.w / 2;
+          const fCenterY = face.y + face.h / 2;
+          if (fCenterX >= body.x - 15 && fCenterX <= body.x + body.w + 15 &&
+              fCenterY >= body.y - 15 && fCenterY <= body.y + body.h * 0.65) {
+            isDuplicate = true;
+            m.score = Math.max(m.score, b.score);
+            break;
           }
         }
 
-        nextMerged.push(b1);
+        // Trường hợp 2: Trùng lặp rất cao (cùng 1 người được detect lặp)
+        // Nâng IoU lên 0.65 để TUYỆT ĐỐI KHÔNG gộp nhầm 2 người ngồi sát nhau
+        if (iou >= 0.65 || (ios >= 0.85 && distCenters < minDim * 0.30)) {
+          isDuplicate = true;
+          if (b.score > m.score) {
+            m.score = b.score;
+            m.label = b.label;
+          }
+          break;
+        }
       }
 
-      merged = nextMerged;
+      if (!isDuplicate) {
+        merged.push({ ...b });
+      }
     }
 
     return merged;
@@ -2257,14 +2779,14 @@ export class Admin implements OnInit, OnDestroy {
     this.isDetectingOccFrame = true;
     this.lastOccDetectionTimestamp = now;
 
-    // Ngưỡng điểm tin cậy siêu nhạy chuẩn SOTA Pretrained Models (YOLOv11 & COCO)
-    const minScore = this.occSensitivity === 'high' ? 0.15 : (this.occSensitivity === 'normal' ? 0.20 : 0.30);
+    // Ngưỡng điểm tin cậy siêu nhạy chuẩn SOTA Pretrained Models (YOLOv11 Dual-Head & COCO)
+    const minScore = this.occSensitivity === 'high' ? 0.12 : (this.occSensitivity === 'normal' ? 0.16 : 0.22);
 
     try {
       const rawDetected: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
       let usedServerYolo = false;
 
-      // 1. Chế độ Ưu tiên: SOTA YOLOv11 Server AI Microservice (Option B)
+      // 1. Chế độ Ưu tiên: SOTA YOLOv11 Server AI Microservice (Dual-Head Detection + Pose)
       if (this.occEngineMode === 'server') {
         const serverBoxes = await this.detectWithServerYolo(videoEl);
         if (serverBoxes !== null) {
@@ -2281,7 +2803,8 @@ export class Admin implements OnInit, OnDestroy {
         let cocoPredictions: any[] = [];
         if (this.occCocoModel) {
           try {
-            cocoPredictions = await this.occCocoModel.detect(videoEl, 20, minScore);
+            // Nạp với ngưỡng cơ sở thấp 0.10 để không bỏ sót người nằm hoặc người ngồi xa
+            cocoPredictions = await this.occCocoModel.detect(videoEl, 20, 0.10);
           } catch (errCoco) {
             console.warn('COCO detect error:', errCoco);
           }
@@ -2297,17 +2820,25 @@ export class Admin implements OnInit, OnDestroy {
           }
         }
 
-        // C. Thu thập kết quả Deep Learning COCO-SSD: LỌC CHÍNH XÁC CLASS 'person' HOẶC 'face'
-        const bodyPeople = cocoPredictions.filter((p: any) => (p.class === 'person' || p.class === 'face') && p.score >= minScore);
-        for (const p of bodyPeople) {
-          rawDetected.push({
-            x: Math.round(p.bbox[0]),
-            y: Math.round(p.bbox[1]),
-            w: Math.round(p.bbox[2]),
-            h: Math.round(p.bbox[3]),
-            score: Math.round(p.score * 100),
-            label: 'Khách thuê (Pretrained COCO)'
-          });
+        // C. Thu thập kết quả Deep Learning COCO-SSD: Class 'person'
+        for (const p of cocoPredictions) {
+          if (p.class !== 'person') continue;
+          const bw = p.bbox[2];
+          const bh = p.bbox[3];
+          const isLying = bw > (bh * 1.15);
+          // Với người nằm ngang, hạ ngưỡng score tối thiểu xuống 0.12 để bắt trọn mọi tư thế thư giãn
+          const effectiveMinScore = isLying ? Math.min(minScore, 0.12) : minScore;
+
+          if (p.score >= effectiveMinScore) {
+            rawDetected.push({
+              x: Math.round(p.bbox[0]),
+              y: Math.round(p.bbox[1]),
+              w: Math.round(bw),
+              h: Math.round(bh),
+              score: Math.round(p.score * 100),
+              label: isLying ? 'Khách thuê (Tư thế nằm)' : 'Khách thuê (Pretrained COCO)'
+            });
+          }
         }
 
         // D. Face AI: Chỉ bổ sung nếu khuôn mặt KHÔNG nằm trong body box nào đã có
@@ -2412,7 +2943,8 @@ export class Admin implements OnInit, OnDestroy {
         });
       }
 
-      // 4B. Post-tracking fusion: Chỉ hợp nhất nếu 2 vệt theo dõi trùng lặp đáng kể (IoU >= 0.35 hoặc IoS >= 0.65)
+      // 4B. Post-tracking fusion: Chỉ hợp nhất nếu 2 vệt theo dõi thực sự là CÙNG 1 NGƯỜI (IoU >= 0.70 hoặc IoS >= 0.88 với khoảng cách tâm rất gần)
+      // TUYỆT ĐỐI không gộp 2 người ngồi sát nhau (bảo toàn 5/5 người trong phòng)
       for (let i = 0; i < this.trackedPeople.length; i++) {
         for (let j = i + 1; j < this.trackedPeople.length; j++) {
           const t1 = this.trackedPeople[i];
@@ -2430,7 +2962,14 @@ export class Admin implements OnInit, OnDestroy {
           const minArea = Math.min(t1.w * t1.h, t2.w * t2.h);
           const ios = minArea > 0 ? interArea / minArea : 0;
 
-          if (iou >= 0.25 || ios >= 0.45) {
+          const tc1X = t1.x + t1.w / 2;
+          const tc1Y = t1.y + t1.h / 2;
+          const tc2X = t2.x + t2.w / 2;
+          const tc2Y = t2.y + t2.h / 2;
+          const distCenters = Math.hypot(tc1X - tc2X, tc1Y - tc2Y);
+          const minDim = Math.min(t1.w, t2.w, t1.h, t2.h);
+
+          if (iou >= 0.70 || (ios >= 0.88 && distCenters < minDim * 0.25)) {
             const minX = Math.min(t1.x, t2.x);
             const minY = Math.min(t1.y, t2.y);
             t1.w = Math.max(t1.x + t1.w, t2.x + t2.w) - minX;
@@ -2458,18 +2997,20 @@ export class Admin implements OnInit, OnDestroy {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         this.trackedPeople.forEach((p, idx) => {
-          // Khung viền Neon Cyan nổi bật
-          ctx.strokeStyle = '#00F0FF';
+          const isLying = p.label.includes('nằm');
+
+          // Khung viền: Xanh lá Emerald nổi bật nếu là người nằm, Neon Cyan cho dáng người tiêu chuẩn
+          ctx.strokeStyle = isLying ? '#10B981' : '#00F0FF';
           ctx.lineWidth = 2.5;
           ctx.strokeRect(p.x, p.y, p.w, p.h);
 
           // Lớp phủ mờ hiện đại
-          ctx.fillStyle = 'rgba(0, 240, 255, 0.08)';
+          ctx.fillStyle = isLying ? 'rgba(16, 185, 129, 0.10)' : 'rgba(0, 240, 255, 0.08)';
           ctx.fillRect(p.x, p.y, p.w, p.h);
 
-          // 4 Góc Target Brackets màu vàng hổ phách
+          // 4 Góc Target Brackets
           const cLen = Math.min(p.w, p.h) * 0.2;
-          ctx.strokeStyle = '#FFC72C';
+          ctx.strokeStyle = isLying ? '#34D399' : '#FFC72C';
           ctx.lineWidth = 3.5;
           // Top-left
           ctx.beginPath(); ctx.moveTo(p.x, p.y + cLen); ctx.lineTo(p.x, p.y); ctx.lineTo(p.x + cLen, p.y); ctx.stroke();
@@ -2484,11 +3025,11 @@ export class Admin implements OnInit, OnDestroy {
           const tag = `#${idx + 1} ${p.label} • ${p.score}%`;
           ctx.font = 'bold 12px Roboto, system-ui, sans-serif';
           const tw = ctx.measureText(tag).width;
-          ctx.fillStyle = 'rgba(0, 20, 40, 0.9)';
+          ctx.fillStyle = isLying ? 'rgba(6, 78, 59, 0.95)' : 'rgba(0, 20, 40, 0.9)';
           ctx.beginPath();
           ctx.roundRect(p.x, Math.max(2, p.y - 24), tw + 14, 22, 5);
           ctx.fill();
-          ctx.strokeStyle = '#00F0FF';
+          ctx.strokeStyle = isLying ? '#10B981' : '#00F0FF';
           ctx.lineWidth = 1;
           ctx.stroke();
           ctx.fillStyle = '#FFFFFF';

@@ -6,6 +6,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { SERVER_BASE_URL, SERVER_IMAGES_LINK } from '../../services/api-config';
 import { TranslatePipe } from '../../services/translate.pipe';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
+import { BookingService } from '../../services/booking.service';
 import { normalizeSpace, getFallbackMarketplaceSpaces } from '../../services/spaces-data';
 
 export interface SpaceItem {
@@ -523,6 +524,22 @@ export class Home implements OnInit {
         this.momoModal.isOpen = false;
         this.momoModal.isProcessing = false;
         this.bookingSuccess = true;
+
+        if (this.selectedRoomDetail) {
+          const dur = this.customDurationHours || 2;
+          this.bookingService.addBooking({
+            id: code,
+            roomName: this.selectedRoomDetail.name,
+            building: this.selectedRoomDetail.building,
+            roomType: this.selectedRoomDetail.spaceType || 'Phòng học / Văn phòng',
+            date: this.customBookingDate,
+            timeSlot: `${this.customStartTime} - ${this.customEndTime}`,
+            purpose: 'Làm việc & Học tập trên UEL Space',
+            capacity: this.selectedRoomDetail.capacity || 10,
+            totalAmount: Math.round((this.selectedRoomDetail.hourlyPrice || 60000) * dur)
+          });
+        }
+
         // Tự động đẩy sự kiện lên Google Calendar sau khi thanh toán thành công
         this.addToGoogleCalendar();
       })
@@ -530,6 +547,22 @@ export class Home implements OnInit {
         this.momoModal.isOpen = false;
         this.momoModal.isProcessing = false;
         this.bookingSuccess = true;
+
+        if (this.selectedRoomDetail) {
+          const dur = this.customDurationHours || 2;
+          this.bookingService.addBooking({
+            id: code,
+            roomName: this.selectedRoomDetail.name,
+            building: this.selectedRoomDetail.building,
+            roomType: this.selectedRoomDetail.spaceType || 'Phòng học / Văn phòng',
+            date: this.customBookingDate,
+            timeSlot: `${this.customStartTime} - ${this.customEndTime}`,
+            purpose: 'Làm việc & Học tập trên UEL Space',
+            capacity: this.selectedRoomDetail.capacity || 10,
+            totalAmount: Math.round((this.selectedRoomDetail.hourlyPrice || 60000) * dur)
+          });
+        }
+
         this.addToGoogleCalendar();
       });
   }
@@ -551,6 +584,7 @@ export class Home implements OnInit {
 
   constructor(
     private googleCalendarService: GoogleCalendarService,
+    private bookingService: BookingService,
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef
   ) {}

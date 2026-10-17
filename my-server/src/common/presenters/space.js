@@ -5,7 +5,9 @@ const STATUS_TEXT = {
   RESERVED: 'Đã đặt trước',
   OCCUPIED: 'Đang sử dụng',
   MAINTENANCE: 'Đang bảo trì',
-  CLOSED: 'Tạm đóng'
+  CLOSED: 'Tạm đóng',
+  PENDING_APPROVAL: 'Chờ duyệt',
+  REJECTED: 'Từ chối'
 };
 
 const STATUS_KEY = {
@@ -13,7 +15,9 @@ const STATUS_KEY = {
   RESERVED: 'reserved',
   OCCUPIED: 'in-use',
   MAINTENANCE: 'maintenance',
-  CLOSED: 'closed'
+  CLOSED: 'closed',
+  PENDING_APPROVAL: 'pending-approval',
+  REJECTED: 'rejected'
 };
 
 function toMinutes(hhmm) {

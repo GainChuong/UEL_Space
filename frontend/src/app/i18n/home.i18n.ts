@@ -110,6 +110,7 @@ export const HOME_EN: Record<string, string> = {
   'Sức chứa:': 'Capacity:',
   'Mạng lưới UEL Space': 'UEL Space Network',
   'Khuôn viên UEL': 'UEL Space Network',
+  'Xem tất cả': 'View all',
 
   // Room detail modal
   'Đóng': 'Close',

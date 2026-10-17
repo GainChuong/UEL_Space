@@ -44,6 +44,7 @@ export const COMMON_EN: Record<string, string> = {
   'Đặt phòng này': 'Book this room',
   'Đặt phòng ngay': 'Book now',
   'Xem chi tiết': 'View details',
+  'Xem tất cả': 'View all',
   'Xem trên bản đồ': 'View on map',
   'Xem cả tuần': 'View full week',
   'Xóa bộ lọc': 'Clear filters',

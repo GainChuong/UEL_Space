@@ -1,24 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { TranslatePipe } from '../../services/translate.pipe';
 import { I18nService } from '../../services/i18n.service';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
-
-export interface BookingRecord {
-  id: string;
-  roomName: string;
-  building: string;
-  roomType: string;
-  date: string;
-  timeSlot: string;
-  purpose: string;
-  capacity: number;
-  status: 'active' | 'upcoming' | 'completed' | 'cancelled';
-  statusText: string;
-  qrCodeUrl?: string;
-  createdAt: string;
-}
+import { BookingService, BookingRecord } from '../../services/booking.service';
 
 @Component({
   imports: [CommonModule, FormsModule, TranslatePipe],
@@ -26,9 +13,11 @@ export interface BookingRecord {
   templateUrl: './booking-history.html',
   styleUrl: './booking-history.scss'
 })
-export class BookingHistory implements OnInit {
+export class BookingHistory implements OnInit, OnDestroy {
   private i18n = inject(I18nService);
   private googleCalendarService = inject(GoogleCalendarService);
+  private bookingService = inject(BookingService);
+  private subBookings?: Subscription;
   searchTerm: string = '';
   selectedTab: string = 'all';
   selectedArea: string = 'all';
@@ -69,114 +58,17 @@ export class BookingHistory implements OnInit {
     { value: 'cancelled', label: 'Đã hủy' }
   ];
 
-  bookings: BookingRecord[] = [
-    {
-      id: 'UEL-88392',
-      roomName: 'Boardroom VIP B1',
-      building: 'Central Tower Q.1 - Tầng 12',
-      roomType: 'Phòng họp VIP',
-      date: '2026-10-12',
-      timeSlot: '14:00 - 16:00',
-      purpose: 'Họp chiến lược ký kết hợp đồng đối tác B2B',
-      capacity: 24,
-      status: 'upcoming',
-      statusText: 'Sắp tới',
-      createdAt: '11/10/2026 14:00'
-    },
-    {
-      id: 'UEL-88210',
-      roomName: 'Private Suite A2',
-      building: 'TechPark Executive Hub - Tầng 5',
-      roomType: 'Văn phòng riêng',
-      date: '2026-10-12',
-      timeSlot: '09:00 - 11:30',
-      purpose: 'Làm việc tập trung cùng đội ngũ sáng lập',
-      capacity: 12,
-      status: 'upcoming',
-      statusText: 'Sắp tới',
-      createdAt: '11/10/2026 09:00'
-    },
-    {
-      id: 'UEL-88150',
-      roomName: 'Khu Hot Desk Coworking',
-      building: 'Innovation Hub Q.2 - Tầng 2',
-      roomType: 'Bàn làm việc linh hoạt',
-      date: '2026-10-13',
-      timeSlot: '08:00 - 17:00',
-      purpose: 'Gói làm việc linh hoạt theo ngày cho 3 nhân sự',
-      capacity: 60,
-      status: 'upcoming',
-      statusText: 'Sắp tới',
-      createdAt: '10/10/2026 16:30'
-    },
-    {
-      id: 'UEL-87941',
-      roomName: 'Hội trường Workshop A3',
-      building: 'Landmark Lounge - Tầng 8',
-      roomType: 'Không gian sự kiện',
-      date: '2026-10-11',
-      timeSlot: '13:00 - 17:00',
-      purpose: 'Tổ chức sự kiện Demo Day kết nối nhà đầu tư',
-      capacity: 100,
-      status: 'upcoming',
-      statusText: 'Sắp tới',
-      createdAt: '09/10/2026 09:30'
-    },
-    {
-      id: 'UEL-88777',
-      roomName: 'Focus Pod 1 Cách Âm',
-      building: 'Green Office Suites - Tầng 3',
-      roomType: 'Meeting Pod',
-      date: '2026-10-14',
-      timeSlot: '15:00 - 17:30',
-      purpose: 'Phỏng vấn ứng viên cấp cao trực tuyến',
-      capacity: 4,
-      status: 'upcoming',
-      statusText: 'Sắp tới',
-      createdAt: '11/10/2026 10:15'
-    },
-    {
-      id: 'UEL-88999',
-      roomName: 'Creative Studio Lab B2',
-      building: 'TechPark Executive Hub - Tầng 6',
-      roomType: 'Phòng họp sáng tạo',
-      date: '2026-10-11',
-      timeSlot: '08:00 - 12:00',
-      purpose: 'Workshop lên ý tưởng sản phẩm mới',
-      capacity: 20,
-      status: 'active',
-      statusText: 'Đang sử dụng',
-      createdAt: '11/10/2026 07:45'
-    },
-    {
-      id: 'UEL-87600',
-      roomName: 'Boardroom VIP B1',
-      building: 'Central Tower Q.1 - Tầng 12',
-      roomType: 'Phòng họp VIP',
-      date: '2026-10-10',
-      timeSlot: '10:00 - 12:00',
-      purpose: 'Họp cổ đông thường niên quý III',
-      capacity: 24,
-      status: 'completed',
-      statusText: 'Đã hoàn thành',
-      createdAt: '08/10/2026 15:20'
-    },
-    {
-      id: 'UEL-87112',
-      roomName: 'Focus Pod 1 Cách Âm',
-      building: 'Green Office Suites - Tầng 3',
-      roomType: 'Meeting Pod',
-      date: '2026-10-08',
-      timeSlot: '14:00 - 16:00',
-      purpose: 'Thay đổi lịch công tác (Đã hủy)',
-      capacity: 4,
-      status: 'cancelled',
-      statusText: 'Đã hủy',
-      createdAt: '06/10/2026 11:00'
-    }
-  ];
+  bookings: BookingRecord[] = [];
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.subBookings = this.bookingService.bookings$.subscribe(list => {
+      this.bookings = list;
+    });
+  }
+
+  ngOnDestroy() {
+    this.subBookings?.unsubscribe();
+  }
 
   toggleAreaDropdown(event?: Event) {
     if (event) event.stopPropagation();
@@ -345,8 +237,7 @@ export class BookingHistory implements OnInit {
 
   cancelBooking(booking: BookingRecord) {
     if (confirm(`${this.i18n.t('Bạn có chắc chắn muốn hủy lượt đặt chỗ mã')} ${booking.id} (${booking.roomName})?`)) {
-      booking.status = 'cancelled';
-      booking.statusText = 'Đã hủy';
+      this.bookingService.updateStatus(booking.id, 'cancelled', 'Đã hủy');
     }
   }
 
