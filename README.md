@@ -14,21 +14,21 @@
   <img src="https://img.shields.io/badge/Node.js-20+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js">
   <img src="https://img.shields.io/badge/Express.js-4.19-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express.js">
   <img src="https://img.shields.io/badge/MongoDB-Atlas_6.8-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB">
+  <img src="https://img.shields.io/badge/Google_Gemini-Flash_AI-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini AI">
+  <img src="https://img.shields.io/badge/YOLOv11-Dual--Head_Pose-00FFFF?style=for-the-badge&logo=yolo&logoColor=black" alt="YOLOv11">
+  <img src="https://img.shields.io/badge/Hugging_Face-Indoor_Scenes-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black" alt="Hugging Face">
   <img src="https://img.shields.io/badge/TailwindCSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
-  <img src="https://img.shields.io/badge/TensorFlow.js-Coco--SSD-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white" alt="TensorFlow.js">
-  <img src="https://img.shields.io/badge/YOLOv11-Edge_AI-00FFFF?style=for-the-badge&logo=yolo&logoColor=black" alt="YOLOv11">
-  <img src="https://img.shields.io/badge/Google_Stitch-Figma_Vector-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Google Stitch">
 </p>
 
 ---
 
 ## 📖 1. Giới thiệu tổng quan (Overview)
 
-**UEL Space** là **sàn thương mại điện tử cho thuê không gian (Space Rental Marketplace)** đóng vai trò bên thứ ba trung gian, kết nối **Người cho thuê (Space Hosts)** — các đơn vị/cá nhân sở hữu mặt bằng, văn phòng, phòng họp, tòa nhà còn trống — với **Khách thuê (Tenants)** — doanh nghiệp, startup và cá nhân cần không gian làm việc linh hoạt.
+**UEL Space** là **sàn thương mại điện tử cho thuê không gian thông minh (Space Rental Marketplace)** đóng vai trò bên thứ ba trung gian, kết nối **Người cho thuê (Space Hosts)** — các đơn vị/cá nhân sở hữu mặt bằng, văn phòng, phòng họp, hội trường, chòi làm việc còn trống — với **Khách thuê (Tenants)** — cá nhân, sinh viên, startup và doanh nghiệp cần không gian làm việc ngắn hạn linh hoạt.
 
-Nền tảng cho phép **niêm yết không gian theo giờ/ngày**, thiết lập bảng giá linh hoạt, tìm kiếm & lọc theo nhu cầu, thanh toán tức thì qua **MoMo QR** và theo dõi doanh thu minh bạch. Hệ thống giải quyết bài toán lãng phí công suất mặt bằng (40–50% diện tích bỏ trống ngoài giờ cao điểm), ứng dụng **Thị giác máy tính AI (Computer Vision)** để tự động hóa điểm danh, chống gian lận sĩ số, phát hiện vắng mặt (No-show), tính phụ phí quá giờ (Overtime) và **giải phóng sớm các khung giờ trống đưa trở lại sàn khai thác thời gian thực**.
+Nền tảng cho phép **niêm yết không gian theo giờ/ngày**, thiết lập bảng giá minh bạch, tìm kiếm thông minh, thanh toán tức thì qua **MoMo QR Sandbox** và theo dõi doanh thu trực quan. Hệ thống giải quyết bài toán lãng phí công suất mặt bằng (40–50% diện tích bỏ trống ngoài giờ cao điểm), ứng dụng **Dual-Head AI (Computer Vision & Pose Estimation)** để tự động hóa giám sát sĩ số, chống gian lận, phát hiện vắng mặt (No-show), tính phụ phí quá giờ (Overtime) và **giải phóng sớm các khung giờ trống đưa trở lại sàn khai thác thời gian thực**.
 
-Dự án được xây dựng bám sát 100% tài liệu kiến trúc kỹ thuật [Developer Handbook](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Instruction/Developer_Handbook_Angular_Fullstack.md), [Business Rules](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Instruction/Business_Rules.md), quy chuẩn thực thể [Entity Specification](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Instruction/Entity_Specification.md) và nhận diện thương hiệu [UEL Brand Guidelines](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Brand_Guideline/Overview/Web_design_specification.md).
+Hệ thống được làm giàu dữ liệu thực tế thông qua việc khai thác bộ dữ liệu lớn **Hugging Face (`FatimaSaadNaik/indoor-scenes-dataset`)** và **Unsplash Research Dataset Lite** để chuẩn hóa thông tin và hình ảnh cho hơn 100+ không gian phòng thực tế.
 
 ---
 
@@ -39,7 +39,9 @@ Dự án được xây dựng bám sát 100% tài liệu kiến trúc kỹ thu�
 | Phân hệ / Màn hình | Tính năng nổi bật & Công nghệ hiện thực |
 | :--- | :--- |
 | **🏠 Trang chủ & Tìm kiếm Không gian (Homepage)** | • Hero Banner flycam không gian đô thị kết hợp thanh tìm kiếm thông minh bo góc `rounded-full`.<br>• Bộ lọc nhu cầu đa tiêu chí: ngày thuê, khung giờ, sức chứa và trang thiết bị.<br>• Lưới thẻ listing không gian cho thuê: giá giờ/ngày, huy hiệu thanh toán MoMo QR, sức chứa m², chip tiện ích, trạng thái phòng (`available` / `in-use` / `reserved` / `maintenance`), đánh giá sao và nút lưu yêu thích.<br>• Chân trang Deep Navy tích hợp Đăng ký bản tin, Google reCAPTCHA và định vị trụ sở. |
-| **🗺️ Khám phá & Bản đồ Không gian (Space Discovery)** | • Bản đồ tương tác 2D định vị các không gian đang niêm yết trên sàn kèm trạng thái chấm màu thời gian thực.<br>• Thanh lọc hợp nhất: từ khóa tìm kiếm, dropdown phân loại không gian, lọc trạng thái và sắp xếp theo độ phổ biến.<br>• Lưới kết quả tức thời, empty-state khi không khớp bộ lọc, phím tắt đối chiếu Google Calendar và mở modal đặt thuê ngay trên bản đồ. |
+| **🏨 Trang Chi tiết Không gian Toàn diện (Full-Page Airbnb-style `/spaces/:id`)** | • Giao diện chuẩn trải nghiệm Airbnb: Hero banner ảnh HD kèm huy hiệu tầng/tòa nhà, thông tin mô tả chi tiết và tiện nghi nổi bật.<br>• **Thẻ đặt phòng cố định (Sticky Booking Card):** Neo nổi bên phải màn hình khi cuộn trang, tự động tính tổng tiền theo giờ ($P = \text{Đơn giá} \times \text{Số giờ} + \text{Phí}$), tích hợp cổng thanh toán MoMo và nút tạo sự kiện tự động trên **Google Calendar**.<br>• **Phân hệ Đánh giá Đa chiều (Review Ecosystem):** Bảng phân bổ sao 1–5★, danh sách nhận xét thực tế kèm nhãn *Khách đã trải nghiệm (Verified Guest)* và phản hồi của quản trị viên.<br>• **Đề xuất Không gian tương tự (Similar Spaces Carousel):** Tự động gợi ý các không gian cùng tòa nhà/phân khúc giúp khách hàng chuyển đổi mượt mà. |
+| **💬 Trợ lý Chatbot AI 1 chạm (Gemini NLP Assistant)** | • **Lõi AI & RAG:** Mô hình Google Gemini Flash kết hợp kỹ thuật Context-RAG (truy xuất dữ liệu phòng từ MongoDB) và ràng buộc JSON Structured Outputs.<br>• **Hiểu ngôn ngữ tự nhiên:** Bóc tách thực thể (sức chứa, tầm giá, mục đích: phòng họp, hội trường, làm việc nhóm, focus pod).<br>• **Kiến trúc chịu lỗi 3 tầng (Circuit Breaker):** Cloud Gemini API $\rightarrow$ Server Heuristics Regex Engine ($<5\text{ms}$) $\rightarrow$ Client Offline Fallback.<br>• **Đặt phòng nhanh 1 chạm:** Tự động tạo thẻ xem trước và điều hướng thẳng sang xác nhận thanh toán chỉ với 1 lượt bấm. |
+| **🗺️ Khám phá & Bản đồ Không gian (Space Discovery)** | • Bản đồ tương tác 2D định vị các không gian đang niêm yết trên sàn kèm trạng thái chấm màu thời gian thực.<br>• Thanh lọc hợp nhất: từ khóa tìm kiếm, dropdown phân loại không gian, lọc trạng thái và sắp xếp theo độ phổ biến.<br>• Lưới kết quả tức thời, empty-state khi không khớp bộ lọc, phím tắt đối chiếu Google Calendar và điều hướng nhanh sang trang chi tiết. |
 | **📋 Lịch sử Đặt chỗ (Booking History Hub)** | • Banner gradient Electric Cyan hiển thị bộ 3 chỉ số: Tổng số đơn, Đang hoạt động, Đã hoàn tất.<br>• Thẻ đơn thuê thông minh: Mã đặt chỗ, vị trí không gian, khung giờ thuê, mục đích sử dụng, nút xem **Vé QR Check-in**, phím tắt đồng bộ Google Calendar và hủy đơn. |
 | **🚀 Về chúng tôi (About Us - Storytelling)** | • Trục kể chuyện 4 chương tương tác: Nghịch lý lãng phí công suất mặt bằng (01), Mô hình sàn Marketplace B2B (02), Thị giác máy tính AI Occupancy Detection (03) và Tầm nhìn chia sẻ không gian làm việc tương lai (04). |
 | **🔐 Đăng nhập & Xác thực (SSO Portal)** | • Bố cục Split-Screen: Cột trái Deep Navy Cinematic Hero, cột phải Form đăng nhập thẻ trắng thanh lịch.<br>• Bộ chuyển cổng truy cập (Portal Switcher): **Khách thuê / Doanh nghiệp** và **Đối tác sở hữu không gian**.<br>• Xác thực Google OAuth 2.0 lọc domain nghiêm ngặt (`@st.uel.edu.vn`, `@uel.edu.vn`), tự động khởi tạo hồ sơ người dùng theo vai trò. |
@@ -59,7 +61,7 @@ Hệ thống Seller Center bao gồm trọn bộ **8 tab nghiệp vụ hoàn ch�
 | **5. Không gian & Bảng giá niêm yết** | F25–F30 | Lưới thẻ không gian cho thuê thương mại: Quản lý giá giờ/ngày, sức chứa, thời gian hủy tự động, danh mục trang thiết bị và công tắc bật/tắt chế độ bảo trì (`MAINTENANCE`). |
 | **6. Khách thuê & Nhân viên gian hàng** | F31–F33 | Bảng quản lý danh mục tài khoản đối tác: Phân cấp vai trò rõ ràng giữa Chủ Gian Hàng (`Host`), Nhân viên Vận hành và Khách thuê Space; quản lý trạng thái tài khoản (*Hoạt động* / *Tạm khóa*). |
 | **7. Lịch sử Giao dịch & Nhật ký (Audit Logs)** | F34 | Ghi nhận toàn bộ vết kiểm toán hệ thống bất biến (Immutable Audit Trail): `APPROVE_BOOKING`, `AUTO_CHECKOUT_TRIGGERED`, `SPACE_MAINTENANCE_LOCK`, `USER_ROLE_UPDATED` kèm Actor, Timestamp và Severity Level. |
-| **8. Giám sát Sĩ số IoT AI & Chống gian lận** | F38 | Thị giác máy tính nhận diện người thời gian thực: Tích hợp linh hoạt giữa **Client Edge AI (Coco-SSD / TensorFlow.js)** và **Server AI (YOLOv11)**; đối chiếu sĩ số thực tế với số lượng đăng ký trên vé, phát hiện vượt sĩ số, cảnh báo quá giờ (Overtime), tự động nhận diện trả phòng sớm (Early Checkout) và giải phóng khung giờ trống trở lại sàn Marketplace. |
+| **8. Giám sát Sĩ số Dual-Head AI & Anti-Crowding NMS** | F38 | • **Dual-Head Ensemble AI:** Chạy song song `YOLOv11 Detection` (nhận diện người tổng quát) và `YOLOv11 Pose` (nhận diện 17 khớp xương Keypoints), bắt trọn các tư thế khó như người nằm trên sofa/thảm hoặc cúi gục che khuất đầu.<br>• **Thuật toán Anti-Crowding NMS:** Nâng ngưỡng $IoU \ge 0.65$ (hoặc $IoS \ge 0.85$ kết hợp khoảng cách tâm $< 0.3 \cdot \min(W, H)$), loại bỏ hoàn toàn cơ chế gộp tâm ngang $\Delta X / \Delta Y$ giúp bảo toàn nguyên vẹn $5/5$ người khi ngồi sát cạnh nhau trong phòng họp.<br>• **Cảnh báo vi phạm:** Đối chiếu sĩ số thực tế với số lượng đăng ký trên vé, phát hiện vượt sức chứa, cảnh báo quá giờ (Overtime), nhận diện trả phòng sớm và giải phóng khung giờ trống tái bán thời gian thực. |
 
 ---
 
@@ -104,20 +106,23 @@ Hệ thống được mô hình hóa theo các chuẩn kỹ nghệ phần mềm 
 ```
 UEL_Space/
 ├── frontend/                     # Ứng dụng Single Page Application (Angular 22.2 Standalone)
-│   ├── src/app/components/       # Component Modules (home, map, booking-history, admin, login, about)
-│   ├── src/app/services/         # Client Services (Auth, Space, Booking, Settings, Chatbot, AI Detection)
+│   ├── src/app/components/       # Component Modules (home, space-detail, map, booking-history, admin, login, about)
+│   │   ├── space-detail/         # Trang Chi tiết không gian Full-Page chuẩn Airbnb (/spaces/:id)
+│   │   └── common/chatbot/       # Widget Trợ lý Khách hàng Chatbot AI 1 chạm
+│   ├── src/app/services/         # Client Services (Auth, Space, Booking, Chatbot, Reviews, Google Calendar)
 │   ├── src/app/guards/           # Route Guards phân quyền truy cập
-│   └── src/app/i18n/             # Bộ từ điển đa ngôn ngữ (Tiếng Việt / English)
+│   └── src/app/i18n/             # Bộ từ điển song ngữ (Tiếng Việt / English)
 ├── my-server/                    # RESTful API Backend Server (Node.js 20+ & Express.js 4.19)
 │   ├── src/modules/              # Kiến trúc phân tầng Layered Modules (Controller - Service - Repo)
 │   │   ├── auth/                 # Google OAuth 2.0 & Quản lý phiên Session
 │   │   ├── spaces/               # Nghiệp vụ niêm yết không gian cho thuê, phân loại, giá theo giờ/ngày
 │   │   ├── bookings/             # Xử lý đơn thuê, đối soát lịch và chống trùng phòng
+│   │   ├── chatbot/              # Gemini AI Service (Context-RAG, Structured Outputs & Fallback)
 │   │   ├── usage-sessions/       # Ghi nhận phiên sử dụng và quét QR Check-in
 │   │   ├── occupancy/            # Nhật ký kiểm đếm sĩ số và kết nối IoT AI
 │   │   └── audit-logs/           # Lưu vết kiểm toán hoạt động bất biến (F34)
-│   ├── src/ai-service/           # Dịch vụ Python AI YOLOv11 Server (Computer Vision Service)
-│   ├── src/seed/seed.js          # Bộ Seeder nạp dữ liệu mẫu lên MongoDB Atlas
+│   ├── src/ai-service/           # Dịch vụ Python AI YOLOv11 (Dual-Head Detection & Pose Estimation)
+│   ├── src/seed/                 # Bộ script nạp dữ liệu từ Hugging Face & Unsplash Dataset
 │   ├── public/images/            # Kho ảnh static assets nội bộ
 │   └── index.js                  # Điểm khởi chạy Express Server chính
 ├── design-system/                # Hệ thống thiết kế & Tài liệu kết nối Figma
