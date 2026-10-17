@@ -16,12 +16,7 @@
         <span class="font-bold text-dark-text dark:text-white truncate max-w-[200px] sm:max-w-[320px]">{{ space?.name }}</span>
       </div>
 
-      <div class="flex items-center gap-3">
-        <a routerLink="/map" class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors flex items-center gap-1.5">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
-          <span class="hidden sm:inline">{{ 'Xem danh mục phòng' | t }}</span>
-        </a>
-      </div>
+
     </div>
   </nav>
 
@@ -739,7 +734,9 @@
                           'bg-gradient-to-r from-uel-blue via-[#003B71] to-[#0284c7] hover:scale-101 active:scale-98 shadow-uel-blue/30 cursor-pointer': space.status === 'available' && !hasConflict,
                           'bg-slate-300 dark:bg-slate-700 cursor-not-allowed opacity-60 shadow-none': space.status !== 'available' || hasConflict
                         }">
-                  <span>⚡</span>
+                  <svg class="w-4 h-4 sm:w-4.5 sm:h-4.5 text-white fill-white shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                  </svg>
                   <span>{{ (hasConflict ? 'Khung giờ bị trùng lịch' : (space.status === 'available' ? 'Đặt phòng này ngay' : 'Không gian hiện chưa trống')) | t }}</span>
                 </button>
                 <p class="text-center text-[11px] text-slate-400 mt-2">
@@ -899,9 +896,7 @@
       <div class="absolute inset-0 bg-black/70 backdrop-blur-xs" (click)="closeMomoModal()"></div>
       <div class="relative bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-800 animate-[fade-in-up_0.2s_ease-out] text-center space-y-4">
         
-        <div class="w-14 h-14 rounded-2xl bg-[#a50064] text-white flex items-center justify-center mx-auto shadow-md font-bold text-xl">
-          MoMo
-        </div>
+        <img src="/images/logomomo.png" alt="MoMo" class="w-14 h-14 rounded-2xl object-contain mx-auto shadow-md shadow-[#A50064]/20" />
 
         <div>
           <h3 class="text-xl font-black text-slate-900 dark:text-white">Cổng Thanh Toán MoMo Sandbox</h3>

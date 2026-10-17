@@ -144,7 +144,7 @@ export class Map implements OnInit, AfterViewInit {
   ];
 
   // Google Calendar Integration State
-  calendarViewMode: 'embed' | 'list' = 'embed';
+  calendarViewMode: 'list' | 'embed' = 'list';
   embedCalendarViewMode: 'AGENDA' | 'WEEK' | 'MONTH' = 'AGENDA';
   customBookingDate: string = new Date().toISOString().split('T')[0];
   customStartTime: string = '13:00';

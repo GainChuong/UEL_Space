@@ -987,8 +987,8 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
                   <button type="button"
                           (click)="openMomoPayment(selectedRoomToBook)"
-                          class="py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#A50064] to-[#D82D8B] hover:opacity-95 text-white text-xs font-bold shadow-md transition-all cursor-pointer flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
+                          class="py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#A50064] to-[#D82D8B] hover:opacity-95 text-white text-xs font-bold shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 group">
+                    <img src="/images/logomomo.png" alt="MoMo" class="w-5 h-5 rounded-md object-contain shrink-0 shadow-xs group-hover:scale-105 transition-transform" />
                     <span>{{ 'Thanh toán MoMo QR' | t }}</span>
                   </button>
 
@@ -1004,11 +1004,11 @@
 
             </div>
 
-            <!-- Right Column: Interactive Google Calendar Iframe & Schedule Cross-Reference -->
+            <!-- Right Column: Interactive Google Calendar & Schedule Cross-Reference -->
             <div class="lg:col-span-5 flex flex-col gap-4">
               <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs flex flex-col h-full">
                 
-                <!-- Tab Switcher Header -->
+                <!-- Tab Switcher Header (No technical 'Iframe' wording) -->
                 <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-3">
                   <div class="flex items-center gap-1.5">
                     <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
@@ -1022,28 +1022,112 @@
                     </span>
                   </div>
 
-                  <!-- Segmented View Toggle (Iframe vs List) -->
+                  <!-- Segmented View Toggle -->
                   <div class="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700 text-[11px]">
-                    <button type="button" 
-                            (click)="setCalendarViewMode('embed')"
-                            [class.bg-white]="calendarViewMode === 'embed'"
-                            [class.dark:bg-slate-700]="calendarViewMode === 'embed'"
-                            [class.shadow-2xs]="calendarViewMode === 'embed'"
-                            class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer">
-                      {{ 'Iframe Lịch' | t }}
-                    </button>
                     <button type="button" 
                             (click)="setCalendarViewMode('list')"
                             [class.bg-white]="calendarViewMode === 'list'"
                             [class.dark:bg-slate-700]="calendarViewMode === 'list'"
                             [class.shadow-2xs]="calendarViewMode === 'list'"
-                            class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer">
-                      {{ 'Ca chi tiết' | t }}
+                            [class.text-uel-blue]="calendarViewMode === 'list'"
+                            [class.dark:text-sky-300]="calendarViewMode === 'list'"
+                            class="px-3 py-1 rounded-lg font-bold transition-all cursor-pointer">
+                      {{ 'Lịch cá nhân' | t }}
+                    </button>
+                    <button type="button" 
+                            (click)="setCalendarViewMode('embed')"
+                            [class.bg-white]="calendarViewMode === 'embed'"
+                            [class.dark:bg-slate-700]="calendarViewMode === 'embed'"
+                            [class.shadow-2xs]="calendarViewMode === 'embed'"
+                            [class.text-uel-blue]="calendarViewMode === 'embed'"
+                            [class.dark:text-sky-300]="calendarViewMode === 'embed'"
+                            class="px-3 py-1 rounded-lg font-bold transition-all cursor-pointer">
+                      {{ 'Bản web Google' | t }}
                     </button>
                   </div>
                 </div>
 
-                <!-- VIEW A: Embedded Google Calendar Iframe -->
+                <!-- VIEW A: Detailed Personal Event Schedule (Primary & Default View) -->
+                @if (calendarViewMode === 'list') {
+                  <div class="flex flex-col flex-1 text-xs">
+                    
+                    <!-- Header with User Identity & Live Sync Status -->
+                    <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700 mb-3 flex items-center justify-between">
+                      <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-full bg-uel-blue text-white flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
+                          {{ (studentInfo.name || 'U').charAt(0) }}
+                        </div>
+                        <div class="min-w-0">
+                          <div class="font-bold text-slate-800 dark:text-slate-100 truncate text-xs">{{ studentInfo.name }}</div>
+                          <div class="text-[10px] text-slate-400 font-mono truncate">{{ studentInfo.id || 'khachhang@uel.edu.vn' }}</div>
+                        </div>
+                      </div>
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>Live Sync</span>
+                      </span>
+                    </div>
+
+                    <div class="text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-2 flex items-center justify-between">
+                      <span>{{ 'Chi tiết các ca trong ngày:' | t }}</span>
+                      <span class="font-mono text-uel-blue dark:text-sky-400">{{ formatDisplayDate(customBookingDate) }}</span>
+                    </div>
+
+                    <!-- List of Personal Schedule Events -->
+                    <div class="space-y-2 flex-1 overflow-y-auto max-h-[380px] custom-scrollbar pr-0.5">
+                      @for (item of studentSchedule; track item.id) {
+                        <div (click)="selectScheduleItem(item)"
+                             [title]="item.isBusy ? ('Ca này bận: ' + item.title) : ('Bấm để chọn khung giờ: ' + item.time)"
+                             class="p-3 rounded-2xl border flex items-center justify-between transition-all"
+                             [ngClass]="{
+                               'bg-rose-50/60 dark:bg-rose-950/30 border-rose-200 dark:border-rose-900/60 text-rose-950 dark:text-rose-100 cursor-not-allowed': item.isBusy,
+                               'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800 text-emerald-950 dark:text-emerald-100 cursor-pointer hover:border-emerald-500 hover:shadow-xs': !item.isBusy,
+                               'ring-2 ring-emerald-500 font-bold bg-emerald-50/80': !item.isBusy && customStartTime === item.start && customEndTime === item.end
+                             }">
+                          <div class="min-w-0 pr-2">
+                            <div class="font-extrabold text-xs flex items-center gap-1.5 mb-0.5">
+                              <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                              <span>{{ item.time }}</span>
+                              @if (!item.isBusy) {
+                                <span class="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">({{ 'Khung giờ trống' | t }})</span>
+                              }
+                            </div>
+                            <div class="text-[11px] font-medium truncate" [ngClass]="item.isBusy ? 'text-rose-700 dark:text-rose-300' : 'text-slate-600 dark:text-slate-300'">
+                              {{ item.title }}
+                            </div>
+                          </div>
+                          
+                          <div class="shrink-0 flex items-center gap-1.5">
+                            @if (!item.isBusy) {
+                              <button type="button"
+                                      class="px-2 py-1 rounded-lg bg-emerald-600 text-white text-[10px] font-bold hover:bg-emerald-700 transition-colors shadow-2xs">
+                                {{ 'Chọn giờ' | t }}
+                              </button>
+                            }
+                            <span class="text-[10px] font-black px-2.5 py-1 rounded-lg"
+                                  [ngClass]="item.isBusy ? 'bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200' : 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200'">
+                              {{ item.isBusy ? ('Bận họp' | t) : ('Trống' | t) }}
+                            </span>
+                          </div>
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Footer Link to Full Google Calendar -->
+                    <div class="pt-3 mt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                      <span class="text-slate-400">{{ 'Dữ liệu cá nhân đối chiếu trực tiếp' | t }}</span>
+                      <button type="button"
+                              (click)="openGoogleCalendarExternal()"
+                              class="font-bold text-uel-blue dark:text-sky-400 hover:underline flex items-center gap-1 cursor-pointer">
+                        <span>{{ 'Mở Google Calendar đầy đủ' | t }}</span>
+                        <span>↗</span>
+                      </button>
+                    </div>
+
+                  </div>
+                }
+
+                <!-- VIEW B: Web Google Calendar Embed View -->
                 @if (calendarViewMode === 'embed') {
                   <div class="flex flex-col flex-1">
                     <div class="flex items-center justify-between pb-2 mb-2 text-[10px] text-slate-400">
@@ -1078,57 +1162,27 @@
                       </div>
                     </div>
 
-                    <div class="relative w-full flex-1 min-h-[340px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white shadow-inner">
+                    <div class="relative w-full flex-1 min-h-[380px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white shadow-inner">
                       @if (googleEmbedSafeUrl) {
                         <iframe [src]="googleEmbedSafeUrl"
-                                class="w-full h-full min-h-[340px] border-0"
+                                class="w-full h-full min-h-[380px] border-0"
                                 frameborder="0"
                                 scrolling="no"></iframe>
                       } @else {
                         <div class="h-full flex items-center justify-center text-xs text-slate-400">
-                          {{ 'Đang khởi tạo Iframe...' | t }}
+                          {{ 'Đang kết nối lịch...' | t }}
                         </div>
                       }
                     </div>
 
-                    <div class="mt-2 text-[10px] text-slate-400 text-center">
-                      * {{ 'Bạn có thể xem lịch cá nhân trực tiếp khi đăng nhập Google' | t }}
+                    <div class="mt-2.5 flex items-center justify-between text-[11px] text-slate-400">
+                      <span>* {{ 'Bạn có thể xem lịch cá nhân trực tiếp khi đăng nhập Google' | t }}</span>
+                      <button type="button"
+                              (click)="openGoogleCalendarExternal()"
+                              class="font-bold text-uel-blue dark:text-sky-400 hover:underline cursor-pointer">
+                        {{ 'Mở tab mới ↗' | t }}
+                      </button>
                     </div>
-                  </div>
-                }
-
-                <!-- VIEW B: Detailed Event Breakdown for Selected Date -->
-                @if (calendarViewMode === 'list') {
-                  <div class="space-y-2 text-xs flex-1 overflow-y-auto max-h-[380px] custom-scrollbar">
-                    <div class="text-[11px] font-bold text-slate-500 mb-1 flex items-center justify-between">
-                      <span>{{ 'Lịch trình ngày' | t }} {{ customBookingDate }}:</span>
-                      <span class="text-[10px] text-slate-400">{{ studentInfo.name }}</span>
-                    </div>
-
-                    @for (item of studentSchedule; track item.id) {
-                      <div (click)="selectScheduleItem(item)"
-                           [title]="item.isBusy ? ('Ca này bận: ' + item.title) : ('Bấm để chọn khung giờ: ' + item.time)"
-                           class="p-2.5 rounded-xl border flex items-center justify-between transition-all"
-                           [ngClass]="{
-                             'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/40 text-rose-900 dark:text-rose-200 cursor-not-allowed': item.isBusy,
-                             'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40 text-emerald-900 dark:text-emerald-200 cursor-pointer hover:border-emerald-400 hover:shadow-xs': !item.isBusy,
-                             'ring-2 ring-emerald-500 font-bold': !item.isBusy && customStartTime === item.start && customEndTime === item.end
-                           }">
-                        <div>
-                          <div class="font-bold text-[11px] flex items-center gap-1.5">
-                            <span>{{ item.time }}</span>
-                            @if (!item.isBusy) {
-                              <span class="text-[9px] text-emerald-600 dark:text-emerald-400 font-normal">({{ 'Bấm chọn' | t }})</span>
-                            }
-                          </div>
-                          <div class="text-[10px] opacity-80">{{ item.title }}</div>
-                        </div>
-                        <span class="text-[9px] font-black px-2 py-0.5 rounded"
-                              [ngClass]="item.isBusy ? 'bg-rose-100 dark:bg-rose-900/50 text-rose-800 dark:text-rose-200' : 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200'">
-                          {{ item.isBusy ? ('Bận họp' | t) : ('Trống' | t) }}
-                        </span>
-                      </div>
-                    }
                   </div>
                 }
 
@@ -1178,9 +1232,7 @@
     <div class="fixed inset-0 bg-black/70 backdrop-blur-xs" (click)="closeMomoModal()"></div>
     
     <div class="relative bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-800 z-10 text-center animate-[fade-in-up_0.2s_ease-out]">
-      <div class="w-12 h-12 rounded-2xl bg-[#A50064]/10 text-[#A50064] flex items-center justify-center mx-auto mb-3 font-black text-xl">
-        M
-      </div>
+      <img src="/images/logomomo.png" alt="MoMo" class="w-12 h-12 rounded-2xl object-contain mx-auto mb-3 shadow-md shadow-[#A50064]/20" />
       <h3 class="text-lg font-black text-dark-text dark:text-white mb-1">{{ 'Cổng Thanh Toán MoMo Sandbox' | t }}</h3>
       <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">{{ momoModal.roomName }} • {{ momoModal.slotText }}</p>
 
