@@ -137,15 +137,11 @@ UEL_Space/
 │   └── index.js                  # Điểm khởi chạy Express Server chính
 ├── design-system/                # Hệ thống thiết kế & Tài liệu kết nối Figma
 │   └── uel-space/FIGMA_MANIFEST.md # Manifest 13 màn hình Figma, ID Stitch & download links
-├── Diagram/                      # Sơ đồ thiết kế chuẩn kỹ nghệ phần mềm
+├── Diagram/                      # Sơ đồ thiết kế chuẩn kỹ nghệ phần mềm & Kiến trúc AI
 │   ├── BPMN/                     # Sơ đồ quy trình nghiệp vụ BPMN 2.0
 │   ├── ERD/                      # Sơ đồ quan hệ thực thể DBML & Markdown
 │   └── Use_case/                 # Sơ đồ Use Case phân quyền
-├── Instruction/                  # Hồ sơ đặc tả nghiệp vụ & Handbook
-│   ├── Developer_Handbook_Angular_Fullstack.md
-│   ├── Business_Rules.md
-│   └── Entity_Specification.md
-└── Brand_Guideline/              # Tiêu chuẩn thương hiệu & Web Design Specifications
+└── Brand_Guideline/              # Tiêu chuẩn thương hiệu & Design Specifications
 ```
 
 ---
@@ -225,12 +221,12 @@ Hệ thống xác thực qua **Google OAuth 2.0** và đã nạp sẵn các tài
 * 🔄 [Sơ đồ Quy trình Nghiệp vụ (BPMN 2.0)](Diagram/BPMN/Campus_Space_BPMN_2_0_Lucid.drawio) - Tương thích chuẩn Camunda / Lucidchart.
 * 🗄️ [Mô hình Quan hệ Thực thể (ERD)](Diagram/ERD/Campus_Space_ERD.dbml) & [ERD Docs](Diagram/ERD/Readme.md) - Chuẩn hóa 3NF, Multi-tenancy & Optimistic Locking.
 * 🎯 [Sơ đồ Ca Sử Dụng (Use Case Diagram)](Diagram/Use_case/Campus_Space_UseCase_LucidCompatible.drawio) - Phân rã nghiệp vụ Customer, Host & Admin.
-* 🎨 [Web Design Specification](Brand_Guideline/Overview/Web_design_specification.md) - Quy chuẩn màu sắc, typography và phong cách giao diện UEL.
+* 🎨 [AI Solution Design Specification](Brand_Guideline/Overview/Web_design_specification.md) - Quy chuẩn thiết kế giao diện & trải nghiệm tương tác AI UEL Space.
 * 🖼️ [Figma & Google Stitch Manifest](design-system/uel-space/FIGMA_MANIFEST.md) - Danh mục 13 màn hình Figma Vector HD tỷ lệ 2560x2048.
 
 ---
 
 <p align="center">
-  <strong>© 2026 UEL SPACE PROJECT · PHÁT TRIỂN WEB KINH DOANH NÂNG CAO</strong><br>
+  <strong>© 2026 UEL SPACE PROJECT · ĐỒ ÁN GIẢI PHÁP TRÍ TUỆ NHÂN TẠO (AI SOLUTION)</strong><br>
   <em>Trường Đại học Kinh tế - Luật, Đại học Quốc gia TP. Hồ Chí Minh</em>
 </p>
