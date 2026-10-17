@@ -7,7 +7,7 @@
 <p align="center">
   <strong>ĐỒ ÁN GIẢI PHÁP TRÍ TUỆ NHÂN TẠO (AI SOLUTION PROJECT)</strong><br>
   <em>Hệ thống Sàn Thương mại Không gian tích hợp AI Hybrid: Dual-Head Computer Vision (YOLOv11 Detection & Pose) & Trợ lý Ngôn ngữ Tự nhiên (Google Gemini Flash NLP)</em><br>
-  <em>Trường Đại học Kinh tế - Luật, Đại học Quốc gia TP. Hồ Chí Minh (UEL - VNUHCM)</em>
+  <em>Nền tảng Sàn Thương mại Điện tử Thuê Không gian Làm việc, Hội họp & Sự kiện Thông minh (Smart Space Rental Marketplace)</em>
 </p>
 
 <p align="center">
@@ -54,7 +54,7 @@ Hệ thống được làm giàu dữ liệu thực tế thông qua việc khai 
 | **🗺️ Khám phá & Bản đồ Không gian (Space Discovery)** | • Bản đồ tương tác 2D định vị các không gian đang niêm yết trên sàn kèm trạng thái chấm màu thời gian thực.<br>• Thanh lọc hợp nhất: từ khóa tìm kiếm, dropdown phân loại không gian, lọc trạng thái và sắp xếp theo độ phổ biến.<br>• Lưới kết quả tức thời, empty-state khi không khớp bộ lọc, phím tắt đối chiếu Google Calendar và điều hướng nhanh sang trang chi tiết. |
 | **📋 Lịch sử Đặt chỗ (Booking History Hub)** | • Banner gradient Electric Cyan hiển thị bộ 3 chỉ số: Tổng số đơn, Đang hoạt động, Đã hoàn tất.<br>• Thẻ đơn thuê thông minh: Mã đặt chỗ, vị trí không gian, khung giờ thuê, mục đích sử dụng, nút xem **Vé QR Check-in**, phím tắt đồng bộ Google Calendar và hủy đơn. |
 | **🚀 Về chúng tôi (About Us - Storytelling)** | • Trục kể chuyện 4 chương tương tác: Nghịch lý lãng phí công suất mặt bằng (01), Mô hình sàn Marketplace B2B (02), Thị giác máy tính AI Occupancy Detection (03) và Tầm nhìn chia sẻ không gian làm việc tương lai (04). |
-| **🔐 Đăng nhập & Xác thực (SSO Portal)** | • Bố cục Split-Screen: Cột trái Deep Navy Cinematic Hero, cột phải Form đăng nhập thẻ trắng thanh lịch.<br>• Bộ chuyển cổng truy cập (Portal Switcher): **Khách thuê / Doanh nghiệp** và **Đối tác sở hữu không gian**.<br>• Xác thực Google OAuth 2.0 lọc domain nghiêm ngặt (`@st.uel.edu.vn`, `@uel.edu.vn`), tự động khởi tạo hồ sơ người dùng theo vai trò. |
+| **🔐 Đăng nhập & Xác thực (SSO Portal)** | • Bố cục Split-Screen: Cột trái Deep Navy Cinematic Hero, cột phải Form đăng nhập thẻ trắng thanh lịch.<br>• Bộ chuyển cổng truy cập (Portal Switcher): **Khách thuê / Doanh nghiệp** và **Đối tác sở hữu không gian (Host)**.<br>• Xác thực Google OAuth 2.0 & SSO đa tài khoản, tự động khởi tạo hồ sơ và phân quyền chính xác theo vai trò (Customer / Host / Platform Admin). |
 
 ---
 
@@ -105,9 +105,9 @@ Toàn bộ hệ thống giao diện UEL Space được thiết kế vector hóa 
 
 Hệ thống được mô hình hóa theo các chuẩn kỹ nghệ phần mềm chuyên nghiệp:
 
-* 🔄 **Sơ đồ Quy trình Nghiệp vụ (BPMN 2.0):** [Campus_Space_BPMN_2_0_Lucid.drawio](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Diagram/BPMN/Campus_Space_BPMN_2_0_Lucid.drawio) (Tương thích hoàn toàn với Camunda & Lucidchart).
-* 🗄️ **Mô hình Thực thể Quan hệ (ERD - Database Schema):** [Campus_Space_ERD.dbml](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Diagram/ERD/Campus_Space_ERD.dbml) & [ERD Documentation](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Diagram/ERD/Readme.md) (Chuẩn hóa Normalization 3NF, Multi-tenancy, Soft Deletion, Optimistic Locking).
-* 🎯 **Sơ đồ Ca Sử Dụng (Use Case Diagram):** [Campus_Space_UseCase_LucidCompatible.drawio](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Diagram/Use_case/Campus_Space_UseCase_LucidCompatible.drawio).
+* 🔄 **Sơ đồ Quy trình Nghiệp vụ Marketplace (BPMN 2.0):** [Marketplace_Space_BPMN_2_0.drawio](Diagram/BPMN/Campus_Space_BPMN_2_0_Lucid.drawio) (Tương thích hoàn toàn với Camunda & Lucidchart - mô hình hóa trọn vòng đời: Niêm yết, Đặt chỗ, Thanh toán, QR Check-in và Giám sát AI).
+* 🗄️ **Mô hình Dữ liệu Sàn Thương mại (ERD - Database Schema):** [Marketplace_Space_ERD.dbml](Diagram/ERD/Campus_Space_ERD.dbml) & [ERD Documentation](Diagram/ERD/Readme.md) (Chuẩn hóa Normalization 3NF, kiến trúc Multi-tenancy phân tách giữa các Host, Soft Deletion, Optimistic Locking).
+* 🎯 **Sơ đồ Ca Sử Dụng Sàn (Use Case Diagram):** [Marketplace_Space_UseCase.drawio](Diagram/Use_case/Campus_Space_UseCase_LucidCompatible.drawio) (Phân định rõ 3 tác tử: Khách hàng/Doanh nghiệp thuê, Chủ sở hữu không gian và Quản trị sàn).
 
 ---
 
@@ -206,27 +206,27 @@ Hệ thống xác thực qua **Google OAuth 2.0** và đã nạp sẵn các tài
 
 | Loại tài khoản | Địa chỉ Email | Vai trò (Role) | Chức năng chính |
 | :--- | :--- | :--- | :--- |
-| **Quản trị viên Hệ thống** | `admin@uel.edu.vn` | `ADMIN` | Quản trị toàn quyền, phê duyệt đơn thuê, cấu hình hệ thống, xem nhật ký Audit Log |
-| **Giảng viên / Khách thuê** | `chittk@uel.edu.vn` | `LECTURER` | Đặt không gian họp, quản lý lịch sự kiện, theo dõi lịch sử đặt chỗ |
-| **Giảng viên / Khách thuê** | `annv@uel.edu.vn` | `LECTURER` | Đặt không gian họp, quản lý lịch sự kiện, theo dõi lịch sử đặt chỗ |
-| **Khách thuê / Sinh viên** | `giangnntk24411@st.uel.edu.vn` | `STUDENT` | Đặt chỗ tự học, Hot Desk Co-working, nhận vé QR Check-in |
-| **Khách thuê / Sinh viên** | `ngocttb21411@st.uel.edu.vn` | `STUDENT` | Đặt chỗ tự học, Hot Desk Co-working, nhận vé QR Check-in |
+| **Quản trị viên Sàn (Platform Admin)** | `admin@uel.edu.vn` | `ADMIN` | Quản trị toàn hệ thống sàn, phê duyệt đối tác & không gian niêm yết, cấu hình vận hành, giám sát nhật ký Audit Log |
+| **Khách hàng Doanh nghiệp (Enterprise)** | `chittk@uel.edu.vn` | `ENTERPRISE` | Đặt phòng họp hội nghị cao cấp, thuê hội trường tổ chức sự kiện, quản lý lịch sự kiện và thanh toán doanh nghiệp |
+| **Đơn vị Tổ chức Sự kiện (Event Organizer)** | `annv@uel.edu.vn` | `ORGANIZER` | Đặt không gian workshop dài hạn, điều phối khách tham dự, nhận hóa đơn điện tử và thanh toán MoMo QR |
+| **Khách hàng Cá nhân (Pro Member / Freelancer)** | `giangnntk24411@st.uel.edu.vn` | `CUSTOMER` | Thuê Hot Desk Co-working, đặt phòng họp nhóm 1 chạm qua Chatbot AI, nhận vé điện tử QR Check-in tức thời |
+| **Khách thuê Linh hoạt (Flexible Booker)** | `ngocttb21411@st.uel.edu.vn` | `CUSTOMER` | Đặt chỗ làm việc theo giờ, tìm kiếm không gian qua bản đồ tương tác 2D và quản lý lịch sử đơn thuê |
 
-> 💡 **Ghi chú:** Kênh Người bán (**Seller Center**) hiển thị hồ sơ Chủ gian hàng demo (`seller.partner@uelspace.vn`) cùng dữ liệu mô phỏng doanh thu, đơn thuê và audit log để minh họa đầy đủ 8 tab nghiệp vụ.
+> 💡 **Kênh Chủ Không gian (Seller Center):** Truy cập hồ sơ Chủ gian hàng đối tác (`seller.partner@uelspace.vn`) để quản lý toàn diện 8 tab nghiệp vụ: bảng giá thuê, duyệt đơn, trạm Kiosk quét vé QR Check-in và giám sát sĩ số Dual-Head AI thời gian thực.
 
 ---
 
 ## 📚 8. Tài liệu kỹ thuật & Thiết kế hệ thống
 
-* 🔄 [Sơ đồ Quy trình Nghiệp vụ (BPMN 2.0)](Diagram/BPMN/Campus_Space_BPMN_2_0_Lucid.drawio) - Tương thích chuẩn Camunda / Lucidchart.
-* 🗄️ [Mô hình Quan hệ Thực thể (ERD)](Diagram/ERD/Campus_Space_ERD.dbml) & [ERD Docs](Diagram/ERD/Readme.md) - Chuẩn hóa 3NF, Multi-tenancy & Optimistic Locking.
-* 🎯 [Sơ đồ Ca Sử Dụng (Use Case Diagram)](Diagram/Use_case/Campus_Space_UseCase_LucidCompatible.drawio) - Phân rã nghiệp vụ Customer, Host & Admin.
-* 🎨 [AI Solution Design Specification](Brand_Guideline/Overview/Web_design_specification.md) - Quy chuẩn thiết kế giao diện & trải nghiệm tương tác AI UEL Space.
+* 🔄 [Sơ đồ Quy trình Nghiệp vụ Sàn Marketplace (BPMN 2.0)](Diagram/BPMN/Campus_Space_BPMN_2_0_Lucid.drawio) - Tương thích chuẩn Camunda / Lucidchart.
+* 🗄️ [Mô hình Quan hệ Thực thể Sàn Thương mại (ERD)](Diagram/ERD/Campus_Space_ERD.dbml) & [ERD Docs](Diagram/ERD/Readme.md) - Chuẩn hóa 3NF, Multi-tenancy & Optimistic Locking.
+* 🎯 [Sơ đồ Ca Sử Dụng Sàn (Use Case Diagram)](Diagram/Use_case/Campus_Space_UseCase_LucidCompatible.drawio) - Phân rã nghiệp vụ Customer, Host & Platform Admin.
+* 🎨 [AI Solution Design Specification](Brand_Guideline/Overview/Web_design_specification.md) - Quy chuẩn thiết kế giao diện, nhận diện thương hiệu & trải nghiệm tương tác sàn thương mại không gian.
 * 🖼️ [Figma & Google Stitch Manifest](design-system/uel-space/FIGMA_MANIFEST.md) - Danh mục 13 màn hình Figma Vector HD tỷ lệ 2560x2048.
 
 ---
 
 <p align="center">
-  <strong>© 2026 UEL SPACE PROJECT · ĐỒ ÁN GIẢI PHÁP TRÍ TUỆ NHÂN TẠO (AI SOLUTION)</strong><br>
-  <em>Trường Đại học Kinh tế - Luật, Đại học Quốc gia TP. Hồ Chí Minh</em>
+  <strong>© 2026 UEL SPACE PLATFORM · HỆ THỐNG SÀN THƯƠNG MẠI ĐIỆN TỬ KHÔNG GIAN THÔNG MINH AI</strong><br>
+  <em>Giải pháp Trí tuệ Nhân tạo Toàn diện trong Quản trị Mặt bằng & Tự động hóa Vận hành Thương mại</em>
 </p>
