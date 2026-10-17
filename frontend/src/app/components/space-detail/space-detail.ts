@@ -6,7 +6,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
 import { ReviewsService, SpaceReview } from '../../services/reviews.service';
 import { SellersService, SellerProfile } from '../../services/sellers.service';
-import { getFallbackMarketplaceSpaces, normalizeSpace } from '../../services/spaces-data';
+import { getFallbackMarketplaceSpaces, normalizeSpace, createSpaceSlug, createSlug } from '../../services/spaces-data';
 import { SERVER_BASE_URL, SERVER_IMAGES_LINK } from '../../services/api-config';
 import { TranslatePipe } from '../../services/translate.pipe';
 import { BookingService } from '../../services/booking.service';
@@ -152,14 +152,21 @@ export class SpaceDetailComponent implements OnInit {
     this.selectedImageIndex = 0;
     this.cdr.detectChanges();
 
+    const cleanParam = decodeURIComponent(id || '').trim().toLowerCase();
+
     // 1. Tra cứu trong dataset nội bộ phong phú (Fallback dataset 100 phòng)
     const fallbackList = getFallbackMarketplaceSpaces();
-    const localMatch = fallbackList.find(s => 
-      s._id === id || 
-      s.id === id || 
-      s.code === id ||
-      (s.name && s.name.toLowerCase().includes(id.toLowerCase()))
-    );
+    const localMatch = fallbackList.find(s => {
+      const norm = normalizeSpace(s);
+      return (
+        norm.slug === cleanParam ||
+        norm.slug?.endsWith('-' + cleanParam) ||
+        (norm.code && norm.code.toLowerCase() === cleanParam) ||
+        (norm._id && norm._id.toString() === cleanParam) ||
+        (norm.id && norm.id.toString() === cleanParam) ||
+        createSlug(norm.name || '').includes(cleanParam)
+      );
+    });
 
     if (localMatch) {
       this.space = normalizeSpace(localMatch);
@@ -235,9 +242,9 @@ export class SpaceDetailComponent implements OnInit {
 
   navigateToSpace(targetSpace: any) {
     if (!targetSpace) return;
-    const targetId = targetSpace._id || targetSpace.id || targetSpace.code;
-    if (targetId) {
-      this.router.navigate(['/spaces', targetId]);
+    const targetSlug = targetSpace.slug || createSpaceSlug(targetSpace);
+    if (targetSlug) {
+      this.router.navigate(['/spaces', targetSlug]);
     }
   }
 

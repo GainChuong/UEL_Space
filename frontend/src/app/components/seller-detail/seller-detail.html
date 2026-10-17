@@ -377,7 +377,7 @@
                         </span>
                       </div>
 
-                      <h3 (click)="navigateToSpace(item.id)"
+                      <h3 (click)="navigateToSpace(item.slug || item.id)"
                           class="font-extrabold text-base text-slate-900 dark:text-white mt-2 group-hover:text-uel-blue transition-colors line-clamp-1 cursor-pointer">
                         {{ item.name }}
                       </h3>
@@ -412,7 +412,7 @@
                       </div>
 
                       <button type="button"
-                              (click)="navigateToSpace(item.id)"
+                              (click)="navigateToSpace(item.slug || item.id)"
                               class="px-4 py-2.5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold hover:bg-uel-blue dark:hover:bg-sky-400 dark:hover:text-slate-950 transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer">
                         <span>Chi tiết phòng</span>
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

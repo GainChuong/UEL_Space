@@ -1,3 +1,5 @@
+const { ObjectId } = require('mongodb');
+
 class SpaceRepository {
   constructor(collection) {
     this.collection = collection;
@@ -11,8 +13,24 @@ class SpaceRepository {
     return this.collection.find(filter).sort({ name: 1 }).toArray();
   }
 
-  findById(id) {
-    return this.collection.findOne({ _id: id, deletedAt: null });
+  async findById(id) {
+    if (!id) return null;
+    const queries = [
+      { _id: id },
+      { code: id },
+      { slug: id }
+    ];
+
+    if (typeof id === 'string' && ObjectId.isValid(id) && id.length === 24) {
+      try {
+        queries.push({ _id: new ObjectId(id) });
+      } catch (_) {}
+    }
+
+    return this.collection.findOne({
+      deletedAt: null,
+      $or: queries
+    });
   }
 
   findByIds(ids) {
@@ -21,6 +39,10 @@ class SpaceRepository {
 
   findByCode(code) {
     return this.collection.findOne({ code, deletedAt: null });
+  }
+
+  findBySlug(slug) {
+    return this.collection.findOne({ slug, deletedAt: null });
   }
 
   insert(doc) {
@@ -39,6 +61,7 @@ class SpaceRepository {
 
   async createIndexes() {
     await this.collection.createIndex({ code: 1 }, { unique: true, sparse: true });
+    await this.collection.createIndex({ slug: 1 }, { sparse: true });
     await this.collection.createIndex({ buildingId: 1, status: 1 });
     await this.collection.createIndex({ name: 'text', description: 'text' });
   }

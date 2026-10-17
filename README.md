@@ -2,33 +2,43 @@
   <img src="my-server/public/images/logo.png" alt="UEL Space Logo" width="280">
 </p>
 
-<h1 align="center">🏢 UEL SPACE - SÀN THƯƠNG MẠI CHO THUÊ KHÔNG GIAN THÔNG MINH</h1>
+<h1 align="center">🤖 UEL SPACE - ĐỒ ÁN GIẢI PHÁP AI TRONG QUẢN TRỊ & THƯƠNG MẠI HÓA KHÔNG GIAN THÔNG MINH</h1>
 
 <p align="center">
-  <strong>Đồ án môn học: Phát triển Web Kinh doanh Nâng cao (PTWNC)</strong><br>
+  <strong>ĐỒ ÁN GIẢI PHÁP TRÍ TUỆ NHÂN TẠO (AI SOLUTION PROJECT)</strong><br>
+  <em>Hệ thống Sàn Thương mại Không gian tích hợp AI Hybrid: Dual-Head Computer Vision (YOLOv11 Detection & Pose) & Trợ lý Ngôn ngữ Tự nhiên (Google Gemini Flash NLP)</em><br>
   <em>Trường Đại học Kinh tế - Luật, Đại học Quốc gia TP. Hồ Chí Minh (UEL - VNUHCM)</em>
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/AI_Solution-Dual--Head_Hybrid-7C3AED?style=for-the-badge&logo=openai&logoColor=white" alt="AI Solution">
+  <img src="https://img.shields.io/badge/Google_Gemini-Flash_AI-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini AI">
+  <img src="https://img.shields.io/badge/YOLOv11-Detection_%26_Pose-00FFFF?style=for-the-badge&logo=yolo&logoColor=black" alt="YOLOv11">
+  <img src="https://img.shields.io/badge/Hugging_Face-Indoor_Scenes-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black" alt="Hugging Face">
   <img src="https://img.shields.io/badge/Angular-22.2-DD0031?style=for-the-badge&logo=angular&logoColor=white" alt="Angular">
   <img src="https://img.shields.io/badge/Node.js-20+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js">
-  <img src="https://img.shields.io/badge/Express.js-4.19-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express.js">
   <img src="https://img.shields.io/badge/MongoDB-Atlas_6.8-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB">
-  <img src="https://img.shields.io/badge/Google_Gemini-Flash_AI-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini AI">
-  <img src="https://img.shields.io/badge/YOLOv11-Dual--Head_Pose-00FFFF?style=for-the-badge&logo=yolo&logoColor=black" alt="YOLOv11">
-  <img src="https://img.shields.io/badge/Hugging_Face-Indoor_Scenes-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black" alt="Hugging Face">
   <img src="https://img.shields.io/badge/TailwindCSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
 </p>
 
 ---
 
-## 📖 1. Giới thiệu tổng quan (Overview)
+## 📖 1. Giới thiệu tổng quan Đồ án Giải pháp AI (AI Solution Overview)
 
-**UEL Space** là **sàn thương mại điện tử cho thuê không gian thông minh (Space Rental Marketplace)** đóng vai trò bên thứ ba trung gian, kết nối **Người cho thuê (Space Hosts)** — các đơn vị/cá nhân sở hữu mặt bằng, văn phòng, phòng họp, hội trường, chòi làm việc còn trống — với **Khách thuê (Tenants)** — cá nhân, sinh viên, startup và doanh nghiệp cần không gian làm việc ngắn hạn linh hoạt.
+**UEL Space** là **Đồ án Giải pháp Trí tuệ Nhân tạo toàn diện (Full-Stack AI Solution)** ứng dụng trong lĩnh vực quản trị mặt bằng và sàn thương mại điện tử cho thuê không gian thông minh (Smart Space Rental Marketplace). Dự án giải quyết triệt để bài toán lãng phí công suất phòng (40–50% diện tích bỏ trống ngoài giờ cao điểm) và tự động hóa quy trình giám sát hiện diện mà không cần sự can thiệp thủ công của con người.
 
-Nền tảng cho phép **niêm yết không gian theo giờ/ngày**, thiết lập bảng giá minh bạch, tìm kiếm thông minh, thanh toán tức thì qua **MoMo QR Sandbox** và theo dõi doanh thu trực quan. Hệ thống giải quyết bài toán lãng phí công suất mặt bằng (40–50% diện tích bỏ trống ngoài giờ cao điểm), ứng dụng **Dual-Head AI (Computer Vision & Pose Estimation)** để tự động hóa giám sát sĩ số, chống gian lận, phát hiện vắng mặt (No-show), tính phụ phí quá giờ (Overtime) và **giải phóng sớm các khung giờ trống đưa trở lại sàn khai thác thời gian thực**.
+### 🧠 Hai Trụ Cột Công Nghệ AI Cốt Lõi:
+1. **Thị giác Máy tính Đa tầng (Dual-Head Computer Vision & Pose AI):**
+   * **YOLOv11 Detection + YOLOv11 Pose (17 Keypoints):** Chạy song song trên Python FastAPI Microservice, nhận diện chính xác số lượng người trong phòng, bắt trọn các tư thế phức tạp mà mô hình Object Detection thông thường bỏ sót (người nằm sofa/thảm, cúi gục che khuất đầu).
+   * **Thuật toán Anti-Crowding NMS ($IoU \ge 0.65$):** Loại bỏ quy tắc gộp tâm ngang $\Delta X / \Delta Y$, bảo toàn nguyên vẹn 5/5 người ngồi san sát nhau trong phòng họp nhóm, không bị lỗi gộp 5 người thành 3 người.
+   * **AI Hybrid Fallback:** Tự động kích hoạt Client Edge AI (TensorFlow.js) trên trình duyệt khi mất kết nối máy chủ AI, đảm bảo giám sát 24/7.
+2. **Trợ lý Ngôn ngữ Tự nhiên & Đặt phòng 1 chạm (Conversational AI & Context-RAG):**
+   * **Lõi Google Gemini Flash:** Tiếp nhận yêu cầu tự nhiên tiếng Việt, bóc tách thực thể (sức chứa, giá tiền, trang thiết bị, thời gian).
+   * **Context-RAG thời gian thực:** Truy xuất dữ liệu phòng trực tiếp từ MongoDB Atlas nạp vào ngữ cảnh để tư vấn chính xác 100%.
+   * **Kiến trúc chịu lỗi 3 tầng (Circuit Breaker):** Cloud Gemini $\rightarrow$ Server Regex Heuristics Engine ($<5\text{ms}$) $\rightarrow$ Client Local Offline Fallback.
+   * **Đặt phòng nhanh 1 chạm:** Tự động tạo thẻ xem trước và điều hướng thẳng sang thanh toán MoMo / đồng bộ Google Calendar.
 
-Hệ thống được làm giàu dữ liệu thực tế thông qua việc khai thác bộ dữ liệu lớn **Hugging Face (`FatimaSaadNaik/indoor-scenes-dataset`)** và **Unsplash Research Dataset Lite** để chuẩn hóa thông tin và hình ảnh cho hơn 100+ không gian phòng thực tế.
+Hệ thống được làm giàu dữ liệu thực tế thông qua việc khai thác bộ dữ liệu lớn **Hugging Face (`FatimaSaadNaik/indoor-scenes-dataset`)** và **Unsplash Research Dataset Lite** với hơn 100+ không gian phòng thực tế.
 
 ---
 
@@ -210,13 +220,13 @@ Hệ thống xác thực qua **Google OAuth 2.0** và đã nạp sẵn các tài
 
 ---
 
-## 📚 8. Tài liệu kỹ thuật tham khảo
+## 📚 8. Tài liệu kỹ thuật & Thiết kế hệ thống
 
-* 📖 [Developer Handbook](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Instruction/Developer_Handbook_Angular_Fullstack.md) - Cẩm nang phát triển hệ thống Angular - Node.js.
-* ⚖️ [Business Rules](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Instruction/Business_Rules.md) - Đặc tả 22 quy định nghiệp vụ của sàn cho thuê không gian.
-* 🗄️ [Entity Specification](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Instruction/Entity_Specification.md) - Cấu trúc dữ liệu các phân hệ MongoDB.
-* 🎨 [Web Design Specification](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/Brand_Guideline/Overview/Web_design_specification.md) - Quy chuẩn màu sắc, font chữ và phong cách UEL.
-* 🖼️ [Figma & Stitch Manifest](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/design-system/uel-space/FIGMA_MANIFEST.md) - Danh mục 13 màn hình Figma Vector HD.
+* 🔄 [Sơ đồ Quy trình Nghiệp vụ (BPMN 2.0)](Diagram/BPMN/Campus_Space_BPMN_2_0_Lucid.drawio) - Tương thích chuẩn Camunda / Lucidchart.
+* 🗄️ [Mô hình Quan hệ Thực thể (ERD)](Diagram/ERD/Campus_Space_ERD.dbml) & [ERD Docs](Diagram/ERD/Readme.md) - Chuẩn hóa 3NF, Multi-tenancy & Optimistic Locking.
+* 🎯 [Sơ đồ Ca Sử Dụng (Use Case Diagram)](Diagram/Use_case/Campus_Space_UseCase_LucidCompatible.drawio) - Phân rã nghiệp vụ Customer, Host & Admin.
+* 🎨 [Web Design Specification](Brand_Guideline/Overview/Web_design_specification.md) - Quy chuẩn màu sắc, typography và phong cách giao diện UEL.
+* 🖼️ [Figma & Google Stitch Manifest](design-system/uel-space/FIGMA_MANIFEST.md) - Danh mục 13 màn hình Figma Vector HD tỷ lệ 2560x2048.
 
 ---
 

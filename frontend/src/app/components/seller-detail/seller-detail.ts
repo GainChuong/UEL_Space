@@ -132,9 +132,13 @@ export class SellerDetailComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  navigateToSpace(spaceId: string): void {
-    if (spaceId) {
-      this.router.navigate(['/spaces', spaceId]);
+  navigateToSpace(spaceOrId: any): void {
+    if (!spaceOrId) return;
+    if (typeof spaceOrId === 'object') {
+      const targetSlug = spaceOrId.slug || spaceOrId.id || spaceOrId._id;
+      this.router.navigate(['/spaces', targetSlug]);
+    } else {
+      this.router.navigate(['/spaces', spaceOrId]);
     }
   }
 

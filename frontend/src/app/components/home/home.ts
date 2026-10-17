@@ -7,7 +7,7 @@ import { SERVER_BASE_URL, SERVER_IMAGES_LINK } from '../../services/api-config';
 import { TranslatePipe } from '../../services/translate.pipe';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
 import { BookingService } from '../../services/booking.service';
-import { normalizeSpace, getFallbackMarketplaceSpaces } from '../../services/spaces-data';
+import { normalizeSpace, getFallbackMarketplaceSpaces, createSpaceSlug } from '../../services/spaces-data';
 
 export interface SpaceItem {
   id: string;
@@ -38,9 +38,9 @@ export class Home implements OnInit {
   openSpaceDetail(space: any, event?: Event) {
     if (event) event.stopPropagation();
     if (!space) return;
-    const targetId = space._id || space.id || space.code;
-    if (targetId) {
-      this.router.navigate(['/spaces', targetId]);
+    const targetSlug = space.slug || createSpaceSlug(space);
+    if (targetSlug) {
+      this.router.navigate(['/spaces', targetSlug]);
     } else {
       this.openBookingModal(space);
     }

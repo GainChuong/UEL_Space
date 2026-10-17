@@ -43,6 +43,35 @@ function formatDate(date) {
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 }
 
+function createSlug(text) {
+  if (!text) return '';
+  return text
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, 'd')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function createSpaceSlug(space) {
+  if (!space) return 'khong-gian';
+  if (space.slug && typeof space.slug === 'string') return space.slug;
+  const nameSlug = createSlug(space.name || 'khong-gian');
+  const code = (space.code || space.id || space._id || '').toString();
+  const cleanCode = createSlug(code);
+  if (!cleanCode || nameSlug.endsWith(cleanCode) || nameSlug === cleanCode) {
+    return nameSlug || 'khong-gian';
+  }
+  const parts = cleanCode.split('-');
+  const lastPart = parts[parts.length - 1];
+  if (nameSlug.includes(parts[0]) && parts.length > 1) {
+    return `${nameSlug}-${lastPart}`;
+  }
+  return `${nameSlug}-${cleanCode}`;
+}
+
 function decorateSpace(space) {
   if (!space) return space;
   const status = space.status || SPACE_STATUS.AVAILABLE;
@@ -50,6 +79,7 @@ function decorateSpace(space) {
   const currentOccupants = space.currentOccupants ?? 0;
   return {
     ...space,
+    slug: space.slug || createSpaceSlug(space),
     spaceType: space.categoryName || space.spaceType || 'Khác',
     building: space.buildingName || space.building || '',
     floor: space.floorName || space.floor || '',
@@ -96,5 +126,7 @@ module.exports = {
   formatTimeSlot,
   formatDate,
   decorateSpace,
-  toLegacySpace
+  toLegacySpace,
+  createSlug,
+  createSpaceSlug
 };

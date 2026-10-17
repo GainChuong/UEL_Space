@@ -1,4 +1,41 @@
-import { SPACES_100_DATA } from './spaces_100_data';
+/**
+ * Chuyển đổi chuỗi tiếng Việt có dấu thành slug không dấu chuẩn SEO (SEO-Friendly URL Slug)
+ */
+export function createSlug(text: string): string {
+  if (!text) return '';
+  return text
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, 'd')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+/**
+ * Tạo slug định danh duy nhất chuẩn SEO cho không gian: {slug-name}-{code-or-short-id}
+ * Ví dụ: "Boardroom VIP B1", code: "b1-104" -> "boardroom-vip-b1-104"
+ */
+export function createSpaceSlug(space: any): string {
+  if (!space) return 'khong-gian';
+  if (space.slug && typeof space.slug === 'string') return space.slug;
+  const nameSlug = createSlug(space.name || 'khong-gian');
+  const code = (space.code || space.id || space._id || '').toString();
+  const cleanCode = createSlug(code);
+
+  if (!cleanCode || nameSlug.endsWith(cleanCode) || nameSlug === cleanCode) {
+    return nameSlug || 'khong-gian';
+  }
+
+  const parts = cleanCode.split('-');
+  const lastPart = parts[parts.length - 1];
+  if (nameSlug.includes(parts[0]) && parts.length > 1) {
+    return `${nameSlug}-${lastPart}`;
+  }
+
+  return `${nameSlug}-${cleanCode}`;
+}
 
 export function normalizeSpace(space: any) {
     const rawStatus = (space.statusKey || space.status || 'AVAILABLE').toString().toUpperCase();
@@ -39,10 +76,13 @@ export function normalizeSpace(space: any) {
       fileName: 'scene_photo.jpg'
     };
 
+    const generatedSlug = createSpaceSlug(space);
+
     return {
       ...space,
       id: space._id || space.id || space.code || 'sp-' + Math.random().toString(36).substring(7),
       _id: space._id || space.id,
+      slug: space.slug || generatedSlug,
       name: space.name,
       type: space.spaceType || space.categoryName || space.type || 'Không gian làm việc',
       capacity: space.capacity || 10,

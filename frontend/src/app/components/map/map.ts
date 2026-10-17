@@ -7,7 +7,7 @@ import { SERVER_IMAGES_LINK, SERVER_BASE_URL } from '../../services/api-config';
 import { TranslatePipe } from '../../services/translate.pipe';
 import { GoogleCalendarService } from '../../services/google-calendar.service';
 import { BookingService } from '../../services/booking.service';
-import { normalizeSpace, getFallbackMarketplaceSpaces } from '../../services/spaces-data';
+import { normalizeSpace, getFallbackMarketplaceSpaces, createSpaceSlug } from '../../services/spaces-data';
 
 @Component({
   imports: [CommonModule, FormsModule, RouterModule, TranslatePipe],
@@ -731,9 +731,9 @@ export class Map implements OnInit, AfterViewInit {
   // Room Detail & Booking Modal Controllers: Mở sang trang chi tiết chuyên biệt (/spaces/:id)
   openRoomDetail(room: any) {
     if (!room) return;
-    const targetId = room._id || room.id || room.code;
-    if (targetId) {
-      this.router.navigate(['/spaces', targetId]);
+    const targetSlug = room.slug || createSpaceSlug(room);
+    if (targetSlug) {
+      this.router.navigate(['/spaces', targetSlug]);
       return;
     }
     this.selectedRoomDetail = normalizeSpace(room);
