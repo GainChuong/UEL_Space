@@ -21,13 +21,18 @@ function chatbotRoutes({ spaces, chatSessions }) {
       const activeSessionId = sessionId || 'session_' + Date.now();
       const currentUserId = req.session?.user?.id || req.session?.user?._id || null;
 
-      // 1. Lấy danh sách không gian thực tế từ MongoDB
+      // 1. Lấy danh sách không gian thực tế từ MongoDB (lọc bỏ các phòng đã xóa)
       let allSpaces = [];
       if (spaces) {
-        allSpaces = await spaces.find({}).toArray();
+        allSpaces = await spaces.find({
+          $or: [
+            { deletedAt: { $exists: false } },
+            { deletedAt: null }
+          ]
+        }).toArray();
       }
 
-      // 2. Gọi GeminiService (kèm RAG Context và Fallback)
+      // 2. Gọi GeminiService (kèm Pre-filtering RAG Context và Local Heuristic Fallback)
       const aiResponse = await geminiService.processChat({
         userMessage: userMessage.trim(),
         history,
@@ -44,6 +49,7 @@ function chatbotRoutes({ spaces, chatSessions }) {
             s.id === idOrCode
           );
           if (match) {
+            const rawStatus = (match.status || 'AVAILABLE').toUpperCase();
             recommendedSpaces.push({
               id: match.code || (match._id ? match._id.toString() : match.id),
               name: match.name,
@@ -52,9 +58,11 @@ function chatbotRoutes({ spaces, chatSessions }) {
               capacity: match.capacity || 20,
               capacityText: `${match.capacity || 20} chỗ ngồi`,
               hourlyPrice: match.hourlyPrice || match.pricePerHour || 50000,
-              status: match.status?.toLowerCase() || 'available',
-              statusText: match.status === 'AVAILABLE' ? 'Trống' : 'Đang sử dụng',
-              equipment: Array.isArray(match.equipment) ? match.equipment : [],
+              status: rawStatus.toLowerCase(),
+              statusText: rawStatus === 'AVAILABLE' ? 'Trống' : (rawStatus === 'OCCUPIED' ? 'Đang bận' : 'Bảo trì'),
+              equipment: Array.isArray(match.equipment)
+                ? match.equipment.map(e => typeof e === 'object' && e ? (e.name || e.label || e.item || '') : String(e)).filter(Boolean)
+                : [],
               image: match.image || (match.images && match.images[0]) || '/images/spaces/space_a2_1_meeting_vip.jpg'
             });
           }

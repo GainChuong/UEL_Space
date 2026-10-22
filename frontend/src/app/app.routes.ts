@@ -5,6 +5,7 @@ import { BookingHistory } from './components/booking-history/booking-history';
 import { Login } from './components/login/login';
 import { About } from './components/about/about';
 import { Admin } from './components/admin/admin';
+import { SellerDashboard } from './components/seller-dashboard/seller-dashboard';
 import { SpaceDetailComponent } from './components/space-detail/space-detail';
 import { SellerDetailComponent } from './components/seller-detail/seller-detail';
 import { authGuard } from './guards/auth.guard';
@@ -19,5 +20,7 @@ export const routes: Routes = [
   { path: 'about', component: About },
   { path: 'login', component: Login },
   { path: 'admin', component: Admin, canActivate: [authGuard] },
+  { path: 'seller-dashboard', component: SellerDashboard, canActivate: [authGuard] },
+  { path: 'seller-portal', redirectTo: 'seller-dashboard' },
   { path: '**', redirectTo: '' }
 ];

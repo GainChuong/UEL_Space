@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pipeline Overview Slide - UEL Space</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #1e1e24;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      padding: 20px;
+    }
+
+    /* Khung chuẩn tỷ lệ 16:9 Slide Presentation (1920x1080) */
+    .slide-canvas {
+      width: 1920px;
+      height: 1080px;
+      background: #FFFFFF;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+      border-radius: 12px;
+      flex-shrink: 0;
+    }
+
+    /* Các họa tiết trang trí theo đúng Canva Theme của PDF */
+    .decor-corner-dots {
+      position: absolute;
+      top: 50px;
+      right: 60px;
+      display: grid;
+      grid-template-columns: repeat(5, 12px);
+      gap: 8px;
+      z-index: 2;
+    }
+    .decor-corner-dots span {
+      width: 12px;
+      height: 12px;
+      background-color: #F97316;
+      opacity: 0.85;
+      border-radius: 2px;
+    }
+
+    .decor-bottom-dots {
+      position: absolute;
+      bottom: 40px;
+      left: 60px;
+      display: grid;
+      grid-template-columns: repeat(6, 10px);
+      gap: 7px;
+      z-index: 2;
+    }
+    .decor-bottom-dots span {
+      width: 10px;
+      height: 10px;
+      background-color: #EA580C;
+      opacity: 0.6;
+      border-radius: 2px;
+    }
+
+    .decor-curve-left {
+      position: absolute;
+      top: -120px;
+      left: -120px;
+      width: 320px;
+      height: 320px;
+      background: linear-gradient(135deg, rgba(254, 215, 170, 0.4) 0%, rgba(255, 237, 213, 0.1) 100%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .decor-glow-orange {
+      position: absolute;
+      bottom: -150px;
+      right: -100px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(249, 115, 22, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
+      pointer-events: none;
+    }
+
+    /* HEADER SLIDE */
+    .slide-header {
+      padding: 60px 80px 25px 80px;
+      position: relative;
+      z-index: 5;
+    }
+
+    .tag-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #FFF7ED;
+      color: #EA580C;
+      border: 1.5px solid #FDBA74;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 8px 18px;
+      border-radius: 100px;
+      margin-bottom: 14px;
+    }
+
+    .slide-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 52px;
+      font-weight: 900;
+      color: #EA580C;
+      text-transform: uppercase;
+      line-height: 1.15;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+
+    .slide-title span {
+      color: #1E293B;
+    }
+
+    .slide-subtitle {
+      font-size: 20px;
+      color: #475569;
+      font-weight: 500;
+      max-width: 1200px;
+      line-height: 1.5;
+    }
+
+    /* MAIN PIPELINE CONTAINER */
+    .pipeline-container {
+      flex: 1;
+      padding: 10px 70px 40px 70px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      z-index: 5;
+    }
+
+    /* 5 CỘT BƯỚC LIÊN HOÀN (HORIZONTAL FLOW) */
+    .steps-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 22px;
+      position: relative;
+    }
+
+    /* Card từng bước */
+    .step-card {
+      background: #FFFFFF;
+      border-radius: 28px;
+      border: 2px solid #FED7AA;
+      box-shadow: 0 12px 30px rgba(234, 88, 12, 0.08);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: transform 0.2s ease;
+      position: relative;
+    }
+
+    /* Header của từng Card - Gradient Cam rực rỡ đặc trưng theme */
+    .step-card-header {
+      background: linear-gradient(135deg, #FF7A00 0%, #EA580C 100%);
+      color: #FFFFFF;
+      padding: 18px 16px;
+      text-align: center;
+      position: relative;
+    }
+
+    .step-number {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #FFFFFF;
+      color: #EA580C;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: 14px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      border: 2px solid #EA580C;
+    }
+
+    .step-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 19px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 8px;
+    }
+
+    .step-subtitle {
+      font-size: 13px;
+      opacity: 0.9;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    /* Thân card - 3 khối phân định Khách thuê - AI Core - Quản lý */
+    .step-card-body {
+      padding: 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex: 1;
+      background: #FAFAFA;
+    }
+
+    /* Sub-block */
+    .sub-block {
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-size: 13.5px;
+      line-height: 1.45;
+    }
+
+    .sub-block-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 800;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+
+    /* Khối 1: Khách hàng */
+    .block-customer {
+      background: #EFF6FF;
+      border-left: 4px solid #3B82F6;
+      color: #1E3A8A;
+    }
+    .block-customer .sub-block-label {
+      color: #2563EB;
+    }
+
+    /* Khối 2: Công nghệ thông minh (AI Highlight) */
+    .block-tech {
+      background: #FFF7ED;
+      border-left: 4px solid #EA580C;
+      color: #7C2D12;
+      box-shadow: 0 2px 6px rgba(234, 88, 12, 0.05);
+    }
+    .block-tech .sub-block-label {
+      color: #C2410C;
+    }
+
+    /* Khối 3: Nhà quản lý */
+    .block-manager {
+      background: #F0FDF4;
+      border-left: 4px solid #10B981;
+      color: #064E3B;
+    }
+    .block-manager .sub-block-label {
+      color: #059669;
+    }
+
+    .tech-pill {
+      display: inline-block;
+      background: #FED7AA;
+      color: #9A3412;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      margin-top: 4px;
+    }
+
+    /* Mũi tên kết nối giữa các bước */
+    .arrow-indicator {
+      position: absolute;
+      top: 50%;
+      right: -16px;
+      transform: translateY(-50%);
+      width: 28px;
+      height: 28px;
+      background: #EA580C;
+      color: #FFFFFF;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 14px;
+      z-index: 10;
+      box-shadow: 0 4px 10px rgba(234, 88, 12, 0.35);
+    }
+
+    /* FOOTER SLIDE */
+    .slide-footer {
+      padding: 16px 80px 30px 80px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid #FED7AA;
+      position: relative;
+      z-index: 5;
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .legend-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+    }
+    .dot-customer { background-color: #3B82F6; }
+    .dot-tech { background-color: #EA580C; }
+    .dot-manager { background-color: #10B981; }
+
+    .brand-mark {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 15px;
+      color: #94A3B8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-mark span {
+      color: #EA580C;
+    }
+
+    /* Tooltip / Hint phóng to */
+    .preview-hint {
+      position: fixed;
+      bottom: 15px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 50px;
+      font-size: 13px;
+      z-index: 999;
+      pointer-events: none;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="slide-canvas" id="slide">
+    <!-- Họa tiết góc cam theo đúng style file PDF -->
+    <div class="decor-corner-dots">
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="decor-bottom-dots">
+      <span></span><span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="decor-curve-left"></div>
+    <div class="decor-glow-orange"></div>
+
+    <!-- TIÊU ĐỀ SLIDE -->
+    <div class="slide-header">
+      <div class="tag-badge">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+        AI SOLUTION ARCHITECTURE
+      </div>
+      <h1 class="slide-title">PIPELINE TỔNG QUAN: <span>VẬN HÀNH THÔNG MINH</span></h1>
+      <p class="slide-subtitle">Chu trình khép kín tối ưu hóa trải nghiệm khách thuê và tự động hóa toàn diện công tác giám sát cơ sở vật chất bằng Trí tuệ Nhân tạo thế hệ mới.</p>
+    </div>
+
+    <!-- NỘI DUNG 5 BƯỚC PIPELINE -->
+    <div class="pipeline-container">
+      <div class="steps-row">
+
+        <!-- BƯỚC 1 -->
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="step-number">01</div>
+            <div class="step-title">TÌM KIẾM & RAG</div>
+            <div class="step-subtitle">Discovery & Recommendation</div>
+          </div>
+          <div class="step-card-body">
+            <div class="sub-block block-customer">
+              <div class="sub-block-label">👤 Khách thuê</div>
+              Gõ câu hỏi tự nhiên về nhu cầu phòng, ngân sách, sức chứa & trang thiết bị.
+            </div>
+            <div class="sub-block block-tech">
+              <div class="sub-block-label">🧠 Công nghệ AI</div>
+              <strong>Gemini Flash NLP</strong> bóc tách JSON thực thể + <strong>Context-RAG</strong> nạp dữ liệu kho phòng thời gian thực.
+              <span class="tech-pill">Circuit Breaker &lt;5ms</span>
+            </div>
+            <div class="sub-block block-manager">
+              <div class="sub-block-label">🛡️ Ban Quản lý</div>
+              Không gian niêm yết được tự động đề xuất chuẩn xác mà không cần tư vấn viên.
+            </div>
+          </div>
+          <div class="arrow-indicator">➔</div>
+        </div>
+
+        <!-- BƯỚC 2 -->
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="step-number">02</div>
+            <div class="step-title">ĐẶT PHÒNG 1 CHẠM</div>
+            <div class="step-subtitle">Instant Booking & Sync</div>
+          </div>
+          <div class="step-card-body">
+            <div class="sub-block block-customer">
+              <div class="sub-block-label">👤 Khách thuê</div>
+              Nhấp "Đặt ngay" từ gợi ý AI, quét mã <strong>MoMo QR</strong> & nhận vé điện tử tức thời.
+            </div>
+            <div class="sub-block block-tech">
+              <div class="sub-block-label">🧠 Công nghệ AI</div>
+              <strong>Optimistic Lock</strong> chống trùng lịch + Tự động đồng bộ sự kiện <strong>Google Calendar API</strong>.
+              <span class="tech-pill">Dynamic Pricing</span>
+            </div>
+            <div class="sub-block block-manager">
+              <div class="sub-block-label">🛡️ Ban Quản lý</div>
+              Tự động giữ chỗ, thanh toán chuyển thẳng về ví đối tác, loại bỏ 100% rủi ro Overbooking.
+            </div>
+          </div>
+          <div class="arrow-indicator">➔</div>
+        </div>
+
+        <!-- BƯỚC 3 -->
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="step-number">03</div>
+            <div class="step-title">CHECK-IN KHÔNG CHẠM</div>
+            <div class="step-subtitle">Contactless Kiosk Mode</div>
+          </div>
+          <div class="step-card-body">
+            <div class="sub-block block-customer">
+              <div class="sub-block-label">👤 Khách thuê</div>
+              Đến địa điểm, đưa <strong>Vé QR động</strong> trước camera trạm Kiosk đón khách.
+            </div>
+            <div class="sub-block block-tech">
+              <div class="sub-block-label">🧠 Công nghệ AI</div>
+              <strong>Kiosk Vision Scanner</strong> giải mã token HMAC &lt;1s + Kích hoạt máy đếm phiên <code>UsageSession</code>.
+              <span class="tech-pill">Auto State Transition</span>
+            </div>
+            <div class="sub-block block-manager">
+              <div class="sub-block-label">🛡️ Ban Quản lý</div>
+              Hệ thống tự đổi trạng thái phòng sang <code>IN_USE</code>, xóa bỏ khâu kiểm tra thủ công.
+            </div>
+          </div>
+          <div class="arrow-indicator">➔</div>
+        </div>
+
+        <!-- BƯỚC 4 -->
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="step-number">04</div>
+            <div class="step-title">GIÁM SÁT DUAL-HEAD AI</div>
+            <div class="step-subtitle">Vision AI & Safety</div>
+          </div>
+          <div class="step-card-body">
+            <div class="sub-block block-customer">
+              <div class="sub-block-label">👤 Khách thuê</div>
+              Hội họp riêng tư, thoải mái, không bị bảo vệ hay nhân viên gõ cửa làm phiền.
+            </div>
+            <div class="sub-block block-tech">
+              <div class="sub-block-label">🧠 Công nghệ AI</div>
+              <strong>YOLOv11 Detection + Pose 17 Keypoints</strong> + <strong>Anti-Crowding NMS</strong> chống gộp 5 người thành 3.
+              <span class="tech-pill">Edge AI TensorFlow.js</span>
+            </div>
+            <div class="sub-block block-manager">
+              <div class="sub-block-label">🛡️ Ban Quản lý</div>
+              Dashboard cập nhật sĩ số thời gian thực; cảnh báo vượt sức chứa & cảnh báo quá giờ.
+            </div>
+          </div>
+          <div class="arrow-indicator">➔</div>
+        </div>
+
+        <!-- BƯỚC 5 -->
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="step-number">05</div>
+            <div class="step-title">TỰ ĐỘNG THU HỒI & TÁI BÁN</div>
+            <div class="step-subtitle">Auto-Resale & Audit</div>
+          </div>
+          <div class="step-card-body">
+            <div class="sub-block block-customer">
+              <div class="sub-block-label">👤 Khách thuê</div>
+              Hoàn tất cuộc họp; nhận hóa đơn điện tử minh bạch & đánh giá chất lượng phòng.
+            </div>
+            <div class="sub-block block-tech">
+              <div class="sub-block-label">🧠 Công nghệ AI</div>
+              <strong>No-Show Daemon</strong> quét 5p/lần + <strong>Dynamic Slot Resale</strong> tự động tái niêm yết khung giờ trống sớm.
+              <span class="tech-pill">Audit Trail F34</span>
+            </div>
+            <div class="sub-block block-manager">
+              <div class="sub-block-label">🛡️ Ban Quản lý</div>
+              Tối ưu thêm 40% công suất phòng bỏ trống; toàn bộ sự kiện được lưu vết kiểm toán bất biến.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- FOOTER CHÚ THÍCH & BẢN QUYỀN -->
+    <div class="slide-footer">
+      <div class="legend-row">
+        <div class="legend-item">
+          <div class="legend-dot dot-customer"></div>
+          <span>Hành trình Khách thuê</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot dot-tech"></div>
+          <span>Công nghệ Thông minh & AI Core</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot dot-manager"></div>
+          <span>Nhà Quản lý & Vận hành Sàn</span>
+        </div>
+      </div>
+      <div class="brand-mark">
+        UEL SPACE PLATFORM · <span>AI-POWERED WORKSPACE MARKETPLACE</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="preview-hint">
+    💡 Mẹo: Nhấn <b>F11</b> trên trình duyệt để xem toàn màn hình tỉ lệ 16:9 hoặc chụp màn hình dán vào PowerPoint/Canva.
+  </div>
+
+</body>
+</html>

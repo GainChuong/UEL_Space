@@ -1,3 +1,5 @@
+import { SPACES_100_DATA } from './spaces_100_data';
+
 /**
  * Chuyển đổi chuỗi tiếng Việt có dấu thành slug không dấu chuẩn SEO (SEO-Friendly URL Slug)
  */
