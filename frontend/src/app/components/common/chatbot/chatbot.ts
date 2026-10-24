@@ -52,8 +52,8 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     showQr: false
   };
 
-  currentModel = 'gemini-3.8-flash';
-  currentSource: 'gemini' | 'local_fallback' = 'gemini';
+  currentModel = 'gemini-2.5-flash';
+  currentSource: 'gemini' | 'learned_cache' | 'local_fallback' = 'gemini';
 
   private subIsOpen?: Subscription;
   private subMessages?: Subscription;
@@ -114,6 +114,9 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   toggleChat(): void {
+    if (!this.isOpen) {
+      this.viewMode = 'chat';
+    }
     this.chatbotService.toggleChat();
   }
 
@@ -212,6 +215,9 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
    * Kích hoạt quy trình "Đặt nhanh 1 chạm" trực tiếp từ Chatbot
    */
   startQuickBooking(space: ChatbotSpace): void {
+    // Gửi tín hiệu hành vi CLICK cho hệ thống tự học thích ứng
+    this.chatbotService.sendFeedback(space.id, 'CLICK');
+
     const hours = 2;
     const totalAmount = Math.round(space.hourlyPrice * hours);
     const code = 'BK-AI-' + Math.floor(100000 + Math.random() * 900000);
@@ -261,6 +267,9 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     if (!this.quickBookModal.space) return;
     this.quickBookModal.isProcessing = true;
 
+    // Gửi tín hiệu chuyển đổi thành công (BOOK_SUCCESS) để tăng mạnh trọng số phòng tối ưu trong Cache
+    this.chatbotService.sendFeedback(this.quickBookModal.space.id, 'BOOK_SUCCESS');
+
     // Giả lập quét QR và xử lý giao dịch thanh toán MoMo Sandbox
     setTimeout(() => {
       this.quickBookModal.isProcessing = false;
@@ -281,6 +290,15 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   confirmQuickBookingSuccess(): void {
     this.simulateScanSuccess();
+  }
+
+  /**
+   * Đánh giá câu trả lời (Reinforcement Learning Feedback)
+   */
+  rateMessage(msg: ChatMessage, isPositive: boolean): void {
+    const action = isPositive ? 'THUMBS_UP' : 'THUMBS_DOWN';
+    this.chatbotService.sendFeedback(undefined, action, msg.signature);
+    (msg as any).userRated = isPositive ? 'up' : 'down';
   }
 
   openGoogleCalendar(url?: string): void {

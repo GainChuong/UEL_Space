@@ -129,7 +129,8 @@ async function bootstrap() {
     feedback: getCollection('feedback'),
     auditLogs: getCollection('audit_logs'),
     schedules: getCollection('schedules'),
-    chatSessions: getCollection('chat_sessions')
+    chatSessions: getCollection('chat_sessions'),
+    chatLearnedIntents: getCollection('chat_learned_intents')
   };
 
   // 4. Lắp ráp Services & Repositories dùng chung
@@ -239,7 +240,14 @@ async function bootstrap() {
   app.use('/api/analytics', analyticsRoutes(collections));
   app.use('/api/schedules', scheduleRoutes(collections));
   app.use('/api/notifications', notificationRoutes({ ...collections, notificationService }));
-  app.use('/api/chatbot', chatbotRoutes({ spaces: collections.spaces, chatSessions: collections.chatSessions }));
+  app.use(
+    '/api/chatbot',
+    chatbotRoutes({
+      spaces: collections.spaces,
+      chatSessions: collections.chatSessions,
+      chatLearnedIntents: collections.chatLearnedIntents
+    })
+  );
 
   // Platform Super Admin Control Center
   const platformAdminService = new PlatformAdminService(collections);

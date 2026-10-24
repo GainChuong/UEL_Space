@@ -8,23 +8,182 @@ const { env } = require('../../config/env');
 
 class GeminiService {
   constructor() {
-    this.apiKey = env.geminiApiKey || '';
-    this.model = env.geminiModel || 'gemini-3.8-flash';
-    // Circuit Breaker: nếu API gặp lỗi 403 / 429 hoặc offline, tạm ngừng gọi trong 5 phút để tránh nghẽn
+    this.model = env.geminiModel || 'gemini-2.5-flash';
+    // Circuit Breaker: nếu API gặp lỗi 403 / 429 hoặc offline, tạm ngừng gọi trong 2 phút để tránh nghẽn
     this.circuitBreakerUntil = 0;
     this.failCount = 0;
   }
 
+  getApiKey() {
+    return process.env.GEMINI_API_KEY || env.geminiApiKey || '';
+  }
+
   /**
-   * Xử lý tin nhắn người dùng kết hợp ngữ cảnh không gian và lịch sử trò chuyện
+   * Tạo chữ ký ngữ nghĩa (Intent Signature) chuẩn hóa từ các tiêu chí
+   * Cho phép nhận diện ngay các câu hỏi có cùng nhu cầu để phục vụ siêu tốc (<20ms)
    */
-  async processChat({ userMessage, history = [], spaces = [] }) {
-    // 1. Pre-filtering RAG: Lọc thô thông minh từ toàn bộ cơ sở dữ liệu để chọn Top 15 ứng viên tối ưu nhất
-    const topCandidateSpaces = this.retrieveTopRelevantSpaces(spaces, userMessage, 15);
+  buildIntentSignature(criteria) {
+    // 1. Phân nhóm sức chứa (Capacity Bucket)
+    let capBucket = 'any';
+    if (criteria.minCapacity !== null && criteria.minCapacity !== undefined) {
+      const c = Number(criteria.minCapacity);
+      if (c <= 2) capBucket = '1-2';
+      else if (c <= 6) capBucket = '3-6';
+      else if (c <= 12) capBucket = '7-12';
+      else if (c <= 25) capBucket = '13-25';
+      else if (c <= 50) capBucket = '26-50';
+      else capBucket = '50+';
+    }
+
+    // 2. Nhóm từ đồng nghĩa cho loại không gian
+    const normTypes = new Set();
+    for (const t of criteria.types || []) {
+      const n = this.removeVietnameseTones(t).toLowerCase();
+      if (/hop|meet|vip|ban giam doc|doi tac/.test(n)) normTypes.add('meeting');
+      else if (/tu hoc|study|focus|yen tinh|doc sach/.test(n)) normTypes.add('study');
+      else if (/hot desk|cowork|linh hoat/.test(n)) normTypes.add('coworking');
+      else if (/pod|studio|cach am|media|thu am/.test(n)) normTypes.add('studio_pod');
+      else if (/hoi truong|su kien|event|hall|workshop/.test(n)) normTypes.add('event_hall');
+      else if (/lab|may tinh|robot/.test(n)) normTypes.add('lab');
+    }
+    const typeStr = Array.from(normTypes).sort().join(',') || 'general';
+
+    // 3. Chuẩn hóa trang thiết bị
+    const normEq = new Set();
+    for (const e of criteria.equipment || []) {
+      const n = this.removeVietnameseTones(e).toLowerCase();
+      if (/chieu|projector/.test(n)) normEq.add('projector');
+      else if (/man hinh|tivi|tv|4k/.test(n)) normEq.add('screen_4k');
+      else if (/bang|whiteboard/.test(n)) normEq.add('whiteboard');
+      else if (/mic|am thanh|loa/.test(n)) normEq.add('audio');
+      else if (/cach am/.test(n)) normEq.add('soundproof');
+    }
+    const eqStr = Array.from(normEq).sort().join(',') || 'none';
+
+    // 4. Chuẩn hóa địa điểm
+    const normLoc = new Set();
+    for (const l of criteria.locations || []) {
+      const n = this.removeVietnameseTones(l).toLowerCase();
+      if (/toa a|khu a/.test(n)) normLoc.add('block_a');
+      else if (/toa b|khu b/.test(n)) normLoc.add('block_b');
+      else if (/thu vien/.test(n)) normLoc.add('library');
+      else if (/thu duc/.test(n)) normLoc.add('thu_duc');
+      else if (/quan 1|q1/.test(n)) normLoc.add('q1');
+    }
+    const locStr = Array.from(normLoc).sort().join(',') || 'any';
+
+    const action = criteria.isBookingIntent ? 'book' : 'recommend';
+    return `sig:${action}|type:${typeStr}|cap:${capBucket}|eq:${eqStr}|loc:${locStr}`;
+  }
+
+  /**
+   * Xử lý tin nhắn người dùng kết hợp Semantic Intent Cache, Gemini AI và Feedback Learning
+   */
+  async processChat({ userMessage, history = [], spaces = [], learnedIntents = null }) {
+    const startTime = Date.now();
+    const criteria = this.extractSearchCriteria(userMessage);
+    const signature = this.buildIntentSignature(criteria);
+
+    // =========================================================================
+    // TẦNG 1: BỘ ĐỆM NGỮ NGHĨA THÍCH ỨNG (ADAPTIVE SEMANTIC CACHE - FAST-PATH <20ms)
+    // Nếu nhu cầu này đã được khách hàng trước hỏi và hệ thống đã học được kết quả tối ưu
+    // =========================================================================
+    if (learnedIntents) {
+      try {
+        const learned = await learnedIntents.findOne({ signature });
+        if (
+          learned &&
+          (learned.confidenceScore || 1.0) >= 0.5 &&
+          Array.isArray(learned.bestSpaceIds) &&
+          learned.bestSpaceIds.length > 0
+        ) {
+          // Đối chiếu với danh sách phòng thực tế đang online trong MongoDB
+          const validSpacesMap = new Map();
+          for (const s of spaces) {
+            if (!s.deletedAt && (s.status || '').toUpperCase() !== 'MAINTENANCE') {
+              const sId = s._id ? s._id.toString() : (s.code || s.id);
+              validSpacesMap.set(sId, s);
+              if (s.code) validSpacesMap.set(s.code, s);
+            }
+          }
+
+          const spaceScores = learned.spaceScores || {};
+          const matchedSpaces = [];
+          for (const spId of learned.bestSpaceIds) {
+            const spaceObj = validSpacesMap.get(spId);
+            if (spaceObj) {
+              const scoreObj = spaceScores[spId] || { score: 0 };
+              matchedSpaces.push({
+                space: spaceObj,
+                learnedScore: scoreObj.score || 0,
+                isAvailable: (spaceObj.status || '').toUpperCase() === 'AVAILABLE'
+              });
+            }
+          }
+
+          if (matchedSpaces.length > 0) {
+            // Sắp xếp: Ưu tiên phòng còn trống (AVAILABLE) lên trước, sau đó sắp xếp theo điểm học hành vi người dùng
+            matchedSpaces.sort((a, b) => {
+              if (a.isAvailable !== b.isAvailable) return a.isAvailable ? -1 : 1;
+              return b.learnedScore - a.learnedScore;
+            });
+
+            const topIds = matchedSpaces.slice(0, 3).map(m => m.space.code || (m.space._id ? m.space._id.toString() : m.space.id));
+            const topRoom = matchedSpaces[0].space;
+
+            // Ghi nhận ngầm Cache Hit & mẫu câu hỏi mới vào kho tri thức (non-blocking)
+            learnedIntents.updateOne(
+              { _id: learned._id },
+              {
+                $inc: { hitCount: 1 },
+                $set: { lastHitAt: new Date() },
+                $addToSet: { sampleQueries: userMessage.trim().substring(0, 120) }
+              }
+            ).catch(() => {});
+
+            const latencyMs = Date.now() - startTime;
+            let replyText = learned.cachedReply;
+            if (!replyText || replyText.length < 20) {
+              replyText = criteria.isBookingIntent
+                ? `Tôi đã đối chiếu nhanh qua bộ đệm tri thức: Không gian **${topRoom.name}** tại **${topRoom.building || 'Khuôn viên UEL'}** (${topRoom.capacity} chỗ) là lựa chọn tối ưu nhất đã được kiểm chứng để bạn đặt ngay:`
+                : `Dựa trên dữ liệu nhu cầu tương tự đã được tối ưu hóa trước đó, đây là các không gian phù hợp nhất dành cho bạn:`;
+            }
+
+            return {
+              replyText,
+              intent: learned.intent || (criteria.isBookingIntent ? 'BOOK_SPACE' : 'RECOMMEND_SPACE'),
+              recommendedSpaceIds: topIds,
+              quickPrompts: learned.quickPrompts || [
+                'Phòng họp VIP có máy chiếu',
+                'Bàn làm việc Hot Desk / Coworking',
+                'Focus Pod cách âm riêng tư'
+              ],
+              bookingProposal: criteria.isBookingIntent ? {
+                spaceId: topIds[0],
+                spaceName: topRoom.name,
+                durationHours: 2
+              } : null,
+              source: 'learned_cache',
+              model: 'adaptive-semantic-v1',
+              signature,
+              confidenceScore: learned.confidenceScore || 1.0,
+              hitCount: (learned.hitCount || 0) + 1,
+              latencyMs
+            };
+          }
+        }
+      } catch (cacheErr) {
+        console.warn('[GeminiService] Lỗi tra cứu Semantic Cache, tiếp tục luồng chuẩn:', cacheErr.message);
+      }
+    }
+
+    // =========================================================================
+    // TẦNG 2: PRE-FILTERING RAG VÀ GỌI CLOUD GENERATIVE AI (GEMINI)
+    // =========================================================================
+    const topCandidateSpaces = this.retrieveTopRelevantSpaces(spaces, userMessage, 6);
 
     const spacesContext = topCandidateSpaces.map(s => ({
-      id: s._id ? s._id.toString() : (s.code || s.id),
-      code: s.code || s._id,
+      id: s.code || (s._id ? s._id.toString() : s.id),
       name: s.name,
       building: s.building || s.location || 'Khuôn viên UEL',
       spaceType: s.spaceType || s.type || 'Không gian đa năng',
@@ -32,49 +191,178 @@ class GeminiService {
       hourlyPrice: s.hourlyPrice || s.pricePerHour || 50000,
       status: s.status || 'AVAILABLE',
       equipment: Array.isArray(s.equipment)
-        ? s.equipment.map(e => (typeof e === 'object' && e ? (e.name || e.label || e.item || '') : String(e))).filter(Boolean)
+        ? s.equipment.map(e => (typeof e === 'object' && e ? (e.name || e.label || e.item || '') : String(e))).filter(Boolean).slice(0, 5)
         : []
     }));
 
-    // 2. Thử gọi Google Gemini API nếu còn khả dụng và chưa bị ngắt bởi Circuit Breaker
+    const activeApiKey = this.getApiKey();
     const now = Date.now();
-    if (this.apiKey && now >= this.circuitBreakerUntil) {
+    if (activeApiKey && now >= this.circuitBreakerUntil) {
       try {
         const geminiResult = await this.callGeminiWithTimeout({
           userMessage,
           history,
           spacesContext,
-          timeoutMs: 3000 // Tối ưu thời gian chờ tối đa 3 giây
+          timeoutMs: 15000
         });
 
         if (geminiResult && geminiResult.replyText) {
           this.failCount = 0;
+          const latencyMs = Date.now() - startTime;
+
+          // TỰ HỌC: Lưu intent & kết quả chất lượng này vào collection chat_learned_intents
+          if (learnedIntents && Array.isArray(geminiResult.recommendedSpaceIds) && geminiResult.recommendedSpaceIds.length > 0) {
+            this.learnNewIntent({
+              learnedIntents,
+              signature,
+              criteria,
+              userMessage,
+              geminiResult
+            }).catch(e => console.warn('[GeminiService] Lỗi tự động ghi nhớ intent mới:', e.message));
+          }
+
           return {
             ...geminiResult,
             source: 'gemini',
-            model: this.model
+            model: this.model,
+            signature,
+            latencyMs
           };
         }
       } catch (err) {
         this.failCount++;
-        // Kích hoạt Circuit Breaker: Nếu bị từ chối truy cập (403/404) hoặc lỗi 2 lần liên tiếp -> cooldown 5 phút
-        const isAccessDenied = err.message.includes('denied') || err.message.includes('403') || err.message.includes('404');
-        if (isAccessDenied || this.failCount >= 2) {
-          this.circuitBreakerUntil = Date.now() + 5 * 60 * 1000;
-          console.warn(`[GeminiService] Kích hoạt Circuit Breaker trong 5 phút (Lỗi: ${err.message}). Chuyển sang Ultra-Fast Heuristic Engine.`);
+        const isAuthOrQuotaError = err.message && (err.message.includes('401') || err.message.includes('403') || err.message.includes('API_KEY_INVALID') || err.message.includes('quota'));
+        if (isAuthOrQuotaError || this.failCount >= 3) {
+          this.circuitBreakerUntil = Date.now() + 2 * 60 * 1000;
+          console.warn(`[GeminiService] Tạm ngừng gọi Gemini trong 2 phút (Lỗi: ${err.message}). Chuyển sang Ultra-Fast Heuristic Engine.`);
         } else {
           console.warn('[GeminiService] Gemini API gặp sự cố, tự động kích hoạt Local Fallback:', err.message);
         }
       }
     }
 
-    // 3. Fallback sang Local Heuristic Engine thông minh siêu tốc (<5ms)
+    // =========================================================================
+    // TẦNG 3: LOCAL HEURISTICS FALLBACK ENGINE (DỰ PHÒNG KHI OFFLINE)
+    // =========================================================================
     const fallbackResult = this.runLocalHeuristicFallback(userMessage, spacesContext);
+    const latencyMs = Date.now() - startTime;
     return {
       ...fallbackResult,
       source: 'local_fallback',
-      model: 'uel-rule-engine-v2'
+      model: 'uel-rule-engine-v2',
+      signature,
+      latencyMs
     };
+  }
+
+  /**
+   * Lưu trữ và tự học nhu cầu mới vào Semantic Intent Cache
+   */
+  async learnNewIntent({ learnedIntents, signature, criteria, userMessage, geminiResult }) {
+    if (!learnedIntents || !signature) return;
+
+    const initialSpaceScores = {};
+    for (const sId of (geminiResult.recommendedSpaceIds || [])) {
+      initialSpaceScores[sId] = { clicks: 0, bookings: 0, score: 1.0 };
+    }
+
+    await learnedIntents.updateOne(
+      { signature },
+      {
+        $setOnInsert: {
+          signature,
+          createdAt: new Date(),
+          hitCount: 1,
+          conversionCount: 0,
+          confidenceScore: 1.0
+        },
+        $set: {
+          intent: geminiResult.intent || 'RECOMMEND_SPACE',
+          criteria,
+          canonicalQuery: userMessage.trim(),
+          bestSpaceIds: geminiResult.recommendedSpaceIds || [],
+          spaceScores: initialSpaceScores,
+          cachedReply: geminiResult.replyText,
+          quickPrompts: geminiResult.quickPrompts || [],
+          updatedAt: new Date()
+        },
+        $addToSet: {
+          sampleQueries: userMessage.trim().substring(0, 120)
+        }
+      },
+      { upsert: true }
+    );
+  }
+
+  /**
+   * Cập nhật phản hồi học thích ứng (Feedback Loop Reinforcement)
+   * Tăng điểm tin cậy khi người dùng click xem phòng hoặc đặt phòng thành công
+   */
+  async applyFeedback({ learnedIntents, signature, spaceId, action }) {
+    if (!learnedIntents) return null;
+
+    let query = {};
+    if (signature) {
+      query.signature = signature;
+    } else if (spaceId) {
+      query.bestSpaceIds = spaceId;
+    } else {
+      return null;
+    }
+
+    const doc = await learnedIntents.findOne(query);
+    if (!doc) return null;
+
+    let confDelta = 0;
+    let scoreDelta = 0;
+    let isBooking = false;
+    let isClick = false;
+
+    if (action === 'CLICK') {
+      confDelta = 0.15;
+      scoreDelta = 1;
+      isClick = true;
+    } else if (action === 'BOOK_SUCCESS') {
+      confDelta = 0.8;
+      scoreDelta = 5;
+      isBooking = true;
+    } else if (action === 'THUMBS_UP') {
+      confDelta = 0.3;
+      scoreDelta = 2;
+    } else if (action === 'THUMBS_DOWN') {
+      confDelta = -0.5;
+      scoreDelta = -2;
+    }
+
+    const currentConf = doc.confidenceScore || 1.0;
+    const newConf = Math.max(0.1, Math.min(5.0, currentConf + confDelta));
+
+    const updateOps = {
+      $set: {
+        confidenceScore: newConf,
+        updatedAt: new Date()
+      }
+    };
+
+    if (isBooking) {
+      updateOps.$inc = { conversionCount: 1 };
+    }
+
+    if (spaceId) {
+      updateOps.$inc = updateOps.$inc || {};
+      updateOps.$inc[`spaceScores.${spaceId}.score`] = scoreDelta;
+      if (isClick) updateOps.$inc[`spaceScores.${spaceId}.clicks`] = 1;
+      if (isBooking) updateOps.$inc[`spaceScores.${spaceId}.bookings`] = 1;
+    }
+
+    // Nếu khách đặt thành công phòng này, ưu tiên đưa spaceId lên vị trí số 1 trong danh sách gợi ý
+    if (isBooking && spaceId && Array.isArray(doc.bestSpaceIds)) {
+      const remaining = doc.bestSpaceIds.filter(id => id !== spaceId);
+      updateOps.$set.bestSpaceIds = [spaceId, ...remaining];
+    }
+
+    await learnedIntents.updateOne({ _id: doc._id }, updateOps);
+    return { ok: true, signature: doc.signature, newConfidence: newConf };
   }
 
   /**
@@ -83,6 +371,7 @@ class GeminiService {
   async callGeminiWithTimeout({ userMessage, history, spacesContext, timeoutMs = 8000 }) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const apiKey = this.getApiKey();
 
     try {
       // Chuẩn hóa lịch sử hội thoại (giữ tối đa 10 tin nhắn gần nhất)
@@ -111,71 +400,63 @@ ${JSON.stringify(spacesContext, null, 2)}
 }
 `;
 
-      // 1. Thử gọi Interactions API trước
-      try {
-        const interactionRes = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': this.apiKey
-          },
-          body: JSON.stringify({
-            model: this.model,
-            input: `${systemInstruction}\n\nNgười dùng hỏi: "${userMessage}"`,
-            response_format: {
-              type: 'text',
-              mime_type: 'application/json'
+      // Gọi trực tiếp generateContent API (Chuẩn Google Generative AI REST)
+      // Tự động thử model cấu hình trước, nếu 404 thì fallback sang gemini-2.5-flash, gemini-flash-latest
+      const modelsToTry = [this.model, 'gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.0-flash'].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i);
+      let lastError = null;
+
+      for (const modelName of modelsToTry) {
+        try {
+          const generateUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+          const contents = [
+            ...recentHistory,
+            {
+              role: 'user',
+              parts: [{ text: `${systemInstruction}\n\nNgười dùng hỏi: "${userMessage}"` }]
             }
-          }),
-          signal: controller.signal
-        });
+          ];
 
-        if (interactionRes.ok) {
-          const data = await interactionRes.json();
-          const rawText = data.output_text || (data.outputs && data.outputs[0]?.text);
-          if (rawText) {
-            return this.parseStructuredJson(rawText);
+          const generateRes = await fetch(generateUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents,
+              generationConfig: {
+                temperature: 0.3,
+                responseMimeType: 'application/json'
+              }
+            }),
+            signal: controller.signal
+          });
+
+          if (generateRes.ok) {
+            const genData = await generateRes.json();
+            const candidateText = genData.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (candidateText) {
+              this.model = modelName;
+              return this.parseStructuredJson(candidateText);
+            }
+          } else {
+            const errJson = await generateRes.json().catch(() => ({}));
+            const errMsg = errJson.error?.message || `HTTP ${generateRes.status}`;
+            lastError = new Error(errMsg);
+            if (generateRes.status === 404) {
+              console.warn(`[GeminiService] Model ${modelName} trả về 404, thử model tiếp theo...`);
+              continue;
+            }
+            throw lastError;
           }
+        } catch (callErr) {
+          if (controller.signal.aborted) throw callErr;
+          lastError = callErr;
+          if (callErr.message && callErr.message.includes('404')) {
+            continue;
+          }
+          throw callErr;
         }
-      } catch (e) {
-        // Tiếp tục thử generateContent
       }
 
-      // 2. Thử gọi generateContent API (chuẩn Google GenAI REST)
-      const generateUrl = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
-      const contents = [
-        ...recentHistory,
-        {
-          role: 'user',
-          parts: [{ text: `${systemInstruction}\n\nNgười dùng hỏi: "${userMessage}"` }]
-        }
-      ];
-
-      const generateRes = await fetch(generateUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents,
-          generationConfig: {
-            temperature: 0.3,
-            responseMimeType: 'application/json'
-          }
-        }),
-        signal: controller.signal
-      });
-
-      if (generateRes.ok) {
-        const genData = await generateRes.json();
-        const candidateText = genData.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (candidateText) {
-          return this.parseStructuredJson(candidateText);
-        }
-      } else {
-        const errJson = await generateRes.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || `HTTP ${generateRes.status}`);
-      }
-
-      throw new Error('Không nhận được phản hồi hợp lệ từ Gemini');
+      throw lastError || new Error('Không nhận được phản hồi hợp lệ từ Gemini');
     } finally {
       clearTimeout(timeoutId);
     }

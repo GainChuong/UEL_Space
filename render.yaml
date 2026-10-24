@@ -22,3 +22,7 @@ services:
         value: admin@uel.edu.vn,quantri@uel.edu.vn,system@uel.edu.vn,gameyuno123@gmail.com
       - key: ENABLE_JOBS
         value: "true"
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: GEMINI_API_KEY
+        value: AQ.Ab8RN6LtjyFvXMcPH1wjFsFSlpE4bM3TvGLYZNQYvaGCActkcw

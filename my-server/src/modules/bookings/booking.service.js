@@ -33,12 +33,13 @@ function parseWindow(input) {
 }
 
 class BookingService {
-  constructor(repository, { spaceRepository, scheduleRepository, notificationService, userRepository } = {}) {
+  constructor(repository, { spaceRepository, scheduleRepository, notificationService, userRepository, chatLearnedIntents } = {}) {
     this.repository = repository;
     this.spaces = spaceRepository;
     this.schedules = scheduleRepository;
     this.notifications = notificationService;
     this.users = userRepository;
+    this.chatLearnedIntents = chatLearnedIntents;
   }
 
   generateCode() {
@@ -157,6 +158,19 @@ class BookingService {
     await this.repository.insert(booking);
     await writeAudit({ actorId: actor.id, action: 'CREATE', entityName: 'Booking', entityId: booking._id, changes: { code: booking.code, spaceId: space._id } });
     await this.notify(actor.id, 'booking', 'Đã gửi yêu cầu đặt phòng', `Yêu cầu ${booking.code} cho ${space.name} đang chờ duyệt.`);
+
+    // VÒNG LẶP HỌC THÍCH ỨNG: Tự động thưởng điểm uy tín cho gợi ý Chatbot nếu đặt phòng thành công
+    if (this.chatLearnedIntents) {
+      try {
+        const { geminiService } = require('../chatbot/gemini.service');
+        geminiService.applyFeedback({
+          learnedIntents: this.chatLearnedIntents,
+          signature: input.chatSignature || null,
+          spaceId: space._id || space.code,
+          action: 'BOOK_SUCCESS'
+        }).catch(() => {});
+      } catch (e) {}
+    }
 
     return this.decorate(booking);
   }

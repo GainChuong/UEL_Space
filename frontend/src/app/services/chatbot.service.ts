@@ -41,8 +41,13 @@ export interface ChatMessage {
     googleCalendarUrl?: string;
   };
   isTyping?: boolean;
-  source?: 'gemini' | 'local_fallback';
+  source?: 'gemini' | 'learned_cache' | 'local_fallback';
   model?: string;
+  signature?: string;
+  confidenceScore?: number;
+  hitCount?: number;
+  latencyMs?: number;
+  userRated?: 'up' | 'down';
 }
 
 export interface ChatSessionSummary {
@@ -70,11 +75,11 @@ export class ChatbotService {
   private isThinkingSubject = new BehaviorSubject<boolean>(false);
   public isThinking$: Observable<boolean> = this.isThinkingSubject.asObservable();
 
-  private currentModelSubject = new BehaviorSubject<string>('gemini-3.8-flash');
+  private currentModelSubject = new BehaviorSubject<string>('gemini-2.5-flash');
   public currentModel$: Observable<string> = this.currentModelSubject.asObservable();
 
-  private currentSourceSubject = new BehaviorSubject<'gemini' | 'local_fallback'>('gemini');
-  public currentSource$: Observable<'gemini' | 'local_fallback'> = this.currentSourceSubject.asObservable();
+  private currentSourceSubject = new BehaviorSubject<'gemini' | 'learned_cache' | 'local_fallback'>('gemini');
+  public currentSource$: Observable<'gemini' | 'learned_cache' | 'local_fallback'> = this.currentSourceSubject.asObservable();
 
   // Khóa định danh phiên trò chuyện lưu trữ trên MongoDB Atlas & LocalStorage
   public sessionId = '';
@@ -369,18 +374,24 @@ export class ChatbotService {
 
       const res: any = await firstValueFrom(
         this.http.post(`${SERVER_BASE_URL}/api/chatbot/message`, payload).pipe(
-          timeout(3500)
+          timeout(20000)
         )
       );
 
       if (res && res.ok && res.botReply) {
         const botReply: ChatMessage = {
           ...res.botReply,
-          timestamp: new Date(res.botReply.timestamp || Date.now())
+          timestamp: new Date(res.botReply.timestamp || Date.now()),
+          source: res.source || res.botReply.source,
+          model: res.model || res.botReply.model,
+          signature: res.signature || res.botReply.signature,
+          confidenceScore: res.botReply.confidenceScore,
+          hitCount: res.botReply.hitCount,
+          latencyMs: res.latencyMs || res.botReply.latencyMs
         };
 
-        if (res.source) this.currentSourceSubject.next(res.source);
-        if (res.model) this.currentModelSubject.next(res.model);
+        if (botReply.source) this.currentSourceSubject.next(botReply.source);
+        if (botReply.model) this.currentModelSubject.next(botReply.model);
 
         const finalList = [...this.messagesSubject.value, botReply];
         this.messagesSubject.next(finalList);
@@ -412,6 +423,27 @@ export class ChatbotService {
     this.messagesSubject.next(finalList);
     this.saveToLocalStorage(finalList);
     this.isThinkingSubject.next(false);
+  }
+
+  /**
+   * Gửi phản hồi học thích ứng (Feedback Learning) để hệ thống tự động tinh chỉnh trọng số gợi ý
+   */
+  public async sendFeedback(
+    spaceId?: string,
+    action: 'CLICK' | 'BOOK_SUCCESS' | 'THUMBS_UP' | 'THUMBS_DOWN' = 'CLICK',
+    signature?: string
+  ): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.http.post(`${SERVER_BASE_URL}/api/chatbot/feedback`, {
+          signature: signature || null,
+          spaceId: spaceId || null,
+          action
+        })
+      );
+    } catch (err) {
+      // Non-blocking telemetry
+    }
   }
 
   /**

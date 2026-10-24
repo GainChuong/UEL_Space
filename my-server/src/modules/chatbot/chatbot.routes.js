@@ -7,10 +7,10 @@ const express = require('express');
 const { geminiService } = require('./gemini.service');
 const { ObjectId } = require('mongodb');
 
-function chatbotRoutes({ spaces, chatSessions }) {
+function chatbotRoutes({ spaces, chatSessions, chatLearnedIntents }) {
   const router = express.Router();
 
-  // 1. POST /api/chatbot/message - Gửi tin nhắn & nhận phản hồi từ Gemini AI
+  // 1. POST /api/chatbot/message - Gửi tin nhắn & nhận phản hồi từ Adaptive Cache / Gemini AI
   router.post('/message', async (req, res, next) => {
     try {
       const { sessionId, userMessage, history = [] } = req.body;
@@ -32,11 +32,12 @@ function chatbotRoutes({ spaces, chatSessions }) {
         }).toArray();
       }
 
-      // 2. Gọi GeminiService (kèm Pre-filtering RAG Context và Local Heuristic Fallback)
+      // 2. Gọi GeminiService (Tầng 1: Semantic Cache -> Tầng 2: Gemini RAG -> Tầng 3: Heuristic)
       const aiResponse = await geminiService.processChat({
         userMessage: userMessage.trim(),
         history,
-        spaces: allSpaces
+        spaces: allSpaces,
+        learnedIntents: chatLearnedIntents
       });
 
       // 3. Khớp ID phòng trả về thành đối tượng Space đầy đủ để Frontend render trực tiếp
@@ -69,7 +70,7 @@ function chatbotRoutes({ spaces, chatSessions }) {
         }
       }
 
-      // 4. Định hình tin nhắn Bot
+      // 4. Định hình tin nhắn Bot kèm thông tin đo lường tự học
       const botMessage = {
         id: 'bot-' + Date.now(),
         sender: 'bot',
@@ -79,6 +80,10 @@ function chatbotRoutes({ spaces, chatSessions }) {
         quickActions: (aiResponse.quickPrompts || []).map(p => ({ label: p, query: p })),
         source: aiResponse.source,
         model: aiResponse.model,
+        signature: aiResponse.signature || null,
+        confidenceScore: aiResponse.confidenceScore || null,
+        hitCount: aiResponse.hitCount || 1,
+        latencyMs: aiResponse.latencyMs || 0,
         bookingProposal: aiResponse.bookingProposal || null
       };
 
@@ -113,7 +118,65 @@ function chatbotRoutes({ spaces, chatSessions }) {
         userMessage: userRecord,
         botReply: botMessage,
         source: aiResponse.source,
-        model: aiResponse.model
+        model: aiResponse.model,
+        signature: aiResponse.signature || null,
+        latencyMs: aiResponse.latencyMs || 0
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // 2. POST /api/chatbot/feedback - Tiếp nhận phản hồi hành vi để tự học và tinh chỉnh trọng số gợi ý
+  router.post('/feedback', async (req, res, next) => {
+    try {
+      const { signature, spaceId, action } = req.body;
+      if (!action) {
+        return res.status(400).json({ ok: false, message: 'Thiếu trường action (CLICK, BOOK_SUCCESS, THUMBS_UP, THUMBS_DOWN)' });
+      }
+
+      const result = await geminiService.applyFeedback({
+        learnedIntents: chatLearnedIntents,
+        signature,
+        spaceId,
+        action
+      });
+
+      return res.json({
+        ok: true,
+        message: 'Đã tiếp nhận phản hồi và tự động cập nhật trọng số tri thức thích ứng',
+        result
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // 3. GET /api/chatbot/learned-intents - Xem danh sách các mẫu nhu cầu đã tự học và chỉ số hiệu năng
+  router.get('/learned-intents', async (req, res, next) => {
+    try {
+      if (!chatLearnedIntents) {
+        return res.json({ ok: true, total: 0, items: [] });
+      }
+
+      const items = await chatLearnedIntents
+        .find({})
+        .sort({ hitCount: -1, conversionCount: -1, updatedAt: -1 })
+        .limit(50)
+        .toArray();
+
+      const totalHits = items.reduce((acc, cur) => acc + (cur.hitCount || 0), 0);
+      const totalConversions = items.reduce((acc, cur) => acc + (cur.conversionCount || 0), 0);
+
+      return res.json({
+        ok: true,
+        summary: {
+          totalLearnedIntents: items.length,
+          totalFastRetrievals: totalHits,
+          totalConversions,
+          conversionRate: totalHits > 0 ? ((totalConversions / totalHits) * 100).toFixed(1) + '%' : '0%'
+        },
+        items
       });
     } catch (err) {
       next(err);

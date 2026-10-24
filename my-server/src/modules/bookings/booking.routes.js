@@ -53,7 +53,8 @@ function bookingRoutes(collections) {
     spaceRepository: collections.spaceRepository,
     scheduleRepository: collections.scheduleRepository,
     notificationService: collections.notificationService,
-    userRepository: collections.userRepository
+    userRepository: collections.userRepository,
+    chatLearnedIntents: collections.chatLearnedIntents
   });
   const controller = new BookingController(service);
 
