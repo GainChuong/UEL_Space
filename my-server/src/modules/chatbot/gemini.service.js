@@ -23,9 +23,20 @@ class GeminiService {
    * Cho phép nhận diện ngay các câu hỏi có cùng nhu cầu để phục vụ siêu tốc (<20ms)
    */
   buildIntentSignature(criteria) {
+    const hasType = criteria.types && criteria.types.length > 0;
+    const hasCap = criteria.minCapacity !== null && criteria.minCapacity !== undefined;
+    const hasEq = criteria.equipment && criteria.equipment.length > 0;
+    const hasLoc = criteria.locations && criteria.locations.length > 0;
+
+    // QUAN TRỌNG: Nếu câu hỏi không chứa bất kỳ tiêu chí phòng rõ ràng nào và không phải là yêu cầu đặt phòng cụ thể
+    // -> BẮT BUỘC trả về null để KHÔNG cache bậy, nhường quyền cho Gemini AI suy luận trả lời.
+    if (!criteria.isBookingIntent && !hasType && !hasCap && !hasEq && !hasLoc) {
+      return null;
+    }
+
     // 1. Phân nhóm sức chứa (Capacity Bucket)
     let capBucket = 'any';
-    if (criteria.minCapacity !== null && criteria.minCapacity !== undefined) {
+    if (hasCap) {
       const c = Number(criteria.minCapacity);
       if (c <= 2) capBucket = '1-2';
       else if (c <= 6) capBucket = '3-6';
@@ -77,103 +88,36 @@ class GeminiService {
   }
 
   /**
-   * Xử lý tin nhắn người dùng kết hợp Semantic Intent Cache, Gemini AI và Feedback Learning
+   * Xử lý tin nhắn người dùng kết hợp Semantic Intent Cache, Gemini AI, User Memory và Feedback Learning
    */
-  async processChat({ userMessage, history = [], spaces = [], learnedIntents = null }) {
+  async processChat({ userMessage, history = [], spaces = [], learnedIntents = null, userMemory = null }) {
     const startTime = Date.now();
     const criteria = this.extractSearchCriteria(userMessage);
     const signature = this.buildIntentSignature(criteria);
 
     // =========================================================================
-    // TẦNG 1: BỘ ĐỆM NGỮ NGHĨA THÍCH ỨNG (ADAPTIVE SEMANTIC CACHE - FAST-PATH <20ms)
-    // Nếu nhu cầu này đã được khách hàng trước hỏi và hệ thống đã học được kết quả tối ưu
+    // TẦNG 1: TRI THỨC TỰ HỌC TÍCH LŨY (LEARNED KNOWLEDGE ENRICHMENT)
+    // Trích xuất các không gian đã được người dùng trước đánh giá cao/đặt thành công
+    // để cung cấp làm ngữ cảnh ưu tiên (Priority Context) cho Gemini AI
     // =========================================================================
-    if (learnedIntents) {
+    let learnedKnowledgeNote = '';
+    if (learnedIntents && signature) {
       try {
         const learned = await learnedIntents.findOne({ signature });
-        if (
-          learned &&
-          (learned.confidenceScore || 1.0) >= 0.5 &&
-          Array.isArray(learned.bestSpaceIds) &&
-          learned.bestSpaceIds.length > 0
-        ) {
-          // Đối chiếu với danh sách phòng thực tế đang online trong MongoDB
-          const validSpacesMap = new Map();
-          for (const s of spaces) {
-            if (!s.deletedAt && (s.status || '').toUpperCase() !== 'MAINTENANCE') {
-              const sId = s._id ? s._id.toString() : (s.code || s.id);
-              validSpacesMap.set(sId, s);
-              if (s.code) validSpacesMap.set(s.code, s);
+        if (learned && Array.isArray(learned.bestSpaceIds) && learned.bestSpaceIds.length > 0) {
+          learnedKnowledgeNote = `Các không gian từng được người dùng đánh giá cao nhất cho nhu cầu tương tự: ${learned.bestSpaceIds.join(', ')}. Hãy ưu tiên đối chiếu và giới thiệu các không gian này nếu phù hợp.`;
+          // Ghi nhận lượt tra cứu tri thức tự học (non-blocking)
+          learnedIntents.updateOne(
+            { _id: learned._id },
+            {
+              $inc: { hitCount: 1 },
+              $set: { lastHitAt: new Date() },
+              $addToSet: { sampleQueries: userMessage.trim().substring(0, 120) }
             }
-          }
-
-          const spaceScores = learned.spaceScores || {};
-          const matchedSpaces = [];
-          for (const spId of learned.bestSpaceIds) {
-            const spaceObj = validSpacesMap.get(spId);
-            if (spaceObj) {
-              const scoreObj = spaceScores[spId] || { score: 0 };
-              matchedSpaces.push({
-                space: spaceObj,
-                learnedScore: scoreObj.score || 0,
-                isAvailable: (spaceObj.status || '').toUpperCase() === 'AVAILABLE'
-              });
-            }
-          }
-
-          if (matchedSpaces.length > 0) {
-            // Sắp xếp: Ưu tiên phòng còn trống (AVAILABLE) lên trước, sau đó sắp xếp theo điểm học hành vi người dùng
-            matchedSpaces.sort((a, b) => {
-              if (a.isAvailable !== b.isAvailable) return a.isAvailable ? -1 : 1;
-              return b.learnedScore - a.learnedScore;
-            });
-
-            const topIds = matchedSpaces.slice(0, 3).map(m => m.space.code || (m.space._id ? m.space._id.toString() : m.space.id));
-            const topRoom = matchedSpaces[0].space;
-
-            // Ghi nhận ngầm Cache Hit & mẫu câu hỏi mới vào kho tri thức (non-blocking)
-            learnedIntents.updateOne(
-              { _id: learned._id },
-              {
-                $inc: { hitCount: 1 },
-                $set: { lastHitAt: new Date() },
-                $addToSet: { sampleQueries: userMessage.trim().substring(0, 120) }
-              }
-            ).catch(() => {});
-
-            const latencyMs = Date.now() - startTime;
-            let replyText = learned.cachedReply;
-            if (!replyText || replyText.length < 20) {
-              replyText = criteria.isBookingIntent
-                ? `Tôi đã đối chiếu nhanh qua bộ đệm tri thức: Không gian **${topRoom.name}** tại **${topRoom.building || 'Khuôn viên UEL'}** (${topRoom.capacity} chỗ) là lựa chọn tối ưu nhất đã được kiểm chứng để bạn đặt ngay:`
-                : `Dựa trên dữ liệu nhu cầu tương tự đã được tối ưu hóa trước đó, đây là các không gian phù hợp nhất dành cho bạn:`;
-            }
-
-            return {
-              replyText,
-              intent: learned.intent || (criteria.isBookingIntent ? 'BOOK_SPACE' : 'RECOMMEND_SPACE'),
-              recommendedSpaceIds: topIds,
-              quickPrompts: learned.quickPrompts || [
-                'Phòng họp VIP có máy chiếu',
-                'Bàn làm việc Hot Desk / Coworking',
-                'Focus Pod cách âm riêng tư'
-              ],
-              bookingProposal: criteria.isBookingIntent ? {
-                spaceId: topIds[0],
-                spaceName: topRoom.name,
-                durationHours: 2
-              } : null,
-              source: 'learned_cache',
-              model: 'adaptive-semantic-v1',
-              signature,
-              confidenceScore: learned.confidenceScore || 1.0,
-              hitCount: (learned.hitCount || 0) + 1,
-              latencyMs
-            };
-          }
+          ).catch(() => {});
         }
       } catch (cacheErr) {
-        console.warn('[GeminiService] Lỗi tra cứu Semantic Cache, tiếp tục luồng chuẩn:', cacheErr.message);
+        console.warn('[GeminiService] Lỗi tra cứu Learned Knowledge:', cacheErr.message);
       }
     }
 
@@ -203,6 +147,8 @@ class GeminiService {
           userMessage,
           history,
           spacesContext,
+          userMemory,
+          learnedKnowledgeNote,
           timeoutMs: 15000
         });
 
@@ -210,8 +156,15 @@ class GeminiService {
           this.failCount = 0;
           const latencyMs = Date.now() - startTime;
 
-          // TỰ HỌC: Lưu intent & kết quả chất lượng này vào collection chat_learned_intents
-          if (learnedIntents && Array.isArray(geminiResult.recommendedSpaceIds) && geminiResult.recommendedSpaceIds.length > 0) {
+          // TỰ HỌC: Chỉ lưu intent khi có chữ ký phòng cụ thể và có gợi ý phòng hợp lệ (KHÔNG lưu câu hỏi chung / GENERAL_QA)
+          if (
+            learnedIntents &&
+            signature &&
+            !signature.includes('type:general|cap:any|eq:none|loc:any') &&
+            geminiResult.intent !== 'GENERAL_QA' &&
+            Array.isArray(geminiResult.recommendedSpaceIds) &&
+            geminiResult.recommendedSpaceIds.length > 0
+          ) {
             this.learnNewIntent({
               learnedIntents,
               signature,
@@ -259,7 +212,16 @@ class GeminiService {
    * Lưu trữ và tự học nhu cầu mới vào Semantic Intent Cache
    */
   async learnNewIntent({ learnedIntents, signature, criteria, userMessage, geminiResult }) {
-    if (!learnedIntents || !signature) return;
+    if (
+      !learnedIntents ||
+      !signature ||
+      signature.includes('type:general|cap:any|eq:none|loc:any') ||
+      geminiResult.intent === 'GENERAL_QA' ||
+      !Array.isArray(geminiResult.recommendedSpaceIds) ||
+      geminiResult.recommendedSpaceIds.length === 0
+    ) {
+      return;
+    }
 
     const initialSpaceScores = {};
     for (const sId of (geminiResult.recommendedSpaceIds || [])) {
@@ -366,9 +328,9 @@ class GeminiService {
   }
 
   /**
-   * Gọi Gemini API có kiểm soát thời gian chờ (Timeout)
+   * Gọi Gemini API có kiểm soát thời gian chờ (Timeout) và nhúng Ngữ cảnh người dùng
    */
-  async callGeminiWithTimeout({ userMessage, history, spacesContext, timeoutMs = 8000 }) {
+  async callGeminiWithTimeout({ userMessage, history, spacesContext, userMemory = null, learnedKnowledgeNote = '', timeoutMs = 15000 }) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     const apiKey = this.getApiKey();
@@ -380,19 +342,55 @@ class GeminiService {
         parts: [{ text: msg.text || '' }]
       }));
 
+      let userMemoryContext = '';
+      if (userMemory) {
+        const preferred = (userMemory.preferredSpaces && userMemory.preferredSpaces.length > 0)
+          ? userMemory.preferredSpaces.join(', ')
+          : 'Chưa có phòng cố định';
+        userMemoryContext = `
+HỒ SƠ & SỞ THÍCH CỦA NGƯỜI DÙNG HIỆN TẠI (TỪ LỊCH SỬ HỘI THOẠI & ĐẶT PHÒNG TRƯỚC ĐÓ):
+- Họ tên: ${userMemory.name || 'Thành viên UEL'}
+- Email: ${userMemory.email || 'N/A'}
+- Vai trò: ${userMemory.role || 'Thành viên'}
+- Các phòng/không gian đã từng quan tâm hoặc đã đặt gần đây: ${preferred}
+- Tổng số lượt đặt trước đây: ${userMemory.pastBookingsCount || 0}
+-> HÃY SỬ DỤNG thông tin lịch sử trên để trả lời nhanh hơn, nhận diện thói quen của người dùng (ví dụ: ưu tiên gợi ý các không gian quen thuộc hoặc giải đáp thắc mắc riêng của họ), chào hỏi thân thiện, súc tích và cá nhân hoá cao.
+`;
+      }
+
+      const learnedSection = learnedKnowledgeNote
+        ? `\nTRI THỨC TỰ HỌC ƯU TIÊN:\n- ${learnedKnowledgeNote}\n`
+        : '';
+
       const systemInstruction = `
-Bạn là Trợ lý AI chuyên nghiệp của Hệ thống Cho Thuê & Quản trị Không gian UEL Space (Hỗ trợ đa dạng nhu cầu: Phòng họp VIP, Hội trường sự kiện, Văn phòng doanh nghiệp, Studio sáng tạo, Co-working Hot Desk & Không gian tự học).
-Nhiệm vụ của bạn:
-1. Trả lời thân thiện, lịch sự, chuyên nghiệp bằng tiếng Việt.
-2. Dưới đây là danh sách Top 15 không gian phù hợp nhất được thuật toán UEL Space trích xuất thông minh từ toàn bộ cơ sở dữ liệu dựa trên nhu cầu của người dùng:
+Bạn là Trợ lý AI Thông minh của Hệ thống Quản trị & Cho Thuê Không gian UEL Space (Trường ĐH Kinh tế - Luật, ĐHQG-HCM).
+${userMemoryContext}${learnedSection}
+KIẾN THỨC VÀ QUY ĐỊNH HỆ THỐNG UEL SPACE:
+1. Đối tượng phục vụ: Sinh viên, Giảng viên/Cán bộ UEL, Doanh nghiệp đối tác, Câu lạc bộ sinh viên và khách bên ngoài.
+2. Địa điểm: Khuôn viên Trường ĐH Kinh tế - Luật (Khu phố 3, P. Linh Xuân, TP. Thủ Đức, TP.HCM).
+   - Tòa A: Phòng học lý thuyết, Phòng hội thảo, Phòng Họp A2.1 (VIP 15 chỗ, máy chiếu, bảng từ, TV trực tuyến).
+   - Tòa B: Khu văn phòng, Boardroom VIP B1 (24 chỗ, micro hội nghị, màn hình 4K).
+   - Tòa A3 Multiplex: Hội trường Event & Workshop A3.301 (100 khách, sân khấu, âm thanh vòm).
+   - Thư viện Trung tâm: Khu Hot Desk Coworking (60 chỗ, yên tĩnh, wifi tốc độ cao) và các phòng đọc chuyên sâu.
+   - Chòi Tự Học Suối Nhum: Focus Pod cách âm riêng tư (1-4 người, họp trực tuyến, phỏng vấn).
+3. Quy định & Chính sách thuê không gian:
+   - Đặt trước: Nên đặt trước ít nhất 1 giờ qua website/chatbot để hệ thống tự động giữ chỗ.
+   - Check-in: Quét mã QR tại cửa phòng hoặc dùng nhận diện khuôn mặt AI Occupancy.
+   - Thanh toán: Hỗ trợ thanh toán tiện lợi qua MoMo Sandbox hoặc chuyển khoản ngân hàng. Có thể đặt nhanh 1 chạm trực tiếp trên chatbot.
+   - Chính sách hủy phòng: Hủy trước giờ bắt đầu ít nhất 2 giờ sẽ được hoàn tiền 100%.
+   - Quy định an toàn: Giữ gìn vệ sinh chung, tắt các thiết bị điện sau khi sử dụng, không mang chất dễ cháy nổ vào không gian.
+
+DANH SÁCH KHÔNG GIAN THỰC TẾ TRONG HỆ THỐNG:
 ${JSON.stringify(spacesContext, null, 2)}
-3. Khớp nhu cầu người dùng (họp đối tác, hội thảo, đào tạo, làm việc nhóm, cá nhân, sự kiện, giá tiền, trang thiết bị, tình trạng phòng AVAILABLE/OCCUPIED):
-   - Nếu phòng AVAILABLE: Tư vấn nhiệt tình và khuyến khích người dùng đặt giữ chỗ ngay.
-   - Nếu phòng OCCUPIED: Nhắc nhở phòng đang có ca sử dụng, người dùng có thể tham khảo đặt cho ca/ngày khác hoặc chọn phòng AVAILABLE tương đương trong danh sách.
-   - Nếu yêu cầu của người dùng không có phòng nào khớp 100% (ví dụ: cần 150 chỗ nhưng phòng lớn nhất là 100 chỗ): Giải thích minh bạch lý do và gợi ý phương án tốt nhất trong danh sách kèm giải pháp đề xuất.
-4. BẮT BUỘC trả về kết quả định dạng JSON chuẩn (Structured Output) theo schema sau:
+
+NHIỆM VỤ CỦA BẠN:
+1. Trả lời trực tiếp, thân thiện, súc tích và đúng 100% trọng tâm câu hỏi của người dùng bằng tiếng Việt.
+2. Phân loại tình huống trả lời:
+   - Nếu người dùng CHÀO HỎI, HỎI QUY ĐỊNH, HỎI GIÁ, HỎI CHÍNH SÁCH, HOẶC HỎI ĐÁP CHUNG (GENERAL_QA): Hãy trả lời chi tiết, chính xác, ngắn gọn theo kiến thức ở trên. Đặt intent là "GENERAL_QA" và recommendedSpaceIds là [].
+   - Nếu người dùng CẦN TÌM PHÒNG HOẶC ĐẶT PHÒNG (RECOMMEND_SPACE / BOOK_SPACE): Đối chiếu nhu cầu (sức chứa, loại phòng, thiết bị, giá, tòa nhà) với danh sách phòng thực tế ở trên để chọn ra 1-3 phòng phù hợp nhất đưa vào recommendedSpaceIds. Giải thích rõ vì sao phòng này phù hợp.
+3. BẮT BUỘC trả về kết quả định dạng JSON chuẩn (Structured Output) theo schema sau:
 {
-  "replyText": "Văn bản phản hồi tự nhiên, giải thích rõ lý do gợi ý phòng",
+  "replyText": "Văn bản phản hồi tự nhiên, giải thích rõ ràng và trả lời chính xác câu hỏi của người dùng",
   "intent": "RECOMMEND_SPACE" hoặc "BOOK_SPACE" hoặc "VIEW_SCHEDULE" hoặc "GENERAL_QA",
   "recommendedSpaceIds": ["id_phong_khop_1", "id_phong_khop_2"],
   "quickPrompts": ["Gợi ý nhanh 1", "Gợi ý nhanh 2", "Gợi ý nhanh 3"],

@@ -80,6 +80,7 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.subMessages = this.chatbotService.messages$.subscribe(msgs => {
       this.messages = msgs;
       this.shouldScrollBottom = true;
+      this.cdr.markForCheck();
     });
 
     this.subThinking = this.chatbotService.isThinking$.subscribe(thinking => {
@@ -87,14 +88,17 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
       if (thinking) {
         this.shouldScrollBottom = true;
       }
+      this.cdr.markForCheck();
     });
 
     this.subModel = this.chatbotService.currentModel$.subscribe(m => {
       this.currentModel = m;
+      this.cdr.markForCheck();
     });
 
     this.subSource = this.chatbotService.currentSource$.subscribe(s => {
       this.currentSource = s;
+      this.cdr.markForCheck();
     });
   }
 
@@ -204,11 +208,13 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     const text = this.userInput;
     this.userInput = '';
     this.chatbotService.handleUserMessage(text);
+    this.cdr.markForCheck();
   }
 
   selectQuickPrompt(query: string): void {
     if (this.isThinking) return;
     this.chatbotService.handleUserMessage(query);
+    this.cdr.markForCheck();
   }
 
   /**

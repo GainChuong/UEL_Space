@@ -245,7 +245,8 @@ async function bootstrap() {
     chatbotRoutes({
       spaces: collections.spaces,
       chatSessions: collections.chatSessions,
-      chatLearnedIntents: collections.chatLearnedIntents
+      chatLearnedIntents: collections.chatLearnedIntents,
+      bookings: collections.bookings
     })
   );
 

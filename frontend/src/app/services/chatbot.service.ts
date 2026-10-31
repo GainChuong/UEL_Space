@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, firstValueFrom, timeout } from 'rxjs';
 import { SERVER_IMAGES_LINK, SERVER_BASE_URL } from './api-config';
 import { GoogleCalendarService } from './google-calendar.service';
 import { BookingService } from './booking.service';
+import { SettingsService, UserProfile } from './settings.service';
 
 export interface ChatbotSpace {
   id: string;
@@ -65,6 +66,7 @@ export class ChatbotService {
   private http = inject(HttpClient);
   private googleCalendarService = inject(GoogleCalendarService);
   private bookingService = inject(BookingService);
+  private settingsService = inject(SettingsService);
 
   private isOpenSubject = new BehaviorSubject<boolean>(false);
   public isOpen$: Observable<boolean> = this.isOpenSubject.asObservable();
@@ -83,6 +85,7 @@ export class ChatbotService {
 
   // Khóa định danh phiên trò chuyện lưu trữ trên MongoDB Atlas & LocalStorage
   public sessionId = '';
+  private lastAuthUserId: string | null = null;
 
   private defaultQuickPrompts = [
     { icon: 'meeting', label: 'Phòng họp VIP 10 người có máy chiếu', query: 'Tìm phòng họp khoảng 10 người có máy chiếu và màn hình 4K' },
@@ -162,71 +165,52 @@ export class ChatbotService {
 
   constructor() {
     this.initSession();
-    this.loadSessionHistory();
+    // Bắt đầu một phiên trò chuyện mới sạch sẽ (lời chào mở đầu, không tải tràn lan tin nhắn cũ)
+    this.setInitialWelcomeMessage();
+
+    // Tự động lắng nghe thay đổi đăng nhập để khởi tạo phiên hội thoại mới cá nhân hoá
+    this.settingsService.currentUser$.subscribe(user => {
+      if (user) {
+        this.onUserAuthenticated(user);
+      } else {
+        this.lastAuthUserId = null;
+      }
+    });
   }
 
   /**
-   * Khởi tạo Session ID cố định trong phiên làm việc
+   * Khởi tạo Session ID mới cho phiên làm việc hiện tại
    */
   private initSession(): void {
+    const user = this.settingsService.currentUser;
+    const prefix = user?.id ? `sess_${user.id}_` : 'sess_';
+    this.sessionId = prefix + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
     if (typeof window !== 'undefined' && window.localStorage) {
-      let savedSession = localStorage.getItem('uel_space_chat_session_id');
-      if (!savedSession) {
-        savedSession = 'sess_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
-        localStorage.setItem('uel_space_chat_session_id', savedSession);
-      }
-      this.sessionId = savedSession;
-    } else {
-      this.sessionId = 'sess_' + Date.now();
+      localStorage.setItem('uel_space_chat_session_id', this.sessionId);
     }
   }
 
   /**
-   * Tải lịch sử tin nhắn từ Backend MongoDB hoặc LocalStorage fallback
+   * Khi người dùng đăng nhập thành công:
+   * - Bắt đầu một phiên hội thoại MỚI, sạch sẽ (chỉ hiển thị lời chào cá nhân hoá).
+   * - Lịch sử cũ được lưu lại trong DB/chỉ mục và người dùng có thể xem lại qua nút "Lịch sử trò chuyện".
    */
-  public async loadSessionHistory(): Promise<void> {
-    try {
-      const url = `${SERVER_BASE_URL}/api/chatbot/history?sessionId=${encodeURIComponent(this.sessionId)}`;
-      const res: any = await firstValueFrom(this.http.get(url));
+  public onUserAuthenticated(user: UserProfile): void {
+    if (this.lastAuthUserId === user.id) return;
+    this.lastAuthUserId = user.id;
 
-      if (res && res.ok && Array.isArray(res.messages) && res.messages.length > 0) {
-        const parsedMsgs: ChatMessage[] = res.messages.map((m: any) => ({
-          ...m,
-          timestamp: new Date(m.timestamp)
-        }));
-        this.messagesSubject.next(parsedMsgs);
-        return;
-      }
-    } catch (e) {
-      console.warn('[ChatbotService] Không thể tải lịch sử từ Backend, kiểm tra LocalStorage...', e);
-    }
-
-    // Kiểm tra LocalStorage nếu Backend chưa có lịch sử
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const localHistory = localStorage.getItem('uel_space_chat_messages_' + this.sessionId);
-      if (localHistory) {
-        try {
-          const parsed = JSON.parse(localHistory).map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) }));
-          if (parsed.length > 0) {
-            this.messagesSubject.next(parsed);
-            return;
-          }
-        } catch (err) {}
-      }
-    }
-
-    // Nếu hoàn toàn mới, nạp tin nhắn Chào mừng
-    this.setInitialWelcomeMessage();
+    this.startNewSession(user);
   }
 
   /**
-   * Thiết lập lời chào mở đầu thân thiện, chuyên nghiệp của Trợ lý AI UEL Space
+   * Thiết lập lời chào mở đầu thân thiện, cá nhân hoá cho người dùng UEL Space
    */
-  public setInitialWelcomeMessage(): void {
+  public setInitialWelcomeMessage(user: UserProfile | null = this.settingsService.currentUser): void {
+    const greeting = user?.name ? `Xin chào **${user.name}**!` : 'Xin chào bạn!';
     const welcomeMsg: ChatMessage = {
       id: 'welcome-init',
       sender: 'bot',
-      text: `Xin chào! Tôi là **Trợ lý Không gian UEL Space**, luôn sẵn sàng hỗ trợ bạn:\n\n- Tìm nhanh phòng họp VIP, văn phòng làm việc, hội trường sự kiện, studio sáng tạo & khu tự học linh hoạt.\n- Tra cứu lịch trống, đối chiếu bảng giá minh bạch và hỗ trợ đặt giữ chỗ tức thì trong 1 chạm.\n- Tự động đồng bộ lịch Google Calendar và hỗ trợ thanh toán MoMo / chuyển khoản tiện lợi.\n\nBạn đang cần tìm không gian cho mục đích gì hoặc quy mô bao nhiêu người?`,
+      text: `${greeting} Tôi là **Trợ lý Không gian UEL Space**, luôn sẵn sàng hỗ trợ bạn:\n\n- Tìm nhanh phòng họp VIP, văn phòng làm việc, hội trường sự kiện, studio sáng tạo & khu tự học linh hoạt.\n- Tra cứu lịch trống, đối chiếu bảng giá minh bạch và hỗ trợ đặt giữ chỗ tức thì trong 1 chạm.\n- Tự động đồng bộ lịch Google Calendar và hỗ trợ thanh toán MoMo / chuyển khoản tiện lợi.\n\nBạn đang cần tìm không gian cho mục đích gì hoặc quy mô bao nhiêu người?`,
       timestamp: new Date(),
       quickActions: this.defaultQuickPrompts,
       source: 'gemini',
@@ -250,12 +234,50 @@ export class ChatbotService {
   /**
    * Khởi động một cuộc trò chuyện hoàn toàn mới
    */
-  public startNewSession(): void {
-    const newSessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+  public startNewSession(user: UserProfile | null = this.settingsService.currentUser): void {
+    const prefix = user?.id ? `sess_${user.id}_` : 'sess_';
+    const newSessionId = prefix + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
     this.sessionId = newSessionId;
     if (typeof window !== 'undefined' && window.localStorage) {
       localStorage.setItem('uel_space_chat_session_id', newSessionId);
     }
+    this.setInitialWelcomeMessage(user);
+  }
+
+  /**
+   * Tải lịch sử tin nhắn của một phiên cụ thể (khi người dùng chủ động chọn từ danh sách Lịch sử)
+   */
+  public async loadSessionHistory(sessionIdToLoad: string = this.sessionId): Promise<void> {
+    try {
+      const url = `${SERVER_BASE_URL}/api/chatbot/history?sessionId=${encodeURIComponent(sessionIdToLoad)}`;
+      const res: any = await firstValueFrom(this.http.get(url, { withCredentials: true }));
+
+      if (res && res.ok && Array.isArray(res.messages) && res.messages.length > 0) {
+        const parsedMsgs: ChatMessage[] = res.messages.map((m: any) => ({
+          ...m,
+          timestamp: new Date(m.timestamp)
+        }));
+        this.messagesSubject.next(parsedMsgs);
+        return;
+      }
+    } catch (e) {
+      console.warn('[ChatbotService] Không thể tải lịch sử từ Backend, kiểm tra LocalStorage...', e);
+    }
+
+    // Kiểm tra LocalStorage nếu Backend chưa có lịch sử
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const localHistory = localStorage.getItem('uel_space_chat_messages_' + sessionIdToLoad);
+      if (localHistory) {
+        try {
+          const parsed = JSON.parse(localHistory).map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) }));
+          if (parsed.length > 0) {
+            this.messagesSubject.next(parsed);
+            return;
+          }
+        } catch (err) {}
+      }
+    }
+
     this.setInitialWelcomeMessage();
   }
 
@@ -272,10 +294,17 @@ export class ChatbotService {
     }
 
     try {
+      const currentUser = this.settingsService.currentUser;
       const sessionIds = localIndex.map(s => s.sessionId).join(',');
-      const url = `${SERVER_BASE_URL}/api/chatbot/sessions?sessionIds=${encodeURIComponent(sessionIds)}`;
-      const res: any = await firstValueFrom(this.http.get(url));
-      if (res && res.ok && Array.isArray(res.sessions) && res.sessions.length > 0) {
+      const params = new URLSearchParams();
+      if (currentUser?.id) params.set('userId', currentUser.id);
+      if (currentUser?.email) params.set('userEmail', currentUser.email);
+      if (sessionIds) params.set('sessionIds', sessionIds);
+
+      const url = `${SERVER_BASE_URL}/api/chatbot/sessions?${params.toString()}`;
+      const res: any = await firstValueFrom(this.http.get(url, { withCredentials: true }));
+
+      if (res && res.ok && Array.isArray(res.sessions)) {
         const map = new Map<string, ChatSessionSummary>();
         localIndex.forEach(s => map.set(s.sessionId, s));
         res.sessions.forEach((s: any) => map.set(s.sessionId, { ...s, updatedAt: new Date(s.updatedAt) }));
@@ -283,7 +312,7 @@ export class ChatbotService {
           (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
         );
         if (typeof window !== 'undefined' && window.localStorage) {
-          localStorage.setItem('uel_space_chat_sessions_index', JSON.stringify(merged));
+          localStorage.setItem('uel_space_chat_sessions_index', JSON.stringify(merged.slice(0, 30)));
         }
         return merged;
       }
@@ -303,7 +332,7 @@ export class ChatbotService {
     if (typeof window !== 'undefined' && window.localStorage) {
       localStorage.setItem('uel_space_chat_session_id', targetSessionId);
     }
-    await this.loadSessionHistory();
+    await this.loadSessionHistory(targetSessionId);
   }
 
   /**
@@ -312,7 +341,7 @@ export class ChatbotService {
   public async deleteSession(targetSessionId: string): Promise<void> {
     try {
       const url = `${SERVER_BASE_URL}/api/chatbot/history?sessionId=${encodeURIComponent(targetSessionId)}`;
-      await firstValueFrom(this.http.delete(url));
+      await firstValueFrom(this.http.delete(url, { withCredentials: true }));
     } catch (err) {}
 
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -340,7 +369,7 @@ export class ChatbotService {
   }
 
   /**
-   * Xử lý gửi tin nhắn từ người dùng - Gọi Backend Gemini API hoặc Local Fallback
+   * Xử lý gửi tin nhắn từ người dùng - Gọi Backend Gemini AI với Context Memory
    */
   public async handleUserMessage(userQuery: string): Promise<void> {
     const trimmed = userQuery.trim();
@@ -361,20 +390,27 @@ export class ChatbotService {
     // 2. Kích hoạt trạng thái suy nghĩ
     this.isThinkingSubject.next(true);
 
-    // 3. Gửi request đến Backend Node.js (/api/chatbot/message)
+    // 3. Gửi request đến Backend Node.js (/api/chatbot/message) kèm User Profile để AI học sở thích
     try {
+      const currentUser = this.settingsService.currentUser;
       const payload = {
         sessionId: this.sessionId,
         userMessage: trimmed,
         history: currentList.slice(-10).map(m => ({
           sender: m.sender,
           text: m.text
-        }))
+        })),
+        userId: currentUser?.id || null,
+        userEmail: currentUser?.email || null,
+        userName: currentUser?.name || null,
+        userRole: currentUser?.role || null
       };
 
       const res: any = await firstValueFrom(
-        this.http.post(`${SERVER_BASE_URL}/api/chatbot/message`, payload).pipe(
-          timeout(20000)
+        this.http.post(`${SERVER_BASE_URL}/api/chatbot/message`, payload, {
+          withCredentials: true
+        }).pipe(
+          timeout(25000)
         )
       );
 
@@ -403,7 +439,7 @@ export class ChatbotService {
       console.warn('[ChatbotService] API Backend không phản hồi kịp thời, kích hoạt ngay lập tức Local Client Fallback:', err);
     }
 
-    // 4. Nếu mất mạng hoàn toàn hoặc Server Backend chưa bật -> Kích hoạt ngay lập tức Local Heuristics (0ms delay)
+    // 4. Nếu mất mạng hoàn toàn hoặc Server Backend chưa bật -> Kích hoạt ngay lập tức Local Heuristics
     const fallbackResult = this.processLocalFallback(trimmed);
     const botReply: ChatMessage = {
       id: 'bot-fallback-' + Date.now(),
@@ -435,11 +471,15 @@ export class ChatbotService {
   ): Promise<void> {
     try {
       await firstValueFrom(
-        this.http.post(`${SERVER_BASE_URL}/api/chatbot/feedback`, {
-          signature: signature || null,
-          spaceId: spaceId || null,
-          action
-        })
+        this.http.post(
+          `${SERVER_BASE_URL}/api/chatbot/feedback`,
+          {
+            signature: signature || null,
+            spaceId: spaceId || null,
+            action
+          },
+          { withCredentials: true }
+        )
       );
     } catch (err) {
       // Non-blocking telemetry
@@ -476,7 +516,7 @@ export class ChatbotService {
           } else {
             list.unshift(meta);
           }
-          localStorage.setItem('uel_space_chat_sessions_index', JSON.stringify(list.slice(0, 25)));
+          localStorage.setItem('uel_space_chat_sessions_index', JSON.stringify(list.slice(0, 30)));
         }
       } catch (e) {}
     }
@@ -506,7 +546,7 @@ export class ChatbotService {
       date: today,
       timeSlot: `${startTime} - ${endTime}`,
       purpose: 'Thuê & Đặt chỗ không gian tự động hoá qua Chatbot UEL Space',
-      bookerName: 'Khách hàng UEL Space'
+      bookerName: this.settingsService.currentUser?.name || 'Khách hàng UEL Space'
     });
 
     const confirmationMsg: ChatMessage = {

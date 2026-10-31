@@ -439,6 +439,7 @@
           <input type="text"
                  [(ngModel)]="userInput"
                  name="chatInput"
+                 (keydown.enter)="$event.preventDefault(); sendMessage()"
                  placeholder="Nhập yêu cầu (VD: tìm phòng 4 người có máy chiếu)..."
                  [disabled]="isThinking"
                  class="flex-1 px-3.5 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs focus:outline-hidden focus:ring-2 focus:ring-[#003B71] dark:focus:ring-sky-500 transition-all border border-transparent focus:border-transparent">

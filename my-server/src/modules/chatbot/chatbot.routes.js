@@ -7,21 +7,108 @@ const express = require('express');
 const { geminiService } = require('./gemini.service');
 const { ObjectId } = require('mongodb');
 
-function chatbotRoutes({ spaces, chatSessions, chatLearnedIntents }) {
+function chatbotRoutes({ spaces, chatSessions, chatLearnedIntents, bookings }) {
   const router = express.Router();
 
   // 1. POST /api/chatbot/message - Gửi tin nhắn & nhận phản hồi từ Adaptive Cache / Gemini AI
   router.post('/message', async (req, res, next) => {
     try {
-      const { sessionId, userMessage, history = [] } = req.body;
+      const {
+        sessionId,
+        userMessage,
+        history = [],
+        userId = null,
+        userEmail = null,
+        userName = null,
+        userRole = null
+      } = req.body;
+
       if (!userMessage || !userMessage.trim()) {
         return res.status(400).json({ ok: false, message: 'Nội dung tin nhắn không được để trống' });
       }
 
       const activeSessionId = sessionId || 'session_' + Date.now();
-      const currentUserId = req.session?.user?.id || req.session?.user?._id || null;
+      const effectiveUserId = userId || req.session?.user?.id || req.session?.user?._id || null;
+      const effectiveUserEmail = userEmail || req.session?.user?.email || null;
+      const effectiveUserName = userName || req.session?.user?.name || null;
+      const effectiveUserRole = userRole || req.session?.user?.role || null;
 
-      // 1. Lấy danh sách không gian thực tế từ MongoDB (lọc bỏ các phòng đã xóa)
+      // 1. Trích xuất Bộ nhớ Ngữ cảnh Người dùng (User Memory & History Context)
+      let userMemory = null;
+      if (effectiveUserId || effectiveUserEmail) {
+        try {
+          // Lấy lịch sử đặt phòng trước đó của user
+          let pastBookings = [];
+          if (bookings) {
+            const bookingFilter = [];
+            if (effectiveUserId) {
+              bookingFilter.push({ userId: effectiveUserId }, { 'booker.id': effectiveUserId });
+            }
+            if (effectiveUserEmail) {
+              bookingFilter.push(
+                { userEmail: effectiveUserEmail },
+                { email: effectiveUserEmail },
+                { 'booker.email': effectiveUserEmail }
+              );
+            }
+            if (bookingFilter.length > 0) {
+              pastBookings = await bookings
+                .find({ $or: bookingFilter })
+                .sort({ createdAt: -1 })
+                .limit(5)
+                .toArray();
+            }
+          }
+
+          // Lấy lịch sử các phiên chat trước để nhận biết sở thích
+          let pastSessions = [];
+          if (chatSessions) {
+            const sessionFilter = [];
+            if (effectiveUserId) sessionFilter.push({ userId: effectiveUserId });
+            if (effectiveUserEmail) sessionFilter.push({ userEmail: effectiveUserEmail });
+            if (sessionFilter.length > 0) {
+              pastSessions = await chatSessions
+                .find({
+                  sessionId: { $ne: activeSessionId },
+                  $or: sessionFilter
+                })
+                .sort({ updatedAt: -1 })
+                .limit(4)
+                .toArray();
+            }
+          }
+
+          const preferredSpaces = new Set();
+          pastBookings.forEach(b => {
+            const rName = b.spaceName || b.roomName || b.name;
+            if (rName) preferredSpaces.add(rName);
+          });
+
+          pastSessions.forEach(s => {
+            const msgs = s.messages || [];
+            msgs.forEach(m => {
+              if (Array.isArray(m.suggestedSpaces)) {
+                m.suggestedSpaces.forEach(sp => {
+                  if (sp.name) preferredSpaces.add(sp.name);
+                });
+              }
+            });
+          });
+
+          userMemory = {
+            name: effectiveUserName,
+            email: effectiveUserEmail,
+            role: effectiveUserRole,
+            preferredSpaces: Array.from(preferredSpaces).slice(0, 5),
+            pastBookingsCount: pastBookings.length,
+            pastSessionsCount: pastSessions.length
+          };
+        } catch (memErr) {
+          console.warn('[ChatbotRoutes] Lỗi trích xuất userMemory:', memErr.message);
+        }
+      }
+
+      // 2. Lấy danh sách không gian thực tế từ MongoDB (lọc bỏ các phòng đã xóa)
       let allSpaces = [];
       if (spaces) {
         allSpaces = await spaces.find({
@@ -32,15 +119,16 @@ function chatbotRoutes({ spaces, chatSessions, chatLearnedIntents }) {
         }).toArray();
       }
 
-      // 2. Gọi GeminiService (Tầng 1: Semantic Cache -> Tầng 2: Gemini RAG -> Tầng 3: Heuristic)
+      // 3. Gọi GeminiService (Tầng 1: Semantic Cache -> Tầng 2: Gemini RAG -> Tầng 3: Heuristic)
       const aiResponse = await geminiService.processChat({
         userMessage: userMessage.trim(),
         history,
         spaces: allSpaces,
-        learnedIntents: chatLearnedIntents
+        learnedIntents: chatLearnedIntents,
+        userMemory
       });
 
-      // 3. Khớp ID phòng trả về thành đối tượng Space đầy đủ để Frontend render trực tiếp
+      // 4. Khớp ID phòng trả về thành đối tượng Space đầy đủ để Frontend render trực tiếp
       const recommendedSpaces = [];
       if (Array.isArray(aiResponse.recommendedSpaceIds)) {
         for (const idOrCode of aiResponse.recommendedSpaceIds) {
@@ -70,7 +158,7 @@ function chatbotRoutes({ spaces, chatSessions, chatLearnedIntents }) {
         }
       }
 
-      // 4. Định hình tin nhắn Bot kèm thông tin đo lường tự học
+      // 5. Định hình tin nhắn Bot kèm thông tin đo lường tự học
       const botMessage = {
         id: 'bot-' + Date.now(),
         sender: 'bot',
@@ -94,14 +182,16 @@ function chatbotRoutes({ spaces, chatSessions, chatLearnedIntents }) {
         timestamp: new Date()
       };
 
-      // 5. Lưu vết vào MongoDB collection chat_sessions
+      // 6. Lưu vết vào MongoDB collection chat_sessions gắn với User
       if (chatSessions) {
         await chatSessions.updateOne(
           { sessionId: activeSessionId },
           {
             $push: { messages: { $each: [userRecord, botMessage] } },
             $set: {
-              userId: currentUserId,
+              userId: effectiveUserId,
+              userEmail: effectiveUserEmail,
+              userName: effectiveUserName,
               updatedAt: new Date()
             },
             $setOnInsert: {
@@ -183,19 +273,23 @@ function chatbotRoutes({ spaces, chatSessions, chatLearnedIntents }) {
     }
   });
 
-  // 2. GET /api/chatbot/sessions - Lấy danh sách các cuộc trò chuyện để người dùng xem lại
+  // 4. GET /api/chatbot/sessions - Lấy danh sách các cuộc trò chuyện để người dùng xem lại
   router.get('/sessions', async (req, res, next) => {
     try {
       if (!chatSessions) {
         return res.json({ ok: true, sessions: [] });
       }
 
-      const currentUserId = req.session?.user?.id || req.session?.user?._id || null;
+      const effectiveUserId = req.query.userId || req.session?.user?.id || req.session?.user?._id || null;
+      const effectiveUserEmail = req.query.userEmail || req.session?.user?.email || null;
       const sessionIdsParam = req.query.sessionIds;
       let filter = {};
 
-      if (currentUserId) {
-        filter = { userId: currentUserId };
+      if (effectiveUserId || effectiveUserEmail) {
+        const orClauses = [];
+        if (effectiveUserId) orClauses.push({ userId: effectiveUserId });
+        if (effectiveUserEmail) orClauses.push({ userEmail: effectiveUserEmail });
+        filter = { $or: orClauses };
       } else if (sessionIdsParam) {
         const ids = sessionIdsParam.split(',').map(s => s.trim()).filter(Boolean);
         if (ids.length > 0) {
@@ -206,7 +300,7 @@ function chatbotRoutes({ spaces, chatSessions, chatLearnedIntents }) {
       const list = await chatSessions
         .find(filter)
         .sort({ updatedAt: -1, createdAt: -1 })
-        .limit(25)
+        .limit(30)
         .toArray();
 
       const formatted = list.map(s => {
@@ -228,7 +322,7 @@ function chatbotRoutes({ spaces, chatSessions, chatLearnedIntents }) {
     }
   });
 
-  // 3. GET /api/chatbot/history - Lấy toàn bộ lịch sử trò chuyện của phiên
+  // 5. GET /api/chatbot/history - Lấy toàn bộ lịch sử trò chuyện của phiên
   router.get('/history', async (req, res, next) => {
     try {
       const sessionId = req.query.sessionId;
@@ -251,7 +345,7 @@ function chatbotRoutes({ spaces, chatSessions, chatLearnedIntents }) {
     }
   });
 
-  // 3. DELETE /api/chatbot/history - Xóa sạch lịch sử trò chuyện của phiên
+  // 6. DELETE /api/chatbot/history - Xóa sạch lịch sử trò chuyện của phiên
   router.delete('/history', async (req, res, next) => {
     try {
       const sessionId = req.query.sessionId;
