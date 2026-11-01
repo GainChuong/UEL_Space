@@ -325,8 +325,8 @@
              ===================================================================== -->
         <div class="relative pl-2 border-l border-border-gray dark:border-slate-800">
           <button (click)="toggleProfile($event)"
-                  class="flex items-center gap-2.5 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors cursor-pointer group"
-                  [title]="(settingsService.isLoggedIn$ | async) ? ('Tài khoản Chủ gian hàng' | t) : ('Đăng nhập' | t)">
+                  class="p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors cursor-pointer group flex items-center justify-center"
+                  [title]="(settingsService.isLoggedIn$ | async) ? ('Tài khoản Chủ gian hàng: ' + adminUser.name) : ('Đăng nhập' | t)">
             
             <div class="w-9 h-9 rounded-full border-2 flex items-center justify-center shrink-0 shadow-xs transition-colors"
                  [class]="(settingsService.isLoggedIn$ | async) 
@@ -336,21 +336,6 @@
                 <circle cx="12" cy="8" r="4"/>
                 <path d="M20 21a8 8 0 0 0-16 0"/>
               </svg>
-            </div>
-
-            <div class="hidden md:block text-left leading-tight">
-              @if (settingsService.isLoggedIn$ | async) {
-                <div class="text-xs font-bold text-dark-text dark:text-white flex items-center gap-1.5">
-                  <span>{{ adminUser.name }}</span>
-                  <svg class="w-3 h-3 text-slate-400 group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-                </div>
-                <div class="text-[10px] text-text-muted dark:text-slate-400 font-medium">{{ adminUser.email }}</div>
-              } @else {
-                <div class="text-xs font-bold text-slate-500 dark:text-slate-300">
-                  {{ (settingsService.language$ | async) === 'vi' ? 'Chưa đăng nhập' : 'Not logged in' }}
-                </div>
-                <div class="text-[10px] text-text-muted dark:text-slate-400">{{ 'Nhấn để đăng nhập' | t }}</div>
-              }
             </div>
           </button>
 
