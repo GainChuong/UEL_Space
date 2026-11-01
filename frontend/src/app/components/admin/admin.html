@@ -11,14 +11,10 @@
        ========================================================================= -->
   <aside [class.translate-x-0]="isMobileSidebarOpen"
          [class.-translate-x-full]="!isMobileSidebarOpen"
-         class="fixed lg:static inset-y-0 left-0 w-72 bg-[#001428] text-white flex flex-col shrink-0 border-r border-[#002D5C]/80 z-50 select-none shadow-2xl transition-transform duration-300 lg:translate-x-0 overflow-hidden">
+         class="fixed lg:static inset-y-0 left-0 w-64 bg-[#001428] text-white flex flex-col shrink-0 border-r border-white/10 z-50 select-none transition-transform duration-200 lg:translate-x-0 overflow-hidden">
     
-    <!-- Background Texture with Deep Brand Tint -->
-    <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-      <div class="absolute inset-0 bg-gradient-to-b from-[#001428]/95 via-[#001D3D]/90 to-[#001224]/95"></div>
-      <div class="absolute -top-24 -left-24 w-60 h-60 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="absolute -bottom-24 -right-24 w-60 h-60 bg-uel-blue/20 rounded-full blur-3xl pointer-events-none"></div>
-    </div>
+    <!-- Clean Professional Background -->
+    <div class="absolute inset-0 z-0 pointer-events-none bg-[#001428]"></div>
 
     <!-- Sidebar Header & Logo -->
     <div class="px-6 py-5 border-b border-white/10 flex items-center justify-between relative z-10 backdrop-blur-[2px]">
@@ -26,9 +22,6 @@
         <a routerLink="/" class="flex items-center group cursor-pointer transition-transform hover:scale-[1.02]" [title]="'Về trang chủ UEL SPACE' | t">
           <img [src]="server_images_link + 'logo_am_ban.png'" alt="UEL Space" class="h-10 w-auto max-w-[210px] object-contain drop-shadow">
         </a>
-        <span class="px-1.5 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30 shadow-xs shrink-0">
-          ADMIN
-        </span>
       </div>
       <button (click)="isMobileSidebarOpen = false" 
               class="lg:hidden p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
@@ -40,9 +33,8 @@
     <!-- Navigation Menu Items -->
     <nav class="flex-1 px-3 py-3 space-y-1.5 overflow-y-auto relative z-10">
       
-      <div class="text-[10px] font-black uppercase text-slate-400 px-3 pt-2 pb-1 tracking-wider flex items-center justify-between">
-        <span>{{ 'Kiểm soát Platform' | t }}</span>
-        <span class="text-[9px] text-sky-400 font-mono">MASTER</span>
+      <div class="text-[11px] font-semibold text-slate-400 px-3 pt-2 pb-1 tracking-wider uppercase">
+        {{ 'Quản trị hệ thống' | t }}
       </div>
 
       <!-- 1. Overview -->
@@ -146,22 +138,16 @@
 
     </nav>
 
-    <!-- Switch View to Seller Center Banner -->
-    <div class="p-3 border-t border-white/10 relative z-10 bg-black/30">
-      <div class="p-3 rounded-xl bg-gradient-to-r from-uel-blue/40 to-sky-900/30 border border-sky-500/20">
-        <div class="flex items-center justify-between mb-1.5">
-          <span class="text-[10px] font-extrabold uppercase tracking-wider text-sky-300">{{ 'Chế độ xem Đối tác' | t }}</span>
-          <span class="text-[9px] px-1.5 py-0.5 rounded font-black bg-sky-500/20 text-sky-300 border border-sky-400/30">SELLER</span>
+    <!-- Switch View to Seller Center -->
+    <div class="p-3 border-t border-white/10 relative z-10">
+      <a routerLink="/seller-dashboard" 
+         class="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-semibold flex items-center justify-between transition-colors">
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>{{ 'Kênh Người Bán' | t }}</span>
         </div>
-        <p class="text-[11px] text-slate-300 mb-2 leading-relaxed">
-          {{ 'Truy cập cổng vận hành Kiosk check-in & giám sát sĩ số của từng gian hàng đối tác.' | t }}
-        </p>
-        <a routerLink="/seller-dashboard" 
-           class="w-full py-2 px-3 rounded-lg bg-uel-blue hover:bg-[#002D5C] text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer border border-sky-400/30">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          <span>{{ 'Mở Kênh Người Bán' | t }}</span>
-        </a>
-      </div>
+        <span class="text-slate-400 text-xs">→</span>
+      </a>
     </div>
   </aside>
 
@@ -179,13 +165,11 @@
         </button>
 
         <div class="flex flex-col">
-          <div class="flex items-center gap-2">
-            <h1 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-              <span>{{ 'Trung Tâm Kiểm Soát Platform' | t }}</span>
-            </h1>
-          </div>
+          <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+            {{ 'Quản trị Sàn UEL Space' | t }}
+          </h1>
           <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">
-            {{ 'Hệ thống Quản trị Toàn sàn UEL Space • Kiểm soát Niêm yết, Dòng tiền Escrow & Giám sát Vận hành' | t }}
+            {{ 'Giám sát niêm yết, dòng tiền escrow và vận hành toàn sàn' | t }}
           </p>
         </div>
       </div>
@@ -308,157 +292,141 @@
     @if (activeTab === 'overview') {
       <div class="p-6 space-y-6 animate-fade-in">
         
-        <!-- Top 4 Platform KPI Cards -->
+        <!-- Top 4 Platform KPI Cards (Taste-Skill: Type over tiles, crisp numbers, no icon circles) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
           <!-- KPI 1: GMV -->
-          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs relative overflow-hidden group hover:border-uel-blue/40 transition-all">
-            <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider">{{ 'Tổng GMV Giao dịch Toàn sàn' | t }}</span>
-              <div class="w-8 h-8 rounded-xl bg-uel-blue/10 dark:bg-sky-500/10 text-uel-blue dark:text-sky-400 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              </div>
+          <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
+            <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+              {{ 'Tổng GMV Toàn sàn' | t }}
             </div>
-            <div class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            <div class="text-2xl sm:text-[26px] font-bold text-slate-900 dark:text-white tracking-tight tabular-nums">
               {{ metrics.gmv | number:'1.0-0' }} ₫
             </div>
-            <div class="mt-2 flex items-center justify-between text-xs">
-              <span class="text-uel-blue dark:text-sky-400 font-extrabold flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>
-                +24.8% {{ 'so với tháng trước' | t }}
+            <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+              <span class="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                +24.8% <span class="text-[11px] text-slate-400 font-normal">{{ 'vs tháng trước' | t }}</span>
               </span>
-              <span class="text-slate-400 font-mono">{{ metrics.bookings.completed }} {{ 'đơn hoàn tất' | t }}</span>
+              <span class="text-slate-500 dark:text-slate-400 text-[11px]">{{ metrics.bookings.completed }} {{ 'đơn hoàn tất' | t }}</span>
             </div>
           </div>
 
           <!-- KPI 2: Platform Commission Revenue (12%) -->
-          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs relative overflow-hidden group hover:border-uel-blue/40 transition-all">
-            <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider">{{ 'Doanh Thu Hoa Hồng Sàn' | t }} (12%)</span>
-              <div class="w-8 h-8 rounded-xl bg-uel-blue/10 dark:bg-sky-500/10 text-uel-blue dark:text-sky-400 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              </div>
+          <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
+            <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+              {{ 'Doanh thu hoa hồng (12%)' | t }}
             </div>
-            <div class="text-2xl font-black text-uel-blue dark:text-sky-400 tracking-tight">
+            <div class="text-2xl sm:text-[26px] font-bold text-uel-blue dark:text-sky-400 tracking-tight tabular-nums">
               {{ metrics.commissionEarned | number:'1.0-0' }} ₫
             </div>
-            <div class="mt-2 flex items-center justify-between text-xs">
-              <span class="text-slate-500 dark:text-slate-400 font-medium">{{ 'Phí dịch vụ trung gian sàn' | t }}</span>
-              <span class="px-2 py-0.5 rounded text-[10px] font-black bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300">THU THẬT</span>
+            <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+              <span class="text-slate-500 dark:text-slate-400 text-[11px]">{{ 'Phí trung gian nền tảng' | t }}</span>
+              <span class="text-slate-400 text-[11px]">Cố định 12%</span>
             </div>
           </div>
 
           <!-- KPI 3: Escrow Holding Pool -->
-          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs relative overflow-hidden group hover:border-uel-blue/40 transition-all">
-            <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider">{{ 'Quỹ Escrow Tạm Giữ Hộ' | t }}</span>
-              <div class="w-8 h-8 rounded-xl bg-uel-blue/10 dark:bg-sky-500/10 text-uel-blue dark:text-sky-400 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-              </div>
+          <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
+            <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+              {{ 'Quỹ Escrow Tạm giữ' | t }}
             </div>
-            <div class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            <div class="text-2xl sm:text-[26px] font-bold text-slate-900 dark:text-white tracking-tight tabular-nums">
               {{ metrics.escrowHolding | number:'1.0-0' }} ₫
             </div>
-            <div class="mt-2 flex items-center justify-between text-xs">
-              <span class="text-slate-500 dark:text-slate-400">{{ 'Đang giữ chờ giải ngân' | t }}</span>
-              <button (click)="activeTab = 'escrow'" class="text-uel-blue dark:text-sky-400 font-bold hover:underline cursor-pointer">
+            <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+              <span class="text-slate-500 dark:text-slate-400 text-[11px]">{{ 'Chờ giải ngân 24h' | t }}</span>
+              <button (click)="activeTab = 'escrow'" class="text-uel-blue dark:text-sky-400 font-medium hover:underline text-[11px] cursor-pointer">
                 {{ 'Chi tiết' | t }} →
               </button>
             </div>
           </div>
 
           <!-- KPI 4: Pending Actions Count -->
-          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs relative overflow-hidden group hover:border-uel-blue/40 transition-all">
-            <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider">{{ 'Cần Xử Lý Ngay' | t }}</span>
-              <div class="w-8 h-8 rounded-xl bg-uel-blue/10 dark:bg-sky-500/10 text-uel-blue dark:text-sky-400 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              </div>
+          <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
+            <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+              {{ 'Hàng đợi cần xử lý' | t }}
             </div>
-            <div class="text-2xl font-black text-uel-blue dark:text-sky-400 tracking-tight">
-              {{ metrics.spaces.pending + metrics.disputes.pending + metrics.users.pendingKyc }} {{ 'mục' | t }}
+            <div class="text-2xl sm:text-[26px] font-bold text-slate-900 dark:text-white tracking-tight tabular-nums">
+              {{ metrics.spaces.pending + metrics.disputes.pending + metrics.users.pendingKyc }} <span class="text-sm font-normal text-slate-400">{{ 'mục' | t }}</span>
             </div>
-            <div class="mt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-              <span>{{ metrics.spaces.pending }} {{ 'listing' | t }} • {{ metrics.disputes.pending }} {{ 'khiếu nại' | t }}</span>
-              <span class="text-uel-blue dark:text-sky-400 font-bold">XỬ LÝ</span>
+            <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+              <span class="text-slate-500 dark:text-slate-400 text-[11px]">{{ metrics.spaces.pending }} {{ 'listing' | t }} • {{ metrics.disputes.pending }} {{ 'khiếu nại' | t }}</span>
+              <span class="text-uel-blue dark:text-sky-400 font-semibold text-[11px]">Trực ban</span>
             </div>
           </div>
 
         </div>
 
-        <!-- Quick Access Control Cards -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Quick Action Panels (Clean, unbloated) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
           
           <!-- Card 1: Listing Moderation Queue -->
-          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between hover:border-uel-blue/40 transition-all">
+          <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
             <div>
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-uel-blue dark:bg-sky-400"></span>
-                  {{ 'Hàng đợi Kiểm duyệt Listing' | t }}
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white">
+                  {{ 'Kiểm duyệt Niêm yết' | t }}
                 </h3>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300">
+                <span class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                   {{ metrics.spaces.pending }} {{ 'chờ duyệt' | t }}
                 </span>
               </div>
               <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
-                {{ 'Thẩm định hồ sơ mặt bằng do Host gửi lên: kiểm tra diện tích, bảng giá niêm yết, an toàn PCCC trước khi cho phép hiển thị ngoài sàn.' | t }}
+                {{ 'Thẩm định hồ sơ mặt bằng do Host gửi lên: kiểm tra diện tích, giá và an toàn PCCC.' | t }}
               </p>
             </div>
-            <button (click)="activeTab = 'listings'" class="w-full py-2.5 rounded-xl bg-uel-blue hover:bg-[#002D5C] text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs">
-              <span>{{ 'Vào bàn duyệt Listing' | t }}</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            <button (click)="activeTab = 'listings'" class="w-full py-2 px-3 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+              <span>{{ 'Duyệt listing' | t }}</span>
+              <span>→</span>
             </button>
           </div>
 
           <!-- Card 2: Financial Escrow & Payout Settlement -->
-          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between hover:border-uel-blue/40 transition-all">
+          <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
             <div>
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-uel-blue dark:bg-sky-400"></span>
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white">
                   {{ 'Đối soát Dòng tiền Escrow' | t }}
                 </h3>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300">
-                  {{ 'Quy trình chuẩn sàn' | t }}
+                <span class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                  {{ 'Sau 24h' | t }}
                 </span>
               </div>
               <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
-                {{ 'Đơn thuê hoàn tất sau 24h không có khiếu nại sẽ đủ điều kiện giải ngân. Nền tảng tự động trừ 12% hoa hồng sàn trước khi chi trả.' | t }}
+                {{ 'Giải ngân tự động cho Host sau 24h kết thúc đơn thuê, khấu trừ 12% hoa hồng sàn.' | t }}
               </p>
             </div>
-            <button (click)="activeTab = 'escrow'" class="w-full py-2.5 rounded-xl bg-[#001D3D] hover:bg-[#002D5C] text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs">
-              <span>{{ 'Mở bảng đối soát Payout' | t }}</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            <button (click)="activeTab = 'escrow'" class="w-full py-2 px-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+              <span>{{ 'Bảng đối soát Payout' | t }}</span>
+              <span>→</span>
             </button>
           </div>
 
           <!-- Card 3: Dispute Resolution Shield -->
-          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between hover:border-uel-blue/40 transition-all">
+          <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
             <div>
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-uel-blue dark:bg-sky-400"></span>
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white">
                   {{ 'Phụ phí & Tranh chấp' | t }}
                 </h3>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300">
-                  {{ metrics.disputes.pending }} {{ 'án chờ phán quyết' | t }}
+                <span class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                  {{ metrics.disputes.pending }} {{ 'chờ phán quyết' | t }}
                 </span>
               </div>
               <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
-                {{ 'Trọng tài phân xử khiếu nại hư hỏng thiết bị, hoàn tiền lỗi dịch vụ hoặc phụ phí quá giờ do hệ thống AI YOLO26 phát hiện tự động.' | t }}
+                {{ 'Xử lý khiếu nại trang thiết bị, hoàn tiền sự cố hoặc phụ phí quá giờ từ camera AI.' | t }}
               </p>
             </div>
-            <button (click)="activeTab = 'disputes'" class="w-full py-2.5 rounded-xl bg-uel-blue hover:bg-[#002D5C] text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs">
+            <button (click)="activeTab = 'disputes'" class="w-full py-2 px-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
               <span>{{ 'Phán quyết tranh chấp' | t }}</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              <span>→</span>
             </button>
           </div>
 
         </div>
 
         <!-- Recent Platform Activities Table -->
-        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+        <div class="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
               {{ 'Nhật ký Hoạt động Quản trị Gần nhất' | t }}
@@ -942,7 +910,7 @@
       <div class="p-6 space-y-6 animate-fade-in">
         
         <!-- Escrow Explanation Card -->
-        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+        <div class="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800">
           <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
               <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
@@ -1051,7 +1019,7 @@
     @if (activeTab === 'disputes') {
       <div class="p-6 space-y-6 animate-fade-in">
         
-        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+        <div class="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex items-center justify-between">
           <div>
             <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 shrink-0 text-uel-blue dark:text-sky-400"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -1069,7 +1037,7 @@
         <!-- Dispute Cards List -->
         <div class="space-y-4">
           @for (d of disputes; track d.id) {
-            <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3">
+            <div class="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 space-y-3">
               
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div class="flex items-center gap-2.5">
@@ -1150,7 +1118,7 @@
       <div class="p-6 space-y-6 animate-fade-in">
         
         <!-- Platform Settings Form -->
-        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+        <div class="p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800">
           <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider mb-3 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 shrink-0 text-uel-blue dark:text-sky-400"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             {{ 'Cấu Hình Tham Số Sàn UEL Space' | t }}

@@ -56,27 +56,36 @@ def run_training():
     print(f"📄 Dataset YAML: {DATASET_YAML}")
     print(f"⚡ Batch size: {batch_size} | Thiết bị: {device}")
 
-    # 3. Nạp mô hình YOLO26
-    model = YOLO(pretrained)
-
-    # 4. Huấn luyện (Transfer Learning)
-    # Tối ưu cho RTX 3050 4GB: imgsz=640, amp=True (FP16), workers=4
+    # 3. Kiểm tra xem có checkpoint dở dang để resume không
+    last_pt = os.path.join(OUTPUT_RUNS_DIR, "yolo26_smartclass_occupancy", "weights", "last.pt")
     epochs = 25
-    print(f"\n⏳ Bắt đầu huấn luyện {epochs} epochs...")
-    results = model.train(
-        data=DATASET_YAML,
-        epochs=epochs,
-        imgsz=640,
-        batch=batch_size,
-        device=device,
-        amp=has_cuda,
-        workers=2,
-        project=OUTPUT_RUNS_DIR,
-        name="yolo26_smartclass_occupancy",
-        exist_ok=True,
-        save=True,
-        plots=True
-    )
+
+    if os.path.exists(last_pt):
+        print(f"🔄 Phát hiện checkpoint đã huấn luyện dở dang tại: {last_pt}")
+        print("⚡ Tự động kích hoạt resume huấn luyện tiếp tục...")
+        model = YOLO(last_pt)
+        results = model.train(resume=True)
+    else:
+        # 3. Nạp mô hình YOLO26 gốc
+        model = YOLO(pretrained)
+
+        # 4. Huấn luyện (Transfer Learning)
+        # Tối ưu cho RTX 3050 4GB: imgsz=640, amp=True (FP16), workers=2
+        print(f"\n⏳ Bắt đầu huấn luyện {epochs} epochs...")
+        results = model.train(
+            data=DATASET_YAML,
+            epochs=epochs,
+            imgsz=640,
+            batch=batch_size,
+            device=device,
+            amp=has_cuda,
+            workers=2,
+            project=OUTPUT_RUNS_DIR,
+            name="yolo26_smartclass_occupancy",
+            exist_ok=True,
+            save=True,
+            plots=True
+        )
 
     best_pt = os.path.join(OUTPUT_RUNS_DIR, "yolo26_smartclass_occupancy", "weights", "best.pt")
     if not os.path.exists(best_pt):

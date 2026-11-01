@@ -11,14 +11,10 @@
        ========================================================================= -->
   <aside [class.translate-x-0]="isMobileSidebarOpen"
          [class.-translate-x-full]="!isMobileSidebarOpen"
-         class="fixed lg:static inset-y-0 left-0 w-72 bg-[#001428] text-white flex flex-col shrink-0 border-r border-[#002D5C]/80 z-50 select-none shadow-2xl transition-transform duration-300 lg:translate-x-0 overflow-hidden">
+         class="fixed lg:static inset-y-0 left-0 w-64 bg-[#001428] text-white flex flex-col shrink-0 border-r border-white/10 z-50 select-none transition-transform duration-200 lg:translate-x-0 overflow-hidden">
     
-    <!-- Background Image with Blur & Deep Brand Tint (UI/UX Pro Max) -->
-    <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-      <img [src]="server_images_link + 'admin/panel.jpg'" alt="UEL Campus Background" 
-           class="w-full h-full object-cover object-center scale-110 filter blur-[10px] opacity-25">
-      <div class="absolute inset-0 bg-gradient-to-b from-[#001428]/88 via-[#001D3D]/80 to-[#001224]/92"></div>
-    </div>
+    <!-- Clean Background -->
+    <div class="absolute inset-0 z-0 pointer-events-none bg-[#001428]"></div>
 
     <!-- Sidebar Header & Logo -->
     <div class="px-6 py-5 border-b border-white/10 flex items-center justify-between relative z-10 backdrop-blur-[2px]">
@@ -454,65 +450,67 @@
            ===================================================================== -->
       @if (activeTab === 'overview') {
         
-        <!-- Bento Grid Metric KPI Cards: Thương mại điện tử cho Seller Center -->
+        <!-- Seller KPI Row (Taste-Skill: Clean typography, no icon-in-circle tiles) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
           <!-- Card 1: Total Revenue -->
-          <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-border-gray dark:border-slate-800 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all group">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ 'Doanh thu Gian hàng (T10)' | t }}</span>
-              <div class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              </div>
+          <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
+            <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+              {{ 'Doanh thu Gian hàng (T10)' | t }}
             </div>
-            <div class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{{ totalRevenue | number:'1.0-0' }} ₫</div>
-            <div class="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-1.5 flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-              <span>+{{ monthlyGrowthRate }}% {{ 'tăng trưởng tháng này' | t }}</span>
+            <div class="text-2xl sm:text-[26px] font-bold text-slate-900 dark:text-white tracking-tight tabular-nums">
+              {{ totalRevenue | number:'1.0-0' }} ₫
+            </div>
+            <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+              <span class="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                +{{ monthlyGrowthRate }}% <span class="text-[11px] text-slate-400 font-normal">{{ 'tăng trưởng tháng' | t }}</span>
+              </span>
+              <span class="text-slate-400 text-[11px]">Đã đối soát</span>
             </div>
           </div>
 
           <!-- Card 2: Pending Rental Orders -->
           <div (click)="activeTab = 'approvals'"
-               class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-border-gray dark:border-slate-800 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer group">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ 'Đơn thuê chờ xác nhận' | t }}</span>
-              <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              </div>
+               class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors cursor-pointer">
+            <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+              {{ 'Đơn thuê chờ xác nhận' | t }}
             </div>
-            <div class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{{pendingBookingsCount}}</div>
-            <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1.5 flex items-center gap-1 group-hover:text-uel-blue dark:group-hover:text-sky-400 transition-colors">
-              <span>{{ 'Cần chốt giữ slot cho khách' | t }}</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+            <div class="text-2xl sm:text-[26px] font-bold text-slate-900 dark:text-white tracking-tight tabular-nums">
+              {{ pendingBookingsCount }} <span class="text-sm font-normal text-slate-400">{{ 'đơn' | t }}</span>
+            </div>
+            <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+              <span class="text-slate-500 dark:text-slate-400 text-[11px]">{{ 'Chờ phê duyệt giữ chỗ' | t }}</span>
+              <span class="text-uel-blue dark:text-sky-400 font-medium text-[11px]">Xử lý →</span>
             </div>
           </div>
 
           <!-- Card 3: Occupancy Rate -->
-          <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-border-gray dark:border-slate-800 shadow-2xs">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ 'Tỷ lệ lấp đầy gian hàng' | t }}</span>
-              <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-              </div>
+          <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
+            <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+              {{ 'Tỷ lệ lấp đầy' | t }}
             </div>
-            <div class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">78.4%</div>
-            <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1.5 flex items-center gap-1">
-              <span>{{ '192 khách thuê & đối tác đang check-in' | t }}</span>
+            <div class="text-2xl sm:text-[26px] font-bold text-slate-900 dark:text-white tracking-tight tabular-nums">
+              78.4%
+            </div>
+            <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+              <span class="text-slate-500 dark:text-slate-400 text-[11px]">192 khách đang check-in</span>
+              <span class="text-emerald-600 dark:text-emerald-400 font-medium text-[11px]">Ổn định</span>
             </div>
           </div>
 
           <!-- Card 4: Active Listings -->
           <div (click)="activeTab = 'spaces'"
-               class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-border-gray dark:border-slate-800 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer group">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ 'Listing đang niêm yết' | t }}</span>
-              <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              </div>
+               class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors cursor-pointer">
+            <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+              {{ 'Listing đang niêm yết' | t }}
             </div>
-            <div class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{{ spaces.length }} {{ 'không gian' | t }}</div>
-            <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1.5">{{ 'Sẵn sàng đón khách thuê đặt trực tuyến' | t }}</div>
+            <div class="text-2xl sm:text-[26px] font-bold text-slate-900 dark:text-white tracking-tight tabular-nums">
+              {{ spaces.length }} <span class="text-sm font-normal text-slate-400">{{ 'không gian' | t }}</span>
+            </div>
+            <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+              <span class="text-slate-500 dark:text-slate-400 text-[11px]">{{ 'Sẵn sàng tiếp nhận đặt chỗ' | t }}</span>
+              <span class="text-uel-blue dark:text-sky-400 font-medium text-[11px]">Quản lý →</span>
+            </div>
           </div>
 
         </div>
@@ -1314,7 +1312,7 @@
               </div>
               <h2 class="text-2xl sm:text-3xl font-black tracking-tight mb-2">{{ 'Xác thực có mặt & Kích hoạt không gian' | t }}</h2>
               <p class="text-white/80 text-xs sm:text-sm leading-relaxed">
-                {{ 'Quét mã QR trên vé đặt chỗ của khách thuê để xác thực người đặt đã thực sự đến phòng. Hệ thống tự động chuyển trạng thái sang ' | t }}<strong class="text-emerald-300">{{ 'Đang sử dụng (IN_USE)' | t }}</strong>{{ ' và loại bỏ nguy cơ bị cưỡng chế thu hồi do No-show.' | t }}
+                {{ 'Quét mã QR trên vé đặt phòng để xác nhận hiện diện khách thuê và kích hoạt trạng thái sử dụng phòng.' | t }}
               </p>
             </div>
 
