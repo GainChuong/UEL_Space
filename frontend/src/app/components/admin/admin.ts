@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -49,7 +49,7 @@ export interface PlatformUserAccount {
   name: string;
   email: string;
   phone: string;
-  role: 'ADMIN' | 'SPACE_MANAGER' | 'LECTURER' | 'STUDENT' | 'CUSTOMER';
+  role: 'ADMIN' | 'SELLER' | 'BUYER' | 'SPACE_MANAGER';
   status: 'ACTIVE' | 'SUSPENDED';
   kycStatus: 'VERIFIED' | 'PENDING' | 'REJECTED';
   verifiedBadge: boolean;
@@ -163,18 +163,48 @@ export class Admin implements OnInit, OnDestroy {
   isMobileSidebarOpen: boolean = false;
   isNotificationOpen: boolean = false;
   isProfileOpen: boolean = false;
+  activeNotifTab: 'all' | 'unread' = 'all';
+
+  toggleNotification(event: Event): void {
+    event.stopPropagation();
+    this.isNotificationOpen = !this.isNotificationOpen;
+  }
+
+  markAsRead(id: string, event: Event, link?: string): void {
+    event.stopPropagation();
+    this.settingsService.markAsRead(id);
+    if (link) {
+      this.isNotificationOpen = false;
+      if (link.includes('listings') || link.includes('space')) this.activeTab = 'listings';
+      else if (link.includes('kyc') || link.includes('user')) this.activeTab = 'kyc';
+      else if (link.includes('booking')) this.activeTab = 'bookings';
+      else if (link.includes('escrow')) this.activeTab = 'escrow';
+      else if (link.includes('dispute')) this.activeTab = 'disputes';
+      else this.router.navigateByUrl(link);
+    }
+  }
+
+  markAllAsRead(event: Event): void {
+    event.stopPropagation();
+    this.settingsService.markAllAsRead();
+  }
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.isNotificationOpen = false;
+  }
 
   // Search & Filter State
   searchFilter: string = '';
   listingStatusFilter: 'ALL' | 'PENDING_APPROVAL' | 'AVAILABLE' | 'REJECTED' | 'CLOSED' = 'ALL';
-  kycRoleFilter: 'ALL' | 'SPACE_MANAGER' | 'CUSTOMER' | 'ADMIN' = 'ALL';
+  kycRoleFilter: 'ALL' | 'SELLER' | 'BUYER' | 'ADMIN' | 'SPACE_MANAGER' | 'CUSTOMER' = 'ALL';
   kycStatusFilter: 'ALL' | 'PENDING' | 'VERIFIED' | 'REJECTED' = 'ALL';
   bookingStatusFilter: 'ALL' | 'PENDING' | 'APPROVED' | 'IN_USE' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW' = 'ALL';
 
   // Super Admin Profile
   adminProfile = {
     name: 'Quản Trị Viên Toàn Sàn UEL Space',
-    email: 'admin@uelspace.vn',
+    email: 'admin@gmail.com',
     role: 'SUPER_ADMIN',
     avatar: 'SA',
     title: 'Platform Chief Controller',
@@ -345,76 +375,76 @@ export class Admin implements OnInit, OnDestroy {
   users: PlatformUserAccount[] = [
     {
       id: 'usr-101',
-      code: 'HOST-0891',
-      name: 'Innovation Hub ĐHQG Partner',
-      email: 'tuan.vu@dhqg-inno.vn',
+      code: 'SELLER-INNOVATE',
+      name: 'Lê Hoàng Long',
+      email: 'innovate@gmail.com',
       phone: '0912 345 678',
-      role: 'SPACE_MANAGER',
+      role: 'SELLER',
       status: 'ACTIVE',
       kycStatus: 'VERIFIED',
       verifiedBadge: true,
       organization: 'Doanh nghiệp Cho thuê Mặt bằng',
-      storeName: 'Innovation Hub ĐHQG Hub',
+      storeName: 'Innovate Coworking Hub',
       totalBookings: 84,
       createdAt: '2026-08-12',
       businessLicenseNumber: '0318992104'
     },
     {
       id: 'usr-102',
-      code: 'HOST-0892',
-      name: 'Media Creatives Studio Hub',
-      email: 'phuong.media@creatives.vn',
+      code: 'SELLER-CREATIVE',
+      name: 'Đỗ Thùy Linh',
+      email: 'creative@gmail.com',
       phone: '0988 776 554',
-      role: 'SPACE_MANAGER',
+      role: 'SELLER',
       status: 'ACTIVE',
       kycStatus: 'PENDING',
       verifiedBadge: false,
       organization: 'Studio Media & Sự kiện',
-      storeName: 'Media Creatives Studio Hub',
+      storeName: 'Creative Hub Media Studios',
       totalBookings: 12,
       createdAt: '2026-10-19',
       businessLicenseNumber: '0319448821'
     },
     {
       id: 'usr-103',
-      code: 'CUST-2041',
-      name: 'Nguyễn Trần Kim Giang',
-      email: 'giang.nguyen@techcorp.vn',
+      code: 'BUYER-GIANG',
+      name: 'Nguyễn Giang',
+      email: 'giangnntk24411@st.uel.edu.vn',
       phone: '0909 332 118',
-      role: 'CUSTOMER',
+      role: 'BUYER',
       status: 'ACTIVE',
       kycStatus: 'VERIFIED',
       verifiedBadge: true,
-      organization: 'Tập đoàn Công nghệ TechCorp',
+      organization: 'Thành viên UEL Space',
       totalBookings: 19,
       createdAt: '2026-09-02'
     },
     {
       id: 'usr-104',
-      code: 'CUST-2042',
-      name: 'ThS. Lê Hoàng Long',
-      email: 'long.le@finance-edu.vn',
+      code: 'BUYER-MINHANH',
+      name: 'Trần Minh Anh',
+      email: 'minhanh@gmail.com',
       phone: '0938 123 456',
-      role: 'LECTURER',
+      role: 'BUYER',
       status: 'ACTIVE',
       kycStatus: 'VERIFIED',
       verifiedBadge: true,
-      organization: 'Viện Đào tạo Quốc tế & Tài chính',
+      organization: 'Startup AI Incubator',
       totalBookings: 32,
       createdAt: '2026-08-15'
     },
     {
       id: 'usr-105',
-      code: 'HOST-0870',
-      name: 'Coworking Prime Vũng Tàu',
-      email: 'contact@primevungtau.vn',
+      code: 'SELLER-LANDMARK',
+      name: 'Trần Minh Khoa',
+      email: 'landmark@gmail.com',
       phone: '0901 888 222',
-      role: 'SPACE_MANAGER',
+      role: 'SELLER',
       status: 'SUSPENDED',
       kycStatus: 'REJECTED',
       verifiedBadge: false,
-      organization: 'Công ty Cổ phần Prime Hub',
-      storeName: 'Coworking Prime Hub',
+      organization: 'Landmark Convention Corp',
+      storeName: 'Landmark Convention Hub',
       totalBookings: 5,
       createdAt: '2026-09-20',
       businessLicenseNumber: '0300998877'
@@ -429,8 +459,8 @@ export class Admin implements OnInit, OnDestroy {
       spaceName: 'Hội trường & Event Hall Landmark A3',
       building: 'Central Tower Q.1',
       sellerName: 'Landmark Co-Working Hub',
-      bookerName: 'Nguyễn Trần Kim Giang',
-      bookerEmail: 'giang.nguyen@techcorp.vn',
+      bookerName: 'Nguyễn Giang',
+      bookerEmail: 'giangnntk24411@st.uel.edu.vn',
       bookerPhone: '0909 332 118',
       date: '2026-10-21',
       timeSlot: '13:30 - 17:30',
@@ -445,8 +475,8 @@ export class Admin implements OnInit, OnDestroy {
       spaceName: 'Phòng Họp VIP Executive Room Tầng 4',
       building: 'Landmark UEL Space Tower Q.1',
       sellerName: 'Landmark Co-Working Hub',
-      bookerName: 'ThS. Lê Hoàng Long',
-      bookerEmail: 'long.le@finance-edu.vn',
+      bookerName: 'Trần Minh Anh',
+      bookerEmail: 'minhanh@gmail.com',
       bookerPhone: '0938 123 456',
       date: '2026-10-20',
       timeSlot: '09:00 - 11:30',

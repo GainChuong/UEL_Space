@@ -61,6 +61,8 @@ export class SpaceDetailComponent implements OnInit {
   hasConflict: boolean = false;
   conflictReason: string = '';
   userScheduleEvents: any[] = [];
+  googleCalendarStatus: { isConnected: boolean; email?: string } = { isConnected: false };
+  isSyncingCalendar: boolean = false;
 
   // Custom UEL Brand Date & Time Picker Dropdown State
   isDatePickerOpen: boolean = false;
@@ -125,6 +127,13 @@ export class SpaceDetailComponent implements OnInit {
         this.newCommentAuthorName = u.name || '';
       }
     } catch {}
+
+    // Lắng nghe và đồng bộ trạng thái Google Calendar thời gian thực
+    this.googleCalendarService.connectionStatus$.subscribe(st => {
+      this.googleCalendarStatus = st;
+      this.cdr.detectChanges();
+    });
+    this.syncCalendarData();
 
     this.refreshCalendarAndSlots();
 
@@ -498,6 +507,7 @@ export class SpaceDetailComponent implements OnInit {
     this.isDatePickerOpen = false;
     this.generateCalendarDays();
     this.onTimeOrDateChange();
+    this.syncCalendarData();
   }
 
   selectQuickDate(preset: 'today' | 'tomorrow' | 'weekend', event?: Event): void {
@@ -562,6 +572,24 @@ export class SpaceDetailComponent implements OnInit {
   }
 
   checkConflict(): void {
+    // 1. Kiểm tra xem chính phòng này đã có ai đặt trong khung giờ này chưa
+    if (this.space && this.bookingService) {
+      const spaceCheck = this.bookingService.isSpaceBooked(
+        { id: this.space._id || this.space.id, code: this.space.code, name: this.space.name, slug: this.space.slug },
+        this.customBookingDate,
+        this.customBookingDate,
+        this.customStartTime,
+        this.customEndTime
+      );
+
+      if (spaceCheck.isBooked) {
+        this.hasConflict = true;
+        this.conflictReason = `Không gian này đã có người đặt trước trong khung giờ ${spaceCheck.conflictBooking?.timeSlot || ''} ngày ${this.customBookingDate}. Vui lòng chọn ca giờ khác.`;
+        return;
+      }
+    }
+
+    // 2. Kiểm tra trùng lịch cá nhân người dùng (Google Calendar)
     const check = this.googleCalendarService.checkConflict(
       this.customBookingDate,
       this.customStartTime,
@@ -577,6 +605,39 @@ export class SpaceDetailComponent implements OnInit {
     const rawEmbed = this.googleCalendarService.generateEmbedUrl(this.studentInfo.email, this.calendarEmbedMode, this.customBookingDate);
     this.googleEmbedSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawEmbed);
     this.cdr.detectChanges();
+  }
+
+  async syncCalendarData(): Promise<void> {
+    this.isSyncingCalendar = true;
+    try {
+      await this.googleCalendarService.syncLiveSchedule(this.customBookingDate, this.studentInfo.email);
+      this.refreshCalendarAndSlots();
+    } catch (e) {
+      console.warn('Sync calendar error:', e);
+    } finally {
+      this.isSyncingCalendar = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  async connectGoogleCalendar(): Promise<void> {
+    this.isSyncingCalendar = true;
+    try {
+      const res = await this.googleCalendarService.openGoogleAuthPopup(this.studentInfo.email);
+      if (res.success) {
+        await this.syncCalendarData();
+      }
+    } finally {
+      this.isSyncingCalendar = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  disconnectGoogleCalendar(): void {
+    if (!confirm('Bạn có chắc chắn muốn ngắt kết nối Google Calendar?')) return;
+    this.googleCalendarService.disconnect(this.studentInfo.email).subscribe(() => {
+      this.syncCalendarData();
+    });
   }
 
   selectGooglePresetSlot(preset: any): void {
@@ -639,10 +700,14 @@ export class SpaceDetailComponent implements OnInit {
     // Đồng bộ Realtime sang Lịch sử đặt chỗ & gửi thông báo chuông
     this.bookingService.addBooking({
       id: this.confirmedBookingCode,
+      spaceId: this.space._id || this.space.id || this.space.code,
       roomName: this.space.name,
       building: this.space.building,
       roomType: this.space.category || 'Phòng họp & Văn phòng',
       date: this.customBookingDate,
+      endDate: this.customBookingDate,
+      startTime: this.customStartTime,
+      endTime: this.customEndTime,
       timeSlot: `${this.customStartTime} - ${this.customEndTime}`,
       purpose: 'Họp đối tác & Làm việc tự động hoá UEL Space',
       capacity: this.space.capacity || 10,
@@ -658,6 +723,22 @@ export class SpaceDetailComponent implements OnInit {
       code: this.confirmedBookingCode,
       userEmail: this.studentInfo.email
     });
+
+    // Tự động đẩy sự kiện lên Google Calendar cá nhân qua Backend API nếu đã kết nối
+    if (this.googleCalendarStatus?.isConnected) {
+      this.googleCalendarService.createLiveEvent({
+        spaceName: this.space.name,
+        date: this.customBookingDate,
+        startTime: this.customStartTime,
+        endTime: this.customEndTime,
+        code: this.confirmedBookingCode,
+        building: this.space.building,
+        location: this.space.address || `Phòng ${this.space.name}, ${this.space.building || 'UEL Space'}`
+      }, this.studentInfo.email).subscribe({
+        next: (ev) => console.log('Đã tự động đẩy sự kiện đặt chỗ vào Google Calendar:', ev),
+        error: (err) => console.warn('Lỗi khi đẩy sự kiện Google Calendar:', err)
+      });
+    }
 
     // Làm mới lại lịch sau khi đặt thành công
     this.refreshCalendarAndSlots();

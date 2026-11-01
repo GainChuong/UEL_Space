@@ -50,13 +50,79 @@ export class Home implements OnInit {
   selectedCapacity: string = 'all';
   selectedEquipment: string = 'all';
 
-  // 1. Check-in & Check-out State (2 time boxes)
-  checkInDate: string = 'Hôm nay';
+  // 1. Flexible Check-in & Check-out State
+  checkInDateStr: string = '2026-11-01';
+  checkInDateLabel: string = 'Hôm nay';
   checkInTime: string = '08:00';
-  checkOutDate: string = 'Hôm nay';
+
+  checkOutDateStr: string = '2026-11-01';
+  checkOutDateLabel: string = 'Hôm nay';
   checkOutTime: string = '17:00';
 
+  minSelectableDate: string = '2026-11-01';
+
+  checkInPresetOptions = [
+    { id: 'today', label: 'Hôm nay' },
+    { id: 'tomorrow', label: 'Ngày mai' },
+    { id: 'next_monday', label: 'Thứ 2 tới' },
+    { id: 'weekend', label: 'Cuối tuần' }
+  ];
+
+  checkOutPresetOptions = [
+    { id: 'same_day', label: 'Cùng ngày' },
+    { id: 'next_day', label: 'Hôm sau' },
+    { id: 'plus_2_days', label: '+2 ngày' },
+    { id: 'plus_1_week', label: '+1 tuần' }
+  ];
+
+  get checkInDate(): string {
+    return this.checkInDateLabel;
+  }
+  set checkInDate(val: string) {
+    this.checkInDateLabel = val;
+  }
+
+  get checkOutDate(): string {
+    return this.checkOutDateLabel;
+  }
+  set checkOutDate(val: string) {
+    this.checkOutDateLabel = val;
+  }
+
   dateOptions: string[] = ['Hôm nay', 'Ngày mai', 'Thứ 2 tới', 'Cuối tuần'];
+
+  formatDateToISO(d: Date): string {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  formatDisplayDate(dateStr: string): string {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return dateStr;
+  }
+
+  get checkInPillDisplay(): string {
+    const dStr = this.formatDisplayDate(this.checkInDateStr);
+    const todayStr = this.formatDateToISO(new Date());
+    if (this.checkInDateStr === todayStr) {
+      return `${this.checkInTime} • Hôm nay (${dStr.slice(0, 5)})`;
+    }
+    return `${this.checkInTime} • ${dStr}`;
+  }
+
+  get checkOutPillDisplay(): string {
+    const dStr = this.formatDisplayDate(this.checkOutDateStr);
+    if (this.checkOutDateStr === this.checkInDateStr) {
+      return `${this.checkOutTime} • Cùng ngày (${dStr.slice(0, 5)})`;
+    }
+    return `${this.checkOutTime} • ${dStr}`;
+  }
   timeOptions: string[] = [
     '07:00', '07:30', '08:00', '08:30', '09:00', '09:30',
     '10:00', '10:30', '11:00', '11:30', '12:00', '13:00',
@@ -108,7 +174,16 @@ export class Home implements OnInit {
   favorites: Set<string> = new Set<string>();
 
   ngOnInit() {
+    const today = new Date();
+    this.minSelectableDate = this.formatDateToISO(today);
+    this.checkInDateStr = this.minSelectableDate;
+    this.checkOutDateStr = this.minSelectableDate;
     this.suggestedGoogleSlots = this.googleCalendarService.getSuggestedSlots();
+    this.googleCalendarService.connectionStatus$.subscribe(st => {
+      this.googleCalendarStatus = st;
+      this.cdr.detectChanges();
+    });
+    this.syncCalendarData();
     // Pre-populate from the same rich dataset as the map tab for instant rendering
     this.spaces = getFallbackMarketplaceSpaces().map(s => normalizeSpace(s));
     this.loadSpaces();
@@ -180,9 +255,56 @@ export class Home implements OnInit {
   }
 
   // Check-in & Check-out Handlers
-  selectCheckInDate(date: string) {
-    this.checkInDate = date;
+  selectCheckInPreset(presetId: string) {
+    const base = new Date();
+    if (presetId === 'today') {
+      this.checkInDateStr = this.formatDateToISO(base);
+      this.checkInDateLabel = 'Hôm nay';
+    } else if (presetId === 'tomorrow') {
+      const d = new Date(base);
+      d.setDate(d.getDate() + 1);
+      this.checkInDateStr = this.formatDateToISO(d);
+      this.checkInDateLabel = 'Ngày mai';
+    } else if (presetId === 'next_monday') {
+      const d = new Date(base);
+      const day = d.getDay();
+      const diff = (day === 0 ? 1 : 8 - day);
+      d.setDate(d.getDate() + diff);
+      this.checkInDateStr = this.formatDateToISO(d);
+      this.checkInDateLabel = 'Thứ 2 tới';
+    } else if (presetId === 'weekend') {
+      const d = new Date(base);
+      const day = d.getDay();
+      const diff = (6 - day + 7) % 7 || 7;
+      d.setDate(d.getDate() + diff);
+      this.checkInDateStr = this.formatDateToISO(d);
+      this.checkInDateLabel = 'Cuối tuần';
+    }
+
+    if (this.checkOutDateStr < this.checkInDateStr) {
+      this.checkOutDateStr = this.checkInDateStr;
+      this.checkOutDateLabel = this.checkInDateLabel;
+    }
     this.onFilterChange();
+  }
+
+  onCustomCheckInDateChange(val: string) {
+    if (!val) return;
+    this.checkInDateStr = val;
+    this.checkInDateLabel = this.formatDisplayDate(val);
+    if (this.checkOutDateStr < this.checkInDateStr) {
+      this.checkOutDateStr = this.checkInDateStr;
+      this.checkOutDateLabel = this.checkInDateLabel;
+    }
+    this.onFilterChange();
+  }
+
+  selectCheckInDate(date: string) {
+    if (date === 'Hôm nay') this.selectCheckInPreset('today');
+    else if (date === 'Ngày mai') this.selectCheckInPreset('tomorrow');
+    else if (date === 'Thứ 2 tới') this.selectCheckInPreset('next_monday');
+    else if (date === 'Cuối tuần') this.selectCheckInPreset('weekend');
+    else this.onCustomCheckInDateChange(date);
   }
 
   selectCheckInTime(time: string) {
@@ -190,14 +312,59 @@ export class Home implements OnInit {
     this.onFilterChange();
   }
 
-  selectCheckOutDate(date: string) {
-    this.checkOutDate = date;
+  selectCheckOutPreset(presetId: string) {
+    const base = new Date(this.checkInDateStr || new Date());
+    if (presetId === 'same_day') {
+      this.checkOutDateStr = this.formatDateToISO(base);
+      this.checkOutDateLabel = 'Cùng ngày';
+    } else if (presetId === 'next_day') {
+      const d = new Date(base);
+      d.setDate(d.getDate() + 1);
+      this.checkOutDateStr = this.formatDateToISO(d);
+      this.checkOutDateLabel = 'Hôm sau';
+    } else if (presetId === 'plus_2_days') {
+      const d = new Date(base);
+      d.setDate(d.getDate() + 2);
+      this.checkOutDateStr = this.formatDateToISO(d);
+      this.checkOutDateLabel = '+2 ngày';
+    } else if (presetId === 'plus_1_week') {
+      const d = new Date(base);
+      d.setDate(d.getDate() + 7);
+      this.checkOutDateStr = this.formatDateToISO(d);
+      this.checkOutDateLabel = '+1 tuần';
+    }
     this.onFilterChange();
+  }
+
+  onCustomCheckOutDateChange(val: string) {
+    if (!val) return;
+    if (val < this.checkInDateStr) {
+      this.checkOutDateStr = this.checkInDateStr;
+    } else {
+      this.checkOutDateStr = val;
+    }
+    this.checkOutDateLabel = this.formatDisplayDate(this.checkOutDateStr);
+    this.onFilterChange();
+  }
+
+  selectCheckOutDate(date: string) {
+    if (date === 'Hôm nay' || date === 'Cùng ngày') this.selectCheckOutPreset('same_day');
+    else if (date === 'Ngày mai' || date === 'Hôm sau') this.selectCheckOutPreset('next_day');
+    else if (date === '+2 ngày') this.selectCheckOutPreset('plus_2_days');
+    else if (date === 'Cuối tuần' || date === '+1 tuần') this.selectCheckOutPreset('plus_1_week');
+    else this.onCustomCheckOutDateChange(date);
   }
 
   selectCheckOutTime(time: string) {
     this.checkOutTime = time;
     this.onFilterChange();
+  }
+
+  timeToMinutes(hhmm: string): number | null {
+    if (!hhmm || !hhmm.includes(':')) return null;
+    const [h, m] = hhmm.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return null;
+    return h * 60 + m;
   }
 
   // Capacity Stepper & Direct Typing Handlers
@@ -394,7 +561,59 @@ export class Home implements OnInit {
         matchEquipment = has('Bảng');
       }
 
-      return matchQuery && matchCapacity && matchEquipment;
+      // 4. Match Date (Continuity Check across all requested days)
+      let matchDate = true;
+      if (s.status === 'maintenance' || s.status === 'closed') {
+        return false;
+      }
+
+      if (this.checkInDateStr && s.availableDates && Array.isArray(s.availableDates)) {
+        const requestedDates: string[] = [];
+        const start = new Date(this.checkInDateStr);
+        const end = new Date(this.checkOutDateStr || this.checkInDateStr);
+        if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && start <= end) {
+          const cur = new Date(start);
+          while (cur <= end) {
+            requestedDates.push(this.formatDateToISO(cur));
+            cur.setDate(cur.getDate() + 1);
+          }
+        } else {
+          requestedDates.push(this.checkInDateStr);
+        }
+
+        matchDate = requestedDates.every(d => s.availableDates.includes(d));
+      }
+
+      // 5. Match Operating Hours
+      let matchHours = true;
+      if (s.operatingHours && s.operatingHours.open && s.operatingHours.close) {
+        const checkInMins = this.timeToMinutes(this.checkInTime);
+        const openMins = this.timeToMinutes(s.operatingHours.open);
+        const checkOutMins = this.timeToMinutes(this.checkOutTime);
+        const closeMins = this.timeToMinutes(s.operatingHours.close);
+
+        if (checkInMins !== null && openMins !== null && checkInMins < openMins) {
+          matchHours = false;
+        }
+        if (checkOutMins !== null && closeMins !== null && checkOutMins > closeMins) {
+          matchHours = false;
+        }
+      }
+
+      // 6. Match Booking Conflicts (Loại trừ phòng đã có người đặt trong ngày và khung giờ này)
+      let isBookedConflict = false;
+      if (this.bookingService) {
+        const check = this.bookingService.isSpaceBooked(
+          { id: s._id || s.id, code: s.code, name: s.name, slug: s.slug },
+          this.checkInDateStr,
+          this.checkOutDateStr,
+          this.checkInTime,
+          this.checkOutTime
+        );
+        isBookedConflict = check.isBooked;
+      }
+
+      return matchQuery && matchCapacity && matchEquipment && matchDate && matchHours && !isBookedConflict;
     });
   }
 
@@ -452,9 +671,12 @@ export class Home implements OnInit {
     this.searchQuery = '';
     this.selectedDateFilter = 'Hôm nay';
     this.selectedTimeSlot = '08:00 - 17:00';
-    this.checkInDate = 'Hôm nay';
+    const today = new Date();
+    this.checkInDateStr = this.formatDateToISO(today);
+    this.checkInDateLabel = 'Hôm nay';
     this.checkInTime = '08:00';
-    this.checkOutDate = 'Hôm nay';
+    this.checkOutDateStr = this.formatDateToISO(today);
+    this.checkOutDateLabel = 'Hôm nay';
     this.checkOutTime = '17:00';
     this.capacityCount = 0;
     this.selectedCapacity = 'all';
@@ -477,6 +699,8 @@ export class Home implements OnInit {
   customDurationHours: number = 2;
   googleEmbedSafeUrl: SafeResourceUrl | null = null;
   suggestedGoogleSlots: any[] = [];
+  googleCalendarStatus: { isConnected: boolean; email?: string } = { isConnected: false };
+  isSyncingCalendar: boolean = false;
 
   studentInfo = {
     name: 'Nguyễn Minh Quân',
@@ -559,6 +783,39 @@ export class Home implements OnInit {
     this.customEndTime = slot.end;
     this.customDurationHours = slot.hours;
     this.onTimeOrDateChange();
+  }
+
+  async syncCalendarData(): Promise<void> {
+    this.isSyncingCalendar = true;
+    try {
+      await this.googleCalendarService.syncLiveSchedule(this.customBookingDate);
+      this.suggestedGoogleSlots = this.googleCalendarService.getSuggestedSlots(this.customBookingDate);
+    } catch (e) {
+      console.warn('Sync calendar error:', e);
+    } finally {
+      this.isSyncingCalendar = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  async connectGoogleCalendar(): Promise<void> {
+    this.isSyncingCalendar = true;
+    try {
+      const res = await this.googleCalendarService.openGoogleAuthPopup();
+      if (res.success) {
+        await this.syncCalendarData();
+      }
+    } finally {
+      this.isSyncingCalendar = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  disconnectGoogleCalendar(): void {
+    if (!confirm('Bạn có chắc chắn muốn ngắt kết nối Google Calendar?')) return;
+    this.googleCalendarService.disconnect().subscribe(() => {
+      this.syncCalendarData();
+    });
   }
 
   openGoogleCalendarExternal(): void {
@@ -658,10 +915,14 @@ export class Home implements OnInit {
           const dur = this.customDurationHours || 2;
           this.bookingService.addBooking({
             id: code,
+            spaceId: this.selectedRoomDetail._id || this.selectedRoomDetail.id || this.selectedRoomDetail.code,
             roomName: this.selectedRoomDetail.name,
             building: this.selectedRoomDetail.building,
             roomType: this.selectedRoomDetail.spaceType || 'Phòng học / Văn phòng',
             date: this.customBookingDate,
+            endDate: this.customBookingDate,
+            startTime: this.customStartTime,
+            endTime: this.customEndTime,
             timeSlot: `${this.customStartTime} - ${this.customEndTime}`,
             purpose: 'Làm việc & Học tập trên UEL Space',
             capacity: this.selectedRoomDetail.capacity || 10,

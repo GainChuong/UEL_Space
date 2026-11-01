@@ -270,7 +270,7 @@
               <div class="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
                 @for (n of (settingsService.notifications$ | async); track n.id) {
                   @if (activeNotifTab === 'all' || !n.read) {
-                    <div (click)="markAsRead(n.id, $event)"
+                    <div (click)="markAsRead(n.id, $event, n.link)"
                          [class]="n.read ? 'bg-white dark:bg-slate-900 opacity-75' : 'bg-uel-blue/[0.03] dark:bg-sky-400/[0.05]'"
                          class="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer flex items-start gap-3">
                       
@@ -1227,14 +1227,14 @@
                     </td>
                     <td class="py-3.5 px-4 text-slate-600 dark:text-slate-300 font-medium">{{u.email}}</td>
                     <td class="py-3.5 px-4">
-                      @if (u.role === 'SELLER_OWNER' || u.role === 'ADMIN') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-900 text-white dark:bg-sky-400 dark:text-slate-900">{{ 'Chủ Gian Hàng (Host)' | t }}</span>
+                      @if (u.role === 'ADMIN') {
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-900 text-white dark:bg-sky-400 dark:text-slate-900">{{ 'Quản trị viên (Admin)' | t }}</span>
                       }
-                      @if (u.role === 'SELLER_STAFF' || u.role === 'SPACE_MANAGER') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 border border-uel-blue/20">{{ 'Nhân viên Vận hành' | t }}</span>
+                      @if (u.role === 'SELLER') {
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 border border-uel-blue/20">{{ 'Chủ không gian (Seller)' | t }}</span>
                       }
-                      @if (u.role === 'CUSTOMER' || u.role === 'LECTURER' || u.role === 'STUDENT') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">{{ 'Khách thuê Space' | t }}</span>
+                      @if (u.role === 'BUYER') {
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">{{ 'Khách thuê (Buyer)' | t }}</span>
                       }
                     </td>
                     <td class="py-3.5 px-4 text-slate-600 dark:text-slate-300">{{ u.organization | t }}</td>
@@ -1722,24 +1722,13 @@
                   </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                  <!-- AI Engine Mode Switcher: Option B (YOLOv11 Server AI) vs Client Edge AI -->
-                  <div class="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-[11px]">
-                    <button type="button" (click)="setOccEngineMode('server')" 
-                            [class]="occEngineMode === 'server' ? 'bg-emerald-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
-                            class="px-2.5 py-1 rounded-lg transition-all cursor-pointer font-bold flex items-center gap-1.5"
-                            title="YOLOv11 SOTA: Tối ưu cho mọi điện thoại, camera IP, nhận diện chính xác >98%">
-                      <span class="w-1.5 h-1.5 rounded-full" [class]="occServerStatus === 'online' ? 'bg-emerald-300 animate-pulse' : (occServerStatus === 'offline' ? 'bg-rose-400' : 'bg-amber-400')"></span>
-                      <span>{{ 'Server AI (YOLOv11)' | t }}</span>
-                      @if (occEngineMode === 'server' && occServerLatencyMs > 0) {
-                        <span class="text-[9px] opacity-85 font-mono">({{occServerLatencyMs}}ms)</span>
-                      }
-                    </button>
-                    <button type="button" (click)="setOccEngineMode('client')" 
-                            [class]="occEngineMode === 'client' ? 'bg-uel-blue dark:bg-sky-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
-                            class="px-2.5 py-1 rounded-lg transition-all cursor-pointer font-bold flex items-center gap-1.5"
-                            title="Edge AI: Xử lý cục bộ trên trình duyệt thiết bị hiện tại">
-                      <span>{{ 'Client Edge AI' | t }}</span>
-                    </button>
+                  <!-- AI Engine Indicator: Pure YOLO26 Server AI -->
+                  <div class="inline-flex items-center gap-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 px-3 py-1.5 rounded-xl border border-emerald-500/30 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                    <span class="w-2 h-2 rounded-full" [class]="occServerStatus === 'online' ? 'bg-emerald-500 animate-pulse' : (occServerStatus === 'offline' ? 'bg-rose-500' : 'bg-amber-500')"></span>
+                    <span>YOLO26 Pure Server AI</span>
+                    @if (occServerLatencyMs > 0) {
+                      <span class="text-[9px] opacity-85 font-mono">({{occServerLatencyMs}}ms)</span>
+                    }
                   </div>
 
                   <!-- Active Model Tag -->

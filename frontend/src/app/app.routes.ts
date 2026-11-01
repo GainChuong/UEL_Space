@@ -8,10 +8,12 @@ import { Admin } from './components/admin/admin';
 import { SellerDashboard } from './components/seller-dashboard/seller-dashboard';
 import { SpaceDetailComponent } from './components/space-detail/space-detail';
 import { SellerDetailComponent } from './components/seller-detail/seller-detail';
+import { CalendarCallbackComponent } from './components/calendar-callback/calendar-callback';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', component: Home, canActivate: [authGuard] },
+  { path: 'calendar-callback', component: CalendarCallbackComponent },
   { path: 'map', component: Map, canActivate: [authGuard] },
   { path: 'spaces/:id', component: SpaceDetailComponent, canActivate: [authGuard] },
   { path: 'sellers/:id', component: SellerDetailComponent, canActivate: [authGuard] },

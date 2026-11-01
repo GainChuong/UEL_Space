@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     region: singapore
-    rootDir: my-server
+    rootDir: my-server-mongodb
     buildCommand: npm install
     startCommand: node index.js
     envVars:

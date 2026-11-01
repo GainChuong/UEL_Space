@@ -1,4 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { map, tap, catchError } from 'rxjs/operators';
+import { SERVER_BASE_URL } from './api-config';
+import { SettingsService } from './settings.service';
 
 export interface CalendarEventData {
   title?: string;
@@ -40,10 +45,270 @@ export interface SuggestedTimeSlot {
   reason?: string;
 }
 
+export interface GoogleCalendarStatus {
+  isConnected: boolean;
+  email?: string;
+  updatedAt?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class GoogleCalendarService {
+  private http = inject(HttpClient);
+  private settingsService = inject(SettingsService);
+
+  // Trạng thái kết nối Google Calendar thời gian thực
+  public connectionStatus$ = new BehaviorSubject<GoogleCalendarStatus>({ isConnected: false });
+  // Bộ nhớ đệm các sự kiện bận thật từ Google Calendar theo ngày: { "2026-11-01": [...] }
+  private liveEventsCache = new Map<string, UserCalendarEvent[]>();
+  public isLoadingLiveEvents$ = new BehaviorSubject<boolean>(false);
+
+  constructor() {
+    // Tự động kiểm tra trạng thái kết nối khi khởi tạo dịch vụ
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        this.checkConnectionStatus().subscribe();
+      }, 500);
+    }
+  }
+
+  /**
+   * Lấy email tài khoản hiện tại của người dùng
+   */
+  public getCurrentUserEmail(): string {
+    try {
+      const user = this.settingsService.currentUser;
+      if (user?.email) return user.email.trim().toLowerCase();
+    } catch {}
+    if (typeof window !== 'undefined') {
+      try {
+        const uStr = localStorage.getItem('uel_current_user') || localStorage.getItem('currentUser');
+        if (uStr) {
+          const u = JSON.parse(uStr);
+          if (u.email) return u.email.trim().toLowerCase();
+        }
+      } catch {}
+    }
+    return 'giangnntk24411@st.uel.edu.vn';
+  }
+
+  /**
+   * 1. Kiểm tra trạng thái đồng bộ Google Calendar từ Backend MongoDB
+   */
+  checkConnectionStatus(email?: string): Observable<GoogleCalendarStatus> {
+    const userEmail = email || this.getCurrentUserEmail();
+    if (!userEmail) {
+      return of({ isConnected: false });
+    }
+
+    return this.http.get<any>(`${SERVER_BASE_URL}/api/calendar/status?email=${encodeURIComponent(userEmail)}`).pipe(
+      map(res => {
+        const status: GoogleCalendarStatus = {
+          isConnected: !!res?.isConnected,
+          email: res?.email || userEmail,
+          updatedAt: res?.updatedAt
+        };
+        this.connectionStatus$.next(status);
+        return status;
+      }),
+      catchError(err => {
+        console.warn('Cannot check Google Calendar status:', err);
+        return of({ isConnected: false });
+      })
+    );
+  }
+
+  /**
+   * 2. Lấy URL ủy quyền Google OAuth 2.0 từ Backend
+   */
+  getConnectUrl(redirectUri?: string, email?: string): Observable<{ success: boolean; authUrl: string }> {
+    const userEmail = email || this.getCurrentUserEmail();
+    const uri = redirectUri || (typeof window !== 'undefined' ? `${window.location.origin}/calendar-callback` : 'http://localhost:4200/calendar-callback');
+    return this.http.get<any>(`${SERVER_BASE_URL}/api/calendar/connect-url?redirect_uri=${encodeURIComponent(uri)}&email=${encodeURIComponent(userEmail)}`);
+  }
+
+  /**
+   * 3. Mở popup đăng nhập và cấp quyền Google Calendar (One-click Connect)
+   */
+  openGoogleAuthPopup(email?: string): Promise<{ success: boolean; message?: string }> {
+    return new Promise((resolve) => {
+      const userEmail = email || this.getCurrentUserEmail();
+      const redirectUri = typeof window !== 'undefined' ? `${window.location.origin}/calendar-callback` : 'http://localhost:4200/calendar-callback';
+
+      this.getConnectUrl(redirectUri, userEmail).subscribe({
+        next: (res) => {
+          if (!res.success || !res.authUrl) {
+            resolve({ success: false, message: 'Không lấy được URL xác thực Google.' });
+            return;
+          }
+
+          if (typeof window === 'undefined') {
+            resolve({ success: false, message: 'Môi trường SSR không hỗ trợ mở cửa sổ.' });
+            return;
+          }
+
+          const width = 560;
+          const height = 680;
+          const left = window.screen.width / 2 - width / 2;
+          const top = window.screen.height / 2 - height / 2;
+
+          const popup = window.open(
+            res.authUrl,
+            'uel_google_calendar_auth',
+            `width=${width},height=${height},top=${top},left=${left},status=no,toolbar=no,menubar=no`
+          );
+
+          if (!popup) {
+            // Popup bị chặn bởi trình duyệt -> Chuyển hướng trực tiếp
+            window.location.href = res.authUrl;
+            return;
+          }
+
+          // Lắng nghe tín hiệu postMessage từ tab callback
+          const messageHandler = (event: MessageEvent) => {
+            if (event.data && event.data.type === 'GOOGLE_CALENDAR_CONNECTED') {
+              window.removeEventListener('message', messageHandler);
+              clearInterval(pollInterval);
+              this.checkConnectionStatus(userEmail).subscribe({
+                next: () => resolve({ success: true }),
+                error: () => resolve({ success: true })
+              });
+            }
+          };
+          window.addEventListener('message', messageHandler);
+
+          // Polling phát hiện đóng cửa sổ
+          const pollInterval = setInterval(() => {
+            if (popup.closed) {
+              clearInterval(pollInterval);
+              window.removeEventListener('message', messageHandler);
+              // Kiểm tra trạng thái hoàn tất sau khi popup đóng
+              setTimeout(() => {
+                this.checkConnectionStatus(userEmail).subscribe({
+                  next: (st) => resolve({ success: st.isConnected }),
+                  error: () => resolve({ success: false })
+                });
+              }, 600);
+            }
+          }, 1200);
+        },
+        error: (err) => {
+          resolve({ success: false, message: err?.message || 'Lỗi kết nối máy chủ UEL Space' });
+        }
+      });
+    });
+  }
+
+  /**
+   * 4. Trao đổi Authorization Code lấy Tokens (gọi bởi trang callback)
+   */
+  exchangeCode(code: string, redirectUri?: string, email?: string): Observable<any> {
+    const userEmail = email || this.getCurrentUserEmail();
+    const uri = redirectUri || (typeof window !== 'undefined' ? `${window.location.origin}/calendar-callback` : 'http://localhost:4200/calendar-callback');
+    return this.http.post<any>(`${SERVER_BASE_URL}/api/calendar/callback`, {
+      code,
+      redirectUri: uri,
+      email: userEmail
+    }).pipe(
+      tap(res => {
+        if (res && res.success) {
+          this.connectionStatus$.next({
+            isConnected: true,
+            email: res.email || userEmail
+          });
+        }
+      })
+    );
+  }
+
+  /**
+   * 5. Hủy liên kết Google Calendar
+   */
+  disconnect(email?: string): Observable<any> {
+    const userEmail = email || this.getCurrentUserEmail();
+    return this.http.post<any>(`${SERVER_BASE_URL}/api/calendar/disconnect`, { email: userEmail }).pipe(
+      tap(() => {
+        this.connectionStatus$.next({ isConnected: false });
+        this.liveEventsCache.clear();
+      })
+    );
+  }
+
+  /**
+   * 6. Truy vấn lịch bận FreeBusy thực tế từ Google Calendar API qua Backend
+   */
+  fetchLiveFreeBusy(dateStr?: string, email?: string): Observable<{ success: boolean; isConnected: boolean; busySlots: any[] }> {
+    const targetDate = dateStr || new Date().toISOString().split('T')[0];
+    const userEmail = email || this.getCurrentUserEmail();
+
+    if (!userEmail) {
+      return of({ success: false, isConnected: false, busySlots: [] });
+    }
+
+    this.isLoadingLiveEvents$.next(true);
+
+    return this.http.get<any>(`${SERVER_BASE_URL}/api/calendar/freebusy?date=${encodeURIComponent(targetDate)}&email=${encodeURIComponent(userEmail)}`).pipe(
+      tap(res => {
+        this.isLoadingLiveEvents$.next(false);
+        if (res && res.isConnected) {
+          this.connectionStatus$.next({
+            isConnected: true,
+            email: res.email || userEmail
+          });
+
+          const liveEvents: UserCalendarEvent[] = (res.busySlots || []).map((slot: any) => ({
+            id: slot.id || `gcal-${Math.random()}`,
+            title: slot.title || 'Lịch bận Google Calendar',
+            time: slot.time || `${slot.start} - ${slot.end}`,
+            start: slot.start,
+            end: slot.end,
+            date: targetDate,
+            type: 'google-calendar-event',
+            isBusy: true,
+            organizer: res.email || userEmail
+          }));
+
+          this.liveEventsCache.set(targetDate, liveEvents);
+        }
+      }),
+      catchError(err => {
+        this.isLoadingLiveEvents$.next(false);
+        console.warn('Lỗi khi truy vấn Google Calendar FreeBusy:', err);
+        return of({ success: false, isConnected: false, busySlots: [] });
+      })
+    );
+  }
+
+  /**
+   * 7. Đồng bộ lịch trực tiếp và trả về Promise danh sách sự kiện
+   */
+  async syncLiveSchedule(dateStr?: string, email?: string): Promise<UserCalendarEvent[]> {
+    const targetDate = dateStr || new Date().toISOString().split('T')[0];
+    const userEmail = email || this.getCurrentUserEmail();
+
+    return new Promise((resolve) => {
+      this.fetchLiveFreeBusy(targetDate, userEmail).subscribe({
+        next: () => {
+          resolve(this.getUserEventsForDate(targetDate, userEmail));
+        },
+        error: () => {
+          resolve(this.getUserEventsForDate(targetDate, userEmail));
+        }
+      });
+    });
+  }
+
+  /**
+   * 8. Tự động đẩy sự kiện Đặt phòng vào Google Calendar của người dùng (2-Way Live Sync)
+   */
+  createLiveEvent(booking: { spaceName: string; date: string; startTime: string; endTime: string; code?: string; building?: string; location?: string }, email?: string): Observable<any> {
+    const userEmail = email || this.getCurrentUserEmail();
+    return this.http.post<any>(`${SERVER_BASE_URL}/api/calendar/events`, {
+      email: userEmail,
+      bookingData: booking
+    });
+  }
 
   /**
    * Tính số giờ thuê thực tế giữa 2 mốc thời gian (VD: "08:00" đến "11:30" => 3.5 giờ)
@@ -54,7 +319,7 @@ export class GoogleCalendarService {
       const [eH, eM] = endTime.split(':').map(Number);
       const startMin = sH * 60 + (sM || 0);
       const endMin = eH * 60 + (eM || 0);
-      if (endMin <= startMin) return 1; // Tối thiểu 1 giờ
+      if (endMin <= startMin) return 1;
       const diffHours = (endMin - startMin) / 60;
       return Math.round(diffHours * 10) / 10;
     } catch {
@@ -63,60 +328,10 @@ export class GoogleCalendarService {
   }
 
   /**
-   * Tạo URL thêm sự kiện 1-Click vào Google Calendar Web / Mobile App
-   */
-  generateGoogleCalendarUrl(event: CalendarEventData): string {
-    const title = event.title || `[UEL Space] Thuê ${event.roomName} - ${event.purpose || 'Hội họp & Làm việc'}`;
-    const location = event.location || `Phòng ${event.roomName}, ${event.building || 'Tòa nhà văn phòng đối tác'}, Hệ thống UEL Space, TP.HCM`;
-    
-    const details = event.details || [
-      `🏢 Nền tảng: UEL Space - Smart Office Sharing & Rental Platform`,
-      `📍 Không gian: ${event.roomName} (${event.building || 'Tòa nhà đối tác'})`,
-      `🎟️ Mã đặt chỗ: ${event.code || 'UEL-88392'}`,
-      `👤 Khách thuê / Doanh nghiệp: ${event.bookerName || 'Khách thuê UEL Space Member'}`,
-      `⏰ Khung giờ thuê: ${event.timeSlot || 'Khung giờ linh hoạt'}`,
-      `📌 Mục đích: ${event.purpose || 'Làm việc, hội họp hoặc tổ chức sự kiện'}`,
-      `---------------------------------------`,
-      `⚠️ LƯU Ý CHECK-IN & GIÁM SÁT AI OCCUPANCY:`,
-      `• Vui lòng quét mã QR tại cửa phòng để xác nhận hiện diện khi nhận phòng.`,
-      `• Hệ thống AI Occupancy tự động giám sát số lượng thực tế, cảnh báo quá giờ và hỗ trợ trả phòng sớm giải phóng chỗ.`
-    ].join('\n');
-
-    const { startFormatted, endFormatted } = this.formatCalendarDates(event.date, event.timeSlot);
-
-    const baseUrl = 'https://calendar.google.com/calendar/render';
-    const params = new URLSearchParams({
-      action: 'TEMPLATE',
-      text: title,
-      dates: `${startFormatted}/${endFormatted}`,
-      details: details,
-      location: location,
-      sf: 'true',
-      output: 'xml'
-    });
-
-    return `${baseUrl}?${params.toString()}`;
-  }
-
-  /**
-   * Tạo URL nhúng trực tiếp Google Calendar View
-   */
-  generateEmbedUrl(userOrRoom?: string, mode: 'AGENDA' | 'WEEK' | 'MONTH' = 'AGENDA', targetDate?: string): string {
-    // URL nhúng chính thức của Google Calendar với timezone chuẩn Việt Nam Asia/Ho_Chi_Minh
-    const baseSrc = encodeURIComponent('vi.vietnamese#holiday@group.v.calendar.google.com');
-    let url = `https://calendar.google.com/calendar/embed?src=${baseSrc}&ctz=Asia%2FHo_Chi_Minh&mode=${mode}&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=1&showCalendars=0&showTz=0`;
-    if (targetDate) {
-      // dates=YYYYMM01/YYYYMM28
-      const cleaned = targetDate.replace(/-/g, '');
-      if (cleaned.length >= 8) {
-        url += `&dates=${cleaned}/${cleaned}`;
-      }
-    }
-    return url;
-  }
-
-  /**
    * Lấy danh sách sự kiện lịch trình thực tế của người dùng theo ngày được chọn
+   * Ưu tiên 1: Dữ liệu thời gian thực từ Google Calendar API (nếu đã kết nối)
+   * Ưu tiên 2: Sự kiện đặt phòng trước đó lưu tại LocalStorage
+   * Ưu tiên 3: Lịch mẫu thực tế của sinh viên/doanh nhân (Fallback offline)
    */
   getUserEventsForDate(dateStr?: string, userEmail?: string): UserCalendarEvent[] {
     const todayStr = new Date().toISOString().split('T')[0];
@@ -135,13 +350,18 @@ export class GoogleCalendarService {
       }
     }
 
-    // 2. Sinh lịch trình thực tế chuẩn của sinh viên/doanh nhân theo thứ trong tuần
+    // 2. NẾU ĐÃ CÓ DỮ LIỆU ĐỒNG BỘ THỜI GIAN THỰC TỪ GOOGLE CALENDAR
+    if (this.liveEventsCache.has(targetDate)) {
+      const liveEvents = this.liveEventsCache.get(targetDate) || [];
+      return [...liveEvents, ...userCustomEvents];
+    }
+
+    // 3. FALLBACK THỰC TẾ: Sinh lịch trình của sinh viên/doanh nhân theo thứ trong tuần khi chưa kết nối
     const parsedDate = new Date(targetDate);
-    const dayOfWeek = isNaN(parsedDate.getTime()) ? 1 : parsedDate.getDay(); // 0: CN, 1: T2, ..., 6: T7
+    const dayOfWeek = isNaN(parsedDate.getTime()) ? 1 : parsedDate.getDay();
 
     let baseEvents: UserCalendarEvent[] = [];
     if (dayOfWeek === 0 || dayOfWeek === 6) {
-      // Cuối tuần: sáng có workshop/tự học, chiều tối tự do
       baseEvents = [
         {
           id: 'ev-wk-1',
@@ -183,7 +403,6 @@ export class GoogleCalendarService {
         }
       ];
     } else if (dayOfWeek === 2 || dayOfWeek === 4) {
-      // Thứ 3 & Thứ 5: Giảng đường & Họp chuyên môn
       baseEvents = [
         {
           id: 'ev-t3-1',
@@ -236,7 +455,6 @@ export class GoogleCalendarService {
         }
       ];
     } else {
-      // Thứ 2, 4, 6: Lịch điều hành & Quỹ đầu tư
       baseEvents = [
         {
           id: 'ev-t2-1',
@@ -290,7 +508,6 @@ export class GoogleCalendarService {
       ];
     }
 
-    // Kết hợp các sự kiện đặt phòng từ trước của người dùng vào danh sách
     return [...baseEvents, ...userCustomEvents];
   }
 
@@ -349,7 +566,6 @@ export class GoogleCalendarService {
       const pStart = toMinutes(preset.start);
       const pEnd = toMinutes(preset.end);
 
-      // Kiểm tra xem ca này có giao với sự kiện bận nào trong Google Calendar không
       const conflict = busyEvents.find(ev => {
         const evStart = toMinutes(ev.start);
         const evEnd = toMinutes(ev.end);
@@ -410,6 +626,57 @@ export class GoogleCalendarService {
     }
 
     return { hasConflict: false, reason: '' };
+  }
+
+  /**
+   * Tạo URL thêm sự kiện 1-Click vào Google Calendar Web / Mobile App
+   */
+  generateGoogleCalendarUrl(event: CalendarEventData): string {
+    const title = event.title || `[UEL Space] Thuê ${event.roomName} - ${event.purpose || 'Hội họp & Làm việc'}`;
+    const location = event.location || `Phòng ${event.roomName}, ${event.building || 'Tòa nhà văn phòng đối tác'}, Hệ thống UEL Space, TP.HCM`;
+    
+    const details = event.details || [
+      `🏢 Nền tảng: UEL Space - Smart Office Sharing & Rental Platform`,
+      `📍 Không gian: ${event.roomName} (${event.building || 'Tòa nhà đối tác'})`,
+      `🎟️ Mã đặt chỗ: ${event.code || 'UEL-88392'}`,
+      `👤 Khách thuê / Doanh nghiệp: ${event.bookerName || 'Khách thuê UEL Space Member'}`,
+      `⏰ Khung giờ thuê: ${event.timeSlot || 'Khung giờ linh hoạt'}`,
+      `📌 Mục đích: ${event.purpose || 'Làm việc, hội họp hoặc tổ chức sự kiện'}`,
+      `---------------------------------------`,
+      `⚠️ LƯU Ý CHECK-IN & GIÁM SÁT AI OCCUPANCY:`,
+      `• Vui lòng quét mã QR tại cửa phòng để xác nhận hiện diện khi nhận phòng.`,
+      `• Hệ thống AI Occupancy tự động giám sát số lượng thực tế, cảnh báo quá giờ và hỗ trợ trả phòng sớm giải phóng chỗ.`
+    ].join('\n');
+
+    const { startFormatted, endFormatted } = this.formatCalendarDates(event.date, event.timeSlot);
+
+    const baseUrl = 'https://calendar.google.com/calendar/render';
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: title,
+      dates: `${startFormatted}/${endFormatted}`,
+      details: details,
+      location: location,
+      sf: 'true',
+      output: 'xml'
+    });
+
+    return `${baseUrl}?${params.toString()}`;
+  }
+
+  /**
+   * Tạo URL nhúng trực tiếp Google Calendar View
+   */
+  generateEmbedUrl(userOrRoom?: string, mode: 'AGENDA' | 'WEEK' | 'MONTH' = 'AGENDA', targetDate?: string): string {
+    const baseSrc = encodeURIComponent('vi.vietnamese#holiday@group.v.calendar.google.com');
+    let url = `https://calendar.google.com/calendar/embed?src=${baseSrc}&ctz=Asia%2FHo_Chi_Minh&mode=${mode}&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=1&showCalendars=0&showTz=0`;
+    if (targetDate) {
+      const cleaned = targetDate.replace(/-/g, '');
+      if (cleaned.length >= 8) {
+        url += `&dates=${cleaned}/${cleaned}`;
+      }
+    }
+    return url;
   }
 
   /**
@@ -474,13 +741,11 @@ export class GoogleCalendarService {
     
     if (dateStr) {
       if (dateStr.includes('/')) {
-        // DD/MM/YYYY
         const parts = dateStr.split('/');
         if (parts.length === 3) {
           targetDate = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
         }
       } else if (dateStr.includes('-')) {
-        // YYYY-MM-DD
         const parts = dateStr.split('-');
         if (parts.length === 3) {
           targetDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
@@ -494,7 +759,6 @@ export class GoogleCalendarService {
     let endMin = 0;
 
     if (timeSlot) {
-      // Chuẩn hóa dạng: "08:00 - 11:30" hoặc "07:00 -> 11h00"
       const cleaned = timeSlot.replace('->', '-').replace(/h/g, ':');
       const timeParts = cleaned.split('-');
       if (timeParts.length >= 2) {

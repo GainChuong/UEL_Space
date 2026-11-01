@@ -39,6 +39,39 @@ export function createSpaceSlug(space: any): string {
   return `${nameSlug}-${cleanCode}`;
 }
 
+/**
+ * Sinh danh sách ngày khả dụng 60 ngày tới chuẩn YYYY-MM-DD làm fallback nếu space chưa có sẵn
+ */
+export function getDefaultAvailableDates(seedId: string = 'space', spaceType: string = ''): string[] {
+  let hash = 0;
+  for (let i = 0; i < seedId.length; i++) {
+    hash = (hash << 5) - hash + seedId.charCodeAt(i);
+    hash |= 0;
+  }
+  hash = Math.abs(hash);
+
+  const typeLower = (spaceType || '').toLowerCase();
+  const isWeekdayOnly = typeLower.includes('office') || typeLower.includes('văn phòng') || (hash % 5 === 0);
+  const maintenanceDay1 = (hash % 25) + 2;
+  const maintenanceDay2 = (hash % 15) + 30;
+
+  const dates: string[] = [];
+  const start = new Date('2026-11-01');
+  for (let i = 0; i < 60; i++) {
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    const dayOfWeek = d.getDay();
+    if (isWeekdayOnly && (dayOfWeek === 0 || dayOfWeek === 6)) continue;
+    if (i === maintenanceDay1 || i === maintenanceDay2) continue;
+
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    dates.push(`${yyyy}-${mm}-${dd}`);
+  }
+  return dates;
+}
+
 export function normalizeSpace(space: any) {
     const rawStatus = (space.statusKey || space.status || 'AVAILABLE').toString().toUpperCase();
     let normStatus = 'available';
@@ -113,6 +146,9 @@ export function normalizeSpace(space: any) {
       images: (space.images && space.images.length > 0) ? space.images : [space.image || 'spaces/indoor_meeting_room_1.jpg'],
       facilities: facilitiesList,
       tags: space.tags || ['SuperHost', 'AI Occupancy', 'Đặt tức thì'],
+      availableDates: (Array.isArray(space.availableDates) && space.availableDates.length > 0)
+        ? space.availableDates
+        : getDefaultAvailableDates(space._id || space.id || space.code || 'space-item', space.spaceType || space.type || ''),
       dataset: datasetInfo,
       datasetCategory: datasetInfo.category,
       currentActivity: space.currentActivity || (normStatus === 'in-use' ? 'Đang có doanh nghiệp đối tác họp chiến lược' : 'Không gian hiện hoàn toàn trống, sẵn sàng tiếp nhận đặt chỗ ngay'),

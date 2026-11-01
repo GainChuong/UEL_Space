@@ -56,26 +56,46 @@
     <div class="max-w-md w-full mx-auto my-auto">
       
       <!-- Header of Card -->
-      <div class="mb-6">
-        <h2 class="text-3xl font-black text-dark-text dark:text-white tracking-tight mb-2">{{ 'Đăng nhập' | t }}</h2>
-        <p class="text-sm font-medium text-text-muted dark:text-slate-400">{{ 'Khám phá và đặt chỗ văn phòng, phòng họp hoặc quản lý không gian của bạn trên UEL Space.' | t }}</p>
+      <div class="mb-5">
+        <div class="flex items-center gap-3 border-b border-border-gray dark:border-slate-800 pb-3 mb-3">
+          <button type="button" 
+                  (click)="authMode = 'login'; errorMessage = ''; successMessage = ''"
+                  [ngClass]="authMode === 'login' ? 'text-uel-blue dark:text-sky-400 border-b-2 border-uel-blue font-black' : 'text-text-muted dark:text-slate-400 font-bold hover:text-dark-text'"
+                  class="pb-2 text-2xl tracking-tight transition-all cursor-pointer">
+            {{ 'Đăng nhập' | t }}
+          </button>
+          <span class="text-slate-300 dark:text-slate-600 font-light text-2xl">/</span>
+          <button type="button" 
+                  (click)="authMode = 'register'; errorMessage = ''; successMessage = ''"
+                  [ngClass]="authMode === 'register' ? 'text-uel-blue dark:text-sky-400 border-b-2 border-uel-blue font-black' : 'text-text-muted dark:text-slate-400 font-bold hover:text-dark-text'"
+                  class="pb-2 text-2xl tracking-tight transition-all cursor-pointer">
+            {{ 'Đăng ký tài khoản' | t }}
+          </button>
+        </div>
+        <p class="text-xs font-medium text-text-muted dark:text-slate-400">
+          @if (authMode === 'login') {
+            {{ 'Khám phá và đặt chỗ văn phòng, phòng họp hoặc quản lý không gian của bạn trên UEL Space.' | t }}
+          } @else {
+            {{ 'Đăng ký tài khoản mới miễn phí (hỗ trợ @gmail.com hoặc email sinh viên @st.uel.edu.vn).' | t }}
+          }
+        </p>
       </div>
 
       <!-- Portal Type Badge / Switcher -->
       <div class="bg-bg-gray dark:bg-slate-800 p-1 rounded-2xl border border-border-gray dark:border-slate-700 flex items-center mb-6">
         <button type="button" 
-                (click)="portalRole = 'student'"
-                [ngClass]="portalRole === 'student' ? 'bg-white dark:bg-slate-700 text-uel-blue dark:text-sky-300 shadow-xs font-black' : 'text-text-muted dark:text-slate-400 font-bold hover:text-dark-text dark:hover:text-white'"
+                (click)="portalRole = 'buyer'"
+                [ngClass]="portalRole === 'buyer' ? 'bg-white dark:bg-slate-700 text-uel-blue dark:text-sky-300 shadow-xs font-black' : 'text-text-muted dark:text-slate-400 font-bold hover:text-dark-text dark:hover:text-white'"
                 class="flex-1 py-2 rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-          {{ 'Khách thuê / Doanh nghiệp' | t }}
+          {{ 'Khách thuê (Buyer)' | t }}
         </button>
         <button type="button" 
-                (click)="portalRole = 'lecturer'"
-                [ngClass]="portalRole === 'lecturer' ? 'bg-white dark:bg-slate-700 text-uel-blue dark:text-sky-300 shadow-xs font-black' : 'text-text-muted dark:text-slate-400 font-bold hover:text-dark-text dark:hover:text-white'"
+                (click)="portalRole = 'seller'"
+                [ngClass]="portalRole === 'seller' ? 'bg-white dark:bg-slate-700 text-uel-blue dark:text-sky-300 shadow-xs font-black' : 'text-text-muted dark:text-slate-400 font-bold hover:text-dark-text dark:hover:text-white'"
                 class="flex-1 py-2 rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M19 21v-4"/><path d="M19 17b2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v4"/><circle cx="12" cy="7" r="4"/></svg>
-          {{ 'Đối tác sở hữu không gian' | t }}
+          {{ 'Chủ không gian (Seller)' | t }}
         </button>
       </div>
 
@@ -103,23 +123,41 @@
       }
 
       <!-- Form Inputs -->
-      <form (ngSubmit)="handleLogin()" class="space-y-4">
+      <form (ngSubmit)="handleFormSubmit()" class="space-y-4">
         
+        <!-- Full Name (Only in Register Mode) -->
+        @if (authMode === 'register') {
+          <div>
+            <label class="block text-xs font-bold text-dark-text dark:text-white mb-2 flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="text-uel-blue dark:text-sky-400"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+              {{ 'Họ và tên' | t }}
+            </label>
+            <div class="relative">
+              <input type="text"
+                     [(ngModel)]="fullName"
+                     name="fullName"
+                     required
+                     [placeholder]="'Nhập họ và tên đầy đủ của bạn' | t"
+                     class="w-full bg-[#F8FAFC] dark:bg-slate-800 border border-[#CBD5E1] dark:border-slate-700 rounded-2xl px-4 py-3.5 text-sm font-semibold text-dark-text dark:text-white placeholder:text-[#94A3B8] dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:border-uel-blue focus:ring-2 focus:ring-uel-blue/20 transition-all shadow-xs">
+            </div>
+          </div>
+        }
+
         <!-- Username/Email Field -->
         <div>
           <label class="block text-xs font-bold text-dark-text dark:text-white mb-2 flex items-center justify-between">
             <span class="flex items-center gap-1.5">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="text-uel-blue dark:text-sky-400"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
-              {{ 'Tài khoản hoặc Email công ty' | t }}
+              {{ 'Địa chỉ Email' | t }}
             </span>
-            <span class="text-[11px] font-normal text-text-muted dark:text-slate-400">({{ 'Doanh nghiệp, cá nhân hoặc đối tác' | t }})</span>
+            <span class="text-[11px] font-normal text-text-muted dark:text-slate-400">(@gmail.com / @st.uel.edu.vn)</span>
           </label>
           <div class="relative">
-            <input type="text"
+            <input type="email"
                    [(ngModel)]="username"
                    name="username"
                    required
-                    [placeholder]="'Nhập email của bạn (VD: name@company.com)' | t"
+                   [placeholder]="'Nhập email của bạn (VD: yourname@gmail.com)' | t"
                    class="w-full bg-[#F8FAFC] dark:bg-slate-800 border border-[#CBD5E1] dark:border-slate-700 rounded-2xl px-4 py-3.5 text-sm font-semibold text-dark-text dark:text-white placeholder:text-[#94A3B8] dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:border-uel-blue focus:ring-2 focus:ring-uel-blue/20 transition-all shadow-xs">
           </div>
         </div>
@@ -135,7 +173,7 @@
                    [(ngModel)]="password"
                    name="password"
                    required
-                    [placeholder]="'Nhập mật khẩu' | t"
+                   [placeholder]="authMode === 'register' ? ('Tạo mật khẩu (tối thiểu 6 ký tự)' | t) : ('Nhập mật khẩu' | t)"
                    class="w-full bg-[#F8FAFC] dark:bg-slate-800 border border-[#CBD5E1] dark:border-slate-700 rounded-2xl pl-4 pr-11 py-3.5 text-sm font-semibold text-dark-text dark:text-white placeholder:text-[#94A3B8] dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:border-uel-blue focus:ring-2 focus:ring-uel-blue/20 transition-all shadow-xs">
             <button type="button" 
                     (click)="togglePasswordVisibility()" 
@@ -149,25 +187,45 @@
           </div>
         </div>
 
-        <!-- Options: Remember & Forgot -->
-        <div class="flex items-center justify-between text-xs pt-1 pb-2">
-          <label class="flex items-center gap-2 cursor-pointer select-none text-dark-text dark:text-white font-semibold">
-            <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe" class="w-4 h-4 rounded text-uel-blue accent-uel-blue border-border-gray dark:border-slate-600 cursor-pointer">
-            {{ 'Ghi nhớ đăng nhập' | t }}
-          </label>
-          <a href="#" class="font-bold text-uel-blue dark:text-sky-400 hover:text-uel-orange transition-colors">{{ 'Quên mật khẩu?' | t }}</a>
-        </div>
+        <!-- Confirm Password Field (Only in Register Mode) -->
+        @if (authMode === 'register') {
+          <div>
+            <label class="block text-xs font-bold text-dark-text dark:text-white mb-2 flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="text-uel-blue dark:text-sky-400"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              {{ 'Xác nhận lại mật khẩu' | t }}
+            </label>
+            <div class="relative">
+              <input [type]="showPassword ? 'text' : 'password'"
+                     [(ngModel)]="confirmPassword"
+                     name="confirmPassword"
+                     required
+                     [placeholder]="'Nhập lại mật khẩu vừa tạo' | t"
+                     class="w-full bg-[#F8FAFC] dark:bg-slate-800 border border-[#CBD5E1] dark:border-slate-700 rounded-2xl px-4 py-3.5 text-sm font-semibold text-dark-text dark:text-white placeholder:text-[#94A3B8] dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:border-uel-blue focus:ring-2 focus:ring-uel-blue/20 transition-all shadow-xs">
+            </div>
+          </div>
+        }
+
+        <!-- Options: Remember & Forgot (Only in Login Mode) -->
+        @if (authMode === 'login') {
+          <div class="flex items-center justify-between text-xs pt-1 pb-2">
+            <label class="flex items-center gap-2 cursor-pointer select-none text-dark-text dark:text-white font-semibold">
+              <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe" class="w-4 h-4 rounded text-uel-blue accent-uel-blue border-border-gray dark:border-slate-600 cursor-pointer">
+              {{ 'Ghi nhớ đăng nhập' | t }}
+            </label>
+            <a href="#" class="font-bold text-uel-blue dark:text-sky-400 hover:text-uel-orange transition-colors">{{ 'Quên mật khẩu?' | t }}</a>
+          </div>
+        }
 
         <!-- Submit Button -->
         <button type="submit" 
                 [disabled]="isLoading"
                 class="w-full bg-uel-blue hover:bg-[#002D57] active:bg-[#002244] text-white font-black py-3.5 rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 text-sm">
           @if (!isLoading) {
-            <span>{{ 'Đăng nhập' | t }}</span>
+            <span>{{ authMode === 'register' ? ('Tạo tài khoản & Đăng nhập ngay' | t) : ('Đăng nhập' | t) }}</span>
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
           } @else {
             <span class="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
-            <span>{{ 'Đang xác thực với máy chủ...' | t }}</span>
+            <span>{{ 'Đang xử lý dữ liệu với MongoDB Atlas...' | t }}</span>
           }
         </button>
 
@@ -202,7 +260,7 @@
             <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
             {{ 'Tài khoản Quản trị viên UEL Space' | t }}
           </div>
-          <div class="text-[11px] text-amber-700 dark:text-amber-400 font-mono mt-0.5">admin@uelspace.vn</div>
+          <div class="text-[11px] text-amber-700 dark:text-amber-400 font-mono mt-0.5">admin.uelspace@gmail.com</div>
         </div>
         <button type="button"
                 (click)="fillAdminMockup()"

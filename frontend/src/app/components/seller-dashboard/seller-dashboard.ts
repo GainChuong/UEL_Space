@@ -94,7 +94,7 @@ export interface AdminUser {
   code: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'SPACE_MANAGER' | 'LECTURER' | 'STUDENT' | 'SELLER_OWNER' | 'SELLER_STAFF' | 'CUSTOMER';
+  role: 'ADMIN' | 'SELLER' | 'BUYER';
   organization: string;
   status: 'ACTIVE' | 'SUSPENDED';
   bookingsCount: number;
@@ -182,9 +182,20 @@ export class SellerDashboard implements OnInit, OnDestroy {
     this.router.navigate(['/login']);
   }
 
-  markAsRead(id: string, event: Event): void {
+  markAsRead(id: string, event: Event, link?: string): void {
     event.stopPropagation();
     this.settingsService.markAsRead(id);
+    if (link) {
+      this.isNotificationOpen = false;
+      if (link.includes('seller') || link.includes('portal')) {
+        if (link.includes('booking') || link.includes('approval')) this.activeTab = 'approvals';
+        else if (link.includes('space')) this.activeTab = 'spaces';
+        else if (link.includes('exception')) this.activeTab = 'exceptions';
+        else if (link.includes('occupancy')) this.activeTab = 'occupancy-detection';
+      } else {
+        this.router.navigateByUrl(link);
+      }
+    }
   }
 
   markAllAsRead(event: Event): void {
@@ -244,9 +255,9 @@ export class SellerDashboard implements OnInit, OnDestroy {
       timestamp: '11/10/2026 09:05:14',
       bookingCode: 'UEL-BK-2026-083',
       spaceName: 'Phòng Họp A2.1',
-      bookerName: 'ThS. Lê Hoàng Long',
+      bookerName: 'Lê Hoàng Long',
       timeSlot: '09:00 - 11:00',
-      verifiedBy: 'admin@uel.edu.vn',
+      verifiedBy: 'admin@gmail.com',
       type: 'USB_SCANNER'
     }
   ];
@@ -254,7 +265,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
   // Seller / Partner Profile Mockup (Seller Center)
   adminUser = {
     name: 'Chủ Gian Hàng UEL Space Partner Hub',
-    email: 'seller.partner@uelspace.vn',
+    email: 'seller.partner@gmail.com',
     role: 'Chủ Không Gian / Đối Tác Cho Thuê (Space Host)',
     campus: 'Trụ sở UEL Space Hub - Khu Công nghệ cao TP. Thủ Đức',
     avatar: 'SH',
@@ -281,7 +292,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
   occModelLoaded: boolean = false;
   occModelLoading: boolean = false;
   occModelError: string = '';
-  occModelName: string = 'YOLOv11 Server AI (Sẵn sàng)';
+  occModelName: string = 'YOLO26 Server AI (Sẵn sàng)';
   occSensitivity: 'high' | 'normal' | 'strict' = 'high';
   occCameraActive: boolean = false;
   occStartingCamera: boolean = false;
@@ -291,15 +302,15 @@ export class SellerDashboard implements OnInit, OnDestroy {
   occConfidence: number = 0;
   occSelectedSpace: AdminSpace | null = null;
   occDetectionInterval: any = null;
-  occCocoModel: any = null;
+  // occCocoModel removed (pure YOLO26 Server AI)
   occHistory: OccupancySnapshot[] = [];
   occPeakCount: number = 0;
   occAvgCount: number = 0;
   occDetectionFps: number = 0;
   private faceDetector: any = null;
 
-  // Option B: SOTA YOLOv11 Server AI Engine State
-  occEngineMode: 'server' | 'client' = 'server';
+  // Option B: SOTA YOLO26 Server AI Engine State
+  occEngineMode: 'server' = 'server';
   occServerStatus: 'online' | 'offline' | 'checking' = 'checking';
   occServerLatencyMs: number = 0;
   private occServerFailCount: number = 0;
@@ -478,8 +489,8 @@ export class SellerDashboard implements OnInit, OnDestroy {
       spaceId: 'a2-1',
       spaceName: 'Phòng Họp VIP Executive A2.1',
       building: 'TechPark Executive',
-      bookerName: 'ThS. Lê Hoàng Long',
-      bookerEmail: 'longlh@innovate.vn',
+      bookerName: 'Lê Hoàng Long',
+      bookerEmail: 'innovate@gmail.com',
       organization: 'Viện Đổi mới Sáng tạo & AI',
       purpose: 'Họp Ban Điều hành & Ký kết Hợp đồng Đối tác Chiến lược',
       activityType: 'Họp Ban Lãnh đạo',
@@ -487,7 +498,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       timeSlot: '09:00 - 11:00',
       attendees: 14,
       status: 'APPROVED',
-      processedBy: 'admin@uelspace.vn',
+      processedBy: 'admin.uelspace@gmail.com',
       processedAt: '10/10/2026 14:20'
     },
     {
@@ -523,7 +534,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       attendees: 6,
       status: 'REJECTED',
       rejectionReason: 'Khung giờ này đã được đối tác doanh nghiệp khác đặt trước.',
-      processedBy: 'admin@uelspace.vn',
+      processedBy: 'admin.uelspace@gmail.com',
       processedAt: '10/10/2026 09:15'
     },
     {
@@ -541,7 +552,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       timeSlot: '14:00 - 16:00',
       attendees: 5,
       status: 'APPROVED',
-      processedBy: 'admin@uelspace.vn',
+      processedBy: 'admin.uelspace@gmail.com',
       processedAt: '11/10/2026 08:30'
     },
     {
@@ -559,7 +570,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       timeSlot: '09:00 - 11:30',
       attendees: 2,
       status: 'APPROVED',
-      processedBy: 'admin@uelspace.vn',
+      processedBy: 'admin.uelspace@gmail.com',
       processedAt: '10/10/2026 16:45'
     },
     {
@@ -577,7 +588,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       timeSlot: '08:00 - 11:30',
       attendees: 8,
       status: 'APPROVED',
-      processedBy: 'admin@uelspace.vn',
+      processedBy: 'admin.uelspace@gmail.com',
       processedAt: '11/10/2026 07:15'
     },
     {
@@ -595,7 +606,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       timeSlot: '13:00 - 17:00',
       attendees: 60,
       status: 'PENDING',
-      processedBy: 'admin@uelspace.vn',
+      processedBy: 'admin.uelspace@gmail.com',
       processedAt: '10/10/2026 10:00'
     },
     {
@@ -613,7 +624,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       timeSlot: '15:00 - 17:30',
       attendees: 15,
       status: 'APPROVED',
-      processedBy: 'admin@uelspace.vn',
+      processedBy: 'admin.uelspace@gmail.com',
       processedAt: '11/10/2026 10:15'
     },
     {
@@ -631,7 +642,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       timeSlot: '08:00 - 12:00',
       attendees: 4,
       status: 'IN_USE',
-      processedBy: 'admin@uelspace.vn',
+      processedBy: 'admin.uelspace@gmail.com',
       processedAt: '11/10/2026 07:45',
       actualCheckInAt: '11/10/2026 08:05:00'
     },
@@ -650,7 +661,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       timeSlot: '10:00 - 12:00',
       attendees: 25,
       status: 'COMPLETED',
-      processedBy: 'admin@uelspace.vn',
+      processedBy: 'admin.uelspace@gmail.com',
       processedAt: '10/10/2026 11:30',
       actualCheckInAt: '10/10/2026 10:02:15'
     },
@@ -669,7 +680,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       timeSlot: '08:00 - 11:00',
       attendees: 10,
       status: 'PENDING',
-      processedBy: 'admin@uelspace.vn',
+      processedBy: 'admin.uelspace@gmail.com',
       processedAt: '10/10/2026 15:00'
     },
     {
@@ -687,7 +698,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       timeSlot: '14:00 - 16:00',
       attendees: 6,
       status: 'APPROVED',
-      processedBy: 'admin@uelspace.vn',
+      processedBy: 'admin.uelspace@gmail.com',
       processedAt: '10/10/2026 16:00'
     },
     {
@@ -705,7 +716,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       timeSlot: '08:00 - 11:30',
       attendees: 5,
       status: 'APPROVED',
-      processedBy: 'admin@uelspace.vn',
+      processedBy: 'admin.uelspace@gmail.com',
       processedAt: '11/10/2026 07:30'
     }
   ];
@@ -908,50 +919,50 @@ export class SellerDashboard implements OnInit, OnDestroy {
   users: AdminUser[] = [
     {
       id: 'u-01',
-      code: 'HOST-001',
-      name: 'Nguyễn Trần Kim Giang (Chủ Gian Hàng)',
-      email: 'giangnntk24411@st.uel.edu.vn',
-      role: 'SELLER_OWNER',
-      organization: 'UEL Space Partner Store - Chuỗi Văn Phòng Đổi Mới Sáng Tạo',
+      code: 'SELLER-001',
+      name: 'Nguyễn Kim Giang (Chủ Gian Hàng)',
+      email: 'techpark@gmail.com',
+      role: 'SELLER',
+      organization: 'TechPark Innovation Spaces',
       status: 'ACTIVE',
-      bookingsCount: 0
+      bookingsCount: 32
     },
     {
       id: 'u-02',
-      code: 'STAFF-002',
-      name: 'Nguyễn Văn Thành (Lễ tân & Vận hành)',
-      email: 'operations@uelspace.vn',
-      role: 'SELLER_STAFF',
-      organization: 'Đội Vận hành Gian hàng UEL Space',
+      code: 'BUYER-002',
+      name: 'Nguyễn Giang',
+      email: 'giangnntk24411@st.uel.edu.vn',
+      role: 'BUYER',
+      organization: 'Thành viên UEL Space',
       status: 'ACTIVE',
       bookingsCount: 4
     },
     {
       id: 'u-03',
-      code: 'CUST-081',
-      name: 'Trần Minh Anh (Founder FinTech Co.)',
-      email: 'anhtm@fintechhub.vn',
-      role: 'CUSTOMER',
+      code: 'BUYER-081',
+      name: 'Trần Minh Anh',
+      email: 'minhanh@gmail.com',
+      role: 'BUYER',
       organization: 'Công ty Cổ phần Giải pháp FinTech Việt',
       status: 'ACTIVE',
       bookingsCount: 18
     },
     {
       id: 'u-04',
-      code: 'CUST-082',
-      name: 'ThS. Lê Hoàng Long (Giám đốc Đào tạo)',
-      email: 'longlh@innovate.edu.vn',
-      role: 'CUSTOMER',
-      organization: 'Viện Nghiên cứu Đổi mới Sáng tạo & AI',
+      code: 'BUYER-082',
+      name: 'Lê Hoàng Long',
+      email: 'innovate@gmail.com',
+      role: 'BUYER',
+      organization: 'Innovate Coworking Network',
       status: 'ACTIVE',
       bookingsCount: 12
     },
     {
       id: 'u-05',
-      code: 'CUST-085',
-      name: 'Đỗ Thùy Linh (Trưởng nhóm Dự án)',
-      email: 'linhdt@creativelab.com',
-      role: 'CUSTOMER',
+      code: 'BUYER-085',
+      name: 'Đỗ Thùy Linh',
+      email: 'creative@gmail.com',
+      role: 'BUYER',
       organization: 'Creative Media Agency',
       status: 'SUSPENDED',
       bookingsCount: 5
@@ -963,7 +974,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
     {
       id: 'log-01',
       timestamp: '11/10/2026 09:28:14',
-      actor: 'admin@uelspace.vn',
+      actor: 'admin.uelspace@gmail.com',
       action: 'APPROVE_BOOKING',
       target: 'Phòng Họp VIP Executive A2.1 (UEL-BK-2026-083)',
       details: 'Phê duyệt thành công lịch họp Ban Lãnh đạo Doanh nghiệp.',
@@ -981,7 +992,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
     {
       id: 'log-03',
       timestamp: '11/10/2026 08:30:22',
-      actor: 'admin@uelspace.vn',
+      actor: 'admin.uelspace@gmail.com',
       action: 'SPACE_MAINTENANCE_LOCK',
       target: 'Meeting Pod cách âm Smart Pod 01',
       details: 'Khóa không gian chuyển sang trạng thái MAINTENANCE để nâng cấp thiết bị âm thanh & cách âm.',
@@ -990,9 +1001,9 @@ export class SellerDashboard implements OnInit, OnDestroy {
     {
       id: 'log-04',
       timestamp: '10/10/2026 17:45:10',
-      actor: 'admin@uelspace.vn',
+      actor: 'admin.uelspace@gmail.com',
       action: 'USER_ROLE_UPDATED',
-      target: 'ThS. Lê Hoàng Long (longlh@innovate.vn)',
+      target: 'Lê Hoàng Long (innovate@gmail.com)',
       details: 'Cấp quyền DOANH NGHIỆP VIP và phân bổ hạn mức thuê văn phòng ưu tiên.',
       level: 'INFO'
     }
@@ -1001,10 +1012,10 @@ export class SellerDashboard implements OnInit, OnDestroy {
   constructor(private ngZone: NgZone, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
-    // Kiểm tra Server AI YOLOv11 (Option B)
+    // Kiểm tra Server AI YOLO26 (Option B)
     this.checkServerAiHealth();
-    // Preload COCO-SSD model in background so turning on IoT camera is instant
-    this.loadOccupancyModel();
+    // Pure YOLO26 Server AI Engine
+    // loadOccupancyModel removed (pure YOLO26 Server AI)
     // Đồng bộ dữ liệu Live từ MongoDB Atlas
     this.loadSpacesFromApi();
     this.loadBookingsFromApi();
@@ -2331,16 +2342,10 @@ export class SellerDashboard implements OnInit, OnDestroy {
     }
   }
 
-  setOccEngineMode(mode: 'server' | 'client'): void {
-    this.occEngineMode = mode;
-    if (mode === 'server') {
-      this.occModelName = 'YOLOv11 Server AI (Độ chính xác cao)';
-      this.showToast(this.i18n.t('Đã chuyển sang YOLOv11 Server AI (Độ chính xác cao, hỗ trợ mọi thiết bị)'), 'success');
-      this.checkServerAiHealth();
-    } else {
-      this.occModelName = this.occCocoModel ? 'COCO-SSD Client + Face AI' : 'Edge AI Head-Peak';
-      this.showToast(this.i18n.t('Đã chuyển sang Client Edge AI (Chạy offline trên trình duyệt)'), 'info');
-    }
+  setOccEngineMode(mode: 'server'): void {
+    this.occEngineMode = 'server';
+    this.occModelName = 'YOLO26 Server AI (Pure Vision SOTA)';
+    this.checkServerAiHealth();
     this.cdr.detectChanges();
   }
 
@@ -2356,7 +2361,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
           this.occServerCooldownUntil = 0;
           this.occServerOfflineNotified = false;
           if (this.occEngineMode === 'server') {
-            this.occModelName = 'YOLOv11 Server AI (Sẵn sàng)';
+            this.occModelName = 'YOLO26 Server AI (Sẵn sàng)';
           }
           return true;
         }
@@ -2378,7 +2383,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       this.occServerOfflineNotified = true;
       this.occModelName = 'Server AI ngoại tuyến → Đang dùng Client Edge AI';
       this.showToast(
-        this.i18n.t('Server AI (YOLOv11) đang ngoại tuyến - hệ thống tự chuyển sang Client Edge AI trên trình duyệt'),
+        this.i18n.t('Server AI (YOLO26) đang ngoại tuyến - hệ thống tự chuyển sang Client Edge AI trên trình duyệt'),
         'warning'
       );
     }
@@ -2387,10 +2392,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
   private handleServerYoloFailure(): void {
     this.occServerFailCount++;
     this.occServerStatus = 'offline';
-    // Circuit breaker: Nếu server trả về 503 hoặc lỗi kết nối, lập tức hạ cánh an toàn sang Client Edge AI
-    // Tự động chuyển mode sang 'client' để ngừng hoàn toàn các cuộc gọi lên server
-    this.occEngineMode = 'client';
-    this.occServerCooldownUntil = performance.now() + 60000; // Cooldown 60s
+    this.occServerCooldownUntil = performance.now() + 5000; // Cooldown 5s retry
     this.markServerAiOffline();
     this.cdr.detectChanges();
   }
@@ -2458,7 +2460,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
 
       this.resetServerYoloHealth();
       this.occServerLatencyMs = Math.round(performance.now() - t0);
-      this.occModelName = `${data.modelName || 'YOLOv11 Dual-Head AI'} (${data.processingTimeMs}ms • ${data.device ? data.device.toUpperCase() : 'CPU'})`;
+      this.occModelName = `${data.modelName || 'YOLO26 Dual-Head AI'} (${data.processingTimeMs}ms • ${data.device ? data.device.toUpperCase() : 'CPU'})`;
 
       const boxes: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
       if (Array.isArray(data.boxes)) {
@@ -2469,7 +2471,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
             w: Math.round(b.w / scale),
             h: Math.round(b.h / scale),
             score: Math.round(b.confidence),
-            label: b.label || 'Khách thuê (YOLOv11 SOTA)'
+            label: b.label || 'Khách thuê (YOLO26 SOTA)'
           });
         }
       }
@@ -2487,86 +2489,9 @@ export class SellerDashboard implements OnInit, OnDestroy {
   }
 
   async loadOccupancyModel(): Promise<void> {
-    this.initFaceDetector();
-    if (this.occCocoModel) return;
-    this.occModelLoading = true;
-    this.occModelError = '';
-    this.occModelName = 'Đang nạp mô hình AI Deep Learning...';
-    this.cdr.detectChanges();
-
-    try {
-      const tf = await import('@tensorflow/tfjs');
-      let backendReady = false;
-      try {
-        if (tf.findBackend && tf.findBackend('webgl')) {
-          await tf.setBackend('webgl');
-          await tf.ready();
-          backendReady = true;
-        }
-      } catch (eW) {
-        console.warn('WebGL backend warning, falling back to CPU:', eW);
-      }
-
-      if (!backendReady) {
-        try {
-          await tf.setBackend('cpu');
-          await tf.ready();
-        } catch (eC) {
-          console.warn('CPU backend warning:', eC);
-        }
-      }
-
-      const currentBackend = tf.getBackend();
-      console.log('TensorFlow.js ready on backend:', currentBackend);
-
-      const cocoSsdModule: any = await import('@tensorflow-models/coco-ssd');
-      const cocoLoadFn = typeof cocoSsdModule.load === 'function'
-        ? cocoSsdModule.load
-        : (cocoSsdModule.default && typeof cocoSsdModule.default.load === 'function' ? cocoSsdModule.default.load : null);
-
-      // Tải mô hình Pretrained COCO-SSD SOTA (Lite MobileNetV2 siêu tốc hoặc MobileNetV2)
-      let loadedModel: any = null;
-      if (typeof cocoLoadFn === 'function') {
-        try {
-          loadedModel = await cocoLoadFn({ base: 'lite_mobilenet_v2' });
-        } catch (e1) {
-          console.warn('lite_mobilenet_v2 failed, fallback to default coco-ssd:', e1);
-          try {
-            loadedModel = await cocoLoadFn();
-          } catch (e2) {
-            console.warn('Default cocoSsd also failed:', e2);
-          }
-        }
-      } else {
-        console.warn('COCO-SSD module does not export a load function directly or as default:', cocoSsdModule);
-      }
-
-      if (loadedModel) {
-        this.occCocoModel = loadedModel;
-        this.occModelLoaded = true;
-        const isGpu = currentBackend === 'webgl';
-        this.occModelName = `COCO-SSD Neural AI (${isGpu ? 'GPU WebGL' : 'CPU'})`;
-        console.log('UEL Space AI Model loaded successfully:', this.occModelName);
-      } else if (this.faceDetector) {
-        this.occModelLoaded = true;
-        this.occModelName = 'Hardware Face AI (Neural Engine)';
-      } else {
-        this.occModelError = 'Mô hình Client AI chưa sẵn sàng. Bạn có thể bật Server AI (YOLOv11) để nhận diện tức thì.';
-        this.occModelName = 'AI Standby';
-      }
-    } catch (err: any) {
-      console.warn('AI Model load error:', err);
-      if (this.faceDetector) {
-        this.occModelLoaded = true;
-        this.occModelName = 'Hardware Face AI';
-      } else {
-        this.occModelError = 'Lỗi nạp mô hình AI: ' + (err?.message || '');
-        this.occModelName = 'AI Standby';
-      }
-    } finally {
-      this.occModelLoading = false;
-      this.cdr.detectChanges();
-    }
+    this.occModelName = 'YOLO26 Server AI (Pure Vision SOTA)';
+    this.occModelLoaded = true;
+    await this.checkServerAiHealth();
   }
 
   /**
@@ -2739,9 +2664,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
 
             // Kích hoạt ngay vòng lặp nhận diện Vision AI (tức thì 0ms, không chờ đợi)
             this.runDetectionLoop(videoEl);
-            if (!this.occCocoModel) {
-              this.loadOccupancyModel().catch(e => console.warn('Nạp ngầm COCO-SSD:', e));
-            }
+            // Pure YOLO26 Server AI active
           }).catch(ePlay => {
             console.warn('Video play retry needed on occ camera:', ePlay);
             videoEl.muted = true;
@@ -2839,98 +2762,19 @@ export class SellerDashboard implements OnInit, OnDestroy {
     this.isDetectingOccFrame = true;
     this.lastOccDetectionTimestamp = now;
 
-    // Ngưỡng điểm tin cậy siêu nhạy chuẩn SOTA Pretrained Models (YOLOv11 Dual-Head & COCO)
+    // Ngưỡng điểm tin cậy siêu nhạy chuẩn SOTA Pretrained Models (YOLO26 Dual-Head & COCO)
     const minScore = this.occSensitivity === 'high' ? 0.12 : (this.occSensitivity === 'normal' ? 0.16 : 0.22);
 
     try {
       const rawDetected: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
       let usedServerYolo = false;
 
-      // 1. Chế độ Ưu tiên: SOTA YOLOv11 Server AI Microservice (Dual-Head Detection + Pose)
-      if (this.occEngineMode === 'server') {
-        const serverBoxes = await this.detectWithServerYolo(videoEl);
-        if (serverBoxes !== null) {
-          usedServerYolo = true;
-          for (const sb of serverBoxes) {
-            rawDetected.push(sb);
-          }
-        }
-      }
-
-      // 2. Chế độ Client Edge AI (Chạy Neural Network COCO-SSD / Face AI)
-      if (!usedServerYolo) {
-        // A. Chạy COCO-SSD MobileNetV2 Deep Learning
-        let cocoPredictions: any[] = [];
-        if (this.occCocoModel) {
-          try {
-            // Nạp với ngưỡng cơ sở thấp 0.10 để không bỏ sót người nằm hoặc người ngồi xa
-            cocoPredictions = await this.occCocoModel.detect(videoEl, 20, 0.10);
-          } catch (errCoco) {
-            console.warn('COCO detect error:', errCoco);
-          }
-        }
-
-        // B. Chạy Hardware FaceDetector song song (nếu trình duyệt hỗ trợ)
-        let facePredictions: any[] = [];
-        if (this.faceDetector) {
-          try {
-            facePredictions = await this.faceDetector.detect(videoEl);
-          } catch (errFace) {
-            console.warn('Face detect error:', errFace);
-          }
-        }
-
-        // C. Thu thập kết quả Deep Learning COCO-SSD: Class 'person'
-        for (const p of cocoPredictions) {
-          if (p.class !== 'person') continue;
-          const bw = p.bbox[2];
-          const bh = p.bbox[3];
-          const isLying = bw > (bh * 1.15);
-          // Với người nằm ngang, hạ ngưỡng score tối thiểu xuống 0.12 để bắt trọn mọi tư thế thư giãn
-          const effectiveMinScore = isLying ? Math.min(minScore, 0.12) : minScore;
-
-          if (p.score >= effectiveMinScore) {
-            rawDetected.push({
-              x: Math.round(p.bbox[0]),
-              y: Math.round(p.bbox[1]),
-              w: Math.round(bw),
-              h: Math.round(bh),
-              score: Math.round(p.score * 100),
-              label: isLying ? 'Khách thuê (Tư thế nằm)' : 'Khách thuê (Pretrained COCO)'
-            });
-          }
-        }
-
-        // D. Face AI: Chỉ bổ sung nếu khuôn mặt KHÔNG nằm trong body box nào đã có
-        if (facePredictions && facePredictions.length > 0) {
-          for (const f of facePredictions) {
-            const fb = f.boundingBox;
-            const fCenterX = fb.x + fb.width / 2;
-            const fCenterY = fb.y + fb.height / 2;
-
-            // Kiểm tra xem khuôn mặt này đã thuộc về 1 người đã nhận diện ở bodyPeople chưa
-            const alreadyInBody = rawDetected.some(b => 
-              fCenterX >= b.x - 20 && fCenterX <= b.x + b.w + 20 &&
-              fCenterY >= b.y - 20 && fCenterY <= b.y + b.h + 20
-            );
-
-            if (!alreadyInBody) {
-              // Người này ngồi khuất bàn, chỉ nhìn thấy mặt -> tạo box người hợp lý
-              const estWidth = Math.min(videoEl.videoWidth, Math.max(fb.width * 2.0, 100));
-              const estHeight = Math.min(videoEl.videoHeight, Math.max(fb.height * 2.6, 140));
-              const estX = Math.max(0, fb.x - (estWidth - fb.width) / 2);
-              const estY = Math.max(0, fb.y - fb.height * 0.15);
-
-              rawDetected.push({
-                x: Math.round(estX),
-                y: Math.round(estY),
-                w: Math.round(estWidth),
-                h: Math.round(estHeight),
-                score: 95,
-                label: 'Khách thuê (Face AI)'
-              });
-            }
-          }
+      // Duy nhất: SOTA YOLO26 Server AI Microservice (Dual-Head Detection + Pose)
+      const serverBoxes = await this.detectWithServerYolo(videoEl);
+      if (serverBoxes !== null) {
+        usedServerYolo = true;
+        for (const sb of serverBoxes) {
+          rawDetected.push(sb);
         }
       }
 

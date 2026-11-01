@@ -15,6 +15,9 @@ export const SERVER_BASE_URL = isLocalhost
 export const SERVER_IMAGES_LINK = '/images/';
 
 export const AUTH_GOOGLE_URL = `${SERVER_BASE_URL}/api/auth/google`;
+export const AUTH_REGISTER_URL = `${SERVER_BASE_URL}/api/auth/register`;
+export const AUTH_LOGIN_URL = `${SERVER_BASE_URL}/api/auth/login`;
+export const BOOKINGS_API_URL = `${SERVER_BASE_URL}/api/bookings`;
 
 // Cấu hình Google OAuth 2.0 Client ID (tạo tại Google Cloud Console -> Credentials)
 // Người dùng có thể thay đổi trực tiếp tại đây hoặc thông qua giao diện nhập nhanh ở màn hình Đăng nhập.

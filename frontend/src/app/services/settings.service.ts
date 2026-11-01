@@ -1,24 +1,28 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { SERVER_BASE_URL } from './api-config';
 
 export interface UserProfile {
   id: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'STUDENT' | 'LECTURER' | 'SPACE_MANAGER';
+  role: 'ADMIN' | 'SELLER' | 'BUYER';
   avatar?: string;
   organization?: string;
 }
 
 export interface AppNotification {
   id: string;
+  _id?: string;
   title: string;
   message: string;
   timeAgo: string;
   timestamp: string;
   type: 'info' | 'success' | 'warning' | 'alert';
   read: boolean;
-  category: 'system' | 'booking' | 'presence';
+  category: 'system' | 'booking' | 'presence' | 'space' | 'account';
+  link?: string;
+  role?: string;
 }
 
 @Injectable({
@@ -60,22 +64,27 @@ export class SettingsService {
   // Notifications State
   private notificationsSubject = new BehaviorSubject<AppNotification[]>([]);
   public notifications$: Observable<AppNotification[]> = this.notificationsSubject.asObservable();
+  
+  // Real-time SSE & Live Floating Toast
+  private sseSource: EventSource | null = null;
+  private toastAlertSubject = new BehaviorSubject<{ show: boolean; title: string; message: string; type: string; link?: string } | null>(null);
+  public toastAlert$ = this.toastAlertSubject.asObservable();
 
   // Default Users
   public readonly defaultAdminUser: UserProfile = {
     id: 'ADMIN-001',
     name: 'Quản trị viên UEL Space',
-    email: 'admin@uelspace.vn',
+    email: 'admin@gmail.com',
     role: 'ADMIN',
     organization: 'Ban Quản Trị Hệ Thống UEL Space'
   };
 
   public readonly defaultStudentUser: UserProfile = {
-    id: 'MBR-9821',
-    name: 'Nguyễn Trần Kim Giang',
-    email: 'giang.nguyen@techflow.vn',
-    role: 'STUDENT',
-    organization: 'TechFlow Solutions (Doanh nghiệp)'
+    id: 'BUYER-GIANG',
+    name: 'Nguyễn Giang',
+    email: 'giangnntk24411@st.uel.edu.vn',
+    role: 'BUYER',
+    organization: 'Khách thuê (Member)'
   };
 
   constructor() {
@@ -292,51 +301,140 @@ export class SettingsService {
     this.settingsModalOpenSubject.next(false);
   }
 
-  // --- Notifications Management ---
+  // --- Notifications Management (Real-Time SSE + MongoDB Persistence) ---
+  public detectCurrentRole(): 'ADMIN' | 'SELLER' | 'BUYER' {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      if (path.includes('admin')) return 'ADMIN';
+      if (path.includes('seller')) return 'SELLER';
+    }
+    const user = this.currentUserSubject.value;
+    if (user?.role === 'ADMIN') return 'ADMIN';
+    if (user?.role === 'SELLER') return 'SELLER';
+    return 'BUYER';
+  }
+
   private initNotifications(): void {
     const initialList: AppNotification[] = [
       {
-        id: 'notif-1',
-        title: 'Xác nhận đặt phòng họp thành công',
-        message: 'Đơn thuê Phòng Boardroom B1 (FS-BK-2026-083) của bạn đã được xác nhận thanh toán qua MoMo.',
-        timeAgo: '5 phút trước',
-        timestamp: '11/10/2026 09:28',
+        id: 'notif-welcome',
+        title: 'Chào mừng bạn đến với UEL Space',
+        message: 'Hệ sinh thái kết nối thời gian thực giữa Khách thuê, Chủ gian hàng và Ban quản trị sàn.',
+        timeAgo: 'Vừa xong',
+        timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
         type: 'success',
         read: false,
-        category: 'booking'
-      },
-      {
-        id: 'notif-2',
-        title: 'Nhắc nhở quét QR xác thực hiện diện (F09)',
-        message: 'Bạn còn 10 phút để quét mã QR check-in tại Hub Central Tower trước khi AI tự động giải phóng phòng (No-show).',
-        timeAgo: '20 phút trước',
-        timestamp: '11/10/2026 09:12',
-        type: 'warning',
-        read: false,
-        category: 'presence'
-      },
-      {
-        id: 'notif-3',
-        title: 'Bảo trì Pod làm việc 1 đã hoàn tất',
-        message: 'Không gian Meeting Pod 1 (Eco Space) đã mở lại sẵn sàng tiếp nhận lịch đặt trên sàn.',
-        timeAgo: '1 giờ trước',
-        timestamp: '11/10/2026 08:30',
-        type: 'info',
-        read: true,
-        category: 'system'
-      },
-      {
-        id: 'notif-4',
-        title: 'Đối tác mới gia nhập UEL Space Partner',
-        message: 'Tòa nhà Landmark Innovation Hub đã chính thức mở thêm 12 phòng họp và văn phòng riêng trên sàn.',
-        timeAgo: 'Hôm qua',
-        timestamp: '10/10/2026 17:45',
-        type: 'info',
-        read: true,
-        category: 'system'
+        category: 'system',
+        link: '/'
       }
     ];
     this.notificationsSubject.next(initialList);
+
+    if (typeof window !== 'undefined') {
+      this.fetchRemoteNotifications();
+      this.initSseStream();
+    }
+  }
+
+  public async fetchRemoteNotifications(): Promise<void> {
+    if (typeof window === 'undefined') return;
+    try {
+      const role = this.detectCurrentRole();
+      const userId = this.currentUserSubject.value?.id || '';
+      const res = await fetch(`${SERVER_BASE_URL}/api/notifications?role=${role}&userId=${userId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped: AppNotification[] = data.map(item => ({
+            id: item.id || item._id,
+            _id: item._id,
+            title: item.title,
+            message: item.message,
+            timeAgo: item.time || 'Vừa xong',
+            timestamp: item.createdAt ? new Date(item.createdAt).toLocaleString('vi-VN') : new Date().toLocaleString('vi-VN'),
+            type: (item.type || item.category || 'info') as any,
+            read: !!(item.read || item.isRead),
+            category: (item.category || 'system') as any,
+            link: item.link,
+            role: item.role
+          }));
+          this.notificationsSubject.next(mapped);
+        }
+      }
+    } catch (e: any) {
+      console.warn('Lỗi tải thông báo từ server:', e?.message);
+    }
+  }
+
+  public initSseStream(): void {
+    if (typeof window === 'undefined') return;
+    try {
+      if (this.sseSource) {
+        this.sseSource.close();
+      }
+      const role = this.detectCurrentRole();
+      const userId = this.currentUserSubject.value?.id || '';
+      const sseUrl = `${SERVER_BASE_URL}/api/notifications/stream?role=${role}&userId=${userId}`;
+      
+      this.sseSource = new EventSource(sseUrl);
+
+      this.sseSource.onmessage = (event) => {
+        try {
+          const item = JSON.parse(event.data);
+          if (item && item.title) {
+            this.handleIncomingNotification(item);
+          }
+        } catch (_) {}
+      };
+
+      this.sseSource.onerror = () => {
+        // Trình duyệt tự động kết nối lại khi có mạng
+      };
+    } catch (e: any) {
+      console.warn('Khởi tạo kết nối SSE stream cảnh báo:', e?.message);
+    }
+  }
+
+  public handleIncomingNotification(item: any): void {
+    const newNotif: AppNotification = {
+      id: item.id || item._id || ('notif-' + Date.now()),
+      _id: item._id,
+      title: item.title,
+      message: item.message,
+      timeAgo: 'Vừa xong',
+      timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+      type: (item.type || item.category || 'info') as any,
+      read: false,
+      category: (item.category || 'system') as any,
+      link: item.link,
+      role: item.role
+    };
+
+    const current = this.notificationsSubject.value.filter(n => n.id !== newNotif.id);
+    this.notificationsSubject.next([newNotif, ...current]);
+
+    // Gửi Web Desktop Notification nếu đã bật quyền
+    this.sendDesktopNotification(newNotif.title, newNotif.message);
+
+    // Bật popup Toast thông báo nổi trên màn hình
+    this.triggerToastAlert(newNotif);
+  }
+
+  public triggerToastAlert(notif: AppNotification): void {
+    this.toastAlertSubject.next({
+      show: true,
+      title: notif.title,
+      message: notif.message,
+      type: notif.type,
+      link: notif.link
+    });
+    setTimeout(() => {
+      this.toastAlertSubject.next(null);
+    }, 6000);
+  }
+
+  public closeToastAlert(): void {
+    this.toastAlertSubject.next(null);
   }
 
   public get unreadCount(): number {
@@ -348,28 +446,39 @@ export class SettingsService {
       n.id === id ? { ...n, read: true } : n
     );
     this.notificationsSubject.next(list);
+
+    if (typeof window !== 'undefined') {
+      fetch(`${SERVER_BASE_URL}/api/notifications/${id}/read`, { method: 'POST' }).catch(() => {});
+    }
   }
 
   public markAllAsRead(): void {
     const list = this.notificationsSubject.value.map(n => ({ ...n, read: true }));
     this.notificationsSubject.next(list);
+
+    if (typeof window !== 'undefined') {
+      const role = this.detectCurrentRole();
+      fetch(`${SERVER_BASE_URL}/api/notifications/read-all?role=${role}`, { method: 'POST' }).catch(() => {});
+    }
   }
 
   public addNotification(notification: {
     title: string;
     message: string;
     type?: 'info' | 'success' | 'warning' | 'alert';
-    category?: 'system' | 'booking' | 'presence';
+    category?: 'system' | 'booking' | 'presence' | 'space' | 'account';
+    link?: string;
   }): void {
     const newNotif: AppNotification = {
       id: 'notif-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
       title: notification.title,
       message: notification.message,
       timeAgo: 'Vừa xong',
-      timestamp: new Date().toLocaleString('vi-VN'),
+      timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
       type: notification.type || 'info',
       read: false,
-      category: notification.category || 'system'
+      category: notification.category || 'system',
+      link: notification.link
     };
     this.notificationsSubject.next([newNotif, ...this.notificationsSubject.value]);
   }

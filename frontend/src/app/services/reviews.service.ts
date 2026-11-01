@@ -54,10 +54,10 @@ export class ReviewsService {
     {
       id: 'rev-02',
       spaceId: 'indoor_meeting_room_2',
-      userName: 'ThS. Nguyễn Hoàng Nam',
+      userName: 'Nguyễn Hoàng Nam',
       userAvatar: '/images/avatars/user_avatar_2.svg',
       userRole: 'Trưởng ban Đổi mới Sáng tạo',
-      organization: 'Viện Công nghệ Tài chính UEL',
+      organization: 'Viện Công nghệ Tài chính',
       rating: 5,
       date: '10/10/2026',
       rentalPurpose: 'Họp hội đồng bảo vệ đề án tốt nghiệp',

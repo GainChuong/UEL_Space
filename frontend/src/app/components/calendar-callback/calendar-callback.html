@@ -1,0 +1,69 @@
+<div class="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6 text-slate-800 dark:text-slate-100 font-sans">
+  <div class="max-w-md w-full bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-2xl border border-slate-200/80 dark:border-slate-700 text-center relative overflow-hidden">
+    
+    <!-- Top accent bar -->
+    <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400"></div>
+
+    <!-- Processing State -->
+    @if (isProcessing) {
+      <div class="flex flex-col items-center py-6">
+        <div class="relative w-16 h-16 mb-6">
+          <div class="w-16 h-16 rounded-full border-4 border-blue-200 dark:border-blue-900 border-t-blue-600 animate-spin"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <svg class="w-7 h-7 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z"/>
+            </svg>
+          </div>
+        </div>
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Đang kết nối Google Calendar</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
+          Đang trao đổi mã bảo mật và cấu hình tự động đồng bộ lịch rảnh/bận thời gian thực với UEL Space...
+        </p>
+      </div>
+    }
+
+    <!-- Success State -->
+    @if (isSuccess) {
+      <div class="flex flex-col items-center py-6 animate-fade-in">
+        <div class="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-6 shadow-inner ring-8 ring-emerald-50 dark:ring-emerald-900/20">
+          <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Đồng bộ Lịch Thành Công!</h2>
+        <p class="text-sm text-slate-600 dark:text-slate-300 max-w-xs leading-relaxed mb-4">
+          Tài khoản <span class="font-semibold text-blue-600 dark:text-blue-400">{{ connectedEmail }}</span> đã được liên kết với hệ thống UEL Space.
+        </p>
+        <div class="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-2 rounded-full border border-emerald-200/50 dark:border-emerald-700/50 mb-6">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Tự động cập nhật lịch rảnh/bận & nhận thông báo</span>
+        </div>
+        <p class="text-xs text-slate-400 dark:text-slate-500">Cửa sổ sẽ tự động đóng sau giây lát...</p>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (errorMessage) {
+      <div class="flex flex-col items-center py-6 animate-fade-in">
+        <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 flex items-center justify-center mb-6 shadow-inner ring-8 ring-red-50 dark:ring-red-900/20">
+          <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </div>
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Kết nối chưa thành công</h2>
+        <p class="text-sm text-red-600 dark:text-red-400 max-w-xs leading-relaxed mb-6 bg-red-50 dark:bg-red-950/30 p-3 rounded-xl border border-red-200 dark:border-red-900">
+          {{ errorMessage }}
+        </p>
+        <div class="flex gap-3">
+          <button (click)="closeWindow()" class="px-5 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-sm font-semibold transition-all">
+            Đóng cửa sổ
+          </button>
+          <a routerLink="/" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-md transition-all">
+            Về trang chủ
+          </a>
+        </div>
+      </div>
+    }
+
+  </div>
+</div>

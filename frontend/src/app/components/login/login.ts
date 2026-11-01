@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { AUTH_GOOGLE_URL, GOOGLE_CLIENT_ID, SERVER_IMAGES_LINK } from '../../services/api-config';
+import { AUTH_GOOGLE_URL, AUTH_REGISTER_URL, GOOGLE_CLIENT_ID, SERVER_IMAGES_LINK } from '../../services/api-config';
 import { SettingsService, UserProfile } from '../../services/settings.service';
 import { TranslatePipe } from '../../services/translate.pipe';
 import { I18nService } from '../../services/i18n.service';
@@ -26,9 +26,12 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
   private autoSlideInterval: any;
 
   // Form State
-  portalRole: 'student' | 'lecturer' = 'student'; // 'student' = Khách thuê doanh nghiệp, 'lecturer' = Chủ không gian/Host Partner
-  username: string = 'member@techflow.vn';
-  password: string = '••••••••••••';
+  authMode: 'login' | 'register' = 'login';
+  portalRole: 'buyer' | 'seller' = 'buyer'; // 'buyer' = Khách thuê cá nhân/DN, 'seller' = Chủ không gian/Host Partner
+  fullName: string = '';
+  username: string = 'minhanh@gmail.com';
+  password: string = '';
+  confirmPassword: string = '';
   rememberMe: boolean = true;
   showPassword: boolean = false;
   isLoading: boolean = false;
@@ -173,20 +176,20 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  // Tạo Profile người dùng UEL Space chuẩn (hỗ trợ mọi email doanh nghiệp, cá nhân và đối tác)
+  // Tạo Profile người dùng UEL Space chuẩn (hỗ trợ BUYER, SELLER, ADMIN)
   private createSmartFallbackUser(email: string, name?: string, picture?: string): UserProfile | null {
     const cleanEmail = (email || '').trim().toLowerCase();
     if (!cleanEmail || !cleanEmail.includes('@')) {
       return null;
     }
 
-    const isAdmin = cleanEmail.startsWith('admin') || cleanEmail.includes('admin@') || cleanEmail.includes('quantri@') || cleanEmail === 'gameyuno123@gmail.com';
-    const isHost = cleanEmail.includes('host') || cleanEmail.includes('partner') || this.portalRole === 'lecturer';
+    const isAdmin = cleanEmail.startsWith('admin') || cleanEmail.includes('admin@') || cleanEmail === 'gameyuno123@gmail.com';
+    const isSeller = cleanEmail.includes('seller') || cleanEmail.includes('host') || cleanEmail.includes('partner') || ['techpark@gmail.com', 'innovate@gmail.com', 'landmark@gmail.com', 'uelhub@gmail.com', 'creative@gmail.com'].includes(cleanEmail) || this.portalRole === 'seller';
 
-    const role: 'ADMIN' | 'LECTURER' | 'STUDENT' = isAdmin ? 'ADMIN' : (isHost ? 'LECTURER' : 'STUDENT');
+    const role: 'ADMIN' | 'SELLER' | 'BUYER' = isAdmin ? 'ADMIN' : (isSeller ? 'SELLER' : 'BUYER');
     const organization = isAdmin 
       ? 'Ban Quản Trị Hệ Thống UEL Space' 
-      : (isHost ? 'Đối tác sở hữu không gian (Host Partner)' : 'Doanh nghiệp & Khách thuê (UEL Space Member)');
+      : (isSeller ? 'Đối tác sở hữu không gian (Host Partner)' : 'Doanh nghiệp & Khách thuê (Member)');
 
     return {
       id: cleanEmail.split('@')[0].toUpperCase(),
@@ -419,6 +422,81 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  // Submit Form Truyền thống (Đăng nhập / Đăng ký)
+  handleFormSubmit(): void {
+    if (this.authMode === 'register') {
+      this.handleRegister();
+    } else {
+      this.handleLogin();
+    }
+  }
+
+  handleRegister(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    let enteredEmail = this.username.trim().toLowerCase();
+    if (!enteredEmail || !enteredEmail.includes('@')) {
+      this.isLoading = false;
+      this.errorMessage = this.i18n.t('Vui lòng nhập địa chỉ email hợp lệ (@gmail.com hoặc @st.uel.edu.vn)!');
+      return;
+    }
+
+    if (!this.fullName.trim()) {
+      this.isLoading = false;
+      this.errorMessage = this.i18n.t('Vui lòng nhập họ và tên của bạn!');
+      return;
+    }
+
+    if (!this.password || this.password.length < 6) {
+      this.isLoading = false;
+      this.errorMessage = this.i18n.t('Mật khẩu phải có ít nhất 6 ký tự!');
+      return;
+    }
+
+    if (this.password !== this.confirmPassword) {
+      this.isLoading = false;
+      this.errorMessage = this.i18n.t('Mật khẩu xác nhận không khớp!');
+      return;
+    }
+
+    const payload = {
+      email: enteredEmail,
+      password: this.password,
+      fullName: this.fullName.trim(),
+      role: this.portalRole === 'seller' ? 'SELLER' : 'BUYER'
+    };
+
+    this.http.post<any>(AUTH_REGISTER_URL, payload).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+        if (res.success && res.user) {
+          this.successMessage = this.i18n.t('Đăng ký tài khoản thành công và đã lưu vào MongoDB Atlas!');
+          this.handleAuthSuccess(res.user);
+        } else {
+          this.errorMessage = res.message || res.error || this.i18n.t('Đăng ký thất bại!');
+        }
+      },
+      error: (err) => {
+        this.isLoading = false;
+        const msg = err.error?.error?.message || err.error?.message || err.message;
+        if (msg && msg.includes('EMAIL_EXISTS')) {
+          this.errorMessage = this.i18n.t('Email này đã tồn tại trên hệ thống, vui lòng chuyển qua Đăng nhập!');
+        } else {
+          // Fallback offline mock registration
+          const fallback = this.createSmartFallbackUser(enteredEmail, this.fullName.trim());
+          if (fallback) {
+            this.successMessage = this.i18n.t('Đăng ký thành công!');
+            this.handleAuthSuccess(fallback);
+          } else {
+            this.errorMessage = msg || this.i18n.t('Đăng ký thất bại!');
+          }
+        }
+      }
+    });
+  }
+
   // Submit Form Truyền thống
   handleLogin(): void {
     this.isLoading = true;
@@ -427,12 +505,12 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
 
     let enteredEmail = this.username.trim().toLowerCase();
     if (!enteredEmail.includes('@')) {
-      enteredEmail += this.portalRole === 'lecturer' ? '@host.uelspace.vn' : '@techflow.vn';
+      enteredEmail += '@gmail.com';
     }
 
     const displayName = enteredEmail.includes('admin') 
       ? 'Quản trị viên UEL Space' 
-      : (this.portalRole === 'lecturer' ? 'Đối tác Quản lý Không gian' : 'Đại diện Doanh nghiệp');
+      : (this.portalRole === 'seller' ? 'Đối tác Quản lý Không gian' : 'Khách thuê Không gian');
 
     // Gửi xác thực qua backend
     this.http.post<any>(AUTH_GOOGLE_URL, {
@@ -493,8 +571,9 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
   }
 
   fillAdminMockup(): void {
-    this.username = 'admin@uelspace.vn';
-    this.password = 'Admin@UELSpace2026';
+    this.authMode = 'login';
+    this.username = 'admin@gmail.com';
+    this.password = '123456';
     this.handleLogin();
   }
 }

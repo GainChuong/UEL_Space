@@ -43,6 +43,10 @@ venv/
 my-server/unsplash-research-dataset-lite-latest/
 *.tsv
 *.tsv.gz
+AIRC-SMARTCLASS A Multi-Modal Classroom Dataset fo/
+AIRC-SMARTCLASS A Multi-Modal Classroom Dataset fo.zip
+datasets/
+runs/
 
 # ==========================================
 # Tệp ngoài lề (Giữ trên máy tính, không đưa lên GitHub)

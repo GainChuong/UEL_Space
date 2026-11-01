@@ -688,6 +688,48 @@
                 </button>
               </div>
 
+              <!-- Live Google Calendar Connection Status Banner -->
+              @if (googleCalendarStatus.isConnected) {
+                <div class="mb-2 p-2 px-3 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/80 flex items-center justify-between text-xs transition-all">
+                  <div class="flex items-center gap-2 overflow-hidden">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                    <span class="text-emerald-900 dark:text-emerald-200 font-semibold truncate text-[11px]">
+                      Google Calendar: <span class="font-mono text-[10px] opacity-90">{{ googleCalendarStatus.email || studentInfo.email }}</span>
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <button type="button" 
+                            (click)="syncCalendarData()" 
+                            [disabled]="isSyncingCalendar" 
+                            [title]="'Đồng bộ lịch bận trực tiếp' | t" 
+                            class="px-2 py-0.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 text-[10px] font-bold hover:bg-emerald-200 transition-all cursor-pointer flex items-center gap-1">
+                      <svg [class.animate-spin]="isSyncingCalendar" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                      <span>{{ isSyncingCalendar ? ('Đang đồng bộ...' | t) : ('Làm mới' | t) }}</span>
+                    </button>
+                    <button type="button" 
+                            (click)="disconnectGoogleCalendar()" 
+                            [title]="'Hủy liên kết' | t" 
+                            class="p-1 rounded text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all cursor-pointer">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                  </div>
+                </div>
+              } @else {
+                <div class="mb-2 p-2 px-3 rounded-xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/70 flex items-center justify-between text-xs transition-all">
+                  <div class="flex items-center gap-1.5 text-blue-900 dark:text-blue-200 text-[11px] truncate mr-2">
+                    <svg class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z"/></svg>
+                    <span class="truncate">{{ 'Đồng bộ Google Calendar để xem ca trống thực tế' | t }}</span>
+                  </div>
+                  <button type="button" 
+                          (click)="connectGoogleCalendar()" 
+                          [disabled]="isSyncingCalendar" 
+                          class="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-[10px] shadow-sm transition-all flex items-center gap-1 cursor-pointer shrink-0">
+                    <svg [class.animate-spin]="isSyncingCalendar" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>{{ isSyncingCalendar ? ('Đang mở...' | t) : ('Kết nối Google' | t) }}</span>
+                  </button>
+                </div>
+              }
+
               <div class="grid grid-cols-2 gap-1.5">
                 @for (preset of suggestedGoogleSlots; track preset.period) {
                   <button type="button"
@@ -717,7 +759,7 @@
               <div class="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-900 dark:text-rose-200 text-xs flex items-start gap-2 animate-[fade-in_0.2s_ease-out]">
                 <span class="text-base shrink-0">⚠️</span>
                 <div>
-                  <div class="font-bold text-[11px]">{{ 'Trùng lịch Google Calendar của bạn' | t }}</div>
+                  <div class="font-bold text-[11px]">{{ 'Thời gian này không khả dụng' | t }}</div>
                   <div class="text-[10px] opacity-90 leading-relaxed mt-0.5">{{ conflictReason }}</div>
                 </div>
               </div>
@@ -1037,7 +1079,7 @@
             @if (hasConflict) {
               <span class="px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-bold text-[11px] flex items-center gap-1">
                 <span>⚠️</span>
-                <span>{{ 'Trùng lịch bận trên Google Calendar' | t }}</span>
+                <span>{{ 'Trùng lịch (Phòng bận hoặc lịch cá nhân)' | t }}</span>
               </span>
             } @else {
               <span class="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold text-[11px] flex items-center gap-1">

@@ -1,13 +1,19 @@
 import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { SettingsService } from './settings.service';
+import { BOOKINGS_API_URL } from './api-config';
 
 export interface BookingRecord {
   id: string;
+  spaceId?: string;
   roomName: string;
   building: string;
   roomType: string;
   date: string; // YYYY-MM-DD
+  endDate?: string; // YYYY-MM-DD (cho multi-day booking)
+  startTime?: string; // HH:mm
+  endTime?: string; // HH:mm
   timeSlot: string; // e.g. "08:00 - 10:00"
   purpose: string;
   capacity: number;
@@ -25,6 +31,7 @@ const STORAGE_KEY = 'uel_space_booking_records_v1';
 })
 export class BookingService {
   private settingsService = inject(SettingsService);
+  private http = inject(HttpClient);
 
   private initialBookings: BookingRecord[] = [
     {
@@ -176,10 +183,14 @@ export class BookingService {
    */
   public addBooking(booking: {
     id?: string;
+    spaceId?: string;
     roomName: string;
     building?: string;
     roomType?: string;
     date: string;
+    endDate?: string;
+    startTime?: string;
+    endTime?: string;
     timeSlot: string;
     purpose?: string;
     capacity?: number;
@@ -189,12 +200,27 @@ export class BookingService {
     const now = new Date();
     const createdAtStr = now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
+    // Phân tích startTime và endTime từ timeSlot nếu chưa truyền trực tiếp
+    let sTime = booking.startTime || '';
+    let eTime = booking.endTime || '';
+    if ((!sTime || !eTime) && booking.timeSlot && booking.timeSlot.includes('-')) {
+      const parts = booking.timeSlot.split('-').map(p => p.trim());
+      if (parts.length === 2) {
+        sTime = parts[0];
+        eTime = parts[1];
+      }
+    }
+
     const newRecord: BookingRecord = {
       id: code,
+      spaceId: booking.spaceId,
       roomName: booking.roomName,
       building: booking.building || 'UEL Central Space',
       roomType: booking.roomType || 'Không gian làm việc',
       date: booking.date,
+      endDate: booking.endDate || booking.date,
+      startTime: sTime,
+      endTime: eTime,
       timeSlot: booking.timeSlot,
       purpose: booking.purpose || 'Làm việc & Học tập trên UEL Space',
       capacity: booking.capacity || 4,
@@ -218,10 +244,57 @@ export class BookingService {
       category: 'booking'
     });
 
-    // 2. Nếu ngày sử dụng là hôm nay hoặc ngày mai, gửi thêm thông báo nhắc nhở sắp tới hạn
+    // 2. Đồng bộ trực tiếp lên MongoDB Atlas thông qua API
+    this.syncBookingToBackend(newRecord);
+
+    // 3. Nếu ngày sử dụng là hôm nay hoặc ngày mai, gửi thêm thông báo nhắc nhở sắp tới hạn
     this.checkSingleBookingProximity(newRecord);
 
     return newRecord;
+  }
+
+  /**
+   * Đồng bộ đơn đặt phòng lên Backend MongoDB Atlas
+   */
+  private syncBookingToBackend(record: BookingRecord): void {
+    try {
+      const currentUser = (this.settingsService as any).currentUserSubject?.value || this.settingsService.defaultStudentUser;
+      const payload = {
+        code: record.id,
+        spaceId: record.spaceId || 'a2-1',
+        spaceName: record.roomName,
+        buildingName: record.building,
+        date: record.date,
+        usageDate: record.date,
+        startTime: record.startTime || '09:00',
+        endTime: record.endTime || '11:00',
+        timeSlot: record.timeSlot,
+        purpose: record.purpose || 'Thuê không gian làm việc',
+        activityType: 'MEETING',
+        expectedUserCount: Number(record.capacity) || 4,
+        totalAmount: record.totalAmount || 0,
+        userEmail: currentUser.email,
+        userName: currentUser.name
+      };
+
+      this.http.post<any>(BOOKINGS_API_URL, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-role': currentUser.role || 'BUYER',
+          'x-user-email': currentUser.email,
+          'x-user-id': currentUser.id
+        }
+      }).subscribe({
+        next: (res) => {
+          console.log('[BookingService] Đơn thuê đã được cập nhật thành công lên MongoDB Atlas:', res);
+        },
+        error: (err) => {
+          console.warn('[BookingService] Không thể ghi trực tiếp lên MongoDB Atlas (offline/mock fallback):', err.message);
+        }
+      });
+    } catch (e) {
+      console.warn('[BookingService] Exception khi đồng bộ MongoDB:', e);
+    }
   }
 
   /**
@@ -299,5 +372,89 @@ export class BookingService {
         sessionStorage.setItem(reminderKey, 'true');
       }
     }
+  }
+  /**
+   * Helper chuyển chuỗi HH:mm thành số phút từ đầu ngày
+   */
+  public timeToMinutes(timeStr?: string): number | null {
+    if (!timeStr || !timeStr.includes(':')) return null;
+    const [h, m] = timeStr.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return null;
+    return h * 60 + m;
+  }
+
+  /**
+   * Kiểm tra giao thoa giữa 2 khoảng thời gian
+   */
+  public timeRangesOverlap(startA: number, endA: number, startB: number, endB: number): boolean {
+    return Math.max(startA, startB) < Math.min(endA, endB);
+  }
+
+  /**
+   * Kiểm tra xem một phòng cụ thể có bị trùng lịch trong ngày & khung giờ được chọn hay không
+   */
+  public isSpaceBooked(
+    spaceIdentifier: { id?: string; code?: string; name?: string; slug?: string },
+    checkInDate: string,
+    checkOutDate: string,
+    checkInTime: string,
+    checkOutTime: string
+  ): { isBooked: boolean; conflictBooking?: BookingRecord } {
+    if (!checkInDate) return { isBooked: false };
+
+    const inMins = this.timeToMinutes(checkInTime) ?? (8 * 60);
+    const outMins = this.timeToMinutes(checkOutTime) ?? (17 * 60);
+
+    const targetId = (spaceIdentifier.id || '').toLowerCase().trim();
+    const targetCode = (spaceIdentifier.code || '').toLowerCase().trim();
+    const targetName = (spaceIdentifier.name || '').toLowerCase().trim();
+
+    const activeBookings = this.bookingsSubject.value.filter(
+      b => b.status === 'active' || b.status === 'upcoming'
+    );
+
+    for (const b of activeBookings) {
+      // 1. So khớp định danh phòng
+      const bSpaceId = (b.spaceId || '').toLowerCase().trim();
+      const bRoomName = (b.roomName || '').toLowerCase().trim();
+
+      const isSameRoom = (targetId && bSpaceId && targetId === bSpaceId) ||
+                         (targetCode && bSpaceId && targetCode === bSpaceId) ||
+                         (targetName && bRoomName && targetName === bRoomName);
+
+      if (!isSameRoom) continue;
+
+      // 2. So khớp ngày (giao thoa giữa [checkInDate, checkOutDate] và [b.date, b.endDate])
+      const bStartDate = b.date;
+      const bEndDate = b.endDate || b.date;
+      const qStartDate = checkInDate;
+      const qEndDate = checkOutDate || checkInDate;
+
+      const dateOverlap = (qStartDate <= bEndDate) && (qEndDate >= bStartDate);
+      if (!dateOverlap) continue;
+
+      // 3. So khớp khung giờ
+      let bStartMins = this.timeToMinutes(b.startTime);
+      let bEndMins = this.timeToMinutes(b.endTime);
+
+      if (bStartMins === null || bEndMins === null) {
+        if (b.timeSlot && b.timeSlot.includes('-')) {
+          const parts = b.timeSlot.split('-').map(p => p.trim());
+          bStartMins = this.timeToMinutes(parts[0]);
+          bEndMins = this.timeToMinutes(parts[1]);
+        }
+      }
+
+      // Nếu không parse được giờ của booking, coi như chiếm trọn ngày
+      if (bStartMins === null || bEndMins === null) {
+        return { isBooked: true, conflictBooking: b };
+      }
+
+      if (this.timeRangesOverlap(inMins, outMins, bStartMins, bEndMins)) {
+        return { isBooked: true, conflictBooking: b };
+      }
+    }
+
+    return { isBooked: false };
   }
 }

@@ -57,9 +57,13 @@ export class Header {
   }
 
   // Notification actions
-  markAsRead(id: string, event: Event): void {
+  markAsRead(id: string, event: Event, link?: string): void {
     event.stopPropagation();
     this.settingsService.markAsRead(id);
+    if (link) {
+      this.isNotificationOpen = false;
+      this.router.navigateByUrl(link);
+    }
   }
 
   markAllAsRead(event: Event): void {
