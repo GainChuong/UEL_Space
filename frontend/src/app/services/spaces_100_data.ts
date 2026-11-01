@@ -4632,14 +4632,14 @@ export const SPACES_100_DATA: any[] = [
       "name": "FatimaSaadNaik/indoor-scenes-dataset",
       "category": "lobby",
       "rawCategory": "waitingroom",
-      "caption": "This waitingroom there is a room full of chairs in a classroom with a whiteboard on the wall and a man standing at the front of the room",
+      "caption": "This waitingroom there is a room full of chairs in a modern workshop hall with a whiteboard on the wall and a man standing at the front of the room",
       "fileName": "waiting_room_01_24_flickr.jpg",
       "dimensions": {
         "width": 500,
         "height": 374
       }
     },
-    "description": "Sảnh chờ & Pods tiêu chuẩn cao tại TechPark Innovation Tower. • Mô tả cảnh gốc Hugging Face: \"This waitingroom there is a room full of chairs in a classroom with a whiteboard on the wall and a man standing at the front of the room\"",
+    "description": "Sảnh chờ & Pods tiêu chuẩn cao tại TechPark Innovation Tower. • Mô tả cảnh gốc Hugging Face: \"This waitingroom there is a room full of chairs in a modern workshop hall with a whiteboard on the wall and a man standing at the front of the room\"",
     "equipment": [
       "Kính cách âm 3 lớp chuyên dụng",
       "Màn hình họp trực tuyến 27 inch",
@@ -5944,8 +5944,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Thư viện & Co-study",
-    "categoryName": "Thư viện & Co-study",
+    "spaceType": "Không gian Làm việc & Nghiên cứu",
+    "categoryName": "Không gian Làm việc & Nghiên cứu",
     "building": "UEL Central Space",
     "buildingName": "UEL Central Space - Tầng Trệt",
     "floor": "Tầng Trệt",
@@ -6071,8 +6071,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Thư viện & Co-study",
-    "categoryName": "Thư viện & Co-study",
+    "spaceType": "Không gian Làm việc & Nghiên cứu",
+    "categoryName": "Không gian Làm việc & Nghiên cứu",
     "building": "TechPark Innovation Tower",
     "buildingName": "TechPark Innovation Tower - Tầng 1",
     "floor": "Tầng 1",
@@ -6181,8 +6181,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Thư viện & Co-study",
-    "categoryName": "Thư viện & Co-study",
+    "spaceType": "Không gian Làm việc & Nghiên cứu",
+    "categoryName": "Không gian Làm việc & Nghiên cứu",
     "building": "Landmark Convention Hall",
     "buildingName": "Landmark Convention Hall - Tầng 2",
     "floor": "Tầng 2",
@@ -6308,8 +6308,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Thư viện & Co-study",
-    "categoryName": "Thư viện & Co-study",
+    "spaceType": "Không gian Làm việc & Nghiên cứu",
+    "categoryName": "Không gian Làm việc & Nghiên cứu",
     "building": "Khu phức hợp Tri thức UEL Hub",
     "buildingName": "Khu phức hợp Tri thức UEL Hub - Tầng 3",
     "floor": "Tầng 3",
@@ -6435,8 +6435,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Thư viện & Co-study",
-    "categoryName": "Thư viện & Co-study",
+    "spaceType": "Không gian Làm việc & Nghiên cứu",
+    "categoryName": "Không gian Làm việc & Nghiên cứu",
     "building": "UEL Central Space",
     "buildingName": "UEL Central Space - Tầng 4",
     "floor": "Tầng 4",
@@ -6562,8 +6562,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Thư viện & Co-study",
-    "categoryName": "Thư viện & Co-study",
+    "spaceType": "Không gian Làm việc & Nghiên cứu",
+    "categoryName": "Không gian Làm việc & Nghiên cứu",
     "building": "TechPark Innovation Tower",
     "buildingName": "TechPark Innovation Tower - Tầng 5",
     "floor": "Tầng 5",
@@ -6689,8 +6689,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Thư viện & Co-study",
-    "categoryName": "Thư viện & Co-study",
+    "spaceType": "Không gian Làm việc & Nghiên cứu",
+    "categoryName": "Không gian Làm việc & Nghiên cứu",
     "building": "Landmark Convention Hall",
     "buildingName": "Landmark Convention Hall - Tầng 6",
     "floor": "Tầng 6",
@@ -6801,8 +6801,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Thư viện & Co-study",
-    "categoryName": "Thư viện & Co-study",
+    "spaceType": "Không gian Làm việc & Nghiên cứu",
+    "categoryName": "Không gian Làm việc & Nghiên cứu",
     "building": "Khu phức hợp Tri thức UEL Hub",
     "buildingName": "Khu phức hợp Tri thức UEL Hub - Tầng 7",
     "floor": "Tầng 7",
@@ -6928,8 +6928,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Thư viện & Co-study",
-    "categoryName": "Thư viện & Co-study",
+    "spaceType": "Không gian Làm việc & Nghiên cứu",
+    "categoryName": "Không gian Làm việc & Nghiên cứu",
     "building": "UEL Central Space",
     "buildingName": "UEL Central Space - Tầng Trệt",
     "floor": "Tầng Trệt",
@@ -7055,8 +7055,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Thư viện & Co-study",
-    "categoryName": "Thư viện & Co-study",
+    "spaceType": "Không gian Làm việc & Nghiên cứu",
+    "categoryName": "Không gian Làm việc & Nghiên cứu",
     "building": "TechPark Innovation Tower",
     "buildingName": "TechPark Innovation Tower - Tầng 1",
     "floor": "Tầng 1",
@@ -7182,8 +7182,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Thư viện & Co-study",
-    "categoryName": "Thư viện & Co-study",
+    "spaceType": "Không gian Làm việc & Nghiên cứu",
+    "categoryName": "Không gian Làm việc & Nghiên cứu",
     "building": "Landmark Convention Hall",
     "buildingName": "Landmark Convention Hall - Tầng 2",
     "floor": "Tầng 2",
@@ -7292,8 +7292,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Thư viện & Co-study",
-    "categoryName": "Thư viện & Co-study",
+    "spaceType": "Không gian Làm việc & Nghiên cứu",
+    "categoryName": "Không gian Làm việc & Nghiên cứu",
     "building": "Khu phức hợp Tri thức UEL Hub",
     "buildingName": "Khu phức hợp Tri thức UEL Hub - Tầng 3",
     "floor": "Tầng 3",
@@ -8153,7 +8153,7 @@ export const SPACES_100_DATA: any[] = [
   {
     "_id": "indoor_classroom_1",
     "code": "CLA-067",
-    "name": "Phòng Giảng Đường Đa Năng B1.104 (Classroom)",
+    "name": "Hội thảo Đa năng Executive Hall B1.104",
     "sellerId": "seller-uel",
     "seller": {
       "id": "seller-uel",
@@ -8165,8 +8165,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Giảng đường đa năng",
-    "categoryName": "Giảng đường đa năng",
+    "spaceType": "Trung tâm Hội thảo & Đào tạo",
+    "categoryName": "Trung tâm Hội thảo & Đào tạo",
     "building": "Landmark Convention Hall",
     "buildingName": "Landmark Convention Hall - Tầng 2",
     "floor": "Tầng 2",
@@ -8200,14 +8200,14 @@ export const SPACES_100_DATA: any[] = [
       "name": "FatimaSaadNaik/indoor-scenes-dataset",
       "category": "classroom",
       "rawCategory": "classroom",
-      "caption": "rows of desks with red chairs in a classroom with windows and drapes on the windowsills",
+      "caption": "rows of desks with red chairs in a modern workshop hall with windows and drapes on the windowsills",
       "fileName": "web_classe.jpg",
       "dimensions": {
         "width": 256,
         "height": 256
       }
     },
-    "description": "Giảng đường đa năng tiêu chuẩn cao tại Landmark Convention Hall. • Mô tả cảnh gốc Hugging Face: \"rows of desks with red chairs in a classroom with windows and drapes on the windowsills\"",
+    "description": "Không gian hội thảo & đào tạo doanh nghiệp cao cấp tại Landmark Convention Hall. • Mô tả cảnh gốc Hugging Face: \"rows of desks with red chairs in a modern workshop hall with windows and drapes on the windowsills\"",
     "equipment": [
       "Máy chiếu Full HD kép",
       "Điều hòa công suất lớn",
@@ -8264,7 +8264,7 @@ export const SPACES_100_DATA: any[] = [
   {
     "_id": "indoor_classroom_2",
     "code": "CLA-068",
-    "name": "Phòng Học Thông Minh Smart Classroom C2.305 (Classroom)",
+    "name": "Trung tâm Đào tạo Doanh nghiệp Smart Training C2.305",
     "sellerId": "seller-uel",
     "seller": {
       "id": "seller-uel",
@@ -8276,8 +8276,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Giảng đường đa năng",
-    "categoryName": "Giảng đường đa năng",
+    "spaceType": "Trung tâm Hội thảo & Đào tạo",
+    "categoryName": "Trung tâm Hội thảo & Đào tạo",
     "building": "Khu phức hợp Tri thức UEL Hub",
     "buildingName": "Khu phức hợp Tri thức UEL Hub - Tầng 3",
     "floor": "Tầng 3",
@@ -8318,7 +8318,7 @@ export const SPACES_100_DATA: any[] = [
         "height": 256
       }
     },
-    "description": "Giảng đường đa năng tiêu chuẩn cao tại Khu phức hợp Tri thức UEL Hub. • Mô tả cảnh gốc Hugging Face: \"This classroom there are many tables and chairs in the room with a projector screen on the wall behind them\"",
+    "description": "Không gian hội thảo & đào tạo doanh nghiệp cao cấp tại Khu phức hợp Tri thức UEL Hub. • Mô tả cảnh gốc Hugging Face: \"This classroom there are many tables and chairs in the room with a projector screen on the wall behind them\"",
     "equipment": [
       "Máy chiếu Full HD kép",
       "Điều hòa công suất lớn",
@@ -8391,7 +8391,7 @@ export const SPACES_100_DATA: any[] = [
   {
     "_id": "indoor_classroom_3",
     "code": "CLA-069",
-    "name": "Giảng đường Bậc thang Hybrid Learning Hall (Classroom)",
+    "name": "Hội trường Bậc thang Hybrid Convention Hall",
     "sellerId": "seller-uel",
     "seller": {
       "id": "seller-uel",
@@ -8403,8 +8403,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Giảng đường đa năng",
-    "categoryName": "Giảng đường đa năng",
+    "spaceType": "Trung tâm Hội thảo & Đào tạo",
+    "categoryName": "Trung tâm Hội thảo & Đào tạo",
     "building": "UEL Central Space",
     "buildingName": "UEL Central Space - Tầng 4",
     "floor": "Tầng 4",
@@ -8438,14 +8438,14 @@ export const SPACES_100_DATA: any[] = [
       "name": "FatimaSaadNaik/indoor-scenes-dataset",
       "category": "classroom",
       "rawCategory": "classroom",
-      "caption": "there are many desks and chairs in the classroom with a whiteboard on the wall behind them",
+      "caption": "there are many desks and chairs in the conference room with a whiteboard on the wall behind them",
       "fileName": "salle_de_cours_2.jpg",
       "dimensions": {
         "width": 256,
         "height": 256
       }
     },
-    "description": "Giảng đường đa năng tiêu chuẩn cao tại UEL Central Space. • Mô tả cảnh gốc Hugging Face: \"there are many desks and chairs in the classroom with a whiteboard on the wall behind them\"",
+    "description": "Không gian hội thảo & đào tạo doanh nghiệp cao cấp tại UEL Central Space. • Mô tả cảnh gốc Hugging Face: \"there are many desks and chairs in the conference room with a whiteboard on the wall behind them\"",
     "equipment": [
       "Máy chiếu Full HD kép",
       "Điều hòa công suất lớn",
@@ -8518,7 +8518,7 @@ export const SPACES_100_DATA: any[] = [
   {
     "_id": "indoor_classroom_4",
     "code": "CLA-070",
-    "name": "Phòng Hội thảo Chuyên đề Seminar Room 402 (Classroom)",
+    "name": "Phòng Hội thảo Doanh nghiệp Seminar Suite 402",
     "sellerId": "seller-uel",
     "seller": {
       "id": "seller-uel",
@@ -8530,8 +8530,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Giảng đường đa năng",
-    "categoryName": "Giảng đường đa năng",
+    "spaceType": "Trung tâm Hội thảo & Đào tạo",
+    "categoryName": "Trung tâm Hội thảo & Đào tạo",
     "building": "TechPark Innovation Tower",
     "buildingName": "TechPark Innovation Tower - Tầng 5",
     "floor": "Tầng 5",
@@ -8565,14 +8565,14 @@ export const SPACES_100_DATA: any[] = [
       "name": "FatimaSaadNaik/indoor-scenes-dataset",
       "category": "classroom",
       "rawCategory": "classroom",
-      "caption": "this is an image of a classroom setting with desks, chairs, and a chalkboard in the middle of the room",
+      "caption": "this is an image of a executive training setting with desks, chairs, and a chalkboard in the middle of the room",
       "fileName": "Wicoff_Classroom_1.jpg",
       "dimensions": {
         "width": 256,
         "height": 256
       }
     },
-    "description": "Giảng đường đa năng tiêu chuẩn cao tại TechPark Innovation Tower. • Mô tả cảnh gốc Hugging Face: \"this is an image of a classroom setting with desks, chairs, and a chalkboard in the middle of the room\"",
+    "description": "Không gian hội thảo & đào tạo doanh nghiệp cao cấp tại TechPark Innovation Tower. • Mô tả cảnh gốc Hugging Face: \"this is an image of a executive training setting with desks, chairs, and a chalkboard in the middle of the room\"",
     "equipment": [
       "Máy chiếu Full HD kép",
       "Điều hòa công suất lớn",
@@ -8645,7 +8645,7 @@ export const SPACES_100_DATA: any[] = [
   {
     "_id": "indoor_classroom_5",
     "code": "CLA-071",
-    "name": "Lớp học Đảo ngược Flipped Classroom Hub (Classroom)",
+    "name": "Workshop Hub Sáng tạo Flipped Innovation Room",
     "sellerId": "seller-uel",
     "seller": {
       "id": "seller-uel",
@@ -8657,8 +8657,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Giảng đường đa năng",
-    "categoryName": "Giảng đường đa năng",
+    "spaceType": "Trung tâm Hội thảo & Đào tạo",
+    "categoryName": "Trung tâm Hội thảo & Đào tạo",
     "building": "Landmark Convention Hall",
     "buildingName": "Landmark Convention Hall - Tầng 6",
     "floor": "Tầng 6",
@@ -8692,14 +8692,14 @@ export const SPACES_100_DATA: any[] = [
       "name": "FatimaSaadNaik/indoor-scenes-dataset",
       "category": "classroom",
       "rawCategory": "classroom",
-      "caption": "this is an image of a classroom setting with tables, chairs, and a fire extinguisher",
+      "caption": "this is an image of a executive training setting with tables, chairs, and a fire extinguisher",
       "fileName": "P1010077.jpg",
       "dimensions": {
         "width": 256,
         "height": 256
       }
     },
-    "description": "Giảng đường đa năng tiêu chuẩn cao tại Landmark Convention Hall. • Mô tả cảnh gốc Hugging Face: \"this is an image of a classroom setting with tables, chairs, and a fire extinguisher\"",
+    "description": "Không gian hội thảo & đào tạo doanh nghiệp cao cấp tại Landmark Convention Hall. • Mô tả cảnh gốc Hugging Face: \"this is an image of a executive training setting with tables, chairs, and a fire extinguisher\"",
     "equipment": [
       "Máy chiếu Full HD kép",
       "Điều hòa công suất lớn",
@@ -8772,7 +8772,7 @@ export const SPACES_100_DATA: any[] = [
   {
     "_id": "indoor_classroom_6",
     "code": "CLA-072",
-    "name": "Phòng Đào tạo Doanh nghiệp Corporate Training (Classroom)",
+    "name": "Trung tâm Đào tạo Chuyên gia Corporate Training Suite",
     "sellerId": "seller-uel",
     "seller": {
       "id": "seller-uel",
@@ -8784,8 +8784,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Giảng đường đa năng",
-    "categoryName": "Giảng đường đa năng",
+    "spaceType": "Trung tâm Hội thảo & Đào tạo",
+    "categoryName": "Trung tâm Hội thảo & Đào tạo",
     "building": "Khu phức hợp Tri thức UEL Hub",
     "buildingName": "Khu phức hợp Tri thức UEL Hub - Tầng 7",
     "floor": "Tầng 7",
@@ -8819,14 +8819,14 @@ export const SPACES_100_DATA: any[] = [
       "name": "FatimaSaadNaik/indoor-scenes-dataset",
       "category": "classroom",
       "rawCategory": "classroom",
-      "caption": "row of desks and chairs in a classroom with a television on the wall and a large screen on the wall",
+      "caption": "row of desks and chairs in a modern workshop hall with a television on the wall and a large screen on the wall",
       "fileName": "salle14.jpg",
       "dimensions": {
         "width": 256,
         "height": 256
       }
     },
-    "description": "Giảng đường đa năng tiêu chuẩn cao tại Khu phức hợp Tri thức UEL Hub. • Mô tả cảnh gốc Hugging Face: \"row of desks and chairs in a classroom with a television on the wall and a large screen on the wall\"",
+    "description": "Không gian hội thảo & đào tạo doanh nghiệp cao cấp tại Khu phức hợp Tri thức UEL Hub. • Mô tả cảnh gốc Hugging Face: \"row of desks and chairs in a modern workshop hall with a television on the wall and a large screen on the wall\"",
     "equipment": [
       "Máy chiếu Full HD kép",
       "Điều hòa công suất lớn",
@@ -8882,7 +8882,7 @@ export const SPACES_100_DATA: any[] = [
   {
     "_id": "indoor_classroom_7",
     "code": "CLA-073",
-    "name": "Giảng đường Khai phóng Tân tiến C1.102 (Classroom)",
+    "name": "Hội trường Hội thảo Quốc tế Global Hall C1.102",
     "sellerId": "seller-uel",
     "seller": {
       "id": "seller-uel",
@@ -8894,8 +8894,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Giảng đường đa năng",
-    "categoryName": "Giảng đường đa năng",
+    "spaceType": "Trung tâm Hội thảo & Đào tạo",
+    "categoryName": "Trung tâm Hội thảo & Đào tạo",
     "building": "UEL Central Space",
     "buildingName": "UEL Central Space - Tầng Trệt",
     "floor": "Tầng Trệt",
@@ -8929,14 +8929,14 @@ export const SPACES_100_DATA: any[] = [
       "name": "FatimaSaadNaik/indoor-scenes-dataset",
       "category": "classroom",
       "rawCategory": "classroom",
-      "caption": "these are tables and chairs in a classroom with a view of a city outside the window on the other side of the room",
+      "caption": "these are tables and chairs in a modern workshop hall with a view of a city outside the window on the other side of the room",
       "fileName": "classroom5.jpg",
       "dimensions": {
         "width": 256,
         "height": 256
       }
     },
-    "description": "Giảng đường đa năng tiêu chuẩn cao tại UEL Central Space. • Mô tả cảnh gốc Hugging Face: \"these are tables and chairs in a classroom with a view of a city outside the window on the other side of the room\"",
+    "description": "Không gian hội thảo & đào tạo doanh nghiệp cao cấp tại UEL Central Space. • Mô tả cảnh gốc Hugging Face: \"these are tables and chairs in a modern workshop hall with a view of a city outside the window on the other side of the room\"",
     "equipment": [
       "Máy chiếu Full HD kép",
       "Điều hòa công suất lớn",
@@ -9009,7 +9009,7 @@ export const SPACES_100_DATA: any[] = [
   {
     "_id": "indoor_classroom_8",
     "code": "CLA-074",
-    "name": "Phòng Học Trực quan Tương tác Active Learning (Classroom)",
+    "name": "Không gian Workshop Tương tác Active Strategy Hub",
     "sellerId": "seller-uel",
     "seller": {
       "id": "seller-uel",
@@ -9021,8 +9021,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Giảng đường đa năng",
-    "categoryName": "Giảng đường đa năng",
+    "spaceType": "Trung tâm Hội thảo & Đào tạo",
+    "categoryName": "Trung tâm Hội thảo & Đào tạo",
     "building": "TechPark Innovation Tower",
     "buildingName": "TechPark Innovation Tower - Tầng 1",
     "floor": "Tầng 1",
@@ -9056,14 +9056,14 @@ export const SPACES_100_DATA: any[] = [
       "name": "FatimaSaadNaik/indoor-scenes-dataset",
       "category": "classroom",
       "rawCategory": "classroom",
-      "caption": "rows of empty desks and chairs in a classroom with a chalkboard on the wall and a blackboard on the wall",
+      "caption": "rows of empty desks and chairs in a modern workshop hall with a chalkboard on the wall and a blackboard on the wall",
       "fileName": "Tour_Franco_Classroom157_Side_rdax_90.jpg",
       "dimensions": {
         "width": 256,
         "height": 256
       }
     },
-    "description": "Giảng đường đa năng tiêu chuẩn cao tại TechPark Innovation Tower. • Mô tả cảnh gốc Hugging Face: \"rows of empty desks and chairs in a classroom with a chalkboard on the wall and a blackboard on the wall\"",
+    "description": "Không gian hội thảo & đào tạo doanh nghiệp cao cấp tại TechPark Innovation Tower. • Mô tả cảnh gốc Hugging Face: \"rows of empty desks and chairs in a modern workshop hall with a chalkboard on the wall and a blackboard on the wall\"",
     "equipment": [
       "Máy chiếu Full HD kép",
       "Điều hòa công suất lớn",
@@ -9136,7 +9136,7 @@ export const SPACES_100_DATA: any[] = [
   {
     "_id": "indoor_classroom_9",
     "code": "CLA-075",
-    "name": "Phòng Đào tạo Thạc sĩ & Sau đại học Master Hall (Classroom)",
+    "name": "Phòng Hội nghị Chuyên gia Executive Master Suite",
     "sellerId": "seller-uel",
     "seller": {
       "id": "seller-uel",
@@ -9148,8 +9148,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Giảng đường đa năng",
-    "categoryName": "Giảng đường đa năng",
+    "spaceType": "Trung tâm Hội thảo & Đào tạo",
+    "categoryName": "Trung tâm Hội thảo & Đào tạo",
     "building": "Landmark Convention Hall",
     "buildingName": "Landmark Convention Hall - Tầng 2",
     "floor": "Tầng 2",
@@ -9183,14 +9183,14 @@ export const SPACES_100_DATA: any[] = [
       "name": "FatimaSaadNaik/indoor-scenes-dataset",
       "category": "classroom",
       "rawCategory": "classroom",
-      "caption": "these are empty desks and chairs in a classroom with a large window in the back of the room",
+      "caption": "these are empty desks and chairs in a modern workshop hall with a large window in the back of the room",
       "fileName": "dam_classroom4.jpg",
       "dimensions": {
         "width": 256,
         "height": 256
       }
     },
-    "description": "Giảng đường đa năng tiêu chuẩn cao tại Landmark Convention Hall. • Mô tả cảnh gốc Hugging Face: \"these are empty desks and chairs in a classroom with a large window in the back of the room\"",
+    "description": "Không gian hội thảo & đào tạo doanh nghiệp cao cấp tại Landmark Convention Hall. • Mô tả cảnh gốc Hugging Face: \"these are empty desks and chairs in a modern workshop hall with a large window in the back of the room\"",
     "equipment": [
       "Máy chiếu Full HD kép",
       "Điều hòa công suất lớn",
@@ -9263,7 +9263,7 @@ export const SPACES_100_DATA: any[] = [
   {
     "_id": "indoor_classroom_10",
     "code": "CLA-076",
-    "name": "Giảng đường Tiêu chuẩn Quốc tế Global Classroom (Classroom)",
+    "name": "Hội trường Đào tạo Quốc tế Global Executive Hall",
     "sellerId": "seller-uel",
     "seller": {
       "id": "seller-uel",
@@ -9275,8 +9275,8 @@ export const SPACES_100_DATA: any[] = [
       "verified": true,
       "badge": "Đại học Kinh tế - Luật Official"
     },
-    "spaceType": "Giảng đường đa năng",
-    "categoryName": "Giảng đường đa năng",
+    "spaceType": "Trung tâm Hội thảo & Đào tạo",
+    "categoryName": "Trung tâm Hội thảo & Đào tạo",
     "building": "Khu phức hợp Tri thức UEL Hub",
     "buildingName": "Khu phức hợp Tri thức UEL Hub - Tầng 3",
     "floor": "Tầng 3",
@@ -9310,14 +9310,14 @@ export const SPACES_100_DATA: any[] = [
       "name": "FatimaSaadNaik/indoor-scenes-dataset",
       "category": "classroom",
       "rawCategory": "classroom",
-      "caption": "there are many desks and chairs in this classroom with a clock on the wall above them and a clock on the wall above them",
+      "caption": "there are many desks and chairs in this convention room with a clock on the wall above them and a clock on the wall above them",
       "fileName": "90468092_47c4b7f04d.jpg",
       "dimensions": {
         "width": 256,
         "height": 256
       }
     },
-    "description": "Giảng đường đa năng tiêu chuẩn cao tại Khu phức hợp Tri thức UEL Hub. • Mô tả cảnh gốc Hugging Face: \"there are many desks and chairs in this classroom with a clock on the wall above them and a clock on the wall above them\"",
+    "description": "Không gian hội thảo & đào tạo doanh nghiệp cao cấp tại Khu phức hợp Tri thức UEL Hub. • Mô tả cảnh gốc Hugging Face: \"there are many desks and chairs in this convention room with a clock on the wall above them and a clock on the wall above them\"",
     "equipment": [
       "Máy chiếu Full HD kép",
       "Điều hòa công suất lớn",
@@ -9547,14 +9547,14 @@ export const SPACES_100_DATA: any[] = [
       "name": "FatimaSaadNaik/indoor-scenes-dataset",
       "category": "office",
       "rawCategory": "office",
-      "caption": "This office rows of tables and chairs in a classroom with a whiteboard on the wall and a whiteboard on the wall",
+      "caption": "This office rows of tables and chairs in a modern workshop hall with a whiteboard on the wall and a whiteboard on the wall",
       "fileName": "img_0013.jpg",
       "dimensions": {
         "width": 2592,
         "height": 1944
       }
     },
-    "description": "Văn phòng riêng tiêu chuẩn cao tại TechPark Innovation Tower. • Mô tả cảnh gốc Hugging Face: \"This office rows of tables and chairs in a classroom with a whiteboard on the wall and a whiteboard on the wall\"",
+    "description": "Văn phòng riêng tiêu chuẩn cao tại TechPark Innovation Tower. • Mô tả cảnh gốc Hugging Face: \"This office rows of tables and chairs in a modern workshop hall with a whiteboard on the wall and a whiteboard on the wall\"",
     "equipment": [
       "Khóa Smart Lock vân tay",
       "Bàn làm việc giám đốc",
@@ -11315,14 +11315,14 @@ export const SPACES_100_DATA: any[] = [
       "name": "FatimaSaadNaik/indoor-scenes-dataset",
       "category": "computerroom",
       "rawCategory": "computerroom",
-      "caption": "This computerroom row of computer monitors sitting on desks in a classroom with a whiteboard on the wall and a whiteboard on the wall",
+      "caption": "This computerroom row of computer monitors sitting on desks in a modern workshop hall with a whiteboard on the wall and a whiteboard on the wall",
       "fileName": "sala_informatica_3.jpg",
       "dimensions": {
         "width": 1037,
         "height": 781
       }
     },
-    "description": "Phòng máy tính Lab tiêu chuẩn cao tại TechPark Innovation Tower. • Mô tả cảnh gốc Hugging Face: \"This computerroom row of computer monitors sitting on desks in a classroom with a whiteboard on the wall and a whiteboard on the wall\"",
+    "description": "Phòng máy tính Lab tiêu chuẩn cao tại TechPark Innovation Tower. • Mô tả cảnh gốc Hugging Face: \"This computerroom row of computer monitors sitting on desks in a modern workshop hall with a whiteboard on the wall and a whiteboard on the wall\"",
     "equipment": [
       "50 PC Intel Core i7 / 32GB RAM / RTX GPU",
       "Mạng LAN gigabit 10Gbps",
@@ -11823,14 +11823,14 @@ export const SPACES_100_DATA: any[] = [
       "name": "FatimaSaadNaik/indoor-scenes-dataset",
       "category": "computerroom",
       "rawCategory": "computerroom",
-      "caption": "This computerroom rows of desks and chairs in a classroom with computers on the wall and a whiteboard on the wall",
+      "caption": "This computerroom rows of desks and chairs in a modern workshop hall with computers on the wall and a whiteboard on the wall",
       "fileName": "electronica.jpg",
       "dimensions": {
         "width": 700,
         "height": 525
       }
     },
-    "description": "Phòng máy tính Lab tiêu chuẩn cao tại TechPark Innovation Tower. • Mô tả cảnh gốc Hugging Face: \"This computerroom rows of desks and chairs in a classroom with computers on the wall and a whiteboard on the wall\"",
+    "description": "Phòng máy tính Lab tiêu chuẩn cao tại TechPark Innovation Tower. • Mô tả cảnh gốc Hugging Face: \"This computerroom rows of desks and chairs in a modern workshop hall with computers on the wall and a whiteboard on the wall\"",
     "equipment": [
       "50 PC Intel Core i7 / 32GB RAM / RTX GPU",
       "Mạng LAN gigabit 10Gbps",

@@ -1,4 +1,4 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SERVER_IMAGES_LINK } from '../../services/api-config';
@@ -28,12 +28,38 @@ export interface ChapterNavItem {
   templateUrl: './about.html',
   styleUrl: './about.scss'
 })
-export class About {
+export class About implements OnInit, OnDestroy {
   server_images_link = SERVER_IMAGES_LINK;
 
   // Scroll storytelling progress (ITB Club inspiration)
   scrollProgress = 0;
   activeChapter = 'chapter-1';
+  private autoSlideTimer?: any;
+
+  ngOnInit() {
+    this.startAutoSlide();
+  }
+
+  ngOnDestroy() {
+    this.stopAutoSlide();
+  }
+
+  startAutoSlide() {
+    this.stopAutoSlide();
+    this.autoSlideTimer = setInterval(() => {
+      Object.keys(this.chapterArchives).forEach(key => {
+        this.nextPhoto(key);
+      });
+    }, 4000);
+  }
+
+  stopAutoSlide() {
+    if (this.autoSlideTimer) {
+      clearInterval(this.autoSlideTimer);
+      this.autoSlideTimer = undefined;
+    }
+  }
+
 
   chapters: ChapterNavItem[] = [
     { id: 'chapter-1', index: '01', title: 'Nghịch lý lãng phí' },

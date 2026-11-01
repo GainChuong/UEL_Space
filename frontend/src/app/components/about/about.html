@@ -101,49 +101,24 @@
         <!-- Right: Interactive Photo Archive (6 cols) -->
         <div class="lg:col-span-6">
           <div class="photo-archive-stage rounded-3xl overflow-hidden shadow-xl border border-border-gray dark:border-slate-800 relative aspect-video sm:aspect-[4/3]">
-            <img [src]="getCurrentPhoto('origin').src" 
-                 [alt]="getCurrentPhoto('origin').caption | t" 
-                 class="w-full h-full object-cover">
+            @for (photo of chapterArchives['origin'].photos; track $index) {
+              <img [src]="photo.src" 
+                   [alt]="photo.caption | t" 
+                   class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out pointer-events-none"
+                   [class.opacity-100]="$index === chapterArchives['origin'].currentIndex"
+                   [class.opacity-0]="$index !== chapterArchives['origin'].currentIndex">
+            }
             
-            <div class="absolute inset-0 bg-gradient-to-t from-[#001D3D]/90 via-[#001D3D]/25 to-transparent"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-[#001D3D]/90 via-[#001D3D]/25 to-transparent z-10 pointer-events-none"></div>
 
-            <!-- Bottom Caption & Controls Bar -->
-            <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between text-white gap-3">
+            <!-- Bottom Caption Bar -->
+            <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between text-white gap-3 z-20 pointer-events-none">
               <div>
                 <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-uel-orange text-white">
                   {{getCurrentPhoto('origin').tag | t}}
                 </span>
                 <div class="text-sm font-black mt-1 leading-snug">{{getCurrentPhoto('origin').caption | t}}</div>
                 <div class="text-[11px] text-slate-300 font-medium">{{getCurrentPhoto('origin').subcaption | t}}</div>
-              </div>
-
-              <!-- Carousel Navigation Buttons & Dots -->
-              <div data-viewer-allowed class="flex flex-col items-end gap-1.5 shrink-0">
-                <div class="flex items-center gap-1.5 bg-black/50 backdrop-blur-md p-1 rounded-xl border border-white/20">
-                  <button (click)="prevPhoto('origin')" 
-                          class="w-7 h-7 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
-                          [title]="'Ảnh trước' | t">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-                  </button>
-                  <span class="text-[11px] font-mono font-bold px-1.5 text-slate-200">
-                    0{{chapterArchives['origin'].currentIndex + 1}} / 0{{chapterArchives['origin'].photos.length}}
-                  </span>
-                  <button (click)="nextPhoto('origin')" 
-                          class="w-7 h-7 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
-                          [title]="'Ảnh tiếp' | t">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                  </button>
-                </div>
-
-                <!-- Slide Dots -->
-                <div class="flex items-center gap-1.5 pr-1">
-                  @for (photo of chapterArchives['origin'].photos; track $index) {
-                    <button (click)="setPhotoIndex('origin', $index)"
-                            class="h-1.5 rounded-full transition-all cursor-pointer"
-                            [ngClass]="$index === chapterArchives['origin'].currentIndex ? 'w-5 bg-uel-orange' : 'w-1.5 bg-white/40 hover:bg-white/70'"
-                            [attr.aria-label]="('Chuyển sang ảnh ' | t) + ($index + 1)"></button>
-                  }
-                </div>
               </div>
             </div>
 
@@ -162,48 +137,23 @@
         <!-- Left: Interactive Photo Archive (6 cols) -->
         <div class="lg:col-span-6 order-2 lg:order-1">
           <div class="photo-archive-stage rounded-3xl overflow-hidden shadow-xl border border-border-gray dark:border-slate-800 relative aspect-video sm:aspect-[4/3]">
-            <img [src]="getCurrentPhoto('library').src" 
-                 [alt]="getCurrentPhoto('library').caption | t" 
-                 class="w-full h-full object-cover">
+            @for (photo of chapterArchives['library'].photos; track $index) {
+              <img [src]="photo.src" 
+                   [alt]="photo.caption | t" 
+                   class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out pointer-events-none"
+                   [class.opacity-100]="$index === chapterArchives['library'].currentIndex"
+                   [class.opacity-0]="$index !== chapterArchives['library'].currentIndex">
+            }
             
-            <div class="absolute inset-0 bg-gradient-to-t from-[#001D3D]/90 via-[#001D3D]/25 to-transparent"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-[#001D3D]/90 via-[#001D3D]/25 to-transparent z-10 pointer-events-none"></div>
 
-            <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between text-white gap-3">
+            <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between text-white gap-3 z-20 pointer-events-none">
               <div>
                 <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-uel-blue text-white border border-white/20">
                   {{getCurrentPhoto('library').tag | t}}
                 </span>
                 <div class="text-sm font-black mt-1 leading-snug">{{getCurrentPhoto('library').caption | t}}</div>
                 <div class="text-[11px] text-slate-300 font-medium">{{getCurrentPhoto('library').subcaption | t}}</div>
-              </div>
-
-              <!-- Carousel Navigation Buttons & Dots -->
-              <div data-viewer-allowed class="flex flex-col items-end gap-1.5 shrink-0">
-                <div class="flex items-center gap-1.5 bg-black/50 backdrop-blur-md p-1 rounded-xl border border-white/20">
-                  <button (click)="prevPhoto('library')" 
-                          class="w-7 h-7 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
-                          [title]="'Ảnh trước' | t">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-                  </button>
-                  <span class="text-[11px] font-mono font-bold px-1.5 text-slate-200">
-                    0{{chapterArchives['library'].currentIndex + 1}} / 0{{chapterArchives['library'].photos.length}}
-                  </span>
-                  <button (click)="nextPhoto('library')" 
-                          class="w-7 h-7 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
-                          [title]="'Ảnh tiếp' | t">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                  </button>
-                </div>
-
-                <!-- Slide Dots -->
-                <div class="flex items-center gap-1.5 pr-1">
-                  @for (photo of chapterArchives['library'].photos; track $index) {
-                    <button (click)="setPhotoIndex('library', $index)"
-                            class="h-1.5 rounded-full transition-all cursor-pointer"
-                            [ngClass]="$index === chapterArchives['library'].currentIndex ? 'w-5 bg-uel-blue' : 'w-1.5 bg-white/40 hover:bg-white/70'"
-                            [attr.aria-label]="('Chuyển sang ảnh ' | t) + ($index + 1)"></button>
-                  }
-                </div>
               </div>
             </div>
 
@@ -299,48 +249,23 @@
         <!-- Right: Interactive Photo Archive Solution (6 cols) -->
         <div class="lg:col-span-6">
           <div class="photo-archive-stage rounded-3xl overflow-hidden shadow-xl border border-border-gray dark:border-slate-800 relative aspect-video sm:aspect-[4/3]">
-            <img [src]="getCurrentPhoto('solution').src" 
-                 [alt]="getCurrentPhoto('solution').caption | t" 
-                 class="w-full h-full object-cover">
+            @for (photo of chapterArchives['solution'].photos; track $index) {
+              <img [src]="photo.src" 
+                   [alt]="photo.caption | t" 
+                   class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out pointer-events-none"
+                   [class.opacity-100]="$index === chapterArchives['solution'].currentIndex"
+                   [class.opacity-0]="$index !== chapterArchives['solution'].currentIndex">
+            }
             
-            <div class="absolute inset-0 bg-gradient-to-t from-[#001D3D]/90 via-[#001D3D]/25 to-transparent"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-[#001D3D]/90 via-[#001D3D]/25 to-transparent z-10 pointer-events-none"></div>
 
-            <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between text-white gap-3">
+            <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between text-white gap-3 z-20 pointer-events-none">
               <div>
                 <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-500 text-white">
                   {{getCurrentPhoto('solution').tag | t}}
                 </span>
                 <div class="text-sm font-black mt-1 leading-snug">{{getCurrentPhoto('solution').caption | t}}</div>
                 <div class="text-[11px] text-slate-300 font-medium">{{getCurrentPhoto('solution').subcaption | t}}</div>
-              </div>
-
-              <!-- Carousel Navigation Buttons & Dots -->
-              <div data-viewer-allowed class="flex flex-col items-end gap-1.5 shrink-0">
-                <div class="flex items-center gap-1.5 bg-black/50 backdrop-blur-md p-1 rounded-xl border border-white/20">
-                  <button (click)="prevPhoto('solution')" 
-                          class="w-7 h-7 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
-                          [title]="'Ảnh trước' | t">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-                  </button>
-                  <span class="text-[11px] font-mono font-bold px-1.5 text-slate-200">
-                    0{{chapterArchives['solution'].currentIndex + 1}} / 0{{chapterArchives['solution'].photos.length}}
-                  </span>
-                  <button (click)="nextPhoto('solution')" 
-                          class="w-7 h-7 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
-                          [title]="'Ảnh tiếp' | t">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                  </button>
-                </div>
-
-                <!-- Slide Dots -->
-                <div class="flex items-center gap-1.5 pr-1">
-                  @for (photo of chapterArchives['solution'].photos; track $index) {
-                    <button (click)="setPhotoIndex('solution', $index)"
-                            class="h-1.5 rounded-full transition-all cursor-pointer"
-                            [ngClass]="$index === chapterArchives['solution'].currentIndex ? 'w-5 bg-emerald-400' : 'w-1.5 bg-white/40 hover:bg-white/70'"
-                            [attr.aria-label]="('Chuyển sang ảnh ' | t) + ($index + 1)"></button>
-                  }
-                </div>
               </div>
             </div>
 
