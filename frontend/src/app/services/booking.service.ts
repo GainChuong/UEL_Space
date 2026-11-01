@@ -10,10 +10,10 @@ export interface BookingRecord {
   roomName: string;
   building: string;
   roomType: string;
-  date: string; // YYYY-MM-DD
-  endDate?: string; // YYYY-MM-DD (cho multi-day booking)
-  startTime?: string; // HH:mm
-  endTime?: string; // HH:mm
+  date: string; // YYYY-MM-DD (Check-in Date)
+  endDate?: string; // YYYY-MM-DD (Check-out Date)
+  startTime?: string; // HH:mm (Check-in Time)
+  endTime?: string; // HH:mm (Check-out Time)
   timeSlot: string; // e.g. "08:00 - 10:00"
   purpose: string;
   capacity: number;
@@ -26,7 +26,7 @@ export interface BookingRecord {
   cancelledAt?: string;
 }
 
-const STORAGE_KEY = 'uel_space_booking_records_v1';
+const STORAGE_KEY = 'uel_space_booking_records_v2';
 
 @Injectable({
   providedIn: 'root'
@@ -42,6 +42,9 @@ export class BookingService {
       building: 'Central Tower Q.1 - Tầng 12',
       roomType: 'Phòng họp VIP',
       date: '2026-10-18',
+      endDate: '2026-10-18',
+      startTime: '14:00',
+      endTime: '16:00',
       timeSlot: '14:00 - 16:00',
       purpose: 'Họp chiến lược ký kết hợp đồng đối tác B2B',
       capacity: 24,
@@ -55,6 +58,9 @@ export class BookingService {
       building: 'TechPark Executive Hub - Tầng 5',
       roomType: 'Văn phòng riêng',
       date: '2026-10-17',
+      endDate: '2026-10-17',
+      startTime: '09:00',
+      endTime: '11:30',
       timeSlot: '09:00 - 11:30',
       purpose: 'Làm việc tập trung cùng đội ngũ sáng lập',
       capacity: 12,
@@ -68,6 +74,9 @@ export class BookingService {
       building: 'Innovation Hub Q.2 - Tầng 2',
       roomType: 'Bàn làm việc linh hoạt',
       date: '2026-10-19',
+      endDate: '2026-10-19',
+      startTime: '08:00',
+      endTime: '17:00',
       timeSlot: '08:00 - 17:00',
       purpose: 'Gói làm việc linh hoạt theo ngày cho 3 nhân sự',
       capacity: 60,
@@ -81,6 +90,9 @@ export class BookingService {
       building: 'Landmark Lounge - Tầng 8',
       roomType: 'Không gian sự kiện',
       date: '2026-10-16',
+      endDate: '2026-10-16',
+      startTime: '13:00',
+      endTime: '17:00',
       timeSlot: '13:00 - 17:00',
       purpose: 'Tổ chức sự kiện Demo Day kết nối nhà đầu tư',
       capacity: 100,
@@ -94,6 +106,9 @@ export class BookingService {
       building: 'Green Office Suites - Tầng 3',
       roomType: 'Meeting Pod',
       date: '2026-10-20',
+      endDate: '2026-10-20',
+      startTime: '15:00',
+      endTime: '17:30',
       timeSlot: '15:00 - 17:30',
       purpose: 'Phỏng vấn ứng viên cấp cao trực tuyến',
       capacity: 4,
@@ -107,6 +122,9 @@ export class BookingService {
       building: 'TechPark Executive Hub - Tầng 6',
       roomType: 'Phòng họp sáng tạo',
       date: '2026-10-15',
+      endDate: '2026-10-15',
+      startTime: '08:00',
+      endTime: '12:00',
       timeSlot: '08:00 - 12:00',
       purpose: 'Workshop lên ý tưởng sản phẩm mới',
       capacity: 20,
@@ -120,6 +138,9 @@ export class BookingService {
       building: 'Central Tower Q.1 - Tầng 12',
       roomType: 'Phòng họp VIP',
       date: '2026-10-10',
+      endDate: '2026-10-10',
+      startTime: '10:00',
+      endTime: '12:00',
       timeSlot: '10:00 - 12:00',
       purpose: 'Họp cổ đông thường niên quý III',
       capacity: 24,
@@ -133,6 +154,9 @@ export class BookingService {
       building: 'Green Office Suites - Tầng 3',
       roomType: 'Meeting Pod',
       date: '2026-10-08',
+      endDate: '2026-10-08',
+      startTime: '14:00',
+      endTime: '16:00',
       timeSlot: '14:00 - 16:00',
       purpose: 'Phỏng vấn ứng viên cấp cao (Đã hủy)',
       capacity: 4,

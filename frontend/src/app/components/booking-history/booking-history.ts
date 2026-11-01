@@ -262,6 +262,26 @@ export class BookingHistory implements OnInit, OnDestroy {
     this.showQrModal = true;
   }
 
+  getStartTime(booking: BookingRecord): string {
+    if (booking.startTime) return booking.startTime;
+    if (booking.timeSlot && booking.timeSlot.includes('-')) {
+      return booking.timeSlot.split('-')[0].trim();
+    }
+    return '';
+  }
+
+  getEndTime(booking: BookingRecord): string {
+    if (booking.endTime) return booking.endTime;
+    if (booking.timeSlot && booking.timeSlot.includes('-')) {
+      return booking.timeSlot.split('-')[1].trim();
+    }
+    return '';
+  }
+
+  getDisplayEndDate(booking: BookingRecord): string {
+    return booking.endDate || booking.date;
+  }
+
   closeQrModal() {
     this.showQrModal = false;
     this.selectedBookingForQr = null;

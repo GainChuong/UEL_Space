@@ -218,26 +218,35 @@
             {{item.building | t}}
           </p>
 
-          <!-- Schedule Details -->
+          <!-- Schedule Details (Đồng nhất Check-in / Check-out) -->
           <div class="bg-bg-gray dark:bg-slate-800 rounded-2xl p-4 space-y-2.5 mb-5 text-xs font-medium">
+            <!-- Check-in row -->
             <div class="flex items-center justify-between text-dark-text dark:text-white">
               <span class="text-text-muted dark:text-slate-400 flex items-center gap-1.5">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-uel-blue dark:text-sky-400 flex-shrink-0"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-                {{ 'Ngày đặt:' | t }}
+                <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block shrink-0"></span>
+                <span class="font-semibold">{{ 'Nhận phòng (Check-in):' | t }}</span>
               </span>
-              <span class="font-bold">{{item.date}}</span>
-            </div>
-            <div class="flex items-center justify-between text-dark-text dark:text-white">
-              <span class="text-text-muted dark:text-slate-400 flex items-center gap-1.5">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-uel-blue dark:text-sky-400 flex-shrink-0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                {{ 'Khung giờ:' | t }}
+              <span class="font-bold text-slate-800 dark:text-slate-100">
+                {{ formatDisplayDate(item.date) }} <span class="text-emerald-600 dark:text-emerald-400 font-extrabold ml-1">({{ getStartTime(item) }})</span>
               </span>
-              <span class="font-bold text-uel-blue dark:text-sky-400">{{item.timeSlot}}</span>
             </div>
+
+            <!-- Check-out row -->
             <div class="flex items-center justify-between text-dark-text dark:text-white">
               <span class="text-text-muted dark:text-slate-400 flex items-center gap-1.5">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-uel-blue dark:text-sky-400 flex-shrink-0"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-                {{ 'Mục đích:' | t }}
+                <span class="w-2 h-2 rounded-full bg-uel-blue dark:bg-sky-400 inline-block shrink-0"></span>
+                <span class="font-semibold">{{ 'Trả phòng (Check-out):' | t }}</span>
+              </span>
+              <span class="font-bold text-slate-800 dark:text-slate-100">
+                {{ formatDisplayDate(getDisplayEndDate(item)) }} <span class="text-uel-blue dark:text-sky-400 font-extrabold ml-1">({{ getEndTime(item) }})</span>
+              </span>
+            </div>
+
+            <!-- Purpose row -->
+            <div class="flex items-center justify-between text-dark-text dark:text-white pt-1 border-t border-border-gray/50 dark:border-slate-700/60">
+              <span class="text-text-muted dark:text-slate-400 flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5 text-uel-orange flex-shrink-0"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                <span>{{ 'Mục đích:' | t }}</span>
               </span>
               <span class="font-semibold text-right max-w-[180px] truncate" [title]="item.purpose | t">{{item.purpose | t}}</span>
             </div>
@@ -338,9 +347,9 @@
         </div>
 
         <div class="bg-bg-gray dark:bg-slate-800 rounded-2xl p-4 text-left text-xs space-y-2 mb-4">
-          <div class="flex justify-between"><span class="text-text-muted dark:text-slate-400">{{ 'Khung giờ:' | t }}</span> <span class="font-bold text-uel-blue dark:text-sky-400">{{selectedBookingForQr.timeSlot}}</span></div>
-          <div class="flex justify-between"><span class="text-text-muted dark:text-slate-400">{{ 'Ngày:' | t }}</span> <span class="font-bold text-dark-text dark:text-white">{{selectedBookingForQr.date}}</span></div>
-          <div class="flex justify-between"><span class="text-text-muted dark:text-slate-400">{{ 'Trạng thái:' | t }}</span> <span class="font-bold text-emerald-600 dark:text-emerald-400">{{selectedBookingForQr.statusText | t}}</span></div>
+          <div class="flex justify-between items-center"><span class="text-text-muted dark:text-slate-400 font-semibold">{{ 'Check-in (Nhận):' | t }}</span> <span class="font-bold text-emerald-600 dark:text-emerald-400">{{formatDisplayDate(selectedBookingForQr.date)}} ({{getStartTime(selectedBookingForQr)}})</span></div>
+          <div class="flex justify-between items-center"><span class="text-text-muted dark:text-slate-400 font-semibold">{{ 'Check-out (Trả):' | t }}</span> <span class="font-bold text-uel-blue dark:text-sky-400">{{formatDisplayDate(getDisplayEndDate(selectedBookingForQr))}} ({{getEndTime(selectedBookingForQr)}})</span></div>
+          <div class="flex justify-between items-center"><span class="text-text-muted dark:text-slate-400">{{ 'Trạng thái:' | t }}</span> <span class="font-bold text-emerald-600 dark:text-emerald-400">{{selectedBookingForQr.statusText | t}}</span></div>
         </div>
 
         <button (click)="closeQrModal()" class="w-full btn-primary py-3 cursor-pointer">{{ 'Đóng' | t }}</button>
@@ -377,8 +386,12 @@
             <span class="font-mono font-bold text-uel-blue dark:text-sky-400">{{ selectedBookingForCancel.id }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-slate-500 dark:text-slate-400">{{ 'Thời gian:' | t }}</span>
-            <span class="font-bold text-slate-700 dark:text-slate-200">{{ selectedBookingForCancel.date }} ({{ selectedBookingForCancel.timeSlot }})</span>
+            <span class="text-slate-500 dark:text-slate-400">{{ 'Check-in (Nhận):' | t }}</span>
+            <span class="font-bold text-slate-700 dark:text-slate-200">{{ formatDisplayDate(selectedBookingForCancel.date) }} ({{ getStartTime(selectedBookingForCancel) }})</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500 dark:text-slate-400">{{ 'Check-out (Trả):' | t }}</span>
+            <span class="font-bold text-slate-700 dark:text-slate-200">{{ formatDisplayDate(getDisplayEndDate(selectedBookingForCancel)) }} ({{ getEndTime(selectedBookingForCancel) }})</span>
           </div>
         </div>
 
@@ -458,8 +471,13 @@
           </div>
 
           <div class="flex justify-between items-center pb-2.5 border-b border-slate-200/70 dark:border-slate-700/70">
-            <span class="text-slate-500 dark:text-slate-400">Thời gian dự kiến:</span>
-            <span class="font-bold text-slate-800 dark:text-white">{{ selectedBookingForDetail.date }} ({{ selectedBookingForDetail.timeSlot }})</span>
+            <span class="text-slate-500 dark:text-slate-400">Check-in (Nhận):</span>
+            <span class="font-bold text-slate-800 dark:text-white">{{ formatDisplayDate(selectedBookingForDetail.date) }} ({{ getStartTime(selectedBookingForDetail) }})</span>
+          </div>
+
+          <div class="flex justify-between items-center pb-2.5 border-b border-slate-200/70 dark:border-slate-700/70">
+            <span class="text-slate-500 dark:text-slate-400">Check-out (Trả):</span>
+            <span class="font-bold text-slate-800 dark:text-white">{{ formatDisplayDate(getDisplayEndDate(selectedBookingForDetail)) }} ({{ getEndTime(selectedBookingForDetail) }})</span>
           </div>
 
           <div class="pb-2.5 border-b border-slate-200/70 dark:border-slate-700/70">
