@@ -70,7 +70,7 @@ def run_training():
         batch=batch_size,
         device=device,
         amp=has_cuda,
-        workers=4 if has_cuda else 2,
+        workers=2,
         project=OUTPUT_RUNS_DIR,
         name="yolo26_smartclass_occupancy",
         exist_ok=True,
