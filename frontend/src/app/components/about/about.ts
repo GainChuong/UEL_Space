@@ -38,8 +38,7 @@ export class About {
   chapters: ChapterNavItem[] = [
     { id: 'chapter-1', index: '01', title: 'Nghịch lý lãng phí' },
     { id: 'chapter-2', index: '02', title: 'Mô hình Marketplace' },
-    { id: 'chapter-3', index: '03', title: 'AI Occupancy' },
-    { id: 'chapter-4', index: '04', title: 'Kinh tế chia sẻ B2B' }
+    { id: 'chapter-3', index: '03', title: 'AI Occupancy' }
   ];
 
   // Photo archives for chapters (Interactive photo carousel)
@@ -48,13 +47,13 @@ export class About {
       currentIndex: 0,
       photos: [
         {
-          src: SERVER_IMAGES_LINK + 'homepage_banner.png',
+          src: SERVER_IMAGES_LINK + 'about/empty_office_paradox.jpg',
           tag: 'Nghịch lý công suất',
           caption: 'Hàng ngàn m² văn phòng bỏ trống ngoài giờ',
           subcaption: 'Nhiều doanh nghiệp chỉ sử dụng 40-60% công suất phòng họp, trong khi startup thiếu không gian linh hoạt'
         },
         {
-          src: SERVER_IMAGES_LINK + 'login/carousel_2.jpg',
+          src: SERVER_IMAGES_LINK + 'about/startup_coworking_demand.jpg',
           tag: 'Nhu cầu thuê ngắn hạn',
           caption: 'Cá nhân & Startup cần nơi làm việc theo giờ',
           subcaption: 'Nhu cầu hội họp đối tác, workshop chuyên nghiệp với chi phí linh hoạt và tiện nghi đầy đủ'
@@ -65,13 +64,13 @@ export class About {
       currentIndex: 0,
       photos: [
         {
-          src: SERVER_IMAGES_LINK + 'spaces/space_thu_vien_coworking.jpg',
+          src: SERVER_IMAGES_LINK + 'about/b2b_marketplace_connection.jpg',
           tag: 'Sàn chia sẻ B2B',
           caption: 'Kết nối Chủ sở hữu & Khách thuê tức thì',
           subcaption: 'Hỗ trợ chủ không gian quản lý phòng, niêm yết giá thuê, quản lý lịch đặt và tăng trưởng doanh thu'
         },
         {
-          src: SERVER_IMAGES_LINK + 'login/carousel_1.jpg',
+          src: SERVER_IMAGES_LINK + 'about/digital_booking_checkout.jpg',
           tag: 'Trải nghiệm số hóa',
           caption: 'Tìm kiếm, đặt chỗ & thanh toán trực tuyến',
           subcaption: 'Tích hợp thanh toán MoMo Sandbox và xuất file đồng bộ Google Calendar chỉ với 1 click'
@@ -82,13 +81,13 @@ export class About {
       currentIndex: 0,
       photos: [
         {
-          src: SERVER_IMAGES_LINK + 'main_map.png',
+          src: SERVER_IMAGES_LINK + 'about/ai_occupancy_cctv_vision.jpg',
           tag: 'AI Occupancy Detection',
           caption: 'Thị giác máy tính giám sát hiện diện thực tế',
           subcaption: 'Ước tính số người có mặt, đối chiếu với số lượng đăng ký để phát hiện vượt tải và cảnh báo quá giờ'
         },
         {
-          src: SERVER_IMAGES_LINK + 'spaces/space_a2_1_meeting_vip.jpg',
+          src: SERVER_IMAGES_LINK + 'about/smart_room_early_release.jpg',
           tag: 'Giải phóng phòng sớm',
           caption: 'Tự động mở lại slot trống khi khách về sớm',
           subcaption: 'Khi AI nhận diện khách rời phòng sớm, hệ thống xác nhận checkout và mở khung giờ cho khách tiếp theo'

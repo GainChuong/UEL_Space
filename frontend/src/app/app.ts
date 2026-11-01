@@ -18,10 +18,21 @@ export class App {
   hideHeaderFooter: boolean = false;
 
   constructor(private router: Router) {
+    if (typeof window !== 'undefined') {
+      this.hideHeaderFooter = this.shouldHide(window.location.pathname);
+    }
+
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe((event: any) => {
-        this.hideHeaderFooter = event.urlAfterRedirects.includes('/login') || event.urlAfterRedirects.includes('/admin');
+        this.hideHeaderFooter = this.shouldHide(event.urlAfterRedirects || event.url || '');
       });
+  }
+
+  private shouldHide(url: string): boolean {
+    return url.includes('/login') || 
+           url.includes('/admin') || 
+           url.includes('/seller-dashboard') || 
+           url.includes('/seller-portal');
   }
 }

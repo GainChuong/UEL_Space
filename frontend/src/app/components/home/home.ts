@@ -50,7 +50,36 @@ export class Home implements OnInit {
   selectedCapacity: string = 'all';
   selectedEquipment: string = 'all';
 
-  activeDropdown: 'date' | 'time' | 'capacity' | 'equipment' | null = null;
+  // 1. Check-in & Check-out State (2 time boxes)
+  checkInDate: string = 'Hôm nay';
+  checkInTime: string = '08:00';
+  checkOutDate: string = 'Hôm nay';
+  checkOutTime: string = '17:00';
+
+  dateOptions: string[] = ['Hôm nay', 'Ngày mai', 'Thứ 2 tới', 'Cuối tuần'];
+  timeOptions: string[] = [
+    '07:00', '07:30', '08:00', '08:30', '09:00', '09:30',
+    '10:00', '10:30', '11:00', '11:30', '12:00', '13:00',
+    '13:30', '14:00', '14:30', '15:00', '16:00', '17:00',
+    '17:30', '18:00', '19:00', '20:00', '21:00'
+  ];
+
+  // 2. Capacity State (Direct typing + Up/Down steppers)
+  capacityCount: number = 0; // 0 = all
+
+  // 3. Multi-Select Amenities (Checkboxes)
+  selectedEquipments: Set<string> = new Set<string>();
+
+  equipmentOptions = [
+    { value: 'ai-cam', label: 'AI Occupancy Detection', icon: 'camera' },
+    { value: 'display', label: 'Màn hình 4K / Máy chiếu', icon: 'display' },
+    { value: 'wifi', label: 'Cáp quang 1Gbps / Wi-Fi', icon: 'wifi' },
+    { value: 'board', label: 'Bảng kính / Smartboard', icon: 'board' },
+    { value: 'ac', label: 'Điều hòa không khí', icon: 'ac' },
+    { value: 'mic', label: 'Micro hội nghị / Âm thanh', icon: 'mic' }
+  ];
+
+  activeDropdown: 'checkin' | 'checkout' | 'capacity' | 'equipment' | 'date' | 'time' | null = null;
   showCustomCalendar: boolean = false;
   currentYear: number = 2026;
   currentMonth: number = 9; // 0-indexed: 9 = Tháng 10
@@ -70,13 +99,7 @@ export class Home implements OnInit {
     { value: 'large', label: 'Trên 50 người' }
   ];
 
-  equipmentOptions = [
-    { value: 'all', label: 'Tất cả tiện ích' },
-    { value: 'ai-cam', label: 'AI Occupancy Detection' },
-    { value: 'display', label: 'Màn hình 4K / Máy chiếu' },
-    { value: 'wifi', label: 'Cáp quang 1Gbps' },
-    { value: 'board', label: 'Bảng kính / Smartboard' }
-  ];
+
 
   spaces: any[] = [];
   currentPage: number = 1;
@@ -143,7 +166,98 @@ export class Home implements OnInit {
     }
   }
 
-  toggleDropdown(type: 'date' | 'time' | 'capacity' | 'equipment', event?: Event) {
+
+  // Trigger Search & Scroll to Results
+  triggerSearch() {
+    this.currentPage = 1;
+    this.closeDropdowns();
+    if (typeof window !== 'undefined') {
+      const el = document.getElementById('spaces-grid-section');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }
+
+  // Check-in & Check-out Handlers
+  selectCheckInDate(date: string) {
+    this.checkInDate = date;
+    this.onFilterChange();
+  }
+
+  selectCheckInTime(time: string) {
+    this.checkInTime = time;
+    this.onFilterChange();
+  }
+
+  selectCheckOutDate(date: string) {
+    this.checkOutDate = date;
+    this.onFilterChange();
+  }
+
+  selectCheckOutTime(time: string) {
+    this.checkOutTime = time;
+    this.onFilterChange();
+  }
+
+  // Capacity Stepper & Direct Typing Handlers
+  incrementCapacity(step: number = 1, event?: Event) {
+    if (event) event.stopPropagation();
+    this.capacityCount = Math.max(0, (this.capacityCount || 0) + step);
+    this.onFilterChange();
+  }
+
+  decrementCapacity(step: number = 1, event?: Event) {
+    if (event) event.stopPropagation();
+    this.capacityCount = Math.max(0, (this.capacityCount || 0) - step);
+    this.onFilterChange();
+  }
+
+  onCapacityInputChange(event: any) {
+    const val = parseInt(event.target.value, 10);
+    this.capacityCount = isNaN(val) || val < 0 ? 0 : val;
+    this.onFilterChange();
+  }
+
+  // Multi-Select Equipment Handlers
+  toggleEquipment(val: string, event?: Event) {
+    if (event) event.stopPropagation();
+    if (this.selectedEquipments.has(val)) {
+      this.selectedEquipments.delete(val);
+    } else {
+      this.selectedEquipments.add(val);
+    }
+    this.onFilterChange();
+  }
+
+  isEquipmentSelected(val: string): boolean {
+    return this.selectedEquipments.has(val);
+  }
+
+  clearEquipments(event?: Event) {
+    if (event) event.stopPropagation();
+    this.selectedEquipments.clear();
+    this.onFilterChange();
+  }
+
+  selectAllEquipments(event?: Event) {
+    if (event) event.stopPropagation();
+    this.equipmentOptions.forEach(eq => this.selectedEquipments.add(eq.value));
+    this.onFilterChange();
+  }
+
+  get equipmentLabel(): string {
+    const count = this.selectedEquipments.size;
+    if (count === 0) return 'Tất cả tiện ích';
+    if (count === 1) {
+      const firstVal = Array.from(this.selectedEquipments)[0];
+      const found = this.equipmentOptions.find(o => o.value === firstVal);
+      return found ? found.label : '1 tiện ích';
+    }
+    return `${count} tiện ích đã chọn`;
+  }
+
+  toggleDropdown(type: 'checkin' | 'checkout' | 'capacity' | 'equipment' | 'date' | 'time', event?: Event) {
     if (event) event.stopPropagation();
     if (this.activeDropdown === type) {
       this.activeDropdown = null;
@@ -236,10 +350,7 @@ export class Home implements OnInit {
     return found ? found.label : 'Sức chứa';
   }
 
-  get equipmentLabel(): string {
-    const found = this.equipmentOptions.find(o => o.value === this.selectedEquipment);
-    return found ? found.label : 'Thiết bị';
-  }
+
 
   get filteredSpaces(): any[] {
     return this.spaces.filter(s => {
@@ -250,7 +361,9 @@ export class Home implements OnInit {
         (s.type || '').toLowerCase().includes(query);
 
       let matchCapacity = true;
-      if (this.selectedCapacity === 'small') {
+      if (this.capacityCount > 0) {
+        matchCapacity = (s.capacity || 0) >= this.capacityCount;
+      } else if (this.selectedCapacity === 'small') {
         matchCapacity = s.capacity < 20;
       } else if (this.selectedCapacity === 'medium') {
         matchCapacity = s.capacity >= 20 && s.capacity <= 50;
@@ -261,7 +374,17 @@ export class Home implements OnInit {
       let matchEquipment = true;
       const facilities: string[] = Array.isArray(s.facilities) ? s.facilities : [];
       const has = (kw: string) => facilities.some(f => (f || '').toLowerCase().includes(kw.toLowerCase()));
-      if (this.selectedEquipment === 'ai-cam') {
+
+      if (this.selectedEquipments.size > 0) {
+        for (const eq of this.selectedEquipments) {
+          if (eq === 'ai-cam' && !has('AI')) { matchEquipment = false; break; }
+          if (eq === 'display' && !(has('Màn hình') || has('Máy chiếu'))) { matchEquipment = false; break; }
+          if (eq === 'wifi' && !(has('Cáp quang') || has('Wifi'))) { matchEquipment = false; break; }
+          if (eq === 'board' && !has('Bảng')) { matchEquipment = false; break; }
+          if (eq === 'ac' && !(has('Điều hòa') || has('Máy lạnh'))) { matchEquipment = false; break; }
+          if (eq === 'mic' && !(has('Micro') || has('Âm thanh') || has('Mic'))) { matchEquipment = false; break; }
+        }
+      } else if (this.selectedEquipment === 'ai-cam') {
         matchEquipment = has('AI');
       } else if (this.selectedEquipment === 'display') {
         matchEquipment = has('Màn hình') || has('Máy chiếu');
@@ -329,7 +452,13 @@ export class Home implements OnInit {
     this.searchQuery = '';
     this.selectedDateFilter = 'Hôm nay';
     this.selectedTimeSlot = '08:00 - 17:00';
+    this.checkInDate = 'Hôm nay';
+    this.checkInTime = '08:00';
+    this.checkOutDate = 'Hôm nay';
+    this.checkOutTime = '17:00';
+    this.capacityCount = 0;
     this.selectedCapacity = 'all';
+    this.selectedEquipments.clear();
     this.selectedEquipment = 'all';
     this.currentPage = 1;
     this.closeDropdowns();

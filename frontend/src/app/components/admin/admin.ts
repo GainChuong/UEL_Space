@@ -1020,6 +1020,19 @@ export class Admin implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  formatEquipment(eq: any): string {
+    if (!eq) return '';
+    if (typeof eq === 'string') return eq;
+    if (Array.isArray(eq)) {
+      return eq.map(item => {
+        if (!item) return '';
+        if (typeof item === 'string') return item;
+        return item.name || item.label || item.title || item.item || JSON.stringify(item);
+      }).filter(Boolean).join(', ');
+    }
+    return String(eq);
+  }
+
   // Helper filters
   get filteredListings(): PlatformListing[] {
     return this.listings.filter(l => {

@@ -1,11 +1,11 @@
 <header class="relative w-full bg-white dark:bg-slate-900 z-50 border-b border-[#DDE5F0] dark:border-slate-800 shadow-[0_1px_8px_0_rgba(0,59,113,0.06)] transition-colors">
-  <div class="max-w-[1440px] mx-auto px-6 lg:px-10 h-[72px] flex items-center justify-between">
+  <div class="max-w-[1440px] mx-auto px-6 lg:px-10 h-[76px] lg:h-[80px] flex items-center justify-between">
     
     <!-- Logo -->
-    <a routerLink="/" class="flex items-center cursor-pointer shrink-0">
+    <a routerLink="/" class="flex items-center cursor-pointer shrink-0 py-1 group transition-all duration-200" title="UEL SPACE">
       <img [src]="(settingsService.theme$ | async) === 'dark' ? (server_images_link + 'logo_am_ban.png') : (server_images_link + 'logo.png')" 
            alt="UEL SPACE Logo" 
-           class="h-11 object-contain transition-all">
+           class="h-12 sm:h-14 lg:h-[58px] w-auto max-w-[220px] object-contain drop-shadow-[0_2px_8px_rgba(0,59,113,0.08)] group-hover:scale-105 transition-all duration-300">
     </a>
     
     <!-- Navigation -->
