@@ -17,11 +17,13 @@ export interface BookingRecord {
   timeSlot: string; // e.g. "08:00 - 10:00"
   purpose: string;
   capacity: number;
-  status: 'active' | 'upcoming' | 'completed' | 'cancelled';
+  status: 'pending' | 'upcoming' | 'active' | 'completed' | 'cancelled';
   statusText: string;
   qrCodeUrl?: string;
   createdAt: string;
   totalAmount?: number;
+  cancelReason?: string;
+  cancelledAt?: string;
 }
 
 const STORAGE_KEY = 'uel_space_booking_records_v1';
@@ -132,10 +134,12 @@ export class BookingService {
       roomType: 'Meeting Pod',
       date: '2026-10-08',
       timeSlot: '14:00 - 16:00',
-      purpose: 'Thay đổi lịch công tác (Đã hủy)',
+      purpose: 'Phỏng vấn ứng viên cấp cao (Đã hủy)',
       capacity: 4,
       status: 'cancelled',
       statusText: 'Đã hủy',
+      cancelReason: 'Thay đổi lịch công tác đột xuất của ban giám đốc',
+      cancelledAt: '07/10/2026 16:30',
       createdAt: '06/10/2026 11:00'
     }
   ];
@@ -224,8 +228,8 @@ export class BookingService {
       timeSlot: booking.timeSlot,
       purpose: booking.purpose || 'Làm việc & Học tập trên UEL Space',
       capacity: booking.capacity || 4,
-      status: 'upcoming',
-      statusText: 'Sắp tới',
+      status: 'pending',
+      statusText: 'Chờ duyệt',
       createdAt: createdAtStr,
       totalAmount: booking.totalAmount,
       qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${code}`
@@ -236,13 +240,18 @@ export class BookingService {
     this.bookingsSubject.next(updated);
     this.saveBookings(updated);
 
-    // 1. Gửi thông báo đặt chỗ thành công vào chuông (Icon notification)
+    // 1. Gửi thông báo gửi đơn chờ duyệt vào chuông
     this.settingsService.addNotification({
-      title: 'Đặt chỗ thành công',
-      message: `Đơn thuê ${booking.roomName} (${code}) vào ngày ${booking.date} (${booking.timeSlot}) đã được kích hoạt thành công.`,
-      type: 'success',
+      title: 'Đơn đặt chỗ đang chờ duyệt',
+      message: `Đơn thuê ${booking.roomName} (${code}) ngày ${booking.date} (${booking.timeSlot}) đã được gửi và đang chờ đối tác/hệ thống xét duyệt.`,
+      type: 'info',
       category: 'booking'
     });
+
+    // Mô phỏng cơ chế sàn (như Shopee / Agoda): Sau 12 giây đối tác tự động duyệt đơn -> Chuyển sang 'Sắp tới' (upcoming)
+    setTimeout(() => {
+      this.approveBooking(code);
+    }, 12000);
 
     // 2. Đồng bộ trực tiếp lên MongoDB Atlas thông qua API
     this.syncBookingToBackend(newRecord);
@@ -298,12 +307,40 @@ export class BookingService {
   }
 
   /**
-   * Cập nhật trạng thái đặt chỗ (Hủy đơn, Hoàn tất)
+   * Tự động hoặc thủ công phê duyệt đơn đặt phòng (Chờ duyệt -> Sắp tới)
    */
-  public updateStatus(id: string, status: 'active' | 'upcoming' | 'completed' | 'cancelled', statusText: string): void {
+  public approveBooking(id: string): void {
+    const target = this.bookingsSubject.value.find(b => b.id === id);
+    if (!target || target.status !== 'pending') return;
+
+    this.updateStatus(id, 'upcoming', 'Sắp tới');
+    this.settingsService.addNotification({
+      title: 'Đơn đặt chỗ đã được phê duyệt! 🎉',
+      message: `Đơn thuê ${target.roomName} (${target.id}) ngày ${target.date} (${target.timeSlot}) đã được đối tác phê duyệt. Bạn có thể xem mã QR Check-in.`,
+      type: 'success',
+      category: 'booking'
+    });
+  }
+
+  /**
+   * Cập nhật trạng thái đặt chỗ (Hủy đơn, Hoàn tất, v.v.)
+   */
+  public updateStatus(
+    id: string, 
+    status: 'pending' | 'active' | 'upcoming' | 'completed' | 'cancelled', 
+    statusText: string,
+    cancelReason?: string
+  ): void {
     const list = this.bookingsSubject.value.map(b => {
       if (b.id === id) {
-        return { ...b, status, statusText };
+        const now = new Date();
+        const cancelledAtStr = now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        return { 
+          ...b, 
+          status, 
+          statusText,
+          ...(cancelReason ? { cancelReason, cancelledAt: cancelledAtStr } : {})
+        };
       }
       return b;
     });
@@ -313,7 +350,7 @@ export class BookingService {
     if (status === 'cancelled') {
       this.settingsService.addNotification({
         title: 'Đã hủy lịch đặt chỗ',
-        message: `Đơn thuê mã ${id} đã được hủy thành công. Không gian đã được giải phóng trở lại sàn.`,
+        message: `Đơn thuê mã ${id} đã được hủy thành công. Lý do: "${cancelReason || 'Người dùng yêu cầu hủy'}".`,
         type: 'warning',
         category: 'booking'
       });
@@ -410,7 +447,7 @@ export class BookingService {
     const targetName = (spaceIdentifier.name || '').toLowerCase().trim();
 
     const activeBookings = this.bookingsSubject.value.filter(
-      b => b.status === 'active' || b.status === 'upcoming'
+      b => b.status === 'active' || b.status === 'upcoming' || b.status === 'pending'
     );
 
     for (const b of activeBookings) {

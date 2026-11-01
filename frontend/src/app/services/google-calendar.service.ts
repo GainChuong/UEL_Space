@@ -313,15 +313,18 @@ export class GoogleCalendarService {
   /**
    * Tính số giờ thuê thực tế giữa 2 mốc thời gian (VD: "08:00" đến "11:30" => 3.5 giờ)
    */
-  calculateDuration(startTime: string, endTime: string): number {
+  calculateDuration(startTime: string, endTime: string, startDate?: string, endDate?: string): number {
     try {
-      const [sH, sM] = startTime.split(':').map(Number);
-      const [eH, eM] = endTime.split(':').map(Number);
-      const startMin = sH * 60 + (sM || 0);
-      const endMin = eH * 60 + (eM || 0);
-      if (endMin <= startMin) return 1;
-      const diffHours = (endMin - startMin) / 60;
-      return Math.round(diffHours * 10) / 10;
+      const sDateStr = startDate || '2026-01-01';
+      const eDateStr = endDate || startDate || '2026-01-01';
+      const [sH, sM] = (startTime || '09:00').split(':').map(Number);
+      const [eH, eM] = (endTime || '11:00').split(':').map(Number);
+      const start = new Date(`${sDateStr}T${String(sH).padStart(2, '0')}:${String(sM || 0).padStart(2, '0')}:00`);
+      const end = new Date(`${eDateStr}T${String(eH).padStart(2, '0')}:${String(eM || 0).padStart(2, '0')}:00`);
+      const diffMs = end.getTime() - start.getTime();
+      if (diffMs <= 0) return 1;
+      const diffHours = diffMs / (1000 * 60 * 60);
+      return Math.max(1, Math.round(diffHours * 10) / 10);
     } catch {
       return 2;
     }

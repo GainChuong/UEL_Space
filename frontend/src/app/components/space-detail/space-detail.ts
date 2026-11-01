@@ -50,6 +50,7 @@ export class SpaceDetailComponent implements OnInit {
 
   // Booking & Calendar State
   customBookingDate: string = new Date().toISOString().split('T')[0];
+  customCheckOutDate: string = new Date().toISOString().split('T')[0];
   customStartTime: string = '09:00';
   customEndTime: string = '11:00';
   customDurationHours: number = 2;
@@ -66,6 +67,10 @@ export class SpaceDetailComponent implements OnInit {
 
   // Custom UEL Brand Date & Time Picker Dropdown State
   isDatePickerOpen: boolean = false;
+  isCheckOutDatePickerOpen: boolean = false;
+  calendarViewMonthCheckOut: number = new Date().getMonth();
+  calendarViewYearCheckOut: number = new Date().getFullYear();
+  calendarDaysCheckOut: any[] = [];
   isStartTimePickerOpen: boolean = false;
   isEndTimePickerOpen: boolean = false;
   calendarViewYear: number = new Date().getFullYear();
@@ -111,6 +116,7 @@ export class SpaceDetailComponent implements OnInit {
 
   closeAllDropdowns(): void {
     this.isDatePickerOpen = false;
+    this.isCheckOutDatePickerOpen = false;
     this.isStartTimePickerOpen = false;
     this.isEndTimePickerOpen = false;
   }
@@ -216,7 +222,7 @@ export class SpaceDetailComponent implements OnInit {
   recommendedSpaces: any[] = [];
 
   initCalendarAndReviews() {
-    this.customDurationHours = this.googleCalendarService.calculateDuration(this.customStartTime, this.customEndTime);
+    this.customDurationHours = this.googleCalendarService.calculateDuration(this.customStartTime, this.customEndTime, this.customBookingDate, this.customCheckOutDate);
     const rawUrl = this.googleCalendarService.generateEmbedUrl(this.space.name, 'AGENDA');
     this.googleEmbedSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl);
 
@@ -356,7 +362,7 @@ export class SpaceDetailComponent implements OnInit {
 
   // Booking Time Calculation & Dynamic Calendar Sync
   onTimeOrDateChange(): void {
-    this.customDurationHours = this.googleCalendarService.calculateDuration(this.customStartTime, this.customEndTime);
+    this.customDurationHours = this.googleCalendarService.calculateDuration(this.customStartTime, this.customEndTime, this.customBookingDate, this.customCheckOutDate);
     this.refreshCalendarAndSlots();
   }
 
@@ -504,8 +510,12 @@ export class SpaceDetailComponent implements OnInit {
   selectCalendarDate(dateStr: string, event?: Event): void {
     if (event) event.stopPropagation();
     this.customBookingDate = dateStr;
+    if (this.customCheckOutDate < dateStr) {
+      this.customCheckOutDate = dateStr;
+    }
     this.isDatePickerOpen = false;
     this.generateCalendarDays();
+    this.generateCalendarDaysCheckOut();
     this.onTimeOrDateChange();
     this.syncCalendarData();
   }
@@ -560,6 +570,114 @@ export class SpaceDetailComponent implements OnInit {
     return `${monthNames[this.calendarViewMonth]}, ${this.calendarViewYear}`;
   }
 
+  
+  toggleCheckOutDatePicker(event: Event): void {
+    event.stopPropagation();
+    this.isCheckOutDatePickerOpen = !this.isCheckOutDatePickerOpen;
+    this.isDatePickerOpen = false;
+    this.isStartTimePickerOpen = false;
+    this.isEndTimePickerOpen = false;
+    this.generateCalendarDaysCheckOut();
+  }
+
+  prevMonthCheckOut(event: Event): void {
+    event.stopPropagation();
+    if (this.calendarViewMonthCheckOut === 0) {
+      this.calendarViewMonthCheckOut = 11;
+      this.calendarViewYearCheckOut--;
+    } else {
+      this.calendarViewMonthCheckOut--;
+    }
+    this.generateCalendarDaysCheckOut();
+  }
+
+  nextMonthCheckOut(event: Event): void {
+    event.stopPropagation();
+    if (this.calendarViewMonthCheckOut === 11) {
+      this.calendarViewMonthCheckOut = 0;
+      this.calendarViewYearCheckOut++;
+    } else {
+      this.calendarViewMonthCheckOut++;
+    }
+    this.generateCalendarDaysCheckOut();
+  }
+
+  selectCalendarCheckOutDate(dateStr: string, event?: Event): void {
+    if (event) event.stopPropagation();
+    if (dateStr < this.customBookingDate) {
+      this.customCheckOutDate = this.customBookingDate;
+    } else {
+      this.customCheckOutDate = dateStr;
+    }
+    this.isCheckOutDatePickerOpen = false;
+    this.generateCalendarDaysCheckOut();
+    this.onTimeOrDateChange();
+  }
+
+  getMonthYearTitleCheckOut(): string {
+    const monthNames = [
+      'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+      'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
+    ];
+    return `${monthNames[this.calendarViewMonthCheckOut]}, ${this.calendarViewYearCheckOut}`;
+  }
+
+  generateCalendarDaysCheckOut(): void {
+    const year = this.calendarViewYearCheckOut;
+    const month = this.calendarViewMonthCheckOut;
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+    let startingDayOfWeek = firstDay.getDay();
+    let prevDaysCount = (startingDayOfWeek === 0 ? 7 : startingDayOfWeek) - 1;
+    const days: any[] = [];
+    const todayStr = this.formatDateToString(new Date());
+
+    for (let i = prevDaysCount - 1; i >= 0; i--) {
+      const dayNum = prevMonthLastDay - i;
+      const prevDate = new Date(year, month - 1, dayNum);
+      const dStr = this.formatDateToString(prevDate);
+      days.push({
+        dateStr: dStr,
+        dayNumber: dayNum,
+        isCurrentMonth: false,
+        isToday: dStr === todayStr,
+        isSelected: dStr === this.customCheckOutDate,
+        isPast: dStr < this.customBookingDate
+      });
+    }
+
+    for (let i = 1; i <= lastDay.getDate(); i++) {
+      const curDate = new Date(year, month, i);
+      const dStr = this.formatDateToString(curDate);
+      days.push({
+        dateStr: dStr,
+        dayNumber: i,
+        isCurrentMonth: true,
+        isToday: dStr === todayStr,
+        isSelected: dStr === this.customCheckOutDate,
+        isPast: dStr < this.customBookingDate
+      });
+    }
+
+    const totalCells = days.length <= 35 ? 35 : 42;
+    const remaining = totalCells - days.length;
+    for (let i = 1; i <= remaining; i++) {
+      const nextDate = new Date(year, month + 1, i);
+      const dStr = this.formatDateToString(nextDate);
+      days.push({
+        dateStr: dStr,
+        dayNumber: i,
+        isCurrentMonth: false,
+        isToday: dStr === todayStr,
+        isSelected: dStr === this.customCheckOutDate,
+        isPast: dStr < this.customBookingDate
+      });
+    }
+
+    this.calendarDaysCheckOut = days;
+  }
+
   refreshCalendarAndSlots(): void {
     this.userScheduleEvents = this.googleCalendarService.getUserEventsForDate(this.customBookingDate, this.customerInfo.email);
     this.suggestedGoogleSlots = this.googleCalendarService.getSuggestedSlots(this.customBookingDate, this.customerInfo.email);
@@ -572,12 +690,23 @@ export class SpaceDetailComponent implements OnInit {
   }
 
   checkConflict(): void {
+    if (this.customCheckOutDate < this.customBookingDate) {
+      this.hasConflict = true;
+      this.conflictReason = 'Ngày trả (check-out) không được trước ngày nhận (check-in).';
+      return;
+    }
+    if (this.customCheckOutDate === this.customBookingDate && this.customEndTime <= this.customStartTime) {
+      this.hasConflict = true;
+      this.conflictReason = 'Giờ trả phòng phải sau giờ nhận phòng.';
+      return;
+    }
+
     // 1. Kiểm tra xem chính phòng này đã có ai đặt trong khung giờ này chưa
     if (this.space && this.bookingService) {
       const spaceCheck = this.bookingService.isSpaceBooked(
         { id: this.space._id || this.space.id, code: this.space.code, name: this.space.name, slug: this.space.slug },
         this.customBookingDate,
-        this.customBookingDate,
+        this.customCheckOutDate,
         this.customStartTime,
         this.customEndTime
       );
@@ -705,7 +834,7 @@ export class SpaceDetailComponent implements OnInit {
       building: this.space.building,
       roomType: this.space.category || 'Phòng họp & Văn phòng',
       date: this.customBookingDate,
-      endDate: this.customBookingDate,
+      endDate: this.customCheckOutDate,
       startTime: this.customStartTime,
       endTime: this.customEndTime,
       timeSlot: `${this.customStartTime} - ${this.customEndTime}`,

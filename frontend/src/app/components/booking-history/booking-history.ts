@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { TranslatePipe } from '../../services/translate.pipe';
 import { I18nService } from '../../services/i18n.service';
@@ -17,16 +18,28 @@ export class BookingHistory implements OnInit, OnDestroy {
   private i18n = inject(I18nService);
   private googleCalendarService = inject(GoogleCalendarService);
   private bookingService = inject(BookingService);
+  private router = inject(Router);
   private subBookings?: Subscription;
   searchTerm: string = '';
   selectedTab: string = 'all';
   selectedArea: string = 'all';
+  areaSearchQuery: string = '';
   selectedStatusFilter: string = 'all';
   selectedDate: string = '';
 
   openAreaDropdown: boolean = false;
   openStatusDropdown: boolean = false;
   openDateDropdown: boolean = false;
+
+  // Cancel Modal State
+  showCancelModal: boolean = false;
+  selectedBookingForCancel: BookingRecord | null = null;
+  cancelReasonInput: string = '';
+  cancelReasonError: string = '';
+
+  // Cancel Detail Modal State
+  showCancelDetailModal: boolean = false;
+  selectedBookingForDetail: BookingRecord | null = null;
   
   // Dynamic Month & Year Navigation
   currentYear: number = 2026;
@@ -42,6 +55,14 @@ export class BookingHistory implements OnInit, OnDestroy {
 
   areas: string[] = [
     'Tất cả khu vực',
+    'Quận 1',
+    'Quận 2',
+    'Quận 3',
+    'Quận 7',
+    'Thủ Đức',
+    'Khu Công nghệ cao (SHTP)',
+    'Khuôn viên UEL',
+    'Khuôn viên UIT',
     'Central Tower Q.1',
     'TechPark Executive Hub',
     'Innovation Hub Q.2',
@@ -52,8 +73,9 @@ export class BookingHistory implements OnInit, OnDestroy {
 
   statusOptions = [
     { value: 'all', label: 'Tất cả trạng thái' },
-    { value: 'active', label: 'Đang sử dụng' },
+    { value: 'pending', label: 'Chờ duyệt' },
     { value: 'upcoming', label: 'Sắp tới' },
+    { value: 'active', label: 'Đang sử dụng' },
     { value: 'completed', label: 'Đã hoàn thành' },
     { value: 'cancelled', label: 'Đã hủy' }
   ];
@@ -93,7 +115,16 @@ export class BookingHistory implements OnInit, OnDestroy {
 
   selectAreaOption(area: string) {
     this.selectedArea = area === 'Tất cả khu vực' ? 'all' : area;
+    this.areaSearchQuery = '';
     this.openAreaDropdown = false;
+  }
+
+  get filteredAreas(): string[] {
+    if (!this.areaSearchQuery || !this.areaSearchQuery.trim()) {
+      return this.areas;
+    }
+    const q = this.areaSearchQuery.toLowerCase().trim();
+    return this.areas.filter(a => a.toLowerCase().includes(q));
   }
 
   selectStatusOption(val: string) {
@@ -189,7 +220,7 @@ export class BookingHistory implements OnInit, OnDestroy {
       if (this.selectedStatusFilter !== 'all') {
         matchStatus = b.status === this.selectedStatusFilter;
       } else if (this.selectedTab === 'active') {
-        matchStatus = (b.status === 'active' || b.status === 'upcoming');
+        matchStatus = (b.status === 'active' || b.status === 'upcoming' || b.status === 'pending');
       } else if (this.selectedTab === 'completed') {
         matchStatus = b.status === 'completed';
       } else if (this.selectedTab === 'cancelled') {
@@ -199,8 +230,9 @@ export class BookingHistory implements OnInit, OnDestroy {
       // 3. Area / Building Filter
       let matchArea = true;
       if (this.selectedArea !== 'all' && this.selectedArea !== 'Tất cả khu vực') {
-        matchArea = b.building.toLowerCase().includes(this.selectedArea.toLowerCase()) ||
-                    b.roomName.toLowerCase().includes(this.selectedArea.toLowerCase());
+        const areaLower = this.selectedArea.toLowerCase();
+        matchArea = b.building.toLowerCase().includes(areaLower) ||
+                    b.roomName.toLowerCase().includes(areaLower);
       }
 
       // 4. Date Filter
@@ -214,7 +246,7 @@ export class BookingHistory implements OnInit, OnDestroy {
   }
 
   get activeCount() {
-    return this.bookings.filter(b => b.status === 'active' || b.status === 'upcoming').length;
+    return this.bookings.filter(b => b.status === 'active' || b.status === 'upcoming' || b.status === 'pending').length;
   }
 
   get completedCount() {
@@ -235,9 +267,55 @@ export class BookingHistory implements OnInit, OnDestroy {
     this.selectedBookingForQr = null;
   }
 
-  cancelBooking(booking: BookingRecord) {
-    if (confirm(`${this.i18n.t('Bạn có chắc chắn muốn hủy lượt đặt chỗ mã')} ${booking.id} (${booking.roomName})?`)) {
-      this.bookingService.updateStatus(booking.id, 'cancelled', 'Đã hủy');
+  openCancelModal(booking: BookingRecord) {
+    this.selectedBookingForCancel = booking;
+    this.cancelReasonInput = '';
+    this.cancelReasonError = '';
+    this.showCancelModal = true;
+  }
+
+  closeCancelModal() {
+    this.showCancelModal = false;
+    this.selectedBookingForCancel = null;
+    this.cancelReasonInput = '';
+    this.cancelReasonError = '';
+  }
+
+  confirmCancelBooking() {
+    if (!this.selectedBookingForCancel) return;
+    if (!this.cancelReasonInput || !this.cancelReasonInput.trim()) {
+      this.cancelReasonError = 'Vui lòng nhập lý do hủy phòng (Ví dụ: Thay đổi lịch họp, dời công tác...)';
+      return;
+    }
+
+    const bookingId = this.selectedBookingForCancel.id;
+    const reason = this.cancelReasonInput.trim();
+
+    // 1. Chuyển tạm sang trạng thái 'pending' (Chờ duyệt hủy - như Shopee / Agoda)
+    this.bookingService.updateStatus(bookingId, 'pending', 'Chờ duyệt hủy', reason);
+    this.closeCancelModal();
+
+    // 2. Sau 8 giây, hệ thống tự động phê duyệt đơn hủy và chuyển hoàn tất sang 'cancelled' (Đã hủy)
+    setTimeout(() => {
+      this.bookingService.updateStatus(bookingId, 'cancelled', 'Đã hủy', reason);
+    }, 8000);
+  }
+
+  openCancelDetailModal(booking: BookingRecord) {
+    this.selectedBookingForDetail = booking;
+    this.showCancelDetailModal = true;
+  }
+
+  closeCancelDetailModal() {
+    this.showCancelDetailModal = false;
+    this.selectedBookingForDetail = null;
+  }
+
+  rebookSpace(booking: BookingRecord) {
+    if (booking.spaceId) {
+      this.router.navigate(['/spaces', booking.spaceId]);
+    } else {
+      this.router.navigate(['/map']);
     }
   }
 
