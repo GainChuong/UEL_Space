@@ -104,7 +104,7 @@ export function normalizeSpace(space: any) {
         id: 'seller-uel',
         name: 'Ban Quản trị UEL Space',
         brandName: 'Ban Quản trị Cơ sở vật chất UEL Space',
-        avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop',
+        avatar: '/images/avatars/seller_uel.svg',
         rating: 4.89,
         reviewsCount: 94,
         verified: true,

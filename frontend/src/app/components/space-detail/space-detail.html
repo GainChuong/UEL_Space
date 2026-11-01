@@ -122,7 +122,7 @@
                class="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-uel-blue hover:shadow-lg hover:shadow-uel-blue/5 hover:ring-2 hover:ring-uel-blue/20 transition-all duration-200 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 group">
             <div class="flex items-center gap-4">
               <div class="relative w-16 h-16 rounded-2xl overflow-hidden shrink-0 border-2 border-uel-blue/30 group-hover:border-uel-blue transition-colors shadow-xs">
-                <img [src]="space.seller?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop'"
+                <img [src]="space.seller?.avatar || '/images/avatars/default_avatar.svg'"
                      [alt]="space.seller?.brandName || space.seller?.name"
                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                 <div class="absolute inset-0 bg-uel-blue/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">

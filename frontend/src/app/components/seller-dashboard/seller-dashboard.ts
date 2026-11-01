@@ -1308,6 +1308,66 @@ export class SellerDashboard implements OnInit, OnDestroy {
     this.spaceModal.isOpen = false;
     this.spaceModal.errorMessage = '';
     this.spaceModal.isSaving = false;
+    this.isUploadingImage = false;
+  }
+
+  isUploadingImage: boolean = false;
+  imageUploadError: string = '';
+
+  getDisplayImageUrl(imgPath?: string): string {
+    if (!imgPath) return `${this.server_images_link}spaces/indoor_coworking_lounge_1.jpg`;
+    if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) return imgPath;
+    if (imgPath.startsWith('/')) return imgPath;
+    return `${this.server_images_link}${imgPath}`;
+  }
+
+  onImageError(event: any): void {
+    if (event?.target) {
+      event.target.src = `${this.server_images_link}spaces/indoor_coworking_lounge_1.jpg`;
+    }
+  }
+
+  async onSpaceImageFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+
+    this.isUploadingImage = true;
+    this.imageUploadError = '';
+    this.cdr.detectChanges();
+
+    try {
+      const response = await fetch(`${SERVER_BASE_URL}/api/upload`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errJson = await response.json().catch(() => ({}));
+        throw new Error(errJson.message || `Upload failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data && data.success && data.relativePath) {
+        // Cơ chế ngày_tháng_năm_giờ_phút_giây cùng cache-buster để luôn lấy ảnh mới nhất
+        const cacheBuster = `?t=${Date.now()}`;
+        this.spaceModal.image = `${data.relativePath}${cacheBuster}`;
+        this.showToast(this.i18n.t('Đã tải ảnh lên máy chủ thành công: ') + data.filename, 'success');
+      } else {
+        throw new Error(data?.message || 'Lỗi tải ảnh lên máy chủ');
+      }
+    } catch (err: any) {
+      console.error('Upload image error:', err);
+      this.imageUploadError = err.message || 'Không thể tải ảnh lên máy chủ';
+      this.showToast(this.imageUploadError, 'warning');
+    } finally {
+      this.isUploadingImage = false;
+      this.cdr.detectChanges();
+      input.value = '';
+    }
   }
 
   async saveSpace(): Promise<void> {

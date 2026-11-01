@@ -40,7 +40,7 @@ export class SellerDetailComponent implements OnInit {
   showToast: boolean = false;
 
   serverImagesLink = SERVER_IMAGES_LINK;
-  defaultFallbackImage = 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&auto=format&fit=crop&q=80';
+  defaultFallbackImage = '/images/spaces/indoor_coworking_lounge_1.jpg';
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {

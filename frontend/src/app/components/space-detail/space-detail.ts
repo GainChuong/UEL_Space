@@ -88,7 +88,7 @@ export class SpaceDetailComponent implements OnInit {
   toastMessage: string = '';
   showToast: boolean = false;
 
-  defaultFallbackImage = 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&auto=format&fit=crop&q=80';
+  defaultFallbackImage = '/images/spaces/indoor_coworking_lounge_1.jpg';
   server_images_link = SERVER_IMAGES_LINK;
 
   studentInfo = {
@@ -285,7 +285,7 @@ export class SpaceDetailComponent implements OnInit {
     const added = this.reviewsService.addReview({
       spaceId: spaceKey,
       userName: author,
-      userAvatar: `https://images.unsplash.com/photo-${1535713875002 + Math.floor(Math.random() * 50)}?w=120&h=120&fit=crop`,
+      userAvatar: `/images/avatars/user_avatar_${(Math.floor(Math.random() * 4) + 1)}.svg`,
       userRole: 'Khách hàng đã xác thực đặt phòng',
       organization: this.studentInfo.org,
       rating: this.newCommentRating,

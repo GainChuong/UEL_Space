@@ -483,7 +483,8 @@
                     <!-- Space Info -->
                     <td class="py-3.5 px-4">
                       <div class="flex items-center gap-3">
-                        <img [src]="server_images_link + item.image" [alt]="item.name"
+                        <img [src]="getDisplayImageUrl(item.image)" [alt]="item.name"
+                             (error)="onImageError($event)"
                              class="w-14 h-11 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shrink-0">
                         <div>
                           <div class="font-extrabold text-slate-900 dark:text-white text-xs leading-tight">

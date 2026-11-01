@@ -143,6 +143,19 @@ export class Admin implements OnInit, OnDestroy {
   server_images_link = SERVER_IMAGES_LINK;
   Math = Math;
 
+  getDisplayImageUrl(imgPath?: string): string {
+    if (!imgPath) return `${this.server_images_link}spaces/indoor_coworking_lounge_1.jpg`;
+    if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) return imgPath;
+    if (imgPath.startsWith('/')) return imgPath;
+    return `${this.server_images_link}${imgPath}`;
+  }
+
+  onImageError(event: any): void {
+    if (event?.target) {
+      event.target.src = `${this.server_images_link}spaces/indoor_coworking_lounge_1.jpg`;
+    }
+  }
+
   // Active Navigation Tab
   activeTab: 'overview' | 'listings' | 'kyc' | 'bookings' | 'escrow' | 'disputes' | 'audit' | 'settings' = 'overview';
 

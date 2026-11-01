@@ -38,23 +38,26 @@ try:
     from ultralytics import YOLO
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
-    # Path for Object Detection Model (yolo11n.pt)
+    # Path for Object Detection Model (YOLO26 Nano prioritised, fallback YOLO11)
     det_candidates = [
         os.environ.get("YOLO_MODEL_PATH"),
+        os.path.join(script_dir, "yolo26n.pt"),
+        os.path.join(os.getcwd(), "yolo26n.pt"),
+        "yolo26n.pt",
         os.path.join(script_dir, "yolo11n.pt"),
         os.path.join(os.getcwd(), "yolo11n.pt"),
         os.path.join(script_dir, "..", "yolo11n.pt"),
         "yolo11n.pt"
     ]
-    det_path = "yolo11n.pt"
+    det_path = "yolo26n.pt"
     for p in det_candidates:
         if p and os.path.isfile(p):
             det_path = p
             break
 
-    logger.info(f"Loading YOLO11 Detection model from: {det_path}...")
+    logger.info(f"Loading YOLO Detection model from: {det_path}...")
     yolo_model = YOLO(det_path)
-    logger.info("YOLO11 Detection model initialized successfully!")
+    logger.info(f"YOLO Detection model ({os.path.basename(det_path)}) initialized successfully!")
 
     # Path for Pose Estimation Model (yolo11n-pose.pt)
     pose_candidates = [

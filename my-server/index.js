@@ -35,6 +35,7 @@ const { paymentRoutes } = require('./src/modules/payments/payment.routes');
 const { chatbotRoutes } = require('./src/modules/chatbot/chatbot.routes');
 const { platformAdminRoutes } = require('./src/modules/platform-admin/platform-admin.routes');
 const { PlatformAdminService } = require('./src/modules/platform-admin/platform-admin.service');
+const { uploadRoutes } = require('./src/modules/upload/upload.routes');
 
 // Import Repositories & Services để lắp ráp Dependency Injection
 const { CatalogRepository } = require('./src/modules/catalog/catalog.repository');
@@ -253,6 +254,7 @@ async function bootstrap() {
   // Platform Super Admin Control Center
   const platformAdminService = new PlatformAdminService(collections);
   app.use('/api/admin', platformAdminRoutes(platformAdminService));
+  app.use('/api/upload', uploadRoutes());
 
   // 6. LEGACY ROUTES (Tương thích ngược 100% với Frontend hiện tại)
   // GET /spaces - Đọc trực tiếp từ MongoDB Atlas
