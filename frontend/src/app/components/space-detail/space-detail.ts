@@ -93,10 +93,10 @@ export class SpaceDetailComponent implements OnInit {
   defaultFallbackImage = '/images/spaces/indoor_coworking_lounge_1.jpg';
   server_images_link = SERVER_IMAGES_LINK;
 
-  studentInfo = {
+  customerInfo = {
     name: 'Khách hàng UEL Space',
-    email: 'khachhang@uel.edu.vn',
-    org: 'Doanh nghiệp / Đơn vị Hợp tác'
+    email: 'khachhang@uelspace.vn',
+    org: 'Doanh nghiệp / Khách thuê Đối tác'
   };
 
   @HostListener('document:click')
@@ -122,8 +122,8 @@ export class SpaceDetailComponent implements OnInit {
       const stored = localStorage.getItem('currentUser');
       if (stored) {
         const u = JSON.parse(stored);
-        if (u.name) this.studentInfo.name = u.name;
-        if (u.email) this.studentInfo.email = u.email;
+        if (u.name) this.customerInfo.name = u.name;
+        if (u.email) this.customerInfo.email = u.email;
         this.newCommentAuthorName = u.name || '';
       }
     } catch {}
@@ -288,7 +288,7 @@ export class SpaceDetailComponent implements OnInit {
     if (!this.newCommentText.trim()) return;
 
     this.isSubmittingComment = true;
-    const author = this.newCommentAuthorName.trim() || this.studentInfo.name || 'Khách thuê UEL Space';
+    const author = this.newCommentAuthorName.trim() || this.customerInfo.name || 'Khách thuê UEL Space';
     const spaceKey = this.space._id || this.space.id || this.spaceId;
 
     const added = this.reviewsService.addReview({
@@ -296,7 +296,7 @@ export class SpaceDetailComponent implements OnInit {
       userName: author,
       userAvatar: `/images/avatars/user_avatar_${(Math.floor(Math.random() * 4) + 1)}.svg`,
       userRole: 'Khách hàng đã xác thực đặt phòng',
-      organization: this.studentInfo.org,
+      organization: this.customerInfo.org,
       rating: this.newCommentRating,
       comment: this.newCommentText.trim(),
       rentalPurpose: this.newCommentPurpose
@@ -561,10 +561,10 @@ export class SpaceDetailComponent implements OnInit {
   }
 
   refreshCalendarAndSlots(): void {
-    this.userScheduleEvents = this.googleCalendarService.getUserEventsForDate(this.customBookingDate, this.studentInfo.email);
-    this.suggestedGoogleSlots = this.googleCalendarService.getSuggestedSlots(this.customBookingDate, this.studentInfo.email);
+    this.userScheduleEvents = this.googleCalendarService.getUserEventsForDate(this.customBookingDate, this.customerInfo.email);
+    this.suggestedGoogleSlots = this.googleCalendarService.getSuggestedSlots(this.customBookingDate, this.customerInfo.email);
     
-    const rawEmbed = this.googleCalendarService.generateEmbedUrl(this.studentInfo.email, this.calendarEmbedMode, this.customBookingDate);
+    const rawEmbed = this.googleCalendarService.generateEmbedUrl(this.customerInfo.email, this.calendarEmbedMode, this.customBookingDate);
     this.googleEmbedSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawEmbed);
 
     this.checkConflict();
@@ -594,7 +594,7 @@ export class SpaceDetailComponent implements OnInit {
       this.customBookingDate,
       this.customStartTime,
       this.customEndTime,
-      this.studentInfo.email
+      this.customerInfo.email
     );
     this.hasConflict = check.hasConflict;
     this.conflictReason = check.reason;
@@ -602,7 +602,7 @@ export class SpaceDetailComponent implements OnInit {
 
   setCalendarEmbedMode(mode: 'AGENDA' | 'WEEK' | 'MONTH'): void {
     this.calendarEmbedMode = mode;
-    const rawEmbed = this.googleCalendarService.generateEmbedUrl(this.studentInfo.email, this.calendarEmbedMode, this.customBookingDate);
+    const rawEmbed = this.googleCalendarService.generateEmbedUrl(this.customerInfo.email, this.calendarEmbedMode, this.customBookingDate);
     this.googleEmbedSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawEmbed);
     this.cdr.detectChanges();
   }
@@ -610,7 +610,7 @@ export class SpaceDetailComponent implements OnInit {
   async syncCalendarData(): Promise<void> {
     this.isSyncingCalendar = true;
     try {
-      await this.googleCalendarService.syncLiveSchedule(this.customBookingDate, this.studentInfo.email);
+      await this.googleCalendarService.syncLiveSchedule(this.customBookingDate, this.customerInfo.email);
       this.refreshCalendarAndSlots();
     } catch (e) {
       console.warn('Sync calendar error:', e);
@@ -623,7 +623,7 @@ export class SpaceDetailComponent implements OnInit {
   async connectGoogleCalendar(): Promise<void> {
     this.isSyncingCalendar = true;
     try {
-      const res = await this.googleCalendarService.openGoogleAuthPopup(this.studentInfo.email);
+      const res = await this.googleCalendarService.openGoogleAuthPopup(this.customerInfo.email);
       if (res.success) {
         await this.syncCalendarData();
       }
@@ -635,7 +635,7 @@ export class SpaceDetailComponent implements OnInit {
 
   disconnectGoogleCalendar(): void {
     if (!confirm('Bạn có chắc chắn muốn ngắt kết nối Google Calendar?')) return;
-    this.googleCalendarService.disconnect(this.studentInfo.email).subscribe(() => {
+    this.googleCalendarService.disconnect(this.customerInfo.email).subscribe(() => {
       this.syncCalendarData();
     });
   }
@@ -721,7 +721,7 @@ export class SpaceDetailComponent implements OnInit {
       startTime: this.customStartTime,
       endTime: this.customEndTime,
       code: this.confirmedBookingCode,
-      userEmail: this.studentInfo.email
+      userEmail: this.customerInfo.email
     });
 
     // Tự động đẩy sự kiện lên Google Calendar cá nhân qua Backend API nếu đã kết nối
@@ -734,7 +734,7 @@ export class SpaceDetailComponent implements OnInit {
         code: this.confirmedBookingCode,
         building: this.space.building,
         location: this.space.address || `Phòng ${this.space.name}, ${this.space.building || 'UEL Space'}`
-      }, this.studentInfo.email).subscribe({
+      }, this.customerInfo.email).subscribe({
         next: (ev) => console.log('Đã tự động đẩy sự kiện đặt chỗ vào Google Calendar:', ev),
         error: (err) => console.warn('Lỗi khi đẩy sự kiện Google Calendar:', err)
       });
@@ -762,7 +762,7 @@ export class SpaceDetailComponent implements OnInit {
       date: this.customBookingDate,
       timeSlot: `${this.customStartTime} - ${this.customEndTime}`,
       purpose: 'Tra cứu & Đặt không gian làm việc',
-      bookerName: this.studentInfo.name
+      bookerName: this.customerInfo.name
     });
   }
 
@@ -775,7 +775,7 @@ export class SpaceDetailComponent implements OnInit {
       date: this.customBookingDate,
       timeSlot: `${this.customStartTime} - ${this.customEndTime}`,
       purpose: 'Làm việc & Hội họp chuyên nghiệp',
-      bookerName: this.studentInfo.name
+      bookerName: this.customerInfo.name
     });
   }
 
