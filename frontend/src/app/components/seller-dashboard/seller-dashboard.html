@@ -54,7 +54,7 @@
           <span class="whitespace-nowrap">{{ 'Quản lý Đơn thuê' | t }}</span>
         </div>
         @if (pendingBookingsCount > 0) {
-          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/15 text-slate-100 border border-white/10">
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-sky-500/25 text-sky-200 border border-sky-400/30">
             {{pendingBookingsCount}}
           </span>
         }
@@ -142,15 +142,15 @@
       <div class="p-3 rounded-xl bg-white/5 border border-white/10">
         <div class="flex items-center justify-between text-[11px] text-slate-300 mb-1">
           <span class="font-bold flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-amber-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-sky-300"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             {{ adminUser.rating }} ({{ adminUser.totalReviews }} reviews)
           </span>
-          <span class="text-emerald-400 font-extrabold uppercase text-[10px] tracking-wider">{{ 'Đối tác xác minh' | t }}</span>
+          <span class="text-sky-400 font-extrabold uppercase text-[10px] tracking-wider">{{ 'Đối tác xác minh' | t }}</span>
         </div>
         <div class="text-[10px] text-slate-400 truncate font-mono">{{ adminUser.storeName }}</div>
         <div class="mt-2 pt-2 border-t border-white/10 flex items-center justify-between">
           <span class="text-[10px] text-slate-400">{{ 'Số dư ví khả dụng:' | t }}</span>
-          <span class="text-xs font-black text-amber-400">{{ adminUser.walletBalance | number:'1.0-0' }} ₫</span>
+          <span class="text-xs font-black text-sky-300">{{ adminUser.walletBalance | number:'1.0-0' }} ₫</span>
         </div>
       </div>
     </div>
@@ -176,7 +176,7 @@
 
         <span class="text-xs font-semibold text-text-muted dark:text-slate-400 hidden sm:inline">{{ 'Kênh Người Bán (Seller Center)' | t }}</span>
         <span class="text-xs text-border-gray dark:text-slate-600 font-bold hidden sm:inline">/</span>
-        <h1 class="text-xs sm:text-sm font-black text-dark-text dark:text-white tracking-tight uppercase truncate max-w-[180px] sm:max-w-none">
+        <h1 class="text-xs sm:text-sm font-black text-dark-text dark:text-white tracking-tight uppercase truncate whitespace-nowrap overflow-hidden text-ellipsis">
           @if (activeTab === 'overview') { {{ 'Tổng quan Gian hàng & Doanh thu' | t }} }
           @if (activeTab === 'approvals') { {{ 'Quản lý Đơn thuê phòng (Booking Orders)' | t }} }
           @if (activeTab === 'exceptions') { {{ 'Xử lý Vi phạm & Hủy slot (No-show)' | t }} }
@@ -217,7 +217,7 @@
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
               </svg>
               @if (settingsService.unreadCount > 0) {
-                <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900"></span>
+                <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-sky-500 ring-2 ring-white dark:ring-slate-900"></span>
               }
             </div>
           </button>
@@ -271,8 +271,8 @@
                          class="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer flex items-start gap-3">
                       
                       <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
-                           [class]="n.type === 'success' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400' :
-                                    n.type === 'warning' ? 'bg-amber-100 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400' :
+                           [class]="n.type === 'success' ? 'bg-emerald-100 text-uel-blue dark:bg-emerald-950/50 dark:text-sky-400' :
+                                    n.type === 'warning' ? 'bg-amber-100 text-amber-600 dark:bg-amber-950/50 dark:text-sky-300' :
                                     'bg-sky-100 text-sky-600 dark:bg-sky-950/50 dark:text-sky-400'">
                         @if (n.type === 'success') {
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -406,7 +406,7 @@
 
                   <!-- Log out Button (Required by user) -->
                   <button (click)="handleLogout()"
-                          class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-xs font-bold transition-colors cursor-pointer text-left">
+                          class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 text-uel-blue dark:text-sky-400 text-xs font-bold transition-colors cursor-pointer text-left">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                     <span>{{ (settingsService.language$ | async) === 'vi' ? 'Đăng xuất tài khoản' : 'Log out' }}</span>
                   </button>
@@ -427,7 +427,7 @@
                   </p>
 
                   <button (click)="handleLogin()"
-                          class="w-full py-2.5 rounded-xl bg-uel-blue hover:bg-uel-blue-dark dark:bg-sky-600 dark:hover:bg-sky-700 text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-2">
+                          class="whitespace-nowrap w-full py-2.5 rounded-xl bg-uel-blue hover:bg-uel-blue-dark dark:bg-sky-600 dark:hover:bg-sky-700 text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
                     <span>{{ (settingsService.language$ | async) === 'vi' ? 'Đăng nhập' : 'Log in' }}</span>
                   </button>
@@ -462,7 +462,7 @@
               {{ totalRevenue | number:'1.0-0' }} ₫
             </div>
             <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-              <span class="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+              <span class="text-uel-blue dark:text-sky-400 font-semibold flex items-center gap-1">
                 +{{ monthlyGrowthRate }}% <span class="text-[11px] text-slate-400 font-normal">{{ 'tăng trưởng tháng' | t }}</span>
               </span>
               <span class="text-slate-400 text-[11px]">Đã đối soát</span>
@@ -494,7 +494,7 @@
             </div>
             <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
               <span class="text-slate-500 dark:text-slate-400 text-[11px]">192 khách đang check-in</span>
-              <span class="text-emerald-600 dark:text-emerald-400 font-medium text-[11px]">Ổn định</span>
+              <span class="text-uel-blue dark:text-sky-400 font-medium text-[11px]">Ổn định</span>
             </div>
           </div>
 
@@ -675,7 +675,7 @@
             <div class="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 self-end sm:self-auto">
               <span>{{ 'Tổng số:' | t }} {{filteredBookings.length}} {{ 'đơn' | t }}</span>
               <span class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-              <span class="text-rose-600 dark:text-rose-400 font-extrabold">{{pendingBookingsCount}} {{ 'chờ duyệt' | t }}</span>
+              <span class="text-uel-blue dark:text-sky-400 font-extrabold">{{pendingBookingsCount}} {{ 'chờ duyệt' | t }}</span>
             </div>
 
           </div>
@@ -740,7 +740,7 @@
                         </span>
                       }
                       @if (b.status === 'APPROVED') {
-                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[10px] font-black">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-sky-100/60 dark:bg-sky-900/40 text-sky-800 dark:text-sky-200 border border-sky-300 dark:border-sky-700 whitespace-nowrap text-[10px] font-black">
                           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
                           {{ 'ĐÃ DUYỆT' | t }}
                         </span>
@@ -752,7 +752,7 @@
                         </span>
                       }
                       @if (b.status === 'REJECTED') {
-                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-[10px] font-black">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-sky-50 dark:bg-sky-950/60 text-uel-blue dark:text-sky-300 border border-uel-blue/20 dark:border-sky-400/30 whitespace-nowrap text-[10px] font-black">
                           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                           {{ 'TỪ CHỐI' | t }}
                         </span>
@@ -831,29 +831,29 @@
                 <div class="space-y-3">
                   <div class="flex items-start justify-between gap-3">
                     <div>
-                      <h4 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">{{ rc.spaceName | t }}</h4>
+                      <h4 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight [text-wrap:balance] line-clamp-2">{{ rc.spaceName | t }}</h4>
                       <div class="text-xs font-semibold text-slate-700 dark:text-slate-200 mt-0.5">{{rc.userName}}</div>
                       <div class="text-[11px] text-slate-400 font-medium">{{rc.userEmail}}</div>
                     </div>
                     
                     <div>
                       @if (rc.status === 'STILL_PENDING') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 shrink-0">
+                        <span class="whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 dark:bg-sky-950/60 text-uel-blue dark:text-sky-300 border border-uel-blue/20 dark:border-sky-400/30 whitespace-nowrap shrink-0">
                           {{ 'CẦN XỬ LÝ' | t }}
                         </span>
                       }
                       @if (rc.status === 'USER_RETURNED') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shrink-0">
+                        <span class="whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-100/60 dark:bg-sky-900/40 text-sky-800 dark:text-sky-200 border border-sky-300 dark:border-sky-700 whitespace-nowrap shrink-0">
                           {{ 'ĐÃ CÓ MẶT' | t }}
                         </span>
                       }
                       @if (rc.status === 'SPACE_RELEASED') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 shrink-0">
+                        <span class="whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 shrink-0">
                           {{ 'ĐÃ THU HỒI CHỖ' | t }}
                         </span>
                       }
                       @if (rc.status === 'ESCALATED') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white border border-slate-300 dark:border-slate-700 shrink-0">
+                        <span class="whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white border border-slate-300 dark:border-slate-700 shrink-0">
                           {{ 'ĐÃ KỶ LUẬT' | t }}
                         </span>
                       }
@@ -864,7 +864,7 @@
                   <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 text-xs space-y-1.5">
                     <div class="flex items-center justify-between">
                       <span class="text-text-muted dark:text-slate-400">{{ 'Thời gian vắng mặt:' | t }}</span>
-                      <span class="font-black text-rose-600 dark:text-rose-400">{{rc.awayMinutes}} {{ 'phút' | t }}</span>
+                      <span class="font-black text-uel-blue dark:text-sky-400">{{rc.awayMinutes}} {{ 'phút' | t }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                       <span class="text-text-muted dark:text-slate-400">{{ 'Ngưỡng cảnh báo:' | t }}</span>
@@ -920,7 +920,7 @@
                   {{ spaces.length }} {{ 'không gian' | t }}
                 </span>
                 @if (pendingSpacesCount > 0) {
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 animate-pulse">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-uel-blue/15 text-amber-600 dark:text-sky-300 border border-amber-500/30 animate-pulse">
                     {{ pendingSpacesCount }} {{ 'chờ duyệt' | t }}
                   </span>
                 }
@@ -964,17 +964,17 @@
               <button (click)="spaceStatusFilter = 'AVAILABLE'"
                       [class]="spaceStatusFilter === 'AVAILABLE' ? 'bg-emerald-600 text-white shadow-xs font-bold' : 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 border border-emerald-200/60 dark:border-emerald-800/60 font-medium'"
                       class="px-3 py-1.5 rounded-xl text-xs transition-colors cursor-pointer flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
                 {{ 'Đang mở thuê' | t }}
               </button>
 
               <button (click)="spaceStatusFilter = 'PENDING_APPROVAL'"
                       [class]="spaceStatusFilter === 'PENDING_APPROVAL' ? 'bg-amber-600 text-white shadow-xs font-bold' : 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 border border-amber-200/60 dark:border-amber-800/60 font-medium'"
                       class="px-3 py-1.5 rounded-xl text-xs transition-colors cursor-pointer flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-uel-blue"></span>
                 {{ 'Chờ duyệt niêm yết' | t }}
                 @if (pendingSpacesCount > 0) {
-                  <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500 text-white font-bold">
+                  <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-uel-blue text-white font-bold">
                     {{ pendingSpacesCount }}
                   </span>
                 }
@@ -1041,7 +1041,7 @@
                           </span>
                         }
                         @if (s.rating) {
-                          <span class="text-[11px] font-bold text-amber-500 flex items-center gap-0.5">
+                          <span class="text-[11px] font-bold text-sky-400 flex items-center gap-0.5">
                             ★ {{ s.rating }} <span class="text-slate-400 font-normal text-[10px]">({{ s.reviewsCount || 0 }})</span>
                           </span>
                         }
@@ -1052,32 +1052,32 @@
                     
                     <div class="shrink-0">
                       @if (s.status === 'AVAILABLE') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                        <span class="whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-100/60 dark:bg-sky-900/40 text-sky-800 dark:text-sky-200 border border-sky-300 dark:border-sky-700 whitespace-nowrap">
                           {{ 'ĐANG MỞ THUÊ' | t }}
                         </span>
                       }
                       @if (s.status === 'IN_USE') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
+                        <span class="whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
                           {{ 'KHÁCH ĐANG DÙNG' | t }}
                         </span>
                       }
                       @if (s.status === 'RESERVED') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                        <span class="whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                           {{ 'ĐÃ ĐƯỢC ĐẶT' | t }}
                         </span>
                       }
                       @if (s.status === 'PENDING_APPROVAL') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700">
+                        <span class="whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700">
                           {{ 'CHỜ DUYỆT' | t }}
                         </span>
                       }
                       @if (s.status === 'REJECTED') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                        <span class="whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 dark:bg-sky-950/60 text-uel-blue dark:text-sky-300 border border-uel-blue/20 dark:border-sky-400/30 whitespace-nowrap">
                           {{ 'TỪ CHỐI' | t }}
                         </span>
                       }
                       @if (s.status === 'MAINTENANCE') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700">
+                        <span class="whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700">
                           {{ 'TẠM BẢO TRÌ' | t }}
                         </span>
                       }
@@ -1098,7 +1098,7 @@
                           {{ 'Duyệt mở thuê' | t }}
                         </button>
                         <button (click)="openRejectSpaceListingModal(s)"
-                                class="py-1.5 px-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1">
+                                class="py-1.5 px-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-uel-blue dark:text-sky-400 border border-rose-200 dark:border-rose-800 text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1">
                           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                           {{ 'Từ chối' | t }}
                         </button>
@@ -1115,7 +1115,7 @@
                     <div class="h-6 w-[1px] bg-slate-200 dark:bg-slate-700"></div>
                     <div class="text-right">
                       <div class="text-[10px] uppercase font-bold text-slate-400">{{ 'Giá trọn gói ngày' | t }}</div>
-                      <div class="text-sm font-black text-amber-600 dark:text-amber-400">{{ (s.pricePerDay || s.dailyPrice || 1050000) | number:'1.0-0' }} ₫ <span class="text-[10px] font-normal text-slate-400">/ngày</span></div>
+                      <div class="text-sm font-black text-amber-600 dark:text-sky-300">{{ (s.pricePerDay || s.dailyPrice || 1050000) | number:'1.0-0' }} ₫ <span class="text-[10px] font-normal text-slate-400">/ngày</span></div>
                     </div>
                   </div>
 
@@ -1158,7 +1158,7 @@
                     </button>
                     <!-- Delete Button -->
                     <button (click)="openDeleteSpaceModal(s)"
-                            class="py-1.5 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60 text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1"
+                            class="py-1.5 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-uel-blue dark:text-sky-400 border border-rose-200/60 dark:border-rose-800/60 text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1"
                             title="{{ 'Xóa không gian này' | t }}">
                       <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                       {{ 'Xóa' | t }}
@@ -1226,13 +1226,13 @@
                     <td class="py-3.5 px-4 text-slate-600 dark:text-slate-300 font-medium">{{u.email}}</td>
                     <td class="py-3.5 px-4">
                       @if (u.role === 'ADMIN') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-900 text-white dark:bg-sky-400 dark:text-slate-900">{{ 'Quản trị viên (Admin)' | t }}</span>
+                        <span class="whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-900 text-white dark:bg-sky-400 dark:text-slate-900">{{ 'Quản trị viên (Admin)' | t }}</span>
                       }
                       @if (u.role === 'SELLER') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 border border-uel-blue/20">{{ 'Chủ không gian (Seller)' | t }}</span>
+                        <span class="whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-300 border border-uel-blue/20">{{ 'Chủ không gian (Seller)' | t }}</span>
                       }
                       @if (u.role === 'BUYER') {
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">{{ 'Khách thuê (Buyer)' | t }}</span>
+                        <span class="whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">{{ 'Khách thuê (Buyer)' | t }}</span>
                       }
                     </td>
                     <td class="py-3.5 px-4 text-slate-600 dark:text-slate-300">{{ u.organization | t }}</td>
@@ -1282,7 +1282,7 @@
 
                 <div class="text-right shrink-0">
                   <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400">{{log.timestamp}}</div>
-                  <span [class]="log.level === 'CRITICAL' ? 'text-rose-600 dark:text-rose-400 font-black' : (log.level === 'WARNING' ? 'text-amber-600 dark:text-amber-400 font-black' : 'text-slate-400 font-medium')"
+                  <span [class]="log.level === 'CRITICAL' ? 'text-uel-blue dark:text-sky-400 font-black' : (log.level === 'WARNING' ? 'text-amber-600 dark:text-sky-300 font-black' : 'text-slate-400 font-medium')"
                         class="text-[10px] uppercase">
                     Level: {{log.level}}
                   </span>
@@ -1357,7 +1357,7 @@
                       <span>{{ isSwitchingCamera ? ('Đang đổi...' | t) : (cameraFacingMode === 'environment' ? ('Cam sau' | t) : ('Cam trước' | t)) }}</span>
                     </button>
                     <button (click)="stopCamera()" 
-                            class="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-600 dark:text-rose-400 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs">
+                            class="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-uel-blue dark:text-sky-400 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs">
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
                       <span>{{ 'Tắt Cam' | t }}</span>
                     </button>
@@ -1525,7 +1525,7 @@
                 <div class="p-5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40 border-2 border-emerald-400/80 dark:border-emerald-700 space-y-4 animate-[fade-in-up_0.2s_ease-out]">
                   
                   <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-black shadow-md shrink-0">
+                    <div class="w-12 h-12 rounded-2xl bg-sky-500 text-white flex items-center justify-center font-black shadow-md shrink-0">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                     </div>
                     <div>
@@ -1559,7 +1559,7 @@
                 <div class="p-5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border-2 border-rose-300 dark:border-rose-800 space-y-4 animate-[fade-in-up_0.2s_ease-out]">
                   
                   <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center font-black shadow-md shrink-0">
+                    <div class="w-12 h-12 rounded-2xl bg-uel-blue text-white flex items-center justify-center font-black shadow-md shrink-0">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                     </div>
                     <div>
@@ -1647,7 +1647,7 @@
                       <td class="py-3.5 px-4 font-semibold text-slate-700 dark:text-slate-200">{{item.bookerName}}</td>
                       <td class="py-3.5 px-4 text-slate-600 dark:text-slate-300 font-semibold">{{item.timeSlot}}</td>
                       <td class="py-3.5 px-4 text-center">
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 uppercase">
+                        <span class="whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 uppercase">
                           {{item.type}}
                         </span>
                       </td>
@@ -1721,8 +1721,8 @@
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                   <!-- AI Engine Indicator: Pure YOLO26 Server AI -->
-                  <div class="inline-flex items-center gap-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 px-3 py-1.5 rounded-xl border border-emerald-500/30 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-                    <span class="w-2 h-2 rounded-full" [class]="occServerStatus === 'online' ? 'bg-emerald-500 animate-pulse' : (occServerStatus === 'offline' ? 'bg-rose-500' : 'bg-amber-500')"></span>
+                  <div class="inline-flex items-center gap-1.5 bg-sky-500/10 dark:bg-sky-500/20 px-3 py-1.5 rounded-xl border border-emerald-500/30 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                    <span class="w-2 h-2 rounded-full" [class]="occServerStatus === 'online' ? 'bg-sky-500 animate-pulse' : (occServerStatus === 'offline' ? 'bg-rose-500' : 'bg-uel-blue')"></span>
                     <span>YOLO26 Pure Server AI</span>
                     @if (occServerLatencyMs > 0) {
                       <span class="text-[9px] opacity-85 font-mono">({{occServerLatencyMs}}ms)</span>
@@ -1731,7 +1731,7 @@
 
                   <!-- Active Model Tag -->
                   <div class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 text-[11px] font-bold text-sky-700 dark:text-sky-300">
-                    <span class="w-2 h-2 rounded-full" [class]="occModelLoaded || occServerStatus === 'online' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'"></span>
+                    <span class="w-2 h-2 rounded-full" [class]="occModelLoaded || occServerStatus === 'online' ? 'bg-sky-500 animate-pulse' : 'bg-uel-blue'"></span>
                     <span class="truncate max-w-[210px]">{{occModelName}}</span>
                   </div>
 
@@ -1763,7 +1763,7 @@
                       <span>{{ occFacingMode === 'environment' ? ('Cam sau' | t) : ('Cam trước' | t) }}</span>
                     </button>
                     <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
-                      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <span class="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
                       LIVE • {{occDetectionFps}} FPS
                     </span>
                   }
@@ -1780,7 +1780,7 @@
                   
                   <!-- Live Count Overlay (Top Left) -->
                   <div class="absolute top-3 left-3 sm:top-4 sm:left-4 bg-black/75 backdrop-blur-md rounded-2xl px-3 py-2 sm:px-4 sm:py-3 border border-white/20">
-                    <div class="text-2xl sm:text-3xl font-black text-emerald-400">{{occCurrentCount}}</div>
+                    <div class="text-2xl sm:text-3xl font-black text-sky-400">{{occCurrentCount}}</div>
                     <div class="text-[9px] sm:text-[10px] font-bold text-white/70 uppercase tracking-wider">{{ 'Người phát hiện' | t }}</div>
                   </div>
 
@@ -1862,7 +1862,7 @@
                     </button>
                   } @else {
                     <button (click)="stopOccupancyDetection()"
-                            class="w-full sm:w-auto px-5 py-3 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black bg-rose-600 hover:bg-rose-700 text-white transition-all cursor-pointer shadow-md flex items-center justify-center gap-2 touch-manipulation">
+                            class="w-full sm:w-auto px-5 py-3 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black bg-uel-blue hover:bg-rose-700 text-white transition-all cursor-pointer shadow-md flex items-center justify-center gap-2 touch-manipulation">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
                       {{ 'Dừng Nhận diện' | t }}
                     </button>
@@ -1882,13 +1882,13 @@
               @if (occIsOverCapacity) {
                 <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-[fade-in_0.3s]">
                   <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 font-black">!</div>
+                    <div class="w-8 h-8 rounded-xl bg-uel-blue text-white flex items-center justify-center shrink-0 font-black">!</div>
                     <div>
                       <div class="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-300">
                         {{ 'Cảnh báo Vượt số lượng cho phép' | t }} (+{{occOverCapacityCount}} {{ 'người' | t }})
                       </div>
                       <div class="text-[11px] font-medium text-amber-800/90 dark:text-amber-200/90">
-                        {{ 'Đơn đặt đăng ký ' | t }}<strong>{{occActiveBooking?.attendees}} {{ 'người' | t }}</strong>{{ ', nhưng AI phát hiện ' | t }}<strong class="text-rose-600 dark:text-rose-400">{{occCurrentCount}} {{ 'người' | t }}</strong>{{ ' trong phòng. Vi phạm thỏa thuận sử dụng không gian.' | t }}
+                        {{ 'Đơn đặt đăng ký ' | t }}<strong>{{occActiveBooking?.attendees}} {{ 'người' | t }}</strong>{{ ', nhưng AI phát hiện ' | t }}<strong class="text-uel-blue dark:text-sky-400">{{occCurrentCount}} {{ 'người' | t }}</strong>{{ ' trong phòng. Vi phạm thỏa thuận sử dụng không gian.' | t }}
                       </div>
                     </div>
                   </div>
@@ -1898,7 +1898,7 @@
                       {{ 'Áp dụng Phụ thu Vượt sĩ số' | t }} (+{{(occOverCapacityCount * 30000) | number}}đ)
                     </button>
                   } @else {
-                    <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 px-3 py-1 bg-emerald-100 dark:bg-emerald-950/40 rounded-lg">
+                    <span class="text-xs font-bold text-uel-blue dark:text-sky-400 px-3 py-1 bg-emerald-100 dark:bg-emerald-950/40 rounded-lg">
                       ✓ {{ 'Đã ghi nhận phụ phí' | t }}
                     </span>
                   }
@@ -1909,24 +1909,24 @@
               @if (occIsOvertime) {
                 <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-[fade-in_0.3s]">
                   <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 font-black">⏰</div>
+                    <div class="w-8 h-8 rounded-xl bg-uel-blue text-white flex items-center justify-center shrink-0 font-black">⏰</div>
                     <div>
                       <div class="text-xs font-black uppercase tracking-wider text-rose-700 dark:text-rose-300">
                         {{ 'Cảnh báo Quá giờ (Overtime Detected)' | t }} (+{{occOvertimeMinutes}} {{ 'phút' | t }})
                       </div>
                       <div class="text-[11px] font-medium text-rose-800/90 dark:text-rose-200/90">
-                        {{ 'Đơn đặt đã hết giờ nhưng AI nhận diện vẫn còn ' | t }}<strong>{{occCurrentCount}} {{ 'người trong phòng' | t }}</strong>. {{ 'Gợi ý phụ phí theo chính sách:' | t }} <strong class="text-rose-600 dark:text-rose-300">+{{occSuggestedSurcharge | number}} VNĐ</strong> ({{ 'block 30 phút' | t }}).
+                        {{ 'Đơn đặt đã hết giờ nhưng AI nhận diện vẫn còn ' | t }}<strong>{{occCurrentCount}} {{ 'người trong phòng' | t }}</strong>. {{ 'Gợi ý phụ phí theo chính sách:' | t }} <strong class="text-uel-blue dark:text-rose-300">+{{occSuggestedSurcharge | number}} VNĐ</strong> ({{ 'block 30 phút' | t }}).
                       </div>
                     </div>
                   </div>
                   @if (!occSurchargeApplied) {
                     <button (click)="applyOvertimeSurcharge()"
-                            class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition-all cursor-pointer shrink-0 shadow-md flex items-center gap-1.5">
+                            class="px-4 py-2 rounded-xl bg-uel-blue hover:bg-rose-700 text-white text-xs font-black transition-all cursor-pointer shrink-0 shadow-md flex items-center gap-1.5">
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                       {{ 'Xác minh & Áp dụng Phụ phí' | t }} (+{{occSuggestedSurcharge | number}}đ)
                     </button>
                   } @else {
-                    <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 px-3 py-1 bg-emerald-100 dark:bg-emerald-950/40 rounded-lg">
+                    <span class="text-xs font-bold text-uel-blue dark:text-sky-400 px-3 py-1 bg-emerald-100 dark:bg-emerald-950/40 rounded-lg">
                       ✓ {{ 'Đã áp dụng phụ phí vào hóa đơn' | t }}
                     </span>
                   }
@@ -1958,7 +1958,7 @@
 
               @if (occEarlyCheckoutDone) {
                 <div class="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 text-emerald-800 dark:text-emerald-200 text-xs font-bold flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                  <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
                   <span>{{ 'Khung giờ đã được giải phóng thành công lên sàn Marketplace UEL Space. Phòng sẵn sàng đón lượt khách tiếp theo.' | t }}</span>
                 </div>
               }
@@ -2003,7 +2003,7 @@
                     </div>
                     <div class="flex justify-between py-1">
                       <span class="text-text-muted dark:text-slate-400">{{ 'AI phát hiện thực tế:' | t }}</span>
-                      <span class="font-black" [class]="occIsOverCapacity ? 'text-rose-600' : 'text-emerald-600'">
+                      <span class="font-black" [class]="occIsOverCapacity ? 'text-uel-blue' : 'text-uel-blue'">
                         {{occCurrentCount}} {{ 'người' | t }}
                       </span>
                     </div>
@@ -2085,7 +2085,7 @@
                           <td class="px-4 py-3 font-medium text-slate-600 dark:text-slate-300">{{snap.timestamp}}</td>
                           <td class="px-4 py-3 font-bold text-dark-text dark:text-white">{{ snap.spaceName | t }}</td>
                           <td class="px-4 py-3 text-center">
-                            <span class="font-black text-sm" [ngClass]="snap.occupancyRate > 100 ? 'text-rose-600 dark:text-rose-400' : snap.occupancyRate > 80 ? 'text-orange-600 dark:text-orange-400' : 'text-emerald-600 dark:text-emerald-400'">{{snap.detectedCount}}</span>
+                            <span class="font-black text-sm" [ngClass]="snap.occupancyRate > 100 ? 'text-uel-blue dark:text-sky-400' : snap.occupancyRate > 80 ? 'text-orange-600 dark:text-orange-400' : 'text-uel-blue dark:text-sky-400'">{{snap.detectedCount}}</span>
                           </td>
                           <td class="px-4 py-3 text-center text-slate-600 dark:text-slate-300 font-semibold">{{snap.capacity}}</td>
                           <td class="px-4 py-3 text-center">
@@ -2121,7 +2121,7 @@
         
         <div class="flex items-center justify-between pb-3 border-b border-border-gray dark:border-slate-800">
           <div>
-            <h3 class="text-base font-black text-rose-600 dark:text-rose-400 tracking-tight">{{ 'Từ chối Đơn đặt phòng' | t }}</h3>
+            <h3 class="text-base font-black text-uel-blue dark:text-sky-400 tracking-tight">{{ 'Từ chối Đơn đặt phòng' | t }}</h3>
             <div class="text-xs text-text-muted dark:text-slate-400 mt-0.5">{{ 'Mã đơn:' | t }} <span class="font-bold text-dark-text dark:text-white">{{rejectModal.booking.code}}</span></div>
           </div>
           <button (click)="closeRejectModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-400 cursor-pointer">
@@ -2171,7 +2171,7 @@
             {{ 'Hủy bỏ' | t }}
           </button>
           <button (click)="confirmRejectBooking()"
-                  class="px-5 py-2.5 rounded-xl text-xs font-black bg-rose-600 hover:bg-rose-700 text-white transition-colors cursor-pointer shadow-md">
+                  class="px-5 py-2.5 rounded-xl text-xs font-black bg-uel-blue hover:bg-rose-700 text-white transition-colors cursor-pointer shadow-md">
             {{ 'Xác nhận Từ chối' | t }}
           </button>
         </div>
@@ -2228,7 +2228,7 @@
             <div class="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 space-y-1">
               <span class="font-black">{{ 'Lý do từ chối:' | t }}</span>
               <p class="text-[11px] font-medium">{{ detailModal.booking.rejectionReason | t }}</p>
-              <div class="text-[10px] text-rose-600 dark:text-rose-400 font-medium">{{ 'Xử lý bởi:' | t }} {{detailModal.booking.processedBy}} ({{detailModal.booking.processedAt}})</div>
+              <div class="text-[10px] text-uel-blue dark:text-sky-400 font-medium">{{ 'Xử lý bởi:' | t }} {{detailModal.booking.processedBy}} ({{detailModal.booking.processedAt}})</div>
             </div>
           }
         </div>
@@ -2265,16 +2265,16 @@
       <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl p-6 shadow-2xl border-2 border-emerald-500/60 dark:border-emerald-600 space-y-5 relative overflow-hidden">
         
         <!-- Glow accent badge background -->
-        <div class="absolute -top-12 -right-12 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -top-12 -right-12 w-36 h-36 bg-sky-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
         <!-- Header -->
         <div class="flex items-start justify-between pb-3 border-b border-border-gray dark:border-slate-800">
           <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-black shadow-lg shadow-emerald-500/30 shrink-0">
+            <div class="w-12 h-12 rounded-2xl bg-sky-500 text-white flex items-center justify-center font-black shadow-lg shadow-emerald-500/30 shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
             <div>
-              <span class="text-[11px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider block">
+              <span class="text-[11px] font-black uppercase text-uel-blue dark:text-sky-400 tracking-wider block">
                 {{ 'Xác thực & Check-in Thành công' | t }}
               </span>
               <h3 class="text-lg font-black text-dark-text dark:text-white tracking-tight">
@@ -2405,7 +2405,7 @@
           <!-- Space Name -->
           <div class="space-y-1.5 sm:col-span-2">
             <label class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
-              {{ 'Tên không gian' | t }} <span class="text-rose-500">*</span>
+              {{ 'Tên không gian' | t }} <span class="text-sky-500">*</span>
             </label>
             <input type="text"
                    [(ngModel)]="spaceModal.name"
@@ -2476,7 +2476,7 @@
           <!-- Capacity -->
           <div class="space-y-1.5">
             <label class="font-bold text-slate-700 dark:text-slate-200 flex items-center justify-between">
-              <span>{{ 'Sức chứa tối đa (người)' | t }} <span class="text-rose-500">*</span></span>
+              <span>{{ 'Sức chứa tối đa (người)' | t }} <span class="text-sky-500">*</span></span>
             </label>
             <input type="number"
                    min="1"
@@ -2488,7 +2488,7 @@
           <!-- Area -->
           <div class="space-y-1.5">
             <label class="font-bold text-slate-700 dark:text-slate-200 flex items-center justify-between">
-              <span>{{ 'Diện tích phòng (m²)' | t }} <span class="text-rose-500">*</span></span>
+              <span>{{ 'Diện tích phòng (m²)' | t }} <span class="text-sky-500">*</span></span>
             </label>
             <input type="number"
                    min="1"
@@ -2522,7 +2522,7 @@
                      min="0"
                      step="50000"
                      [(ngModel)]="spaceModal.pricePerDay"
-                     class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-amber-600 dark:text-amber-400 font-black focus:outline-none focus:border-uel-blue dark:focus:border-sky-400" />
+                     class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-amber-600 dark:text-sky-300 font-black focus:outline-none focus:border-uel-blue dark:focus:border-sky-400" />
               <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-[10px] text-slate-400 font-bold pointer-events-none">₫/ngày</span>
             </div>
           </div>
@@ -2547,7 +2547,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 {{ 'Quy tắc quản lý hiện diện & Giải phóng phòng (BR15)' | t }}
               </span>
-              <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400">awayWarning &lt; autoCheckout</span>
+              <span class="text-[10px] font-bold text-amber-600 dark:text-sky-300">awayWarning &lt; autoCheckout</span>
             </div>
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2593,7 +2593,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                 {{ 'Hình ảnh không gian (Đẩy lên server định dạng ngày_tháng_năm_giờ_phút_giây)' | t }}
               </label>
-              <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+              <span class="text-[10px] text-uel-blue dark:text-sky-400 font-medium bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
                 {{ 'Luôn lấy ảnh mới nhất (No-cache)' | t }}
               </span>
             </div>
@@ -2689,7 +2689,7 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
         
-        <div class="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto">
+        <div class="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-uel-blue dark:text-sky-400 flex items-center justify-center mx-auto">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
         </div>
 
@@ -2714,7 +2714,7 @@
           <button (click)="confirmDeleteSpace()"
                   [disabled]="deleteSpaceModal.isDeleting"
                   type="button"
-                  class="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors cursor-pointer text-center shadow-xs disabled:opacity-50">
+                  class="flex-1 py-2.5 px-3 rounded-xl bg-uel-blue hover:bg-rose-700 text-white text-xs font-bold transition-colors cursor-pointer text-center shadow-xs disabled:opacity-50">
             @if (deleteSpaceModal.isDeleting) {
               {{ 'Đang xóa...' | t }}
             } @else {
@@ -2785,7 +2785,7 @@
           <button (click)="confirmRejectSpaceListing()"
                   [disabled]="spaceListingRejectModal.isSubmitting"
                   type="button"
-                  class="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors cursor-pointer text-center shadow-xs disabled:opacity-50">
+                  class="flex-1 py-2.5 px-3 rounded-xl bg-uel-blue hover:bg-rose-700 text-white text-xs font-bold transition-colors cursor-pointer text-center shadow-xs disabled:opacity-50">
             @if (spaceListingRejectModal.isSubmitting) {
               {{ 'Đang xử lý...' | t }}
             } @else {
