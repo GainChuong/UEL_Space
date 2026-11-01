@@ -702,10 +702,11 @@ export class Home implements OnInit {
   googleCalendarStatus: { isConnected: boolean; email?: string } = { isConnected: false };
   isSyncingCalendar: boolean = false;
 
-  studentInfo = {
+  customerInfo = {
     name: 'Nguyễn Minh Quân',
     id: 'CORP-88392',
-    major: 'Đại diện Doanh nghiệp • FinTech Hub'
+    email: 'quan.nguyen@corp-partner.vn',
+    org: 'Doanh nghiệp Đối tác'
   };
 
   openBookingModal(space: any) {
@@ -827,7 +828,7 @@ export class Home implements OnInit {
       date: this.customBookingDate,
       timeSlot: `${this.customStartTime} - ${this.customEndTime}`,
       purpose: 'Học tập & Hoạt động không gian UEL',
-      bookerName: this.studentInfo.name
+      bookerName: this.customerInfo.name
     });
   }
 
@@ -861,7 +862,7 @@ export class Home implements OnInit {
       qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=2|99|0908123456|||0|0|${totalAmount}|${code}|transfer_myqr`,
       isProcessing: false,
       loading: false,
-      roomName: this.selectedRoomDetail.name || 'Phòng học UEL',
+      roomName: this.selectedRoomDetail.name || 'Không gian UEL Space',
       slotText: `${this.customBookingDate} (${this.customStartTime} - ${this.customEndTime})`
     };
 
@@ -918,7 +919,7 @@ export class Home implements OnInit {
             spaceId: this.selectedRoomDetail._id || this.selectedRoomDetail.id || this.selectedRoomDetail.code,
             roomName: this.selectedRoomDetail.name,
             building: this.selectedRoomDetail.building,
-            roomType: this.selectedRoomDetail.spaceType || 'Phòng học / Văn phòng',
+            roomType: this.selectedRoomDetail.spaceType || 'Không gian làm việc & Hội thảo',
             date: this.customBookingDate,
             endDate: this.customBookingDate,
             startTime: this.customStartTime,
@@ -944,7 +945,7 @@ export class Home implements OnInit {
             id: code,
             roomName: this.selectedRoomDetail.name,
             building: this.selectedRoomDetail.building,
-            roomType: this.selectedRoomDetail.spaceType || 'Phòng học / Văn phòng',
+            roomType: this.selectedRoomDetail.spaceType || 'Không gian làm việc & Hội thảo',
             date: this.customBookingDate,
             timeSlot: `${this.customStartTime} - ${this.customEndTime}`,
             purpose: 'Làm việc & Học tập trên UEL Space',
@@ -996,7 +997,7 @@ export class Home implements OnInit {
       date: new Date().toLocaleDateString('vi-VN'),
       timeSlot: s?.period || 'Ca 3 (13:00 - 15:00)',
       purpose: 'Hội thảo & Họp đối tác doanh nghiệp',
-      bookerName: this.studentInfo.name
+      bookerName: this.customerInfo.name
     });
   }
 
@@ -1011,7 +1012,7 @@ export class Home implements OnInit {
       date: new Date().toLocaleDateString('vi-VN'),
       timeSlot: s?.period || 'Ca 3 (13:00 - 15:00)',
       purpose: 'Hội thảo & Họp đối tác doanh nghiệp',
-      bookerName: this.studentInfo.name
+      bookerName: this.customerInfo.name
     });
   }
 

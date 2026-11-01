@@ -50,7 +50,7 @@ export class Map implements OnInit, AfterViewInit {
     { id: 'meeting_room', name: 'Phòng họp VIP', en: 'Meeting Room', icon: 'users', count: 16 },
     { id: 'office', name: 'Văn phòng riêng', en: 'Private Office', icon: 'briefcase', count: 16 },
     { id: 'library', name: 'Thư viện & Co-study', en: 'Library & Co-working', icon: 'book', count: 12 },
-    { id: 'classroom', name: 'Giảng đường đa năng', en: 'Smart Classroom', icon: 'graduation-cap', count: 10 },
+    { id: 'classroom', name: 'Hội thảo & Đào tạo', en: 'Seminar & Training', icon: 'presentation', count: 10 },
     { id: 'auditorium', name: 'Hội trường sự kiện', en: 'Auditorium Hall', icon: 'theater', count: 12 },
     { id: 'computerroom', name: 'Phòng máy tính Lab', en: 'Computer Lab', icon: 'monitor', count: 8 },
     { id: 'studio', name: 'Media Studio & Pod', en: 'Media Studio', icon: 'mic', count: 8 },
@@ -75,10 +75,11 @@ export class Map implements OnInit, AfterViewInit {
   ];
 
   // Client info & schedule cross-reference
-  studentInfo = {
+  customerInfo = {
     name: 'Nguyễn Trần Kim Giang',
     id: 'MBR-9821',
-    major: 'TechFlow Solutions • Doanh nghiệp thành viên'
+    email: 'giang.nguyen@innovate-hub.vn',
+    org: 'Doanh nghiệp Thành viên'
   };
 
   bookingSlots = [
@@ -93,7 +94,7 @@ export class Map implements OnInit, AfterViewInit {
   hasConflict: boolean = false;
   conflictReason: string = '';
 
-  studentSchedule: any[] = [
+  customerSchedule: any[] = [
     {
       id: 'sched-1',
       time: '07:30 - 11:45',
@@ -189,8 +190,8 @@ export class Map implements OnInit, AfterViewInit {
       const stored = localStorage.getItem('currentUser');
       if (stored) {
         const u = JSON.parse(stored);
-        if (u.name) this.studentInfo.name = u.name;
-        if (u.email) this.studentInfo.id = u.email;
+        if (u.name) this.customerInfo.name = u.name;
+        if (u.email) this.customerInfo.id = u.email;
       }
     } catch (e) {
       // ignore
@@ -267,7 +268,7 @@ export class Map implements OnInit, AfterViewInit {
       return dsCat === 'library' || type.includes('thư viện') || type.includes('co-study') || name.includes('library') || name.includes('study');
     }
     if (catLower === 'classroom') {
-      return dsCat === 'classroom' || type.includes('giảng đường') || name.includes('classroom') || name.includes('b1.104');
+      return dsCat === 'classroom' || type.includes('hội thảo') || type.includes('đào tạo') || name.includes('classroom') || name.includes('b1.104');
     }
     if (catLower === 'auditorium') {
       return dsCat === 'auditorium' || type.includes('hội trường') || type.includes('sự kiện') || name.includes('auditorium') || name.includes('hall');
@@ -801,10 +802,10 @@ export class Map implements OnInit, AfterViewInit {
   }
 
   refreshCalendarAndSlots(): void {
-    this.studentSchedule = this.googleCalendarService.getUserEventsForDate(this.customBookingDate, this.studentInfo.id);
-    this.suggestedGoogleSlots = this.googleCalendarService.getSuggestedSlots(this.customBookingDate, this.studentInfo.id);
+    this.customerSchedule = this.googleCalendarService.getUserEventsForDate(this.customBookingDate, this.customerInfo.id);
+    this.suggestedGoogleSlots = this.googleCalendarService.getSuggestedSlots(this.customBookingDate, this.customerInfo.id);
 
-    const rawUrl = this.googleCalendarService.generateEmbedUrl(this.studentInfo.id, this.embedCalendarViewMode, this.customBookingDate);
+    const rawUrl = this.googleCalendarService.generateEmbedUrl(this.customerInfo.id, this.embedCalendarViewMode, this.customBookingDate);
     this.googleEmbedSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl);
 
     this.customDurationHours = this.googleCalendarService.calculateDuration(this.customStartTime, this.customEndTime);
@@ -829,7 +830,7 @@ export class Map implements OnInit, AfterViewInit {
 
   setEmbedCalendarMode(mode: 'AGENDA' | 'WEEK' | 'MONTH'): void {
     this.embedCalendarViewMode = mode;
-    const rawUrl = this.googleCalendarService.generateEmbedUrl(this.studentInfo.id, this.embedCalendarViewMode, this.customBookingDate);
+    const rawUrl = this.googleCalendarService.generateEmbedUrl(this.customerInfo.id, this.embedCalendarViewMode, this.customBookingDate);
     this.googleEmbedSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl);
     this.cdr.detectChanges();
   }
@@ -863,7 +864,7 @@ export class Map implements OnInit, AfterViewInit {
       date: this.customBookingDate,
       timeSlot: `${this.customStartTime} - ${this.customEndTime}`,
       purpose: 'Họp chiến lược & Làm việc doanh nghiệp',
-      bookerName: this.studentInfo.name
+      bookerName: this.customerInfo.name
     });
   }
 
@@ -872,7 +873,7 @@ export class Map implements OnInit, AfterViewInit {
       this.customBookingDate,
       this.customStartTime,
       this.customEndTime,
-      this.studentInfo.id
+      this.customerInfo.id
     );
     this.hasConflict = check.hasConflict;
     this.conflictReason = check.reason;
@@ -891,7 +892,7 @@ export class Map implements OnInit, AfterViewInit {
         startTime: this.customStartTime,
         endTime: this.customEndTime,
         code: 'BK-' + Date.now().toString().slice(-6),
-        userEmail: this.studentInfo.id
+        userEmail: this.customerInfo.id
       });
 
       this.refreshCalendarAndSlots();
@@ -909,7 +910,7 @@ export class Map implements OnInit, AfterViewInit {
       date: this.customBookingDate,
       timeSlot: s?.time || `${this.customStartTime} - ${this.customEndTime}`,
       purpose: 'Họp chiến lược & Làm việc doanh nghiệp',
-      bookerName: this.studentInfo.name
+      bookerName: this.customerInfo.name
     });
   }
 
@@ -924,7 +925,7 @@ export class Map implements OnInit, AfterViewInit {
       date: this.customBookingDate,
       timeSlot: s?.time || `${this.customStartTime} - ${this.customEndTime}`,
       purpose: 'Họp chiến lược & Làm việc doanh nghiệp',
-      bookerName: this.studentInfo.name
+      bookerName: this.customerInfo.name
     });
   }
 

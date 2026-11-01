@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -55,6 +55,33 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
   currentModel = 'gemini-2.5-flash';
   currentSource: 'gemini' | 'learned_cache' | 'local_fallback' = 'gemini';
 
+  // =========================================================================
+  // DRAGGABLE FAB (KÉO THẢ TỰ DO, BẮT DÍNH VÀ GIỚI HẠN TRONG VIEWPORT)
+  // =========================================================================
+  fabX = 0;
+  fabY = 0;
+  isDragging = false;
+  private isPointerDown = false;
+  private hasDragged = false;
+  private dragStartX = 0;
+  private dragStartY = 0;
+  private initialFabX = 0;
+  private initialFabY = 0;
+  private snappedEdge: 'left' | 'right' = 'right';
+
+  readonly FAB_SIZE = 56;
+  readonly MARGIN = 20;
+  readonly STORAGE_KEY = 'uel_space_chatbot_fab_pos';
+
+  get isNearLeftEdge(): boolean {
+    if (typeof window === 'undefined') return false;
+    return (this.fabX + this.FAB_SIZE / 2) < (window.innerWidth / 2);
+  }
+
+  get isTooltipBelow(): boolean {
+    return this.fabY < 80;
+  }
+
   private subIsOpen?: Subscription;
   private subMessages?: Subscription;
   private subThinking?: Subscription;
@@ -70,6 +97,7 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
   ) {}
 
   ngOnInit(): void {
+    this.initFabPosition();
     this.subIsOpen = this.chatbotService.isOpen$.subscribe(open => {
       this.isOpen = open;
       if (open) {
@@ -115,6 +143,153 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.subThinking?.unsubscribe();
     this.subModel?.unsubscribe();
     this.subSource?.unsubscribe();
+  }
+
+  onFabPointerDown(event: PointerEvent): void {
+    if (event.button !== 0) return; // Chỉ nhận click chuột trái hoặc touch
+    this.isPointerDown = true;
+    this.hasDragged = false;
+    this.isDragging = false;
+    this.dragStartX = event.clientX;
+    this.dragStartY = event.clientY;
+    this.initialFabX = this.fabX;
+    this.initialFabY = this.fabY;
+  }
+
+  @HostListener('window:pointermove', ['$event'])
+  onWindowPointerMove(event: PointerEvent): void {
+    if (!this.isPointerDown) return;
+
+    const deltaX = event.clientX - this.dragStartX;
+    const deltaY = event.clientY - this.dragStartY;
+
+    if (!this.hasDragged && Math.hypot(deltaX, deltaY) > 5) {
+      this.hasDragged = true;
+      this.isDragging = true;
+    }
+
+    if (this.isDragging) {
+      event.preventDefault();
+      const rawX = this.initialFabX + deltaX;
+      const rawY = this.initialFabY + deltaY;
+      this.fabX = this.clampX(rawX);
+      this.fabY = this.clampY(rawY);
+      this.cdr.markForCheck();
+    }
+  }
+
+  @HostListener('window:pointerup', ['$event'])
+  @HostListener('window:pointercancel', ['$event'])
+  onWindowPointerUp(_event: PointerEvent): void {
+    if (!this.isPointerDown) return;
+    this.isPointerDown = false;
+
+    if (this.isDragging) {
+      this.isDragging = false;
+      this.snapToClosestEdge();
+      this.saveFabPosition();
+      this.cdr.markForCheck();
+      setTimeout(() => {
+        this.hasDragged = false;
+      }, 120);
+    } else {
+      this.hasDragged = false;
+    }
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    if (typeof window === 'undefined') return;
+    if (this.snappedEdge === 'left') {
+      this.fabX = this.MARGIN;
+    } else {
+      this.fabX = Math.max(this.MARGIN, window.innerWidth - this.FAB_SIZE - this.MARGIN);
+    }
+    this.fabY = this.clampY(this.fabY);
+    this.saveFabPosition();
+    this.cdr.markForCheck();
+  }
+
+  onFabClick(event: MouseEvent): void {
+    if (this.hasDragged) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    this.toggleChat();
+  }
+
+  private initFabPosition(): void {
+    if (typeof window === 'undefined') return;
+
+    const defaultX = Math.max(this.MARGIN, window.innerWidth - this.FAB_SIZE - 24);
+    const defaultY = Math.max(this.MARGIN, window.innerHeight - this.FAB_SIZE - 24);
+
+    try {
+      const saved = localStorage.getItem(this.STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (typeof parsed?.x === 'number' && typeof parsed?.y === 'number') {
+          this.snappedEdge = parsed.snappedEdge === 'left' ? 'left' : 'right';
+          if (this.snappedEdge === 'left') {
+            this.fabX = this.MARGIN;
+          } else {
+            this.fabX = Math.max(this.MARGIN, window.innerWidth - this.FAB_SIZE - this.MARGIN);
+          }
+          this.fabY = this.clampY(parsed.y);
+          return;
+        }
+      }
+    } catch {
+      // Bỏ qua lỗi truy cập localStorage
+    }
+
+    this.snappedEdge = 'right';
+    this.fabX = defaultX;
+    this.fabY = defaultY;
+  }
+
+  private saveFabPosition(): void {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify({
+          x: this.fabX,
+          y: this.fabY,
+          snappedEdge: this.snappedEdge
+        }));
+      }
+    } catch {
+      // Bỏ qua lỗi lưu localStorage
+    }
+  }
+
+  private clampX(x: number): number {
+    if (typeof window === 'undefined') return x;
+    const minX = this.MARGIN;
+    const maxX = Math.max(minX, window.innerWidth - this.FAB_SIZE - this.MARGIN);
+    return Math.min(Math.max(x, minX), maxX);
+  }
+
+  private clampY(y: number): number {
+    if (typeof window === 'undefined') return y;
+    const minY = this.MARGIN;
+    const maxY = Math.max(minY, window.innerHeight - this.FAB_SIZE - this.MARGIN);
+    return Math.min(Math.max(y, minY), maxY);
+  }
+
+  private snapToClosestEdge(): void {
+    if (typeof window === 'undefined') return;
+    const middleX = window.innerWidth / 2;
+    const fabCenterX = this.fabX + this.FAB_SIZE / 2;
+
+    if (fabCenterX < middleX) {
+      this.fabX = this.MARGIN;
+      this.snappedEdge = 'left';
+    } else {
+      this.fabX = Math.max(this.MARGIN, window.innerWidth - this.FAB_SIZE - this.MARGIN);
+      this.snappedEdge = 'right';
+    }
+    this.fabY = this.clampY(this.fabY);
   }
 
   toggleChat(): void {

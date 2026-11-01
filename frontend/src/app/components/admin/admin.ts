@@ -606,7 +606,7 @@ export class Admin implements OnInit, OnDestroy {
       sellerName: 'UEL Innovation Hub',
       type: 'REFUND_REQUEST',
       amount: 1200000,
-      description: 'Điều hòa phòng học hỏng không sử dụng được, khách yêu cầu hoàn tiền 100%.',
+      description: 'Điều hòa phòng hội thảo hỏng không sử dụng được, khách yêu cầu hoàn tiền 100%.',
       status: 'RESOLVED',
       createdAt: '2026-10-17T10:00:00Z',
       resolution: 'Admin đã duyệt hoàn tiền 100% (1.200.000 ₫) cho khách thuê và cảnh báo Host bảo trì thiết bị.',

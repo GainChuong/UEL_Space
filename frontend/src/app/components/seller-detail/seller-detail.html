@@ -8,7 +8,7 @@
       <div class="flex items-center gap-3 truncate">
         <button type="button"
                 (click)="goBack()"
-                class="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                class="w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer shrink-0"
                 title="Quay lại">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
@@ -55,32 +55,25 @@
   </nav>
 
   @if (seller) {
-    <!-- ==================== HERO COVER BANNER ==================== -->
-    <header class="relative w-full">
-      <!-- Cover Photo with Gradient Overlay -->
-      <div class="relative h-64 sm:h-80 md:h-96 w-full overflow-hidden bg-slate-900">
-        <img [src]="seller.coverImage"
-             [alt]="seller.brandName"
-             class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-black/30"></div>
+    <!-- ==================== SELLER PROFILE HEADER ==================== -->
+    <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
+      <div class="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+        
+        <!-- Header Top: Verification & Location Badges -->
+        <div class="flex items-center justify-between flex-wrap gap-3 pb-5 mb-6 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center flex-wrap gap-2">
+            <span class="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 text-emerald-700 dark:text-emerald-300 text-xs font-bold inline-flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              ĐỐI TÁC CHO THUÊ ĐÃ XÁC THỰC UEL SPACE
+            </span>
+            <span class="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 text-amber-700 dark:text-amber-300 text-xs font-bold uppercase tracking-wider">
+              {{ seller.tier }}
+            </span>
+          </div>
 
-        <!-- Cover Overlay Badges -->
-        <div class="absolute top-6 left-4 sm:left-8 right-4 sm:right-8 flex items-center justify-between z-10">
-          <span class="px-3.5 py-1.5 rounded-full bg-slate-900/85 backdrop-blur-md border border-white/20 text-white text-xs font-extrabold inline-flex items-center gap-2 shadow-lg">
-            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-            ĐỐI TÁC CHO THUÊ ĐÃ XÁC THỰC UEL SPACE
-          </span>
-
-          <span class="px-3 py-1.5 rounded-full bg-amber-500/90 backdrop-blur-md text-slate-950 text-xs font-black uppercase tracking-wider shadow-lg">
-            {{ seller.tier }}
-          </span>
-        </div>
-
-        <!-- Address Bar at Bottom of Cover -->
-        <div class="absolute bottom-4 left-4 sm:left-8 right-4 sm:right-8 flex items-end justify-between">
-          <div class="text-xs sm:text-sm text-slate-300 font-medium inline-flex items-center gap-1.5 bg-black/40 backdrop-blur-xs px-3 py-1.5 rounded-xl border border-white/10">
+          <div class="text-xs text-slate-500 dark:text-slate-400 font-medium inline-flex items-center gap-1.5">
             <svg class="w-4 h-4 text-uel-blue dark:text-sky-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -88,21 +81,16 @@
             <span>{{ seller.address }}</span>
           </div>
         </div>
-      </div>
 
-      <!-- Main Profile Identity Card (Overlapping Cover) -->
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="relative -mt-16 sm:-mt-20 p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xl">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            
-            <!-- Avatar & Details -->
-            <div class="flex flex-col sm:flex-row sm:items-center gap-5">
-              <div class="relative w-24 h-24 sm:w-28 sm:h-28 rounded-3xl overflow-hidden shrink-0 border-4 border-white dark:border-slate-900 ring-4 ring-uel-blue/20 shadow-2xl bg-slate-100 dark:bg-slate-800">
-                <img [src]="seller.avatar"
-                     [alt]="seller.brandName"
-                     class="w-full h-full object-cover">
-              </div>
+          <!-- Avatar & Details -->
+          <div class="flex flex-col sm:flex-row sm:items-center gap-5">
+            <div class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800 shadow-sm border border-slate-200/60 dark:border-slate-800">
+              <img [src]="seller.avatar"
+                   [alt]="seller.brandName"
+                   class="w-full h-full object-cover">
+            </div>
 
               <div>
                 <div class="flex items-center flex-wrap gap-2.5">
@@ -229,7 +217,6 @@
 
           </div>
 
-        </div>
       </div>
     </header>
 

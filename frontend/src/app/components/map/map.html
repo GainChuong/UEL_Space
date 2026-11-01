@@ -1063,11 +1063,11 @@
                     <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700 mb-3 flex items-center justify-between">
                       <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 rounded-full bg-uel-blue text-white flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
-                          {{ (studentInfo.name || 'U').charAt(0) }}
+                          {{ (customerInfo.name || 'U').charAt(0) }}
                         </div>
                         <div class="min-w-0">
-                          <div class="font-bold text-slate-800 dark:text-slate-100 truncate text-xs">{{ studentInfo.name }}</div>
-                          <div class="text-[10px] text-slate-400 font-mono truncate">{{ studentInfo.id || 'khachhang@uel.edu.vn' }}</div>
+                          <div class="font-bold text-slate-800 dark:text-slate-100 truncate text-xs">{{ customerInfo.name }}</div>
+                          <div class="text-[10px] text-slate-400 font-mono truncate">{{ customerInfo.id || 'khachhang@uel.edu.vn' }}</div>
                         </div>
                       </div>
                       <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
@@ -1083,7 +1083,7 @@
 
                     <!-- List of Personal Schedule Events -->
                     <div class="space-y-2 flex-1 overflow-y-auto max-h-[380px] custom-scrollbar pr-0.5">
-                      @for (item of studentSchedule; track item.id) {
+                      @for (item of customerSchedule; track item.id) {
                         <div (click)="selectScheduleItem(item)"
                              [title]="item.isBusy ? ('Ca này bận: ' + item.title) : ('Bấm để chọn khung giờ: ' + item.time)"
                              class="p-3 rounded-2xl border flex items-center justify-between transition-all"
