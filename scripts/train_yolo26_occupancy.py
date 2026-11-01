@@ -60,10 +60,16 @@ def run_training():
     last_pt = os.path.join(OUTPUT_RUNS_DIR, "yolo26_smartclass_occupancy", "weights", "last.pt")
     epochs = 25
 
+    import time
+    def on_train_epoch_end(trainer):
+        print("\n❄️ [Cooling Pause] Nghỉ 8 giây để quạt tản nhiệt laptop hạ nhiệt GPU...")
+        time.sleep(8)
+
     if os.path.exists(last_pt):
         print(f"🔄 Phát hiện checkpoint đã huấn luyện dở dang tại: {last_pt}")
-        print("⚡ Tự động kích hoạt resume huấn luyện tiếp tục...")
+        print("⚡ Tự động kích hoạt resume huấn luyện tiếp tục với chế độ hạ nhiệt an toàn...")
         model = YOLO(last_pt)
+        model.add_callback("on_train_epoch_end", on_train_epoch_end)
         results = model.train(resume=True)
     else:
         # 3. Nạp mô hình YOLO26 gốc
