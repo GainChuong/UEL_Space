@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -93,7 +94,8 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     public chatbotService: ChatbotService,
     private googleCalendarService: GoogleCalendarService,
     private sanitizer: DomSanitizer,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -486,6 +488,16 @@ export class ChatbotComponent implements OnInit, OnDestroy, AfterViewChecked {
     if (url) {
       window.open(url, '_blank');
     }
+  }
+
+  /**
+   * Điều hướng đến trang chi tiết phòng trên CÙNG tab bằng Angular Router.
+   * Vì <app-chatbot> nằm ngoài <router-outlet> trong app.html,
+   * component chatbot KHÔNG bị destroy khi route thay đổi —
+   * toàn bộ lịch sử hội thoại và trạng thái chatbot được giữ nguyên.
+   */
+  viewSpaceDetail(spaceId: string): void {
+    this.router.navigate(['/spaces', spaceId]);
   }
 
   /**
