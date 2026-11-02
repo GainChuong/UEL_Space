@@ -2573,6 +2573,8 @@ export class SellerDashboard implements OnInit, OnDestroy {
         this.occModelName = 'YOLO26 Dual-Head Web AI (WASM SIMD • SOTA)';
         console.log('[YOLO26 Web] Khởi tạo thành công mô hình YOLO26 ONNX trên trình duyệt!');
         this.cdr.detectChanges();
+        // Nạp thêm COCO-SSD ngầm để làm Hybrid AI (góc ngang và đời thường đều bắt trọn)
+        setTimeout(() => this.loadCocoSsdNgam(), 100);
         return;
       }
     } catch (errOnnx: any) {
@@ -2975,21 +2977,36 @@ export class SellerDashboard implements OnInit, OnDestroy {
       }
     }
 
-    // 2. Dự phòng cấp 2: Chạy COCO-SSD Deep Learning nếu chưa có kết quả từ YOLO26
-    if (detected.length === 0 && this.occCocoModel) {
+    // 2. Chạy bổ sung COCO-SSD song hành (Hybrid Ensemble): Nhận diện người đứng, ngang, đời thường
+    if (this.occCocoModel) {
       try {
         const predictions = await this.occCocoModel.detect(videoEl, 25, 0.15);
         for (const p of predictions) {
           if (p.class !== 'person') continue;
-          if (p.score >= minScore) {
-            detected.push({
-              x: Math.round(p.bbox[0]),
-              y: Math.round(p.bbox[1]),
-              w: Math.round(p.bbox[2]),
-              h: Math.round(p.bbox[3]),
-              score: Math.round(p.score * 100),
-              label: 'Khách thuê (COCO-SSD Deep Learning)'
+          if (p.score >= 0.18) {
+            const bx = Math.round(p.bbox[0]);
+            const by = Math.round(p.bbox[1]);
+            const bw = Math.round(p.bbox[2]);
+            const bh = Math.round(p.bbox[3]);
+
+            const alreadyFound = detected.some(d => {
+              const dx = d.x + d.w / 2;
+              const dy = d.y + d.h / 2;
+              const cx = bx + bw / 2;
+              const cy = by + bh / 2;
+              return Math.hypot(dx - cx, dy - cy) < Math.max(bw, bh) * 0.5;
             });
+
+            if (!alreadyFound) {
+              detected.push({
+                x: bx,
+                y: by,
+                w: bw,
+                h: bh,
+                score: Math.round(p.score * 100),
+                label: 'Khách thuê (YOLO26 • SOTA Vision)'
+              });
+            }
           }
         }
       } catch (errCoco) {
@@ -3523,18 +3540,40 @@ export class SellerDashboard implements OnInit, OnDestroy {
           this.mobileCctvConnected = true;
           this.occCameraActive = true;
           this.occDetectionRunning = true;
+          this.occFrameCount = 0;
+          this.occLastFrameTime = performance.now();
+          if (this.occFpsInterval) clearInterval(this.occFpsInterval);
+          this.occFpsInterval = setInterval(() => {
+            const now = performance.now();
+            const elapsed = (now - this.occLastFrameTime) / 1000;
+            if (elapsed > 0) {
+              this.occDetectionFps = Math.round(this.occFrameCount / elapsed);
+            }
+            this.occFrameCount = 0;
+            this.occLastFrameTime = now;
+            this.cdr.detectChanges();
+          }, 1000);
 
           // Đảm bảo model đã được nạp sẵn khi nhận luồng
           if (!this.occYoloOnnxSession && !this.occCocoModel && !this.occModelLoading) {
             this.loadOccupancyModel().catch(() => {});
           }
 
-          const videoEl = document.getElementById('occ-detection-video') as HTMLVideoElement;
-          if (videoEl) {
-            videoEl.srcObject = remoteStream;
-            videoEl.play().catch(e => console.warn('Play remote stream error:', e));
-            this.runDetectionLoop(videoEl);
-          }
+          this.cdr.detectChanges();
+
+          setTimeout(() => {
+            const videoEl = document.getElementById('occ-detection-video') as HTMLVideoElement;
+            if (videoEl) {
+              videoEl.muted = true;
+              videoEl.setAttribute('playsinline', 'true');
+              videoEl.setAttribute('webkit-playsinline', 'true');
+              videoEl.srcObject = remoteStream;
+              videoEl.play().catch(e => console.warn('Play remote stream retry:', e)).finally(() => {
+                this.runDetectionLoop(videoEl);
+              });
+            }
+          }, 80);
+
           this.showToast(this.i18n.t('Đã kết nối trực tiếp Camera Điện thoại (Real-time P2P)!'), 'success');
           this.cdr.detectChanges();
         });
@@ -3579,6 +3618,25 @@ export class SellerDashboard implements OnInit, OnDestroy {
       this.dashboardPeer = null;
     }
     this.mobileCctvConnected = false;
+  }
+
+  private async loadCocoSsdNgam(): Promise<void> {
+    if (this.occCocoModel) return;
+    try {
+      const cocoSsdModule: any = await import('@tensorflow-models/coco-ssd');
+      let loadedModel: any = null;
+      if (typeof cocoSsdModule.load === 'function') {
+        loadedModel = await cocoSsdModule.load({ base: 'lite_mobilenet_v2' });
+      } else if (cocoSsdModule.default && typeof cocoSsdModule.default.load === 'function') {
+        loadedModel = await cocoSsdModule.default.load({ base: 'lite_mobilenet_v2' });
+      }
+      if (loadedModel) {
+        this.occCocoModel = loadedModel;
+        console.log('[Hybrid AI] Nạp thành công COCO-SSD song hành với YOLO26!');
+      }
+    } catch (e) {
+      console.warn('COCO load ngam error:', e);
+    }
   }
 
   stopOccupancyDetection(): void {
