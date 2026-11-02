@@ -310,7 +310,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
   private faceDetector: any = null;
 
   // Option B: SOTA YOLO26 Server AI Engine State
-  occEngineMode: 'server' = 'server';
+  occEngineMode: 'server' | 'client' = 'server';
   occServerStatus: 'online' | 'offline' | 'checking' = 'checking';
   occServerLatencyMs: number = 0;
   private occServerFailCount: number = 0;
@@ -2412,17 +2412,20 @@ export class SellerDashboard implements OnInit, OnDestroy {
   private markServerAiOffline(): void {
     this.occServerStatus = 'offline';
     this.occServerLatencyMs = 0;
-    if (this.occEngineMode === 'server' && !this.occServerOfflineNotified) {
-      this.occServerOfflineNotified = true;
-      this.occModelName = 'Server AI ngoại tuyến → Đang dùng Client Edge AI';
-      // Suppress disruptive floating banner on page load / background fallback
+    // Tự động chuyển engine mode sang 'client' để tránh spam request 503 khi server AI không sẵn sàng
+    if (this.occEngineMode === 'server') {
+      this.occEngineMode = 'client';
+      if (!this.occServerOfflineNotified) {
+        this.occServerOfflineNotified = true;
+        this.occModelName = 'Client Edge AI (COCO-SSD & Face AI)';
+      }
     }
   }
 
   private handleServerYoloFailure(): void {
     this.occServerFailCount++;
     this.occServerStatus = 'offline';
-    this.occServerCooldownUntil = performance.now() + 15000; // Cooldown 15s để không spam lỗi 503 khi server AI chưa bật
+    this.occServerCooldownUntil = performance.now() + 60000; // Cooldown 60s để không spam console
     this.markServerAiOffline();
     this.cdr.detectChanges();
   }
@@ -2438,12 +2441,19 @@ export class SellerDashboard implements OnInit, OnDestroy {
     videoEl: HTMLVideoElement
   ): Promise<Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> | null> {
     try {
-      // Circuit breaker: Server AI đang ngoại tuyến -> bỏ qua, dùng Client AI ngay lập tức
-      if (performance.now() < this.occServerCooldownUntil) return null;
+      // Chỉ gọi Server AI khi server thực sự online hoặc người dùng chủ động chọn 'server' mode và đã hết cooldown
+      if (this.occServerStatus === 'offline' && performance.now() < this.occServerCooldownUntil) {
+        return null;
+      }
 
       const vw = videoEl.videoWidth;
       const vh = videoEl.videoHeight;
       if (!vw || !vh) return null;
+
+      // Ưu tiên kiểm tra xem local AI service trên cổng 5001 có sẵn không (nếu người dùng đang chạy máy nội bộ)
+      // Nếu không, gọi qua endpoint của SERVER_BASE_URL
+      const isLocalHost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      let targetApiUrl = `${SERVER_BASE_URL}/api/occupancy/detect-server`;
 
       // Chuẩn hóa kích thước khung hình gửi lên Server (max width 640px)
       // Tối ưu dung lượng <35KB, truyền tải siêu tốc qua mạng 4G/WiFi cho mọi điện thoại và laptop
@@ -2463,7 +2473,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       const base64Image = this.offscreenCanvas.toDataURL('image/jpeg', 0.72);
 
       const t0 = performance.now();
-      const res = await fetch(`${SERVER_BASE_URL}/api/occupancy/detect-server`, {
+      const res = await fetch(targetApiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2473,8 +2483,8 @@ export class SellerDashboard implements OnInit, OnDestroy {
           spaceId: this.occSelectedSpace?.id || 'general',
           spaceName: this.occSelectedSpace?.name || 'UEL Space Room'
         }),
-        // Timeout 5s: đủ cho lần suy luận đầu tiên mà không chặn quá lâu
-        signal: AbortSignal.timeout(5000)
+        // Timeout 4s: đủ cho lần suy luận đầu tiên mà không chặn quá lâu
+        signal: AbortSignal.timeout(4000)
       });
 
       if (!res.ok) {
@@ -2489,6 +2499,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       }
 
       this.resetServerYoloHealth();
+      this.occEngineMode = 'server';
       this.occServerLatencyMs = Math.round(performance.now() - t0);
       this.occModelName = `${data.modelName || 'YOLO26 Dual-Head AI'} (${data.processingTimeMs}ms • ${data.device ? data.device.toUpperCase() : 'CPU'})`;
 
