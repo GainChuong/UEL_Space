@@ -302,7 +302,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
   occConfidence: number = 0;
   occSelectedSpace: AdminSpace | null = null;
   occDetectionInterval: any = null;
-  // occCocoModel removed (pure YOLO26 Server AI)
+  occCocoModel: any = null;
   occHistory: OccupancySnapshot[] = [];
   occPeakCount: number = 0;
   occAvgCount: number = 0;
@@ -2519,9 +2519,65 @@ export class SellerDashboard implements OnInit, OnDestroy {
   }
 
   async loadOccupancyModel(): Promise<void> {
-    this.occModelName = 'YOLO26 Server AI (Pure Vision SOTA)';
-    this.occModelLoaded = true;
-    await this.checkServerAiHealth();
+    this.initFaceDetector();
+    if (this.occCocoModel) return;
+    this.occModelLoading = true;
+    this.occModelError = '';
+    this.occModelName = 'Đang nạp mô hình AI Deep Learning...';
+    this.cdr.detectChanges();
+
+    try {
+      const tf = await import('@tensorflow/tfjs');
+      let backendReady = false;
+      try {
+        if (tf.findBackend && tf.findBackend('webgl')) {
+          await tf.setBackend('webgl');
+          await tf.ready();
+          backendReady = true;
+        }
+      } catch (eW) {
+        console.warn('WebGL backend warning, falling back to CPU:', eW);
+      }
+
+      if (!backendReady) {
+        try {
+          await tf.setBackend('cpu');
+          await tf.ready();
+        } catch (eC) {
+          console.warn('CPU backend fallback error:', eC);
+        }
+      }
+
+      const currentBackend = tf.getBackend();
+      const cocoSsdModule: any = await import('@tensorflow-models/coco-ssd');
+      let loadedModel: any = null;
+      if (typeof cocoSsdModule.load === 'function') {
+        loadedModel = await cocoSsdModule.load({ base: 'lite_mobilenet_v2' });
+      } else if (cocoSsdModule.default && typeof cocoSsdModule.default.load === 'function') {
+        loadedModel = await cocoSsdModule.default.load({ base: 'lite_mobilenet_v2' });
+      }
+
+      this.occModelLoading = false;
+      if (loadedModel) {
+        this.occCocoModel = loadedModel;
+        this.occModelLoaded = true;
+        const isGpu = currentBackend === 'webgl';
+        this.occModelName = `COCO-SSD Deep Learning (${isGpu ? 'GPU WebGL' : 'CPU'})`;
+        console.log('UEL Space AI Model loaded successfully:', this.occModelName);
+      } else if (this.faceDetector) {
+        this.occModelLoaded = true;
+        this.occModelName = 'Hardware Face AI';
+      }
+    } catch (err: any) {
+      console.warn('AI Model load error:', err);
+      this.occModelLoading = false;
+      if (this.faceDetector) {
+        this.occModelLoaded = true;
+        this.occModelName = 'Hardware Face AI';
+      }
+    } finally {
+      this.cdr.detectChanges();
+    }
   }
 
   /**
@@ -2692,9 +2748,12 @@ export class SellerDashboard implements OnInit, OnDestroy {
               this.occLastFrameTime = now;
             }, 2000);
 
+            // Tải mô hình COCO-SSD Deep Learning ngầm
+            if (!this.occCocoModel) {
+              this.loadOccupancyModel().catch(e => console.warn('Load COCO error:', e));
+            }
             // Kích hoạt ngay vòng lặp nhận diện Vision AI (tức thì 0ms, không chờ đợi)
             this.runDetectionLoop(videoEl);
-            // Pure YOLO26 Server AI active
           }).catch(ePlay => {
             console.warn('Video play retry needed on occ camera:', ePlay);
             videoEl.muted = true;
@@ -2784,7 +2843,31 @@ export class SellerDashboard implements OnInit, OnDestroy {
     const vh = videoEl.videoHeight;
     if (!vw || !vh) return detected;
 
-    // A. Hardware FaceDetector (Shape Detection API - Native trên Edge, Chrome)
+    const minScore = this.occSensitivity === 'high' ? 0.20 : (this.occSensitivity === 'normal' ? 0.35 : 0.50);
+
+    // 1. Chạy COCO-SSD Deep Learning (Pretrained Model chuẩn xác cao)
+    if (this.occCocoModel) {
+      try {
+        const predictions = await this.occCocoModel.detect(videoEl, 25, 0.15);
+        for (const p of predictions) {
+          if (p.class !== 'person') continue;
+          if (p.score >= minScore) {
+            detected.push({
+              x: Math.round(p.bbox[0]),
+              y: Math.round(p.bbox[1]),
+              w: Math.round(p.bbox[2]),
+              h: Math.round(p.bbox[3]),
+              score: Math.round(p.score * 100),
+              label: 'Khách thuê (COCO-SSD Deep Learning)'
+            });
+          }
+        }
+      } catch (errCoco) {
+        console.warn('COCO detect error:', errCoco);
+      }
+    }
+
+    // 2. Hardware FaceDetector (Shape Detection API - Native trên Edge, Chrome)
     if (!this.faceDetector) {
       this.initFaceDetector();
     }
@@ -2794,87 +2877,35 @@ export class SellerDashboard implements OnInit, OnDestroy {
         if (faces && faces.length > 0) {
           for (const f of faces) {
             const fb = f.boundingBox;
-            // Ước lượng bounding box của người dựa trên khuôn mặt
-            const estWidth = Math.min(vw, Math.max(fb.width * 2.2, 110));
-            const estHeight = Math.min(vh, Math.max(fb.height * 3.4, 170));
-            const estX = Math.max(0, fb.x - (estWidth - fb.width) / 2);
-            const estY = Math.max(0, fb.y - fb.height * 0.2);
+            const fCenterX = fb.x + fb.width / 2;
+            const fCenterY = fb.y + fb.height / 2;
 
-            detected.push({
-              x: Math.round(estX),
-              y: Math.round(estY),
-              w: Math.round(Math.min(estWidth, vw - estX)),
-              h: Math.round(Math.min(estHeight, vh - estY)),
-              score: 95,
-              label: 'Khách thuê (Edge AI • Face)'
-            });
+            // Chỉ thêm nếu khuôn mặt chưa nằm trong body box nào đã được COCO-SSD phát hiện
+            const alreadyInBody = detected.some(b =>
+              fCenterX >= b.x - 20 && fCenterX <= b.x + b.w + 20 &&
+              fCenterY >= b.y - 20 && fCenterY <= b.y + b.h + 20
+            );
+
+            if (!alreadyInBody) {
+              const estWidth = Math.min(vw, Math.max(fb.width * 2.2, 110));
+              const estHeight = Math.min(vh, Math.max(fb.height * 3.4, 170));
+              const estX = Math.max(0, fb.x - (estWidth - fb.width) / 2);
+              const estY = Math.max(0, fb.y - fb.height * 0.2);
+
+              detected.push({
+                x: Math.round(estX),
+                y: Math.round(estY),
+                w: Math.round(Math.min(estWidth, vw - estX)),
+                h: Math.round(Math.min(estHeight, vh - estY)),
+                score: 95,
+                label: 'Khách thuê (Hardware Face AI)'
+              });
+            }
           }
-          return detected;
         }
       } catch (e) {
         console.warn('FaceDetector error:', e);
       }
-    }
-
-    // B. Client Vision Fallback: Phân tích cụm hiện diện & sắc diện người (Silhouette Analysis)
-    try {
-      if (!this.offscreenCanvas) {
-        this.offscreenCanvas = document.createElement('canvas');
-      }
-      const sw = 160;
-      const sh = Math.round(160 * (vh / vw));
-      this.offscreenCanvas.width = sw;
-      this.offscreenCanvas.height = sh;
-      const ctx = this.offscreenCanvas.getContext('2d', { willReadFrequently: true });
-      if (!ctx) return detected;
-
-      ctx.drawImage(videoEl, 0, 0, sw, sh);
-      const imgData = ctx.getImageData(0, 0, sw, sh);
-      const data = imgData.data;
-
-      let minX = sw, maxX = 0, minY = sh, maxY = 0, skinPixels = 0;
-      for (let y = 0; y < sh; y++) {
-        for (let x = 0; x < sw; x++) {
-          const idx = (y * sw + x) * 4;
-          const r = data[idx];
-          const g = data[idx + 1];
-          const b = data[idx + 2];
-
-          // Điều kiện nhận diện vùng da mặt / cổ / tay theo chuẩn RGB & YCbCr
-          if (r > 60 && g > 40 && b > 20 && r > g && r > b && (r - g) >= 14 && Math.abs(r - b) >= 14) {
-            skinPixels++;
-            if (x < minX) minX = x;
-            if (x > maxX) maxX = x;
-            if (y < minY) minY = y;
-            if (y > maxY) maxY = y;
-          }
-        }
-      }
-
-      // Ngưỡng tối thiểu: người ngồi trước camera chiếm ít nhất 1.2% khung hình
-      const skinRatio = skinPixels / (sw * sh);
-      if (skinPixels > 100 && skinRatio > 0.012 && maxX > minX && maxY > minY) {
-        const scaleX = vw / sw;
-        const scaleY = vh / sh;
-
-        const rawW = (maxX - minX) * scaleX;
-        const rawH = (maxY - minY) * scaleY;
-        const bodyW = Math.min(vw, Math.max(rawW * 1.5, 120));
-        const bodyH = Math.min(vh, Math.max(rawH * 2.0, 180));
-        const boxX = Math.max(0, minX * scaleX - (bodyW - rawW) / 2);
-        const boxY = Math.max(0, minY * scaleY - 20);
-
-        detected.push({
-          x: Math.round(boxX),
-          y: Math.round(boxY),
-          w: Math.round(Math.min(bodyW, vw - boxX)),
-          h: Math.round(Math.min(bodyH, vh - boxY)),
-          score: Math.min(96, Math.max(78, Math.round(skinRatio * 320) + 70)),
-          label: 'Khách thuê (Edge AI • Vision)'
-        });
-      }
-    } catch (e) {
-      console.warn('Client silhouette analysis error:', e);
     }
 
     return detected;

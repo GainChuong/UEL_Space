@@ -17,6 +17,8 @@
     "@angular/forms": "^22.2.0",
     "@angular/platform-browser": "^22.2.0",
     "@angular/router": "^22.2.0",
+    "@tensorflow-models/coco-ssd": "^2.2.3",
+    "@tensorflow/tfjs": "^4.22.0",
     "buffer": "^6.0.3",
     "jsqr": "^1.4.0",
     "leaflet": "^1.9.4",

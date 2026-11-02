@@ -333,9 +333,26 @@ function ensureYoloAiService() {
         console.warn('Không mở được file log YOLO service:', err.message);
       }
 
-      const pyCmd = process.platform === 'win32' ? 'py' : 'python3';
+      const pyCandidates = process.platform === 'win32'
+  ? [
+      'C:\\Users\\legal\\AppData\\Local\\Programs\\Python\\Python313\\python.exe',
+      'py',
+      'python3',
+      'python'
+    ]
+  : ['python3', 'python'];
+let pyCmd = pyCandidates[0];
+for (const cand of pyCandidates) {
+  if (cand.includes('\\') || cand.includes('/')) {
+    if (fs.existsSync(cand)) { pyCmd = cand; break; }
+  } else {
+    pyCmd = cand;
+    break;
+  }
+}
       try {
-        const aiProc = spawn(pyCmd, ['src/ai-service/yolo_service.py'], {
+        const pyArgs = pyCmd === 'py' ? ['-3.13', 'src/ai-service/yolo_service.py'] : ['src/ai-service/yolo_service.py'];
+      const aiProc = spawn(pyCmd, pyArgs, {
           cwd: __dirname,
           detached: true,
           stdio: logFd === null ? 'ignore' : ['ignore', logFd, logFd],

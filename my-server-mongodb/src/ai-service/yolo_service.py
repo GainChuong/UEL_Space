@@ -38,9 +38,14 @@ try:
     from ultralytics import YOLO
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
-    # Pure YOLO26 Nano Detection Model (yolo26n.pt)
+    # Ưu tiên trọng số YOLO26 đã Fine-tune trên Smart Classroom & Coworking Dataset
+    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    finetuned_path = os.path.join(root_dir, "runs", "train", "yolo26_smartclass_occupancy", "weights", "best.pt")
+
     det_candidates = [
         os.environ.get("YOLO_MODEL_PATH"),
+        finetuned_path,
+        os.path.join(script_dir, "best.pt"),
         os.path.join(script_dir, "yolo26n.pt"),
         os.path.join(os.getcwd(), "yolo26n.pt"),
         "yolo26n.pt"
