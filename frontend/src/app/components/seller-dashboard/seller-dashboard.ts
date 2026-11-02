@@ -303,6 +303,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
   occSelectedSpace: AdminSpace | null = null;
   occDetectionInterval: any = null;
   occCocoModel: any = null;
+  occYoloOnnxSession: any = null;
   occHistory: OccupancySnapshot[] = [];
   occPeakCount: number = 0;
   occAvgCount: number = 0;
@@ -2412,12 +2413,14 @@ export class SellerDashboard implements OnInit, OnDestroy {
   private markServerAiOffline(): void {
     this.occServerStatus = 'offline';
     this.occServerLatencyMs = 0;
-    // Tự động chuyển engine mode sang 'client' để tránh spam request 503 khi server AI không sẵn sàng
+    // Tự động chuyển engine mode sang 'client' để kích hoạt trực tiếp YOLO26 ONNX Web Engine
     if (this.occEngineMode === 'server') {
       this.occEngineMode = 'client';
       if (!this.occServerOfflineNotified) {
         this.occServerOfflineNotified = true;
-        this.occModelName = 'Client Edge AI (COCO-SSD & Face AI)';
+        this.occModelName = this.occYoloOnnxSession
+          ? 'YOLO26 Dual-Head Web AI (WASM SIMD • SOTA)'
+          : 'Đang nạp mô hình YOLO26 ONNX...';
       }
     }
   }
@@ -2531,12 +2534,40 @@ export class SellerDashboard implements OnInit, OnDestroy {
 
   async loadOccupancyModel(): Promise<void> {
     this.initFaceDetector();
-    if (this.occCocoModel) return;
+    if (this.occYoloOnnxSession || this.occCocoModel) return;
     this.occModelLoading = true;
     this.occModelError = '';
-    this.occModelName = 'Đang nạp mô hình AI Deep Learning...';
+    this.occModelName = 'Đang nạp mô hình YOLO26 ONNX SOTA...';
     this.cdr.detectChanges();
 
+    // 1. ƯU TIÊN HÀNG ĐẦU: Nạp trực tiếp SOTA YOLO26 Web ONNX Model (/models/yolo26n_occupancy.onnx)
+    try {
+      const ort: any = await import('onnxruntime-web');
+      if (ort?.env?.wasm) {
+        ort.env.wasm.wasmPaths = '/onnx/';
+        ort.env.wasm.numThreads = 2;
+      }
+
+      console.log('[YOLO26 Web] Đang tải mô hình YOLO26 Occupancy ONNX...');
+      const session = await ort.InferenceSession.create('/models/yolo26n_occupancy.onnx', {
+        executionProviders: ['wasm'],
+        graphOptimizationLevel: 'all'
+      });
+
+      if (session) {
+        this.occYoloOnnxSession = session;
+        this.occModelLoaded = true;
+        this.occModelLoading = false;
+        this.occModelName = 'YOLO26 Dual-Head Web AI (WASM SIMD • SOTA)';
+        console.log('[YOLO26 Web] Khởi tạo thành công mô hình YOLO26 ONNX trên trình duyệt!');
+        this.cdr.detectChanges();
+        return;
+      }
+    } catch (errOnnx: any) {
+      console.warn('[YOLO26 Web] Không thể nạp YOLO26 ONNX, chuyển sang COCO fallback:', errOnnx);
+    }
+
+    // 2. DỰ PHÒNG CẤP 2: Nạp COCO-SSD nếu thiết bị không hỗ trợ WASM/ONNX
     try {
       const tf = await import('@tensorflow/tfjs');
       let backendReady = false;
@@ -2843,8 +2874,9 @@ export class SellerDashboard implements OnInit, OnDestroy {
 
   /**
    * Client Edge AI Detection Engine:
-   * 1. Hardware FaceDetector (Tận dụng GPU/NPU qua Shape Detection API trên Edge/Chrome)
-   * 2. Silhouette & Skin-tone Cluster Vision Analyzer (Dự phòng chạy mượt 100% trên mọi trình duyệt)
+   * 1. SOTA YOLO26 Web ONNX Model (Trained trên Smart Classroom & Coworking Dataset, chạy trực tiếp WASM SIMD)
+   * 2. COCO-SSD Deep Learning (Pretrained Model dự phòng cấp 2)
+   * 3. Hardware FaceDetector (Shape Detection API - Native trên Edge, Chrome)
    */
   private async detectWithClientAi(
     videoEl: HTMLVideoElement
@@ -2856,8 +2888,83 @@ export class SellerDashboard implements OnInit, OnDestroy {
 
     const minScore = this.occSensitivity === 'high' ? 0.20 : (this.occSensitivity === 'normal' ? 0.35 : 0.50);
 
-    // 1. Chạy COCO-SSD Deep Learning (Pretrained Model chuẩn xác cao)
-    if (this.occCocoModel) {
+    // 1. ƯU TIÊN SỐ 1: Chạy trực tiếp SOTA YOLO26 ONNX Web Engine
+    if (this.occYoloOnnxSession) {
+      try {
+        const ort: any = await import('onnxruntime-web');
+        const targetSize = 640;
+
+        if (!this.offscreenCanvas) {
+          this.offscreenCanvas = document.createElement('canvas');
+        }
+        this.offscreenCanvas.width = targetSize;
+        this.offscreenCanvas.height = targetSize;
+        const ctx = this.offscreenCanvas.getContext('2d', { willReadFrequently: true });
+
+        if (ctx) {
+          ctx.drawImage(videoEl, 0, 0, targetSize, targetSize);
+          const imgData = ctx.getImageData(0, 0, targetSize, targetSize);
+          const { data } = imgData;
+          const floatData = new Float32Array(3 * targetSize * targetSize);
+          const channelSize = targetSize * targetSize;
+
+          for (let i = 0; i < channelSize; i++) {
+            floatData[i] = data[i * 4] / 255.0; // R channel
+            floatData[channelSize + i] = data[i * 4 + 1] / 255.0; // G channel
+            floatData[channelSize * 2 + i] = data[i * 4 + 2] / 255.0; // B channel
+          }
+
+          const tensor = new ort.Tensor('float32', floatData, [1, 3, targetSize, targetSize]);
+          const feeds: any = {};
+          feeds[this.occYoloOnnxSession.inputNames[0]] = tensor;
+
+          const results = await this.occYoloOnnxSession.run(feeds);
+          const outputTensor = results[this.occYoloOnnxSession.outputNames[0]];
+
+          if (outputTensor && outputTensor.data) {
+            const outData = outputTensor.data as Float32Array;
+            // Dims: [1, 6, 8400]
+            // Channel 0: cx, Channel 1: cy, Channel 2: w, Channel 3: h
+            // Channel 4: person_score, Channel 5: face_score
+            const numAnchors = 8400;
+            const scaleX = vw / targetSize;
+            const scaleY = vh / targetSize;
+
+            for (let a = 0; a < numAnchors; a++) {
+              const personScore = outData[4 * numAnchors + a];
+              const faceScore = outData[5 * numAnchors + a];
+              const maxScore = Math.max(personScore, faceScore);
+
+              if (maxScore >= minScore) {
+                const cx = outData[0 * numAnchors + a];
+                const cy = outData[1 * numAnchors + a];
+                const w = outData[2 * numAnchors + a];
+                const h = outData[3 * numAnchors + a];
+
+                const realX = (cx - w / 2) * scaleX;
+                const realY = (cy - h / 2) * scaleY;
+                const realW = w * scaleX;
+                const realH = h * scaleY;
+
+                detected.push({
+                  x: Math.round(Math.max(0, realX)),
+                  y: Math.round(Math.max(0, realY)),
+                  w: Math.round(Math.min(vw - realX, realW)),
+                  h: Math.round(Math.min(vh - realY, realH)),
+                  score: Math.round(maxScore * 100),
+                  label: personScore >= faceScore ? 'Khách thuê (YOLO26 Web SOTA)' : 'Khuôn mặt (YOLO26 Web SOTA)'
+                });
+              }
+            }
+          }
+        }
+      } catch (errYoloOnnx) {
+        console.warn('YOLO26 Web ONNX inference error:', errYoloOnnx);
+      }
+    }
+
+    // 2. Dự phòng cấp 2: Chạy COCO-SSD Deep Learning nếu chưa có kết quả từ YOLO26
+    if (detected.length === 0 && this.occCocoModel) {
       try {
         const predictions = await this.occCocoModel.detect(videoEl, 25, 0.15);
         for (const p of predictions) {
