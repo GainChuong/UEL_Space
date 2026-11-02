@@ -1023,10 +1023,10 @@ export class SellerDashboard implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initFaceDetector();
+    // Tự động tải trước model YOLO26 ONNX / COCO Web
+    this.loadOccupancyModel().catch(() => {});
     // Kiểm tra Server AI YOLO26 (Option B)
     this.checkServerAiHealth();
-    // Pure YOLO26 Server AI Engine
-    // loadOccupancyModel removed (pure YOLO26 Server AI)
     // Đồng bộ dữ liệu Live từ MongoDB Atlas
     this.loadSpacesFromApi();
     this.loadBookingsFromApi();
@@ -2439,6 +2439,9 @@ export class SellerDashboard implements OnInit, OnDestroy {
     this.occServerStatus = 'offline';
     this.occServerCooldownUntil = performance.now() + 60000; // Cooldown 60s để không spam console
     this.markServerAiOffline();
+    if (!this.occYoloOnnxSession && !this.occCocoModel && !this.occModelLoading) {
+      this.loadOccupancyModel().catch(() => {});
+    }
     this.cdr.detectChanges();
   }
 
@@ -3520,6 +3523,11 @@ export class SellerDashboard implements OnInit, OnDestroy {
           this.mobileCctvConnected = true;
           this.occCameraActive = true;
           this.occDetectionRunning = true;
+
+          // Đảm bảo model đã được nạp sẵn khi nhận luồng
+          if (!this.occYoloOnnxSession && !this.occCocoModel && !this.occModelLoading) {
+            this.loadOccupancyModel().catch(() => {});
+          }
 
           const videoEl = document.getElementById('occ-detection-video') as HTMLVideoElement;
           if (videoEl) {
