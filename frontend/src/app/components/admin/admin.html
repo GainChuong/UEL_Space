@@ -190,95 +190,234 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         </a>
 
-        <!-- Live Admin Notification Bell -->
+        <!-- =====================================================================
+             1. NOTIFICATION BELL & DROPDOWN POPOVER (ĐỒNG BỘ VỚI SELLER)
+             ===================================================================== -->
         <div class="relative">
           <button (click)="toggleNotification($event)"
-                  class="relative p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                  [title]="'Thông báo sàn' | t">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-            </svg>
-            @if (settingsService.unreadCount > 0) {
-              <span class="absolute top-1.5 right-1.5 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-uel-orange text-[9px] font-black text-white ring-2 ring-white dark:ring-slate-900 animate-pulse">
-                {{ settingsService.unreadCount }}
-              </span>
-            }
+                  class="w-9 h-9 rounded-xl border border-border-gray dark:border-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-uel-blue dark:hover:text-sky-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer" 
+                  [title]="(settingsService.language$ | async) === 'vi' ? 'Thông báo hệ thống' : 'System Notifications'">
+            <div class="relative flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              </svg>
+              @if (settingsService.unreadCount > 0) {
+                <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-sky-500 ring-2 ring-white dark:ring-slate-900"></span>
+              }
+            </div>
           </button>
 
-          <!-- Notification Popover Panel -->
+          <!-- Notification Popover Menu (Đồng bộ với Seller) -->
           @if (isNotificationOpen) {
             <div (click)="$event.stopPropagation()"
-                 class="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-150">
+                 class="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-[9999] animate-scaleIn text-slate-800 dark:text-white dark:text-slate-100">
+              
               <!-- Header -->
-              <div class="p-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/40">
+              <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/40">
                 <div class="flex items-center gap-2">
-                  <h4 class="text-xs font-black text-slate-900 dark:text-white">{{ 'Thông báo Sàn' | t }}</h4>
+                  <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-800 dark:text-white">
+                    {{ (settingsService.language$ | async) === 'vi' ? 'Thông báo Sàn' : 'Platform Alerts' }}
+                  </h4>
                   @if (settingsService.unreadCount > 0) {
-                    <span class="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-uel-orange/15 text-uel-orange border border-uel-orange/20">
-                      {{ settingsService.unreadCount }} {{ 'mới' | t }}
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-uel-orange text-white">
+                      {{ settingsService.unreadCount }} {{ (settingsService.language$ | async) === 'vi' ? 'mới' : 'new' }}
                     </span>
                   }
                 </div>
-                <button (click)="markAllAsRead($event)"
-                        class="text-[11px] font-bold text-uel-blue dark:text-sky-400 hover:underline cursor-pointer">
-                  {{ 'Đọc tất cả' | t }}
+
+                @if (settingsService.unreadCount > 0) {
+                  <button (click)="markAllAsRead($event)"
+                          class="text-[11px] font-bold text-uel-blue dark:text-sky-400 hover:underline cursor-pointer">
+                    {{ (settingsService.language$ | async) === 'vi' ? 'Đã đọc tất cả' : 'Mark all read' }}
+                  </button>
+                }
+              </div>
+
+              <!-- Tab Filters -->
+              <div class="px-4 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 text-xs">
+                <button (click)="activeNotifTab = 'all'"
+                        [class]="activeNotifTab === 'all' ? 'bg-uel-blue dark:bg-sky-500 text-white font-bold' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium'"
+                        class="px-3 py-1 rounded-full text-[11px] transition-colors cursor-pointer">
+                  {{ (settingsService.language$ | async) === 'vi' ? 'Tất cả' : 'All' }}
+                </button>
+                <button (click)="activeNotifTab = 'unread'"
+                        [class]="activeNotifTab === 'unread' ? 'bg-uel-blue dark:bg-sky-500 text-white font-bold' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium'"
+                        class="px-3 py-1 rounded-full text-[11px] transition-colors cursor-pointer">
+                  {{ (settingsService.language$ | async) === 'vi' ? 'Chưa đọc' : 'Unread' }} ({{ settingsService.unreadCount }})
                 </button>
               </div>
 
               <!-- List of Notifications -->
               <div class="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
                 @for (n of (settingsService.notifications$ | async); track n.id) {
-                  <div (click)="markAsRead(n.id, $event, n.link)"
-                       [class]="n.read ? 'bg-white dark:bg-slate-900 opacity-75' : 'bg-uel-blue/[0.04] dark:bg-sky-400/[0.06]'"
-                       class="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer flex items-start gap-3">
-                    <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
-                         [class]="n.type === 'success' ? 'bg-emerald-100 text-uel-blue dark:bg-emerald-950/50 dark:text-sky-400' :
-                                  n.type === 'alert' ? 'bg-rose-100 text-uel-blue dark:bg-rose-950/50 dark:text-sky-400' :
-                                  n.type === 'warning' ? 'bg-amber-100 text-amber-600 dark:bg-amber-950/50 dark:text-sky-300' :
-                                  'bg-uel-blue/10 text-uel-blue dark:bg-sky-500/20 dark:text-sky-400'">
-                      @if (n.type === 'success') {
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                      } @else if (n.type === 'alert') {
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
-                      } @else if (n.type === 'warning') {
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
-                      } @else {
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><circle cx="12" cy="8" r="1" fill="currentColor"/></svg>
-                      }
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center justify-between gap-1">
-                        <h5 class="text-xs font-bold text-slate-800 dark:text-white truncate" [class.font-black]="!n.read">
-                          {{ n.title | t }}
-                        </h5>
-                        @if (!n.read) {
-                          <span class="w-1.5 h-1.5 rounded-full bg-uel-orange shrink-0"></span>
+                  @if (activeNotifTab === 'all' || !n.read) {
+                    <div (click)="markAsRead(n.id, $event, n.link)"
+                         [class]="n.read ? 'bg-white dark:bg-slate-900 opacity-75' : 'bg-uel-blue/[0.03] dark:bg-sky-400/[0.05]'"
+                         class="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer flex items-start gap-3">
+                      
+                      <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
+                           [class]="n.type === 'success' ? 'bg-emerald-100 text-uel-blue dark:bg-emerald-950/50 dark:text-sky-400' :
+                                    n.type === 'alert' ? 'bg-rose-100 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400' :
+                                    n.type === 'warning' ? 'bg-amber-100 text-amber-600 dark:bg-amber-950/50 dark:text-sky-300' :
+                                    'bg-sky-100 text-sky-600 dark:bg-sky-950/50 dark:text-sky-400'">
+                        @if (n.type === 'success') {
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        } @else if (n.type === 'alert') {
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
+                        } @else if (n.type === 'warning') {
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
+                        } @else {
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><circle cx="12" cy="8" r="1" fill="currentColor"/></svg>
                         }
                       </div>
-                      <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5 line-clamp-2 leading-relaxed">
-                        {{ n.message | t }}
-                      </p>
-                      <span class="text-[9px] text-slate-400 mt-1 block">
-                        {{ n.timeAgo | t }} • {{ n.timestamp }}
-                      </span>
+
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-1">
+                          <h5 class="text-xs font-bold text-slate-800 dark:text-white truncate" [class.font-black]="!n.read">
+                            {{ n.title | t }}
+                          </h5>
+                          @if (!n.read) {
+                            <span class="w-2 h-2 rounded-full bg-uel-orange shrink-0"></span>
+                          }
+                        </div>
+                        <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-1 line-clamp-2 leading-relaxed">
+                          {{ n.message | t }}
+                        </p>
+                        <span class="text-[10px] text-slate-400 mt-1 block">
+                          {{ n.timeAgo | t }} • {{ n.timestamp }}
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  }
                 } @empty {
-                  <div class="py-8 text-center text-slate-400">
-                    <p class="text-xs">{{ 'Không có thông báo mới' | t }}</p>
+                  <div class="py-10 text-center text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-2 opacity-50"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    <p class="text-xs">{{ (settingsService.language$ | async) === 'vi' ? 'Không có thông báo mới' : 'No new notifications' }}</p>
                   </div>
                 }
               </div>
+
+              <!-- Footer -->
+              <div class="p-3 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 text-center">
+                <span class="text-[11px] text-slate-400">
+                  {{ (settingsService.language$ | async) === 'vi' ? 'Cập nhật trực tiếp từ hệ thống Quản trị Sàn UEL' : 'Real-time sync from UEL Platform Admin' }}
+                </span>
+              </div>
+
             </div>
           }
         </div>
 
-        <!-- Admin Profile Pill: Avatar only -->
-        <div class="flex items-center pl-2 border-l border-slate-200 dark:border-slate-800" title="Super Admin Online (admin@gmail.com)">
-          <div class="w-9 h-9 rounded-full bg-uel-blue text-white flex items-center justify-center font-bold text-xs shadow-xs hover:ring-2 hover:ring-uel-blue/30 transition-all cursor-pointer">
-            SA
-          </div>
+        <!-- =====================================================================
+             2. ADMIN AVATAR / PROFILE & DROPDOWN POPOVER (ĐỒNG BỘ VỚI SELLER)
+             ===================================================================== -->
+        <div class="relative pl-2 border-l border-border-gray dark:border-slate-800">
+          <button (click)="toggleProfile($event)"
+                  class="p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors cursor-pointer group flex items-center justify-center"
+                  [title]="(settingsService.isLoggedIn$ | async) ? ('Tài khoản Quản trị sàn: ' + adminProfile.name) : ('Đăng nhập' | t)">
+            
+            <div class="w-9 h-9 rounded-full border-2 flex items-center justify-center shrink-0 shadow-xs transition-colors"
+                 [class]="(settingsService.isLoggedIn$ | async) 
+                  ? 'border-uel-blue text-uel-blue bg-white dark:bg-slate-800 dark:border-sky-400 dark:text-sky-400 group-hover:bg-uel-blue group-hover:text-white' 
+                  : 'border-slate-300 dark:border-slate-700 text-slate-400 bg-slate-100 dark:bg-slate-800'">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M20 21a8 8 0 0 0-16 0"/>
+              </svg>
+            </div>
+          </button>
+
+          <!-- Profile Popover Menu -->
+          @if (isProfileOpen) {
+            <div (click)="$event.stopPropagation()"
+                 class="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-[9999] animate-scaleIn text-slate-800 dark:text-white dark:text-slate-100">
+              
+              <!-- CASE 1: LOGGED IN -->
+              @if (settingsService.isLoggedIn$ | async) {
+                <!-- User Header Info -->
+                <div class="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full border-2 border-uel-blue dark:border-sky-400 bg-uel-blue/10 dark:bg-sky-400/10 text-uel-blue dark:text-sky-400 flex items-center justify-center font-bold text-sm shrink-0">
+                      {{ adminProfile.avatar }}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <div class="text-xs font-extrabold text-slate-900 dark:text-white truncate">{{ adminProfile.name }}</div>
+                      <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate">{{ adminProfile.email }}</div>
+                      <span class="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-slate-900 text-white dark:bg-sky-400 dark:text-slate-900">
+                        SUPER ADMIN
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Menu Items -->
+                <div class="p-2 space-y-1">
+                  <!-- Settings Button -->
+                  <button (click)="openSettings()"
+                          class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer text-left">
+                    <div class="flex items-center gap-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-uel-blue dark:text-sky-400 shrink-0">
+                        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                      <span>{{ (settingsService.language$ | async) === 'vi' ? 'Cài đặt hệ thống' : 'System Settings' }}</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 capitalize">
+                      {{ (settingsService.theme$ | async) === 'dark' ? 'Dark' : 'Light' }} • {{ (settingsService.language$ | async)?.toUpperCase() }}
+                    </span>
+                  </button>
+
+                  <!-- Link to Seller Dashboard -->
+                  <a routerLink="/seller-dashboard"
+                     (click)="isProfileOpen = false"
+                     class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer text-left">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-uel-blue dark:text-sky-400 shrink-0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    <span>{{ (settingsService.language$ | async) === 'vi' ? 'Kênh Người Bán (Seller Center)' : 'Seller Center' }}</span>
+                  </a>
+
+                  <!-- Link to client portal -->
+                  <a routerLink="/"
+                     (click)="isProfileOpen = false"
+                     class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer text-left">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-uel-blue dark:text-sky-400 shrink-0"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    <span>{{ (settingsService.language$ | async) === 'vi' ? 'Về giao diện sàn UEL Space' : 'UEL Space Marketplace' }}</span>
+                  </a>
+
+                  <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
+
+                  <!-- Log out Button -->
+                  <button (click)="handleLogout()"
+                          class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 text-uel-blue dark:text-sky-400 text-xs font-bold transition-colors cursor-pointer text-left">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>{{ (settingsService.language$ | async) === 'vi' ? 'Đăng xuất tài khoản' : 'Log out' }}</span>
+                  </button>
+                </div>
+              }
+
+              <!-- CASE 2: NOT LOGGED IN -->
+              @else {
+                <div class="p-5 text-center">
+                  <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 mx-auto flex items-center justify-center mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                  </div>
+                  <h5 class="text-xs font-bold text-slate-800 dark:text-white">
+                    {{ (settingsService.language$ | async) === 'vi' ? 'Chưa đăng nhập' : 'Not signed in' }}
+                  </h5>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 mb-4 leading-relaxed">
+                    {{ (settingsService.language$ | async) === 'vi' ? 'Đăng nhập tài khoản Quản trị sàn để thao tác.' : 'Sign in with Admin account to perform operations.' }}
+                  </p>
+
+                  <button (click)="handleLogin()"
+                          class="whitespace-nowrap w-full py-2.5 rounded-xl bg-uel-blue hover:bg-uel-blue-dark dark:bg-sky-600 dark:hover:bg-sky-700 text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    <span>{{ (settingsService.language$ | async) === 'vi' ? 'Đăng nhập' : 'Log in' }}</span>
+                  </button>
+                </div>
+              }
+
+            </div>
+          }
         </div>
 
       </div>

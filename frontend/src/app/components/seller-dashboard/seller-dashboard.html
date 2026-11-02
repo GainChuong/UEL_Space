@@ -1705,21 +1705,6 @@
                   </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                  <!-- AI Engine Indicator: Pure YOLO26 Server AI -->
-                  <div class="inline-flex items-center gap-1.5 bg-sky-500/10 dark:bg-sky-500/20 px-3 py-1.5 rounded-xl border border-emerald-500/30 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-                    <span class="w-2 h-2 rounded-full" [class]="occServerStatus === 'online' ? 'bg-sky-500 animate-pulse' : (occServerStatus === 'offline' ? 'bg-rose-500' : 'bg-uel-blue')"></span>
-                    <span>YOLO26 Pure Server AI</span>
-                    @if (occServerLatencyMs > 0) {
-                      <span class="text-[9px] opacity-85 font-mono">({{occServerLatencyMs}}ms)</span>
-                    }
-                  </div>
-
-                  <!-- Active Model Tag -->
-                  <div class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 text-[11px] font-bold text-sky-700 dark:text-sky-300">
-                    <span class="w-2 h-2 rounded-full" [class]="occModelLoaded || occServerStatus === 'online' ? 'bg-sky-500 animate-pulse' : 'bg-uel-blue'"></span>
-                    <span class="truncate max-w-[210px]">{{occModelName}}</span>
-                  </div>
-
                   <!-- Sensitivity Selector -->
                   <div class="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-[11px]">
                     <span class="px-1 text-slate-500 font-semibold hidden md:inline">{{ 'Độ nhạy:' | t }}</span>

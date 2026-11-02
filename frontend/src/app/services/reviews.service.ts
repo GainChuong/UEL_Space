@@ -46,7 +46,7 @@ export class ReviewsService {
       verifiedStay: true,
       reply: {
         hostName: 'TechPark Executive Spaces',
-        hostAvatar: '/images/avatars/seller_uel.svg',
+        hostAvatar: '/images/avatars/seller_uel.png',
         date: '14/10/2026',
         comment: 'Cảm ơn anh Minh Anh và ban lãnh đạo FinTech Solutions đã tin tưởng UEL Space. Rất vinh hạnh được đồng hành cùng các cuộc họp cấp cao tiếp theo của quý công ty!'
       }

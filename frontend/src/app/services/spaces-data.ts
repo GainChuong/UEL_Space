@@ -135,9 +135,9 @@ export function normalizeSpace(space: any) {
       sellerId: space.sellerId || (space.seller && space.seller.id) || 'seller-uel',
       seller: space.seller || {
         id: 'seller-uel',
-        name: 'Ban Quản trị UEL Space',
+        name: 'Ban Quản trị Cơ sở vật chất UEL Space',
         brandName: 'Ban Quản trị Cơ sở vật chất UEL Space',
-        avatar: '/images/avatars/seller_uel.svg',
+        avatar: '/images/avatars/seller_uel.png',
         rating: 4.89,
         reviewsCount: 94,
         verified: true,

@@ -28,7 +28,8 @@ const env = {
   geminiApiKey: process.env.GEMINI_API_KEY || 'AQ.Ab8RN6LtjyFvXMcPH1wjFsFSlpE4bM3TvGLYZNQYvaGCActkcw',
   geminiModel: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
   googleClientId: process.env.GOOGLE_CLIENT_ID || '718641806689-j4k89ensl7t3l05iin3imj7c1ndbbepj.apps.googleusercontent.com',
-  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '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' 
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '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',
+  passwordPepper: process.env.PASSWORD_PEPPER_SECRET || 'uel_space_super_secret_pepper_key_2026_x89a'
 };
 
 module.exports = { env };

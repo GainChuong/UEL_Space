@@ -449,9 +449,18 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    if (!this.password || this.password.length < 6) {
+    if (!this.password || this.password.length < 8) {
       this.isLoading = false;
-      this.errorMessage = this.i18n.t('Mật khẩu phải có ít nhất 6 ký tự!');
+      this.errorMessage = this.i18n.t('Mật khẩu phải có ít nhất 8 ký tự!');
+      return;
+    }
+
+    const hasUpper = /[A-Z]/.test(this.password);
+    const hasLower = /[a-z]/.test(this.password);
+    const hasDigit = /[0-9]/.test(this.password);
+    if (!hasUpper || !hasLower || !hasDigit) {
+      this.isLoading = false;
+      this.errorMessage = this.i18n.t('Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số!');
       return;
     }
 

@@ -35,7 +35,8 @@ class AuthController {
   };
 
   login = async (req, res) => {
-    const user = await this.service.login(req.body || {});
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || req.socket.remoteAddress || '127.0.0.1';
+    const user = await this.service.login({ ...(req.body || {}), ip });
     this.setSession(req, user);
     res.json({ success: true, message: 'Đăng nhập thành công', user: publicUser(user) });
   };

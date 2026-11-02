@@ -120,4 +120,37 @@ export const COMMON_EN: Record<string, string> = {
   'Đã tắt thông báo Desktop.': 'Desktop notifications turned off.',
   'Đã bật thông báo Desktop thành công!': 'Desktop notifications enabled successfully!',
   'Quyền thông báo bị từ chối trong cài đặt trình duyệt.': 'Notification permission was denied in your browser settings.',
+
+  // ===== Extra Space Detail & Common Keys =====
+  "Tất cả không gian": "All Spaces",
+  "Trống (Khả dụng ngay)": "Available right now",
+  "lượt phản hồi": "responses",
+  "Vị trí sàn": "Hub location",
+  "Đặt tức thì": "Instant Book",
+  "Tiện ích & Trang thiết bị có sẵn": "Available Amenities & Equipment",
+  "Khung giờ sử dụng hôm nay": "Today Schedule Slots",
+  "Hệ thống cập nhật thời gian thực dựa trên cảm biến AI Occupancy & lịch đặt chỗ.": "Real-time updates powered by AI Occupancy sensors & calendar bookings.",
+  "lượt đánh giá từ khách thuê thực tế": "verified tenant reviews",
+  "Chia sẻ trải nghiệm của bạn về không gian này": "Share your experience about this space",
+  "Gửi đánh giá": "Submit Review",
+  "Mở rộng lịch": "Expand Calendar",
+  "Thời gian này không khả dụng": "This time slot is unavailable",
+  "Bạn chưa bị trừ tiền cho đến khi quét mã MoMo xác nhận": "You will not be charged until scanning MoMo to confirm",
+  "Khám phá thêm": "Explore more",
+  "Đề xuất không gian khác tại UEL Space": "Other recommended spaces on UEL Space",
+  "Các phòng học tập, hội thảo và làm việc tương tự phù hợp với nhu cầu của bạn": "Similar meeting, study, and coworking rooms suited for you",
+  "Xem toàn bộ 100+ phòng": "View all 100+ spaces",
+  "Giá thuê": "Rental Price",
+  "Mở Google Calendar trong tab mới": "Open Google Calendar in new tab",
+  "Đang khởi tạo liên kết Google Calendar...": "Initializing Google Calendar link...",
+  "Trùng lịch (Phòng bận hoặc lịch cá nhân)": "Schedule conflict (Busy room or personal schedule)",
+  "Dữ liệu được đối chiếu an toàn từ Google Calendar": "Data securely verified with Google Calendar",
+  "Sàn thương mại điện tử kết nối Cung & Cầu.": "E-commerce platform connecting Supply & Demand.",
+
+  // ===== Space Detail extra =====
+  "Giờ nhận": "Check-in Time",
+  "Giờ trả": "Check-out Time",
+  "Đặt chỗ thành công!": "Booking Successful!",
+
+  'Khách thuê / Đối tác': 'Customer / Partner',
 };

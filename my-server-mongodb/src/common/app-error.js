@@ -25,6 +25,10 @@ class AppError extends Error {
   static conflict(message, code = 'CONFLICT') {
     return new AppError(409, code, message);
   }
+
+  static tooManyRequests(message = 'Quá nhiều yêu cầu, vui lòng thử lại sau', code = 'TOO_MANY_REQUESTS') {
+    return new AppError(429, code, message);
+  }
 }
 
 module.exports = { AppError };

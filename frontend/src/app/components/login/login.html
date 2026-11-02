@@ -81,23 +81,6 @@
         </p>
       </div>
 
-      <!-- Portal Type Badge / Switcher -->
-      <div class="bg-bg-gray dark:bg-slate-800 p-1 rounded-2xl border border-border-gray dark:border-slate-700 flex items-center mb-6">
-        <button type="button" 
-                (click)="portalRole = 'buyer'"
-                [ngClass]="portalRole === 'buyer' ? 'bg-white dark:bg-slate-700 text-uel-blue dark:text-sky-300 shadow-xs font-black' : 'text-text-muted dark:text-slate-400 font-bold hover:text-dark-text dark:hover:text-white'"
-                class="flex-1 py-2 rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-          {{ 'Khách thuê (Buyer)' | t }}
-        </button>
-        <button type="button" 
-                (click)="portalRole = 'seller'"
-                [ngClass]="portalRole === 'seller' ? 'bg-white dark:bg-slate-700 text-uel-blue dark:text-sky-300 shadow-xs font-black' : 'text-text-muted dark:text-slate-400 font-bold hover:text-dark-text dark:hover:text-white'"
-                class="flex-1 py-2 rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
-          {{ 'Chủ không gian (Seller)' | t }}
-        </button>
-      </div>
 
       <!-- Error Alert Box -->
       @if (errorMessage) {
@@ -252,21 +235,6 @@
         <span>{{ 'Đăng nhập bằng tài khoản Google' | t }}</span>
       </button>
 
-      <!-- Quick Admin Fast Login -->
-      <div class="mt-4 p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800 flex items-center justify-between gap-3">
-        <div class="text-xs text-amber-900 dark:text-amber-200 leading-tight">
-          <div class="font-bold flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-            {{ 'Tài khoản Quản trị viên UEL Space' | t }}
-          </div>
-          <div class="text-[11px] text-amber-700 dark:text-amber-400 font-mono mt-0.5">admin.uelspace@gmail.com</div>
-        </div>
-        <button type="button"
-                (click)="fillAdminMockup()"
-                class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-xs">
-          {{ 'Đăng nhập Admin →' | t }}
-        </button>
-      </div>
 
     </div>
 

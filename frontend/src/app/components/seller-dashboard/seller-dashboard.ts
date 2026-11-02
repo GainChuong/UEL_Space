@@ -2382,10 +2382,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
     if (this.occEngineMode === 'server' && !this.occServerOfflineNotified) {
       this.occServerOfflineNotified = true;
       this.occModelName = 'Server AI ngoại tuyến → Đang dùng Client Edge AI';
-      this.showToast(
-        this.i18n.t('Server AI (YOLO26) đang ngoại tuyến - hệ thống tự chuyển sang Client Edge AI trên trình duyệt'),
-        'warning'
-      );
+      // Suppress disruptive floating banner on page load / background fallback
     }
   }
 

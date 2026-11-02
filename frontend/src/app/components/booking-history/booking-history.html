@@ -60,7 +60,7 @@
               <input type="text"
                      [(ngModel)]="areaSearchQuery"
                      (click)="$event.stopPropagation()"
-                     placeholder="Gõ tìm khu vực (VD: Quận 1, 2, 3, Thủ Đức, UEL, UIT...)"
+                     [placeholder]="'Gõ tìm khu vực (VD: Quận 1, 2, 3, Thủ Đức, UEL, UIT...)' | t"
                      class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-uel-blue/50">
               @if (areaSearchQuery) {
                 <button (click)="areaSearchQuery = ''; $event.stopPropagation()" class="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
@@ -402,24 +402,24 @@
           </label>
           <textarea [(ngModel)]="cancelReasonInput"
                     rows="3"
-                    placeholder="Vui lòng cho biết lý do hủy (VD: Thay đổi kế hoạch đối tác, dời lịch công tác...)"
+                    [placeholder]="'Vui lòng cho biết lý do hủy (VD: Thay đổi kế hoạch đối tác, dời lịch công tác...)' | t"
                     class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-3 text-xs text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 resize-none"></textarea>
           
           @if (cancelReasonError) {
             <p class="text-[11px] font-semibold text-red-500 mt-1 flex items-center gap-1">
-              <span>⚠</span> {{ cancelReasonError }}
+              <span>⚠</span> {{ cancelReasonError | t }}
             </p>
           }
           
           <div class="flex flex-wrap gap-1.5 mt-2">
-            <span (click)="cancelReasonInput = 'Thay đổi lịch họp với đối tác'" class="text-[10px] px-2 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 cursor-pointer">Thay đổi lịch họp</span>
-            <span (click)="cancelReasonInput = 'Dời địa điểm gặp mặt'" class="text-[10px] px-2 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 cursor-pointer">Dời địa điểm</span>
-            <span (click)="cancelReasonInput = 'Đặt nhầm khung giờ / ngày'" class="text-[10px] px-2 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 cursor-pointer">Đặt nhầm giờ</span>
+            <span (click)="cancelReasonInput = 'Thay đổi lịch họp với đối tác'" class="text-[10px] px-2 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 cursor-pointer">{{ 'Thay đổi lịch họp' | t }}</span>
+            <span (click)="cancelReasonInput = 'Dời địa điểm gặp mặt'" class="text-[10px] px-2 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 cursor-pointer">{{ 'Dời địa điểm' | t }}</span>
+            <span (click)="cancelReasonInput = 'Đặt nhầm khung giờ / ngày'" class="text-[10px] px-2 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 cursor-pointer">{{ 'Đặt nhầm giờ' | t }}</span>
           </div>
         </div>
 
         <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl mb-5 text-[11px] text-amber-700 dark:text-amber-300">
-          ℹ {{ 'Sau khi gửi, đơn sẽ chuyển sang trạng thái' | t }} <strong>"Chờ duyệt"</strong> {{ 'để đối tác/hệ thống xác nhận hủy đơn hoàn tiền cọc.' | t }}
+          ℹ {{ 'Sau khi gửi, đơn sẽ chuyển sang trạng thái' | t }} <strong>"{{ 'Chờ duyệt' | t }}"</strong> {{ 'để đối tác/hệ thống xác nhận hủy đơn hoàn tiền cọc.' | t }}
         </div>
 
         <!-- Action Buttons -->
@@ -453,42 +453,42 @@
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
           <div>
-            <span class="text-[10px] uppercase font-bold tracking-wider text-red-600 dark:text-red-400 bg-red-500/10 px-2.5 py-0.5 rounded-full inline-block">ĐƠN ĐÃ HỦY THÀNH CÔNG</span>
-            <h3 class="text-base font-black text-slate-900 dark:text-white mt-0.5">Chi tiết vé hủy phòng</h3>
+            <span class="text-[10px] uppercase font-bold tracking-wider text-red-600 dark:text-red-400 bg-red-500/10 px-2.5 py-0.5 rounded-full inline-block">{{ 'ĐƠN ĐÃ HỦY THÀNH CÔNG' | t }}</span>
+            <h3 class="text-base font-black text-slate-900 dark:text-white mt-0.5">{{ 'Chi tiết vé hủy phòng' | t }}</h3>
           </div>
         </div>
 
         <!-- Cancellation Details Card -->
         <div class="p-4 bg-slate-50 dark:bg-slate-800/70 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 mb-5 text-xs space-y-3">
           <div class="flex justify-between items-center pb-2.5 border-b border-slate-200/70 dark:border-slate-700/70">
-            <span class="text-slate-500 dark:text-slate-400">Mã đơn hủy:</span>
+            <span class="text-slate-500 dark:text-slate-400">{{ 'Mã đơn hủy:' | t }}</span>
             <span class="font-mono font-bold text-slate-800 dark:text-white">{{ selectedBookingForDetail.id }}</span>
           </div>
 
           <div class="flex justify-between items-center pb-2.5 border-b border-slate-200/70 dark:border-slate-700/70">
-            <span class="text-slate-500 dark:text-slate-400">Không gian thuê:</span>
+            <span class="text-slate-500 dark:text-slate-400">{{ 'Không gian thuê:' | t }}</span>
             <span class="font-bold text-uel-blue dark:text-sky-400 text-right">{{ selectedBookingForDetail.roomName }}</span>
           </div>
 
           <div class="flex justify-between items-center pb-2.5 border-b border-slate-200/70 dark:border-slate-700/70">
-            <span class="text-slate-500 dark:text-slate-400">Check-in (Nhận):</span>
+            <span class="text-slate-500 dark:text-slate-400">{{ 'Check-in (Nhận):' | t }}</span>
             <span class="font-bold text-slate-800 dark:text-white">{{ formatDisplayDate(selectedBookingForDetail.date) }} ({{ getStartTime(selectedBookingForDetail) }})</span>
           </div>
 
           <div class="flex justify-between items-center pb-2.5 border-b border-slate-200/70 dark:border-slate-700/70">
-            <span class="text-slate-500 dark:text-slate-400">Check-out (Trả):</span>
+            <span class="text-slate-500 dark:text-slate-400">{{ 'Check-out (Trả):' | t }}</span>
             <span class="font-bold text-slate-800 dark:text-white">{{ formatDisplayDate(getDisplayEndDate(selectedBookingForDetail)) }} ({{ getEndTime(selectedBookingForDetail) }})</span>
           </div>
 
           <div class="pb-2.5 border-b border-slate-200/70 dark:border-slate-700/70">
-            <span class="text-slate-500 dark:text-slate-400 block mb-1">Lý do hủy đơn:</span>
+            <span class="text-slate-500 dark:text-slate-400 block mb-1">{{ 'Lý do hủy đơn:' | t }}</span>
             <div class="p-2.5 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 rounded-xl font-medium">
-              "{{ selectedBookingForDetail.cancelReason || 'Người dùng gửi yêu cầu hủy và đã được hệ thống phê duyệt.' }}"
+              "{{ (selectedBookingForDetail.cancelReason || 'Người dùng gửi yêu cầu hủy và đã được hệ thống phê duyệt.') | t }}"
             </div>
           </div>
 
           <div class="flex justify-between items-center text-[11px] text-slate-400">
-            <span>Thời điểm hủy:</span>
+            <span>{{ 'Thời điểm hủy:' | t }}</span>
             <span>{{ selectedBookingForDetail.cancelledAt || selectedBookingForDetail.createdAt }}</span>
           </div>
         </div>
@@ -498,13 +498,13 @@
           <button type="button"
                   (click)="closeCancelDetailModal()"
                   class="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs text-slate-700 dark:text-slate-300 transition-colors cursor-pointer">
-            Đóng
+            {{ 'Đóng' | t }}
           </button>
           <button type="button"
                   (click)="rebookSpace(selectedBookingForDetail); closeCancelDetailModal();"
                   class="flex-1 py-2.5 px-4 rounded-xl bg-uel-blue hover:bg-uel-blue/90 text-white font-bold text-xs transition-colors shadow-md flex items-center justify-center gap-1.5 cursor-pointer">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-            Đặt lại phòng này
+            {{ 'Đặt lại phòng này' | t }}
           </button>
         </div>
 

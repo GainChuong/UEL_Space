@@ -168,6 +168,33 @@ export class Admin implements OnInit, OnDestroy {
   toggleNotification(event: Event): void {
     event.stopPropagation();
     this.isNotificationOpen = !this.isNotificationOpen;
+    if (this.isNotificationOpen) {
+      this.isProfileOpen = false;
+    }
+  }
+
+  toggleProfile(event: Event): void {
+    event.stopPropagation();
+    this.isProfileOpen = !this.isProfileOpen;
+    if (this.isProfileOpen) {
+      this.isNotificationOpen = false;
+    }
+  }
+
+  openSettings(): void {
+    this.isProfileOpen = false;
+    this.settingsService.openSettings();
+  }
+
+  handleLogout(): void {
+    this.isProfileOpen = false;
+    this.settingsService.logout();
+    this.router.navigate(['/']);
+  }
+
+  handleLogin(): void {
+    this.isProfileOpen = false;
+    this.router.navigate(['/login']);
   }
 
   markAsRead(id: string, event: Event, link?: string): void {
@@ -192,6 +219,7 @@ export class Admin implements OnInit, OnDestroy {
   @HostListener('document:click')
   onDocumentClick(): void {
     this.isNotificationOpen = false;
+    this.isProfileOpen = false;
   }
 
   // Search & Filter State

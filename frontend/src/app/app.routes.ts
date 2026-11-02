@@ -10,6 +10,8 @@ import { SpaceDetailComponent } from './components/space-detail/space-detail';
 import { SellerDetailComponent } from './components/seller-detail/seller-detail';
 import { CalendarCallbackComponent } from './components/calendar-callback/calendar-callback';
 import { authGuard } from './guards/auth.guard';
+import { adminGuard } from './guards/admin.guard';
+import { sellerGuard } from './guards/seller.guard';
 
 export const routes: Routes = [
   { 
@@ -65,13 +67,13 @@ export const routes: Routes = [
     path: 'admin', 
     component: Admin, 
     title: 'Quản trị Sàn UEL Space | Platform Super Admin', 
-    canActivate: [authGuard] 
+    canActivate: [adminGuard] 
   },
   { 
     path: 'seller-dashboard', 
     component: SellerDashboard, 
     title: 'Kênh Quản lý Đối tác & Kiosk Tiếp tân | UEL Space', 
-    canActivate: [authGuard] 
+    canActivate: [sellerGuard] 
   },
   { 
     path: 'seller-portal', 
