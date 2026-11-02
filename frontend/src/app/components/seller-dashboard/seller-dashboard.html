@@ -1691,6 +1691,29 @@
                   </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
+                  <!-- Switch Video Source: Local Webcam vs Mobile Phone CCTV -->
+                  <div class="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-[11px]">
+                    <button type="button" (click)="selectVideoSource('local')" 
+                            [class]="occVideoSource === 'local' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs font-bold' : 'text-slate-500 hover:text-slate-700'"
+                            class="px-2 py-0.5 rounded-lg transition-all cursor-pointer flex items-center gap-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                      <span>Webcam máy</span>
+                    </button>
+                    <button type="button" (click)="selectVideoSource('mobile_cctv')" 
+                            [class]="occVideoSource === 'mobile_cctv' ? 'bg-sky-500 text-white shadow-xs font-bold' : 'text-slate-500 hover:text-slate-700'"
+                            class="px-2 py-0.5 rounded-lg transition-all cursor-pointer flex items-center gap-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                      <span>📱 ĐT làm CCTV</span>
+                    </button>
+                  </div>
+
+                  <!-- Button mở QR Code kết nối điện thoại -->
+                  <button type="button" (click)="openMobileCctvModal()"
+                          class="px-2.5 py-1 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 text-sky-700 dark:text-sky-300 text-xs font-bold transition-all cursor-pointer flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h.01"/><path d="M17 7h.01"/><path d="M7 17h.01"/><path d="M17 17h.01"/></svg>
+                    <span>Mã QR kết nối ĐT</span>
+                  </button>
+
                   <!-- Sensitivity Selector -->
                   <div class="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-[11px]">
                     <span class="px-1 text-slate-500 font-semibold hidden md:inline">{{ 'Độ nhạy:' | t }}</span>
@@ -2064,7 +2087,60 @@
 
       }
 
-    </main>
+    
+      <!-- Modal: QR Code Kết Nối Điện Thoại Làm CCTV Node -->
+      @if (showMobileCctvModal) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-[fade-in_0.15s_ease-out]">
+          <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full border border-border-gray dark:border-slate-800 shadow-2xl relative space-y-5">
+            <button (click)="closeMobileCctvModal()" class="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-sky-50 dark:bg-sky-950/50 border border-sky-200 dark:border-sky-800 text-sky-600 dark:text-sky-400 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-black text-slate-900 dark:text-white">Dùng Điện Thoại Làm Camera AI</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Mobile CCTV IoT Node (Option A)</p>
+              </div>
+            </div>
+
+            <div class="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-3">
+              <div class="p-3 bg-white rounded-2xl shadow-sm border border-slate-200">
+                <img [src]="mobileCctvQrUrl" alt="Mã QR CCTV" class="w-48 h-48 rounded-xl object-contain">
+              </div>
+              <div class="text-center space-y-1">
+                <div class="text-xs font-bold text-slate-800 dark:text-slate-200">Quét mã bằng Camera điện thoại</div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400">Mã phòng: <span class="font-mono font-bold text-sky-600 dark:text-sky-400">{{ mobileCctvStreamId }}</span></div>
+              </div>
+            </div>
+
+            <div class="space-y-2 text-xs text-slate-600 dark:text-slate-300">
+              <div class="flex items-start gap-2">
+                <span class="w-5 h-5 rounded-full bg-sky-100 dark:bg-sky-900 text-sky-600 dark:text-sky-300 flex items-center justify-center shrink-0 font-bold text-[10px]">1</span>
+                <span>Mở máy ảnh điện thoại quét mã QR trên để truy cập giao diện Camera Streamer.</span>
+              </div>
+              <div class="flex items-start gap-2">
+                <span class="w-5 h-5 rounded-full bg-sky-100 dark:bg-sky-900 text-sky-600 dark:text-sky-300 flex items-center justify-center shrink-0 font-bold text-[10px]">2</span>
+                <span>Bấm <strong>Bắt đầu Phát Luồng</strong> và đặt điện thoại lên giá đỡ góc cao trong phòng.</span>
+              </div>
+              <div class="flex items-start gap-2">
+                <span class="w-5 h-5 rounded-full bg-sky-100 dark:bg-sky-900 text-sky-600 dark:text-sky-300 flex items-center justify-center shrink-0 font-bold text-[10px]">3</span>
+                <span>Mô hình AI trên máy tính sẽ tự động nhận diện và đếm người theo thời gian thực!</span>
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <button (click)="closeMobileCctvModal()" class="w-full py-3 rounded-xl bg-slate-900 dark:bg-sky-600 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition-all">
+                Đã hiểu, đóng cửa sổ
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+</main>
 
   </div>
 

@@ -139,6 +139,57 @@ function occupancyRoutes(collections) {
     }
   }));
 
+  // In-memory buffer lưu trữ frame mới nhất từ Mobile CCTV Node
+  // key: room/spaceId (hoặc 'default'), value: { image, timestamp, device, battery }
+  const cctvStreams = new Map();
+
+  // 1. Mobile Device đẩy frame snapshot lên (POST /api/occupancy/cctv-stream)
+  router.post('/cctv-stream', asyncHandler(async (req, res) => {
+    const { streamId = 'default', image, device = 'Mobile Camera', facing = 'environment' } = req.body;
+    if (!image) {
+      return res.status(400).json({ success: false, message: 'Image payload required' });
+    }
+
+    cctvStreams.set(streamId, {
+      image,
+      device,
+      facing,
+      timestamp: Date.now()
+    });
+
+    res.json({ success: true, timestamp: Date.now() });
+  }));
+
+  // 2. Dashboard trên máy tính lấy frame mới nhất về để YOLO phân tích (GET /api/occupancy/cctv-stream/:streamId)
+  router.get('/cctv-stream/:streamId', asyncHandler(async (req, res) => {
+    const streamId = req.params.streamId || 'default';
+    const streamData = cctvStreams.get(streamId);
+
+    if (!streamData) {
+      return res.status(404).json({ success: false, message: 'No live stream found for this node' });
+    }
+
+    // Nếu frame quá cũ (> 15 giây), coi như camera đã ngắt kết nối
+    const ageMs = Date.now() - streamData.timestamp;
+    if (ageMs > 15000) {
+      return res.json({
+        success: false,
+        online: false,
+        message: 'Camera node is offline (heartbeat timeout)',
+        ageMs
+      });
+    }
+
+    res.json({
+      success: true,
+      online: true,
+      image: streamData.image,
+      device: streamData.device,
+      facing: streamData.facing,
+      ageMs
+    });
+  }));
+
   return router;
 }
 

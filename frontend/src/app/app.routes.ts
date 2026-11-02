@@ -9,6 +9,7 @@ import { SellerDashboard } from './components/seller-dashboard/seller-dashboard'
 import { SpaceDetailComponent } from './components/space-detail/space-detail';
 import { SellerDetailComponent } from './components/seller-detail/seller-detail';
 import { CalendarCallbackComponent } from './components/calendar-callback/calendar-callback';
+import { CctvLensComponent } from './components/cctv-lens/cctv-lens.component';
 import { authGuard } from './guards/auth.guard';
 import { adminGuard } from './guards/admin.guard';
 import { sellerGuard } from './guards/seller.guard';
@@ -78,6 +79,11 @@ export const routes: Routes = [
   { 
     path: 'seller-portal', 
     redirectTo: 'seller-dashboard' 
+  },
+  {
+    path: 'cctv-lens',
+    component: CctvLensComponent,
+    title: 'Mobile CCTV Node | UEL Space IoT Lens'
   },
   { 
     path: '**', 
