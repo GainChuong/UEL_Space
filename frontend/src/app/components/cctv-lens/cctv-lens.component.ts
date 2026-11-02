@@ -15,20 +15,24 @@ import { ActivatedRoute } from '@angular/router';
       <div class="absolute top-3 right-3 z-30 pointer-events-none flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md">
         <span class="w-2 h-2 rounded-full" [ngClass]="isConnected() ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'"></span>
         <span class="text-[10px] font-mono font-bold text-white/90">
-          {{ isConnected() ? 'P2P LIVE' : 'CONNECTING' }}
+          {{ isConnected() ? 'P2P LIVE' : (streamStarted() ? 'SYNCING...' : 'STANDBY') }}
         </span>
       </div>
 
-      <!-- Màn hình khởi động 1 chạm nếu trình duyệt mobile chặn autoplay -->
+      <!-- Màn hình khởi động 1 chạm: Người dùng chạm vào để cấp quyền Camera & Khởi tạo luồng tránh màn hình đen -->
       @if (!streamStarted()) {
-        <div class="absolute inset-0 z-40 bg-black flex flex-col items-center justify-center p-6 text-center text-white space-y-4">
-          <div class="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center text-white animate-pulse">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+        <div class="absolute inset-0 z-40 bg-black flex flex-col items-center justify-center p-6 text-center text-white space-y-5">
+          <div class="w-20 h-20 rounded-3xl bg-sky-500/20 border border-sky-400/30 flex items-center justify-center text-sky-400 shadow-xl shadow-sky-500/20 animate-pulse">
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
           </div>
-          <button (click)="startCameraAndCall()" class="px-8 py-3.5 rounded-2xl bg-sky-500 active:scale-95 text-white font-black text-sm tracking-wide shadow-lg shadow-sky-500/40">
+          <div class="space-y-1">
+            <h2 class="text-xl font-black tracking-tight">KẾT NỐI CAMERA AI</h2>
+            <p class="text-xs text-slate-400 max-w-xs">Chạm nút dưới đây để cấp quyền camera và đồng bộ luồng video sang máy tính</p>
+          </div>
+          <button (click)="startCameraWithSafeDelay()" class="px-8 py-4 rounded-2xl bg-sky-500 hover:bg-sky-600 active:scale-95 text-white font-black text-sm tracking-wide shadow-lg shadow-sky-500/40 cursor-pointer transition-all">
             CHẠM ĐỂ BẬT CAMERA
           </button>
-          <p class="text-[11px] text-white/50">Chạm 2 lần bất kỳ đâu để đổi camera trước / sau</p>
+          <p class="text-[11px] text-white/40">Chạm 2 lần vào màn hình sau khi bật để đổi Cam trước / sau</p>
         </div>
       }
     </div>
@@ -59,14 +63,15 @@ export class CctvLensComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.targetPeerId = this.route.snapshot.queryParamMap.get('peerId') || this.route.snapshot.queryParamMap.get('room') || 'uel-room-main';
-    this.startCameraAndCall();
+    // Thử auto-start nếu trình duyệt cho phép, nếu bị chặn thì màn hình chạm sẽ xuất hiện
+    this.startCameraWithSafeDelay();
   }
 
   ngOnDestroy(): void {
     this.cleanup();
   }
 
-  async startCameraAndCall(): Promise<void> {
+  async startCameraWithSafeDelay(): Promise<void> {
     try {
       if (this.localStream) {
         this.localStream.getTracks().forEach(t => t.stop());
@@ -84,14 +89,22 @@ export class CctvLensComponent implements OnInit, OnDestroy {
 
       const video = document.querySelector('video') as HTMLVideoElement;
       if (video) {
+        video.muted = true;
+        video.setAttribute('playsinline', 'true');
+        video.setAttribute('webkit-playsinline', 'true');
         video.srcObject = this.localStream;
         await video.play().catch(() => {});
       }
 
       this.streamStarted.set(true);
-      await this.initPeerAndCall();
+
+      // Delay an toàn 1.5s để cảm biến camera điện thoại khởi động hoàn tất và ổn định khung hình sáng
+      setTimeout(async () => {
+        await this.initPeerAndCall();
+      }, 1500);
     } catch (err) {
-      console.error('Không thể mở camera:', err);
+      console.warn('Cần chạm vào nút để cấp quyền camera:', err);
+      this.streamStarted.set(false);
     }
   }
 
@@ -138,7 +151,7 @@ export class CctvLensComponent implements OnInit, OnDestroy {
 
   async toggleCameraFacing(): Promise<void> {
     this.facingMode.set(this.facingMode() === 'environment' ? 'user' : 'environment');
-    await this.startCameraAndCall();
+    await this.startCameraWithSafeDelay();
   }
 
   private cleanup(): void {

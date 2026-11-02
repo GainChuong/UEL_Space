@@ -3498,7 +3498,12 @@ export class SellerDashboard implements OnInit, OnDestroy {
   }
 
   async selectVideoSource(source: 'local' | 'mobile_cctv'): Promise<void> {
-    if (this.occVideoSource === source) return;
+    if (this.occVideoSource === source) {
+      if (source === 'mobile_cctv' && !this.mobileCctvConnected) {
+        this.openMobileCctvModal();
+      }
+      return;
+    }
     this.occVideoSource = source;
 
     if (source === 'mobile_cctv') {
@@ -3506,7 +3511,8 @@ export class SellerDashboard implements OnInit, OnDestroy {
       this.initDashboardP2pListener();
       this.occCameraActive = true;
       this.occDetectionRunning = true;
-      this.showToast(this.i18n.t('Đã chuyển sang chế độ Điện thoại làm CCTV. Hãy quét mã QR để kết nối!'), 'info');
+      // Bấm vào ĐT làm CCTV thì tự động mở Popup Mã QR để quét ngay
+      this.openMobileCctvModal();
     } else {
       this.stopP2pCctv();
       this.startOccupancyDetection();
