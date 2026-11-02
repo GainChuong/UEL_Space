@@ -2545,7 +2545,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       const ort: any = await import('onnxruntime-web');
       if (ort?.env?.wasm) {
         ort.env.wasm.wasmPaths = '/onnx/';
-        ort.env.wasm.numThreads = 2;
+        ort.env.wasm.numThreads = 1;
       }
 
       console.log('[YOLO26 Web] Đang tải mô hình YOLO26 Occupancy ONNX...');
