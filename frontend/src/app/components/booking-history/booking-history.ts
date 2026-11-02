@@ -42,8 +42,8 @@ export class BookingHistory implements OnInit, OnDestroy {
   selectedBookingForDetail: BookingRecord | null = null;
   
   // Dynamic Month & Year Navigation
-  currentYear: number = 2026;
-  currentMonth: number = 9; // 0-indexed: 9 = Tháng 10
+  currentYear: number = new Date().getFullYear();
+  currentMonth: number = new Date().getMonth(); // 0-indexed: 10 = Tháng 11
   monthNames: string[] = [
     'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
     'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
@@ -280,6 +280,14 @@ export class BookingHistory implements OnInit, OnDestroy {
 
   getDisplayEndDate(booking: BookingRecord): string {
     return booking.endDate || booking.date;
+  }
+
+  simulateCheckIn(booking: BookingRecord) {
+    this.bookingService.checkIn(booking.id);
+    if (this.selectedBookingForQr && this.selectedBookingForQr.id === booking.id) {
+      this.selectedBookingForQr.status = 'active';
+      this.selectedBookingForQr.statusText = 'Đang sử dụng';
+    }
   }
 
   closeQrModal() {

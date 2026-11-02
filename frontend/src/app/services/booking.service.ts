@@ -26,7 +26,7 @@ export interface BookingRecord {
   cancelledAt?: string;
 }
 
-const STORAGE_KEY = 'uel_space_booking_records_v2';
+const STORAGE_KEY = 'uel_space_booking_records_v3';
 
 @Injectable({
   providedIn: 'root'
@@ -41,8 +41,8 @@ export class BookingService {
       roomName: 'Boardroom VIP B1',
       building: 'Central Tower Q.1 - Tầng 12',
       roomType: 'Phòng họp VIP',
-      date: '2026-10-18',
-      endDate: '2026-10-18',
+      date: '2026-11-02',
+      endDate: '2026-11-02',
       startTime: '14:00',
       endTime: '16:00',
       timeSlot: '14:00 - 16:00',
@@ -57,8 +57,8 @@ export class BookingService {
       roomName: 'Private Suite A2',
       building: 'TechPark Executive Hub - Tầng 5',
       roomType: 'Văn phòng riêng',
-      date: '2026-10-17',
-      endDate: '2026-10-17',
+      date: '2026-11-03',
+      endDate: '2026-11-03',
       startTime: '09:00',
       endTime: '11:30',
       timeSlot: '09:00 - 11:30',
@@ -73,8 +73,8 @@ export class BookingService {
       roomName: 'Khu Hot Desk Coworking',
       building: 'Innovation Hub Q.2 - Tầng 2',
       roomType: 'Bàn làm việc linh hoạt',
-      date: '2026-10-19',
-      endDate: '2026-10-19',
+      date: '2026-11-04',
+      endDate: '2026-11-04',
       startTime: '08:00',
       endTime: '17:00',
       timeSlot: '08:00 - 17:00',
@@ -89,8 +89,8 @@ export class BookingService {
       roomName: 'Hội trường Workshop A3',
       building: 'Landmark Lounge - Tầng 8',
       roomType: 'Không gian sự kiện',
-      date: '2026-10-16',
-      endDate: '2026-10-16',
+      date: '2026-11-05',
+      endDate: '2026-11-05',
       startTime: '13:00',
       endTime: '17:00',
       timeSlot: '13:00 - 17:00',
@@ -105,8 +105,8 @@ export class BookingService {
       roomName: 'Focus Pod 1 Cách Âm',
       building: 'Green Office Suites - Tầng 3',
       roomType: 'Meeting Pod',
-      date: '2026-10-20',
-      endDate: '2026-10-20',
+      date: '2026-11-02',
+      endDate: '2026-11-02',
       startTime: '15:00',
       endTime: '17:30',
       timeSlot: '15:00 - 17:30',
@@ -121,8 +121,8 @@ export class BookingService {
       roomName: 'Creative Studio Lab B2',
       building: 'TechPark Executive Hub - Tầng 6',
       roomType: 'Phòng họp sáng tạo',
-      date: '2026-10-15',
-      endDate: '2026-10-15',
+      date: '2026-11-02',
+      endDate: '2026-11-02',
       startTime: '08:00',
       endTime: '12:00',
       timeSlot: '08:00 - 12:00',
@@ -174,6 +174,22 @@ export class BookingService {
   constructor() {
     this.loadBookings();
     this.checkUpcomingReminders();
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', (event) => {
+        if (event.key === STORAGE_KEY && event.newValue) {
+          try {
+            const updated = JSON.parse(event.newValue);
+            if (Array.isArray(updated)) {
+              this.bookingsSubject.next(updated);
+            }
+          } catch {}
+        }
+      });
+      window.addEventListener('uel_booking_checkin_synced', () => {
+        this.loadBookings();
+      });
+    }
+  
   }
 
   private loadBookings(): void {
@@ -327,6 +343,23 @@ export class BookingService {
       });
     } catch (e) {
       console.warn('[BookingService] Exception khi đồng bộ MongoDB:', e);
+    }
+  }
+
+  /**
+   * Thực hiện check-in trực tiếp: chuyển trạng thái sang 'active' (Đang sử dụng)
+   */
+  public checkIn(id: string): void {
+    const target = this.bookingsSubject.value.find(b => b.id === id);
+    this.updateStatus(id, 'active', 'Đang sử dụng');
+    this.settingsService.addNotification({
+      title: 'Check-in thành công! 🏢',
+      message: `Mã đặt chỗ ${id} (${target?.roomName || 'Không gian'}) đã được check-in thành công. Trạng thái chuyển sang Đang sử dụng.`,
+      type: 'success',
+      category: 'presence'
+    });
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('uel_booking_checkin_synced'));
     }
   }
 

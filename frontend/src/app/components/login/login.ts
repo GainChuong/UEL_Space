@@ -195,8 +195,8 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
     const isSeller = cleanEmail.includes('seller') || cleanEmail.includes('host') || cleanEmail.includes('partner') || ['techpark@gmail.com', 'innovate@gmail.com', 'landmark@gmail.com', 'uelhub@gmail.com', 'creative@gmail.com'].includes(cleanEmail) || this.portalRole === 'seller';
 
     const role: 'ADMIN' | 'SELLER' | 'BUYER' = isAdmin ? 'ADMIN' : (isSeller ? 'SELLER' : 'BUYER');
-    const organization = isAdmin 
-      ? 'Ban Quản Trị Hệ Thống UEL Space' 
+    const organization = isAdmin
+      ? 'Ban Quản Trị Hệ Thống UEL Space'
       : (isSeller ? 'Đối tác sở hữu không gian (Host Partner)' : 'Doanh nghiệp & Khách thuê (Member)');
 
     return {
@@ -527,8 +527,8 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
       enteredEmail += '@gmail.com';
     }
 
-    const displayName = enteredEmail.includes('admin') 
-      ? 'Quản trị viên UEL Space' 
+    const displayName = enteredEmail.includes('admin')
+      ? 'Quản trị viên UEL Space'
       : (this.portalRole === 'seller' ? 'Đối tác Quản lý Không gian' : 'Khách thuê Không gian');
 
     // 1. Thử xác thực với Backend API (đăng nhập email/mật khẩu an toàn)

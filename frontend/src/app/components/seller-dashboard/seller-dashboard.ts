@@ -2133,6 +2133,22 @@ export class SellerDashboard implements OnInit, OnDestroy {
     const dateStr = now.toLocaleDateString('vi-VN');
 
     matched.status = 'IN_USE';
+    // Dong bo Buyer storage neu co
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const raw = localStorage.getItem('uel_space_booking_records_v3');
+        if (raw) {
+          const list = JSON.parse(raw);
+          const found = list.find((item: any) => item.id === matched.code || item.id === matched.id);
+          if (found) {
+            found.status = 'active';
+            found.statusText = 'Đang sử dụng';
+            localStorage.setItem('uel_space_booking_records_v3', JSON.stringify(list));
+            window.dispatchEvent(new Event('uel_booking_checkin_synced'));
+          }
+        }
+      }
+    } catch (e) {}
     matched.actualCheckInAt = `${dateStr} ${timeStr}`;
     matched.processedBy = this.adminUser.email;
     matched.processedAt = `${dateStr} ${timeStr}`;
@@ -2227,6 +2243,22 @@ export class SellerDashboard implements OnInit, OnDestroy {
     const dateStr = now.toLocaleDateString('vi-VN');
 
     b.status = 'IN_USE';
+    // Dong bo Buyer storage neu co
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const raw = localStorage.getItem('uel_space_booking_records_v3');
+        if (raw) {
+          const list = JSON.parse(raw);
+          const found = list.find((item: any) => item.id === b.code || item.id === b.id);
+          if (found) {
+            found.status = 'active';
+            found.statusText = 'Đang sử dụng';
+            localStorage.setItem('uel_space_booking_records_v3', JSON.stringify(list));
+            window.dispatchEvent(new Event('uel_booking_checkin_synced'));
+          }
+        }
+      }
+    } catch (e) {}
     b.actualCheckInAt = `${dateStr} ${timeStr} (${this.i18n.t('Ghi đè bởi')} ${this.adminUser.name})`;
 
     this.recentCheckIns.unshift({
