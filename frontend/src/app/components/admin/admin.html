@@ -633,8 +633,8 @@
                   <th class="py-3 px-4">{{ 'Sức chứa / Diện tích' | t }}</th>
                   <th class="py-3 px-4">{{ 'Bảng giá niêm yết' | t }}</th>
                   <th class="py-3 px-4">{{ 'Tiêu chuẩn PCCC & Thiết bị' | t }}</th>
-                  <th class="py-3 px-4">{{ 'Trạng thái sàn' | t }}</th>
-                  <th class="py-3 px-4 text-right">{{ 'Thao tác phê duyệt' | t }}</th>
+                  <th class="py-3 px-4 whitespace-nowrap">{{ 'Trạng thái sàn' | t }}</th>
+                  <th class="py-3 px-4 text-right whitespace-nowrap">{{ 'Thao tác phê duyệt' | t }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -709,22 +709,22 @@
                     </td>
 
                     <!-- Status -->
-                    <td class="py-3.5 px-4">
+                    <td class="py-3.5 px-4 whitespace-nowrap">
                       @if (item.status === 'PENDING_APPROVAL') {
-                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-400/30">
+                        <span class="inline-block whitespace-nowrap px-2.5 py-1 rounded-full text-[10px] font-black bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-400/30">
                           {{ 'CHỜ KIỂM DUYỆT' | t }}
                         </span>
                       } @else if (item.status === 'AVAILABLE') {
-                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-uel-blue/10 text-uel-blue dark:text-sky-300 border border-uel-blue/20">
+                        <span class="inline-block whitespace-nowrap px-2.5 py-1 rounded-full text-[10px] font-black bg-uel-blue/10 text-uel-blue dark:text-sky-300 border border-uel-blue/20">
                           {{ 'ĐANG HOẠT ĐỘNG' | t }}
                         </span>
                       } @else if (item.status === 'REJECTED') {
-                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700"
+                        <span class="inline-block whitespace-nowrap px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700"
                               [title]="item.rejectionReason || 'Không đạt chuẩn'">
                           {{ 'BỊ TỪ CHỐI' | t }}
                         </span>
                       } @else {
-                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-200/70 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300/80 dark:border-slate-700"
+                        <span class="inline-block whitespace-nowrap px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-200/70 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300/80 dark:border-slate-700"
                               [title]="item.suspensionReason || 'Tạm dừng'">
                           {{ 'ĐÌNH CHỈ / KHÓA' | t }}
                         </span>
@@ -732,7 +732,7 @@
                     </td>
 
                     <!-- Actions -->
-                    <td class="py-3.5 px-4 text-right">
+                    <td class="py-3.5 px-4 text-right whitespace-nowrap">
                       <div class="flex items-center justify-end gap-1.5">
                         
                         @if (item.status === 'PENDING_APPROVAL') {
@@ -823,8 +823,8 @@
                   <th class="py-3 px-4">{{ 'Email & Liên hệ' | t }}</th>
                   <th class="py-3 px-4">{{ 'Vai trò sàn' | t }}</th>
                   <th class="py-3 px-4">{{ 'Định danh KYC / Tích xanh' | t }}</th>
-                  <th class="py-3 px-4">{{ 'Trạng thái hoạt động' | t }}</th>
-                  <th class="py-3 px-4 text-right">{{ 'Thao tác quản trị' | t }}</th>
+                  <th class="py-3 px-4 whitespace-nowrap">{{ 'Trạng thái hoạt động' | t }}</th>
+                  <th class="py-3 px-4 text-right whitespace-nowrap">{{ 'Thao tác quản trị' | t }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -864,7 +864,7 @@
                           {{ 'Thẩm định hồ sơ' | t }}
                         </button>
                       } @else {
-                        <span class="text-[11px] text-slate-500 font-bold">{{ 'BỊ TỪ CHỐI' | t }}</span>
+                        <span class="inline-block whitespace-nowrap text-[11px] text-slate-500 font-bold">{{ 'BỊ TỪ CHỐI' | t }}</span>
                       }
                     </td>
 
@@ -938,7 +938,7 @@
                   <th class="py-3 px-4">{{ 'Lịch hẹn & Khung giờ' | t }}</th>
                   <th class="py-3 px-4">{{ 'Tổng thanh toán' | t }}</th>
                   <th class="py-3 px-4">{{ 'Cảnh báo IoT / AI' | t }}</th>
-                  <th class="py-3 px-4">{{ 'Trạng thái' | t }}</th>
+                  <th class="py-3 px-4 whitespace-nowrap">{{ 'Trạng thái' | t }}</th>
                   <th class="py-3 px-4 text-right">{{ 'Can thiệp Admin' | t }}</th>
                 </tr>
               </thead>
@@ -1063,8 +1063,8 @@
                   <th class="py-3 px-4">{{ 'Doanh số gộp (Gross)' | t }}</th>
                   <th class="py-3 px-4">{{ 'Hoa hồng sàn 12%' | t }}</th>
                   <th class="py-3 px-4">{{ 'Thực nhận Seller (Net)' | t }}</th>
-                  <th class="py-3 px-4">{{ 'Trạng thái Escrow' | t }}</th>
-                  <th class="py-3 px-4 text-right">{{ 'Thao tác giải ngân' | t }}</th>
+                  <th class="py-3 px-4 whitespace-nowrap">{{ 'Trạng thái Escrow' | t }}</th>
+                  <th class="py-3 px-4 text-right whitespace-nowrap">{{ 'Thao tác giải ngân' | t }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -1092,19 +1092,19 @@
                       {{ batch.netPayout | number:'1.0-0' }} ₫
                     </td>
 
-                    <td class="py-3.5 px-4">
+                    <td class="py-3.5 px-4 whitespace-nowrap">
                       @if (batch.status === 'READY_TO_SETTLE') {
-                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-400/30">
+                        <span class="inline-block whitespace-nowrap px-2.5 py-1 rounded-full text-[10px] font-black bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-400/30">
                           {{ 'ĐỦ ĐIỀU KIỆN (+24H)' | t }}
                         </span>
                       } @else {
-                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-uel-blue/10 text-uel-blue dark:text-sky-300 border border-uel-blue/20">
+                        <span class="inline-block whitespace-nowrap px-2.5 py-1 rounded-full text-[10px] font-black bg-uel-blue/10 text-uel-blue dark:text-sky-300 border border-uel-blue/20">
                           {{ 'ĐÃ QUYẾT TOÁN' | t }}
                         </span>
                       }
                     </td>
 
-                    <td class="py-3.5 px-4 text-right">
+                    <td class="py-3.5 px-4 text-right whitespace-nowrap">
                       @if (batch.status === 'READY_TO_SETTLE') {
                         <button (click)="openPayoutModal(batch)"
                                 class="px-3 py-1.5 rounded-lg bg-uel-blue hover:bg-[#002D5C] text-white font-extrabold text-[11px] shadow-xs cursor-pointer transition-colors">
