@@ -14,3 +14,4 @@ export const adminGuard: CanActivateFn = () => {
   settingsService.promptLogin('Khu vực dành riêng cho Quản trị viên Sàn UEL Space. Vui lòng đăng nhập đúng tài khoản Admin!');
   return router.createUrlTree(['/login']);
 };
+

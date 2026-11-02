@@ -15,3 +15,4 @@ export const sellerGuard: CanActivateFn = () => {
   settingsService.promptLogin('Khu vực dành riêng cho Đối tác sở hữu Không gian (Host). Vui lòng đăng nhập đúng tài khoản Chủ không gian!');
   return router.createUrlTree(['/login']);
 };
+

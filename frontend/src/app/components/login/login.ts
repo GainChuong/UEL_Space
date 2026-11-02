@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { AUTH_GOOGLE_URL, AUTH_REGISTER_URL, GOOGLE_CLIENT_ID, SERVER_IMAGES_LINK } from '../../services/api-config';
+import { AUTH_GOOGLE_URL, AUTH_REGISTER_URL, AUTH_LOGIN_URL, GOOGLE_CLIENT_ID, SERVER_IMAGES_LINK } from '../../services/api-config';
 import { SettingsService, UserProfile } from '../../services/settings.service';
 import { TranslatePipe } from '../../services/translate.pipe';
 import { I18nService } from '../../services/i18n.service';
@@ -403,6 +403,8 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
     setTimeout(() => {
       if (user.role === 'ADMIN') {
         this.router.navigate(['/admin']);
+      } else if (user.role === 'SELLER') {
+        this.router.navigate(['/seller-dashboard']);
       } else {
         this.router.navigate(['/']);
       }
@@ -521,29 +523,51 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
       ? 'Quản trị viên UEL Space' 
       : (this.portalRole === 'seller' ? 'Đối tác Quản lý Không gian' : 'Khách thuê Không gian');
 
-    // Gửi xác thực qua backend
-    this.http.post<any>(AUTH_GOOGLE_URL, {
-      isDevMock: true,
+    // 1. Thử xác thực với Backend API (đăng nhập email/mật khẩu an toàn)
+    this.http.post<any>(AUTH_LOGIN_URL, {
       email: enteredEmail,
-      name: displayName
+      password: this.password
     }).subscribe({
       next: (res) => {
         this.isLoading = false;
         if (res.success && res.user) {
           this.handleAuthSuccess(res.user);
         } else {
-          this.errorMessage = res.error || this.i18n.t('Đăng nhập thất bại!');
+          this.errorMessage = res.error?.message || res.message || this.i18n.t('Đăng nhập thất bại!');
         }
       },
       error: (err) => {
-        this.isLoading = false;
-        // Fallback: Khi backend offline, tự tạo profile hợp lệ
-        const fallback = this.createSmartFallbackUser(enteredEmail, displayName);
-        if (fallback) {
-          this.handleAuthSuccess(fallback);
-        } else {
-          this.errorMessage = this.i18n.t('Đăng nhập thất bại, vui lòng kiểm tra lại email!');
+        // Nếu backend trả về lỗi thông tin đăng nhập không hợp lệ
+        if (err.status === 400 || err.status === 401 || err.status === 429) {
+          this.isLoading = false;
+          this.errorMessage = err.error?.error?.message || err.error?.message || this.i18n.t('Email hoặc mật khẩu không chính xác!');
+          return;
         }
+
+        // Fallback khi chạy offline độc lập
+        this.http.post<any>(AUTH_GOOGLE_URL, {
+          isDevMock: true,
+          email: enteredEmail,
+          name: displayName
+        }).subscribe({
+          next: (res) => {
+            this.isLoading = false;
+            if (res.success && res.user) {
+              this.handleAuthSuccess(res.user);
+            } else {
+              this.errorMessage = res.error || this.i18n.t('Đăng nhập thất bại!');
+            }
+          },
+          error: () => {
+            this.isLoading = false;
+            const fallback = this.createSmartFallbackUser(enteredEmail, displayName);
+            if (fallback) {
+              this.handleAuthSuccess(fallback);
+            } else {
+              this.errorMessage = this.i18n.t('Đăng nhập thất bại, vui lòng kiểm tra lại email!');
+            }
+          }
+        });
       }
     });
   }
