@@ -33,6 +33,7 @@ export class App {
     return url.includes('/login') || 
            url.includes('/admin') || 
            url.includes('/seller-dashboard') || 
-           url.includes('/seller-portal');
+           url.includes('/seller-portal') ||
+           url.includes('/cctv-lens');
   }
 }
