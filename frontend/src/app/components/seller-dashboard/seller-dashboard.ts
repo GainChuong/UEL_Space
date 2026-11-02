@@ -319,14 +319,14 @@ export class SellerDashboard implements OnInit, OnDestroy {
   private occServerOfflineNotified: boolean = false;
   private offscreenCanvas: HTMLCanvasElement | null = null;
 
-  // Mobile CCTV Node (Điện thoại làm Camera AI)
+  // Mobile CCTV Node (Điện thoại làm Camera AI qua WebRTC P2P)
   occVideoSource: 'local' | 'mobile_cctv' = 'local';
   showMobileCctvModal: boolean = false;
   mobileCctvConnected: boolean = false;
-  mobileCctvStreamId: string = 'room-main';
+  mobileCctvStreamId: string = 'uel-cctv-room';
   mobileCctvQrUrl: string = '';
-  private mobileCctvPollingTimer: any = null;
-  private mobileCctvLastFrameTime: number = 0;
+  private dashboardPeer: any = null;
+  private activeP2pCall: any = null;
   private occLastFrameTime: number = 0;
   private occFrameCount: number = 0;
   private occFpsInterval: any = null;
@@ -3459,12 +3459,16 @@ export class SellerDashboard implements OnInit, OnDestroy {
   }
 
   openMobileCctvModal(): void {
-    const spaceId = this.occSelectedSpace?.id || 'room-main';
-    this.mobileCctvStreamId = spaceId;
+    const rawId = this.occSelectedSpace?.id || 'room-main';
+    const cleanId = rawId.replace(/[^a-zA-Z0-9_-]/g, '');
+    this.mobileCctvStreamId = `uel-cctv-${cleanId || 'default'}`;
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://uelspace-tan.vercel.app';
-    const lensUrl = `${origin}/cctv-lens?room=${encodeURIComponent(spaceId)}`;
+    const lensUrl = `${origin}/cctv-lens?peerId=${encodeURIComponent(this.mobileCctvStreamId)}`;
     this.mobileCctvQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(lensUrl)}`;
     this.showMobileCctvModal = true;
+    
+    // Tự động khởi tạo WebRTC Peer listener trên máy tính
+    this.initDashboardP2pListener();
     this.cdr.detectChanges();
   }
 
@@ -3479,12 +3483,66 @@ export class SellerDashboard implements OnInit, OnDestroy {
 
     if (source === 'mobile_cctv') {
       this.stopLocalCamera();
-      this.startMobileCctvStreaming();
+      this.initDashboardP2pListener();
+      this.occCameraActive = true;
+      this.occDetectionRunning = true;
+      this.showToast(this.i18n.t('Đã chuyển sang chế độ Điện thoại làm CCTV. Hãy quét mã QR để kết nối!'), 'info');
     } else {
-      this.stopMobileCctvStreaming();
+      this.stopP2pCctv();
       this.startOccupancyDetection();
     }
     this.cdr.detectChanges();
+  }
+
+  private async initDashboardP2pListener(): Promise<void> {
+    if (this.dashboardPeer) return;
+
+    try {
+      const { Peer } = await import('peerjs');
+      const rawId = this.occSelectedSpace?.id || 'room-main';
+      const cleanId = rawId.replace(/[^a-zA-Z0-9_-]/g, '');
+      this.mobileCctvStreamId = `uel-cctv-${cleanId || 'default'}`;
+
+      this.dashboardPeer = new Peer(this.mobileCctvStreamId);
+
+      this.dashboardPeer.on('open', (id: string) => {
+        console.log('[WebRTC P2P] Dashboard sẵn sàng nhận luồng tại ID:', id);
+      });
+
+      this.dashboardPeer.on('call', (call: any) => {
+        console.log('[WebRTC P2P] Nhận cuộc gọi truyền video từ Điện thoại!');
+        this.activeP2pCall = call;
+        // Trả lời cuộc gọi mà không cần gửi stream ngược lại
+        call.answer();
+
+        call.on('stream', (remoteStream: MediaStream) => {
+          console.log('[WebRTC P2P] Luồng camera điện thoại kết nối thành công 30 FPS!');
+          this.mobileCctvConnected = true;
+          this.occCameraActive = true;
+          this.occDetectionRunning = true;
+
+          const videoEl = document.getElementById('occ-detection-video') as HTMLVideoElement;
+          if (videoEl) {
+            videoEl.srcObject = remoteStream;
+            videoEl.play().catch(e => console.warn('Play remote stream error:', e));
+            this.runDetectionLoop(videoEl);
+          }
+          this.showToast(this.i18n.t('Đã kết nối trực tiếp Camera Điện thoại (Real-time P2P)!'), 'success');
+          this.cdr.detectChanges();
+        });
+
+        call.on('close', () => {
+          this.mobileCctvConnected = false;
+          this.cdr.detectChanges();
+        });
+      });
+
+      this.dashboardPeer.on('error', (err: any) => {
+        console.warn('[WebRTC P2P] Peer warning:', err);
+      });
+    } catch (e) {
+      console.error('Không thể nạp PeerJS:', e);
+    }
   }
 
   private stopLocalCamera(): void {
@@ -3503,84 +3561,20 @@ export class SellerDashboard implements OnInit, OnDestroy {
     }
   }
 
-  private startMobileCctvStreaming(): void {
-    this.occCameraActive = true;
-    this.occDetectionRunning = true;
-    this.mobileCctvConnected = false;
-    this.showToast(this.i18n.t('Đang lắng nghe luồng CCTV từ Điện thoại...'), 'info');
-
-    if (this.mobileCctvPollingTimer) clearInterval(this.mobileCctvPollingTimer);
-
-    // Chu kỳ 600ms lấy frame snapshot từ server relay
-    this.mobileCctvPollingTimer = setInterval(async () => {
-      if (this.occVideoSource !== 'mobile_cctv' || !this.occDetectionRunning) return;
-
-      try {
-        const streamId = this.mobileCctvStreamId || this.occSelectedSpace?.id || 'room-main';
-        const res = await fetch(`${SERVER_BASE_URL}/api/occupancy/cctv-stream/${encodeURIComponent(streamId)}`);
-        if (!res.ok) {
-          this.mobileCctvConnected = false;
-          return;
-        }
-
-        const data = await res.json();
-        if (data.success && data.image) {
-          this.mobileCctvConnected = true;
-          this.mobileCctvLastFrameTime = Date.now();
-
-          // Nạp frame ảnh vào video element hoặc render trực tiếp lên canvas để YOLO nhận diện
-          const videoEl = document.getElementById('occ-detection-video') as HTMLVideoElement;
-          const img = new Image();
-          img.onload = () => {
-            // Render frame từ mobile lên video element (qua canvas capture stream hoặc vẽ trực tiếp)
-            if (videoEl) {
-              const canvas = document.createElement('canvas');
-              canvas.width = img.width;
-              canvas.height = img.height;
-              const ctx = canvas.getContext('2d');
-              if (ctx) {
-                ctx.drawImage(img, 0, 0);
-                // Gán fake stream hoặc gán canvas capture nếu cần
-                if (!videoEl.srcObject) {
-                  try {
-                    const canvasStream = (canvas as any).captureStream ? (canvas as any).captureStream(15) : null;
-                    if (canvasStream) {
-                      videoEl.srcObject = canvasStream;
-                      videoEl.play().catch(() => {});
-                    }
-                  } catch {}
-                }
-              }
-            }
-          };
-          img.src = data.image;
-        } else {
-          this.mobileCctvConnected = false;
-        }
-      } catch (err) {
-        this.mobileCctvConnected = false;
-      }
-    }, 600);
-
-    // Kích hoạt nhận diện
-    setTimeout(() => {
-      const videoEl = document.getElementById('occ-detection-video') as HTMLVideoElement;
-      if (videoEl) {
-        this.runDetectionLoop(videoEl);
-      }
-    }, 500);
-  }
-
-  private stopMobileCctvStreaming(): void {
-    if (this.mobileCctvPollingTimer) {
-      clearInterval(this.mobileCctvPollingTimer);
-      this.mobileCctvPollingTimer = null;
+  private stopP2pCctv(): void {
+    if (this.activeP2pCall) {
+      try { this.activeP2pCall.close(); } catch {}
+      this.activeP2pCall = null;
+    }
+    if (this.dashboardPeer) {
+      try { this.dashboardPeer.destroy(); } catch {}
+      this.dashboardPeer = null;
     }
     this.mobileCctvConnected = false;
   }
 
   stopOccupancyDetection(): void {
-    this.stopMobileCctvStreaming();
+    this.stopP2pCctv();
     this.occDetectionRunning = false;
     this.isDetectingOccFrame = false;
     this.occStartingCamera = false;

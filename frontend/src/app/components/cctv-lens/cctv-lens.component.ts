@@ -1,185 +1,158 @@
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
-import { SERVER_BASE_URL } from '../../services/api-config';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-cctv-lens',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule],
   template: `
-    <div class="relative w-screen h-screen bg-black overflow-hidden flex flex-col justify-between select-none">
-      <!-- Top Bar: Status & Node Info -->
-      <div class="z-20 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/80 to-transparent">
-        <div class="flex items-center gap-2">
-          <div class="w-3 h-3 rounded-full" [ngClass]="isStreaming() ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'"></div>
-          <span class="text-white text-xs font-bold uppercase tracking-wider">
-            {{ isStreaming() ? 'LIVE CCTV STREAMING' : 'CAMERA STANDBY' }}
-          </span>
-          <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-white/20 text-white">
-            {{ streamId() }}
-          </span>
-        </div>
+    <div (dblclick)="toggleCameraFacing()" class="fixed inset-0 w-screen h-screen bg-black overflow-hidden select-none m-0 p-0 touch-none">
+      <!-- 100% Thuần Camera không có bất kỳ UI nào che khuất -->
+      <video #videoEl autoplay playsinline webkit-playsinline muted class="w-full h-full object-cover"></video>
 
-        <div class="flex items-center gap-2">
-          <span class="text-[11px] font-mono text-emerald-400 font-semibold">
-            {{ fps() }} FPS
-          </span>
-          <button (click)="toggleCameraFacing()" class="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs active:scale-95 transition-all">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-              <path d="M3 3v5h5"/>
-              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
-              <path d="M16 21h5v-5"/>
-            </svg>
-          </button>
-        </div>
+      <!-- Trạng thái kết nối tinh gọn chỉ là 1 chấm tròn nhỏ ở góc trên -->
+      <div class="absolute top-3 right-3 z-30 pointer-events-none flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md">
+        <span class="w-2 h-2 rounded-full" [ngClass]="isConnected() ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'"></span>
+        <span class="text-[10px] font-mono font-bold text-white/90">
+          {{ isConnected() ? 'P2P LIVE' : 'CONNECTING' }}
+        </span>
       </div>
 
-      <!-- Main Video Feed -->
-      <div class="absolute inset-0 z-0 flex items-center justify-center">
-        <video #videoEl autoplay playsinline webkit-playsinline muted class="w-full h-full object-cover"></video>
-        <canvas #canvasEl class="hidden"></canvas>
-
-        @if (!cameraReady()) {
-          <div class="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-6 text-center text-white z-10 space-y-4">
-            <div class="w-16 h-16 rounded-2xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-400">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-            </div>
-            <h2 class="text-lg font-black tracking-tight">KẾT NỐI CAMERA DI ĐỘNG</h2>
-            <p class="text-xs text-slate-300 max-w-xs leading-relaxed">
-              Điện thoại của bạn sẽ đóng vai trò như một mắt camera quan sát IoT gửi hình ảnh về Dashboard máy tính để AI YOLO phân tích.
-            </p>
-            <button (click)="initCamera()" class="px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-sm shadow-lg shadow-sky-500/30 active:scale-95 transition-all">
-              Bắt đầu Phát Luồng
-            </button>
+      <!-- Màn hình khởi động 1 chạm nếu trình duyệt mobile chặn autoplay -->
+      @if (!streamStarted()) {
+        <div class="absolute inset-0 z-40 bg-black flex flex-col items-center justify-center p-6 text-center text-white space-y-4">
+          <div class="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center text-white animate-pulse">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
           </div>
-        }
-      </div>
-
-      <!-- Bottom Overlay: Metrics & Guide -->
-      <div class="z-20 px-4 py-4 bg-gradient-to-t from-black/85 via-black/40 to-transparent flex flex-col gap-2">
-        <div class="flex items-center justify-between text-xs text-white/80">
-          <span>Độ phân giải: <strong>640 × 480 (IoT Optimized)</strong></span>
-          <span>Dung lượng: <strong>~25KB / frame</strong></span>
+          <button (click)="startCameraAndCall()" class="px-8 py-3.5 rounded-2xl bg-sky-500 active:scale-95 text-white font-black text-sm tracking-wide shadow-lg shadow-sky-500/40">
+            CHẠM ĐỂ BẬT CAMERA
+          </button>
+          <p class="text-[11px] text-white/50">Chạm 2 lần bất kỳ đâu để đổi camera trước / sau</p>
         </div>
-        <div class="p-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-white text-[11px] leading-relaxed flex items-center gap-2">
-          <svg class="w-4 h-4 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
-          <span>Đặt điện thoại ở góc cao hoặc trên giá đỡ hướng vào phòng để đếm sĩ số chuẩn nhất.</span>
-        </div>
-      </div>
+      }
     </div>
-  `
+  `,
+  styles: [`
+    :host {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+      background: #000;
+    }
+  `]
 })
 export class CctvLensComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
 
-  streamId = signal<string>('default');
-  isStreaming = signal<boolean>(false);
-  cameraReady = signal<boolean>(false);
-  fps = signal<number>(0);
-  facingMode = signal<'user' | 'environment'>('environment');
+  streamStarted = signal<boolean>(false);
+  isConnected = signal<boolean>(false);
+  facingMode = signal<'environment' | 'user'>('environment');
 
-  private stream: MediaStream | null = null;
-  private intervalId: any = null;
-  private frameCount = 0;
-  private fpsTimer: any = null;
+  private targetPeerId: string = '';
+  private peer: any = null;
+  private currentCall: any = null;
+  private localStream: MediaStream | null = null;
 
   ngOnInit(): void {
-    const id = this.route.snapshot.queryParamMap.get('streamId') || this.route.snapshot.queryParamMap.get('room') || 'default';
-    this.streamId.set(id);
-    this.initCamera();
+    this.targetPeerId = this.route.snapshot.queryParamMap.get('peerId') || this.route.snapshot.queryParamMap.get('room') || 'uel-room-main';
+    this.startCameraAndCall();
   }
 
   ngOnDestroy(): void {
-    this.stopStreaming();
+    this.cleanup();
   }
 
-  async initCamera(): Promise<void> {
+  async startCameraAndCall(): Promise<void> {
     try {
-      if (this.stream) {
-        this.stream.getTracks().forEach(t => t.stop());
+      if (this.localStream) {
+        this.localStream.getTracks().forEach(t => t.stop());
       }
 
-      this.stream = await navigator.mediaDevices.getUserMedia({
+      this.localStream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: { ideal: this.facingMode() },
-          width: { ideal: 640 },
-          height: { ideal: 480 }
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
+          frameRate: { ideal: 30 }
         },
         audio: false
       });
 
       const video = document.querySelector('video') as HTMLVideoElement;
       if (video) {
-        video.srcObject = this.stream;
+        video.srcObject = this.localStream;
         await video.play().catch(() => {});
       }
 
-      this.cameraReady.set(true);
-      this.startStreaming();
+      this.streamStarted.set(true);
+      await this.initPeerAndCall();
     } catch (err) {
-      console.error('Không thể truy cập camera điện thoại:', err);
-      alert('Không thể mở camera. Vui lòng cấp quyền truy cập Camera trong cài đặt trình duyệt.');
+      console.error('Không thể mở camera:', err);
+    }
+  }
+
+  private async initPeerAndCall(): Promise<void> {
+    try {
+      const { Peer } = await import('peerjs');
+      if (this.peer) {
+        try { this.peer.destroy(); } catch {}
+      }
+
+      this.peer = new Peer();
+
+      this.peer.on('open', () => {
+        this.callDashboard();
+      });
+
+      this.peer.on('error', (err: any) => {
+        console.warn('Peer error on mobile:', err);
+        // Tự động kết nối lại sau 2 giây nếu mất tín hiệu
+        setTimeout(() => this.callDashboard(), 2000);
+      });
+    } catch (e) {
+      console.error('Lỗi nạp thư viện PeerJS:', e);
+    }
+  }
+
+  private callDashboard(): void {
+    if (!this.peer || !this.localStream || !this.targetPeerId) return;
+
+    try {
+      const call = this.peer.call(this.targetPeerId, this.localStream);
+      if (call) {
+        this.currentCall = call;
+        call.on('close', () => {
+          this.isConnected.set(false);
+          setTimeout(() => this.callDashboard(), 2000);
+        });
+        this.isConnected.set(true);
+      }
+    } catch (e) {
+      console.warn('Lỗi gọi P2P tới Dashboard:', e);
     }
   }
 
   async toggleCameraFacing(): Promise<void> {
     this.facingMode.set(this.facingMode() === 'environment' ? 'user' : 'environment');
-    await this.initCamera();
+    await this.startCameraAndCall();
   }
 
-  startStreaming(): void {
-    if (this.intervalId) clearInterval(this.intervalId);
-    this.isStreaming.set(true);
-
-    const canvas = document.createElement('canvas');
-    canvas.width = 640;
-    canvas.height = 480;
-    const ctx = canvas.getContext('2d');
-
-    // Cứ mỗi 650ms (~1.5 FPS) gửi 1 frame nhẹ lên Server Relay
-    this.intervalId = setInterval(async () => {
-      const video = document.querySelector('video') as HTMLVideoElement;
-      if (!video || !video.videoWidth || !ctx) return;
-
-      canvas.width = 640;
-      canvas.height = Math.round((640 / video.videoWidth) * video.videoHeight);
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const base64 = canvas.toDataURL('image/jpeg', 0.65);
-      this.frameCount++;
-
-      try {
-        await fetch(`${SERVER_BASE_URL}/api/occupancy/cctv-stream`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            streamId: this.streamId(),
-            image: base64,
-            device: 'Mobile Phone Lens',
-            facing: this.facingMode()
-          })
-        });
-      } catch (e) {
-        console.warn('Gửi frame CCTV lỗi:', e);
-      }
-    }, 650);
-
-    // Tính FPS thực tế
-    this.fpsTimer = setInterval(() => {
-      this.fps.set(this.frameCount);
-      this.frameCount = 0;
-    }, 1000);
-  }
-
-  stopStreaming(): void {
-    this.isStreaming.set(false);
-    if (this.intervalId) clearInterval(this.intervalId);
-    if (this.fpsTimer) clearInterval(this.fpsTimer);
-    if (this.stream) {
-      this.stream.getTracks().forEach(t => t.stop());
-      this.stream = null;
+  private cleanup(): void {
+    if (this.currentCall) {
+      try { this.currentCall.close(); } catch {}
     }
+    if (this.peer) {
+      try { this.peer.destroy(); } catch {}
+    }
+    if (this.localStream) {
+      this.localStream.getTracks().forEach(t => t.stop());
+      this.localStream = null;
+    }
+    this.isConnected.set(false);
+    this.streamStarted.set(false);
   }
 }
