@@ -69,4 +69,5 @@ export const LOGIN_EN: Record<string, string> = {
   "Đăng ký thất bại!": "Registration failed!",
   "Email này đã tồn tại trên hệ thống, vui lòng chuyển qua Đăng nhập!": "This email already exists, please switch to Login!",
   "Đăng ký thành công!": "Registration successful!",
+  "Loại tài khoản đăng ký": "Account Registration Type",
 };

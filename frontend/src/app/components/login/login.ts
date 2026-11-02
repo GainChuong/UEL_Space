@@ -29,7 +29,7 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
   authMode: 'login' | 'register' = 'login';
   portalRole: 'buyer' | 'seller' = 'buyer'; // 'buyer' = Khách thuê cá nhân/DN, 'seller' = Chủ không gian/Host Partner
   fullName: string = '';
-  username: string = 'minhanh@gmail.com';
+  username: string = '';
   password: string = '';
   confirmPassword: string = '';
   rememberMe: boolean = true;
@@ -37,6 +37,14 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
   isLoading: boolean = false;
   errorMessage: string = '';
   successMessage: string = '';
+
+  setAuthMode(mode: 'login' | 'register'): void {
+    this.authMode = mode;
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.password = '';
+    this.confirmPassword = '';
+  }
 
   // Google OAuth Configuration
   googleClientId: string = GOOGLE_CLIENT_ID;

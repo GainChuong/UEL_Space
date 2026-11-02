@@ -59,14 +59,14 @@
       <div class="mb-5">
         <div class="flex items-center gap-3 border-b border-border-gray dark:border-slate-800 pb-3 mb-3">
           <button type="button" 
-                  (click)="authMode = 'login'; errorMessage = ''; successMessage = ''"
+                  (click)="setAuthMode('login')"
                   [ngClass]="authMode === 'login' ? 'text-uel-blue dark:text-sky-400 border-b-2 border-uel-blue font-black' : 'text-text-muted dark:text-slate-400 font-bold hover:text-dark-text'"
                   class="pb-2 text-2xl tracking-tight transition-all cursor-pointer">
             {{ 'Đăng nhập' | t }}
           </button>
           <span class="text-slate-300 dark:text-slate-600 font-light text-2xl">/</span>
           <button type="button" 
-                  (click)="authMode = 'register'; errorMessage = ''; successMessage = ''"
+                  (click)="setAuthMode('register')"
                   [ngClass]="authMode === 'register' ? 'text-uel-blue dark:text-sky-400 border-b-2 border-uel-blue font-black' : 'text-text-muted dark:text-slate-400 font-bold hover:text-dark-text'"
                   class="pb-2 text-2xl tracking-tight transition-all cursor-pointer">
             {{ 'Đăng ký tài khoản' | t }}
@@ -106,6 +106,33 @@
       }
 
       <!-- Form Inputs -->
+      
+      <!-- Role Selection for Register Mode -->
+      @if (authMode === 'register') {
+        <div class="mb-4">
+          <label class="block text-xs font-bold text-dark-text dark:text-white mb-2 flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="text-uel-blue dark:text-sky-400"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            {{ 'Loại tài khoản đăng ký' | t }}
+          </label>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button type="button"
+                    (click)="portalRole = 'buyer'"
+                    [ngClass]="portalRole === 'buyer' ? 'border-uel-blue bg-uel-blue/5 dark:bg-sky-500/10 text-uel-blue dark:text-sky-400 ring-2 ring-uel-blue/20 font-black' : 'border-border-gray dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-400'"
+                    class="p-3 rounded-2xl border flex flex-col items-center justify-center gap-1.5 text-xs transition-all cursor-pointer">
+              <span class="text-base">🏢</span>
+              <span>{{ 'Khách thuê (Buyer)' | t }}</span>
+            </button>
+            <button type="button"
+                    (click)="portalRole = 'seller'"
+                    [ngClass]="portalRole === 'seller' ? 'border-uel-orange bg-uel-orange/5 dark:bg-amber-500/10 text-uel-orange dark:text-amber-400 ring-2 ring-uel-orange/20 font-black' : 'border-border-gray dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-400'"
+                    class="p-3 rounded-2xl border flex flex-col items-center justify-center gap-1.5 text-xs transition-all cursor-pointer">
+              <span class="text-base">🏬</span>
+              <span>{{ 'Chủ không gian (Seller)' | t }}</span>
+            </button>
+          </div>
+        </div>
+      }
+
       <form (ngSubmit)="handleFormSubmit()" class="space-y-4">
         
         <!-- Full Name (Only in Register Mode) -->
