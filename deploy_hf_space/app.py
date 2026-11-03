@@ -1,7 +1,8 @@
 """
 UEL Space - YOLO26 AI Detection Microservice
-Chạy với Gradio SDK trên Hugging Face (ZeroGPU & Free CPU)
-Tự động mở sẵn cả API endpoint /detect và giao diện Web demo.
+Phiên bản: Pure Deep Vision YOLO26 (Đã gỡ bỏ toàn bộ thuật toán màu da)
+Chạy trên Hugging Face (ZeroGPU A10G & Free CPU)
+Tập trung vào mạng nơ-ron Deep Learning chuẩn mực, ổn định tuyệt đối.
 """
 
 import os
@@ -42,26 +43,28 @@ try:
         logger.warning("Không tìm thấy best.pt, nạp yolo11n.pt mặc định...")
         yolo_model = YOLO("yolo11n.pt")
 
-    logger.info("YOLO26 Occupancy Model loaded successfully!")
+    logger.info("YOLO26 Model loaded successfully!")
 except Exception as e:
     logger.error(f"Lỗi nạp YOLO26: {e}")
     yolo_model = None
 
 @spaces.GPU
-def run_yolo_inference(pil_img, conf=0.20, iou=0.50):
+def run_yolo_inference(pil_img, conf=0.25, iou=0.50):
     if not yolo_model:
         return []
+    
+    # Chạy YOLO Deep Learning thuần túy trên GPU A10G
     results = yolo_model.predict(
         pil_img,
-        conf=conf,
-        iou=iou,
-        imgsz=640,
+        conf=float(conf),
+        iou=float(iou),
+        imgsz=960,
         verbose=False
     )
     return results
 
 @spaces.GPU
-def detect_api(image_base64: str, conf_threshold: float = 0.20, iou_threshold: float = 0.50):
+def detect_api(image_base64: str, conf_threshold: float = 0.25, iou_threshold: float = 0.50):
     if not yolo_model:
         return {"success": False, "message": "Model not ready"}
 
@@ -79,7 +82,7 @@ def detect_api(image_base64: str, conf_threshold: float = 0.20, iou_threshold: f
 
     results = run_yolo_inference(
         pil_img,
-        conf=float(conf_threshold or 0.20),
+        conf=float(conf_threshold or 0.25),
         iou=float(iou_threshold or 0.50)
     )
 
@@ -142,19 +145,19 @@ def detect_ui(image_input, conf_slider):
     if not results or len(results) == 0:
         return image_input, "Phát hiện: 0 người"
 
-    res_plotted = results[0].plot()
+    res_plotted = results[0].plot(line_width=2)
     count = sum(1 for c in results[0].boxes.cls if int(c) == 0)
     return Image.fromarray(res_plotted), f"Phát hiện: {count} người trong phòng"
 
 # Tạo giao diện Gradio hỗ trợ cả Web UI và REST API
 with gr.Blocks(title="UEL Space YOLO26 AI") as demo:
-    gr.Markdown("# 🏢 UEL Space - YOLO26 AI Occupancy Microservice")
-    gr.Markdown("Microservice giám sát sĩ số và hiện diện không gian UEL Space (Hugging Face ZeroGPU A10G).")
+    gr.Markdown("# 🏢 UEL Space - YOLO26 Pure Vision Occupancy Microservice")
+    gr.Markdown("Microservice Deep Learning giám sát sĩ số và hiện diện không gian UEL Space (Hugging Face ZeroGPU A10G).")
     
     with gr.Row():
         with gr.Column():
             img_in = gr.Image(type="pil", label="Ảnh phòng / Camera")
-            conf_sl = gr.Slider(minimum=0.1, maximum=0.9, value=0.25, step=0.05, label="Ngưỡng tin cậy (Confidence)")
+            conf_sl = gr.Slider(minimum=0.1, maximum=0.8, value=0.25, step=0.02, label="Ngưỡng tin cậy (Confidence)")
             btn = gr.Button("Phát hiện người", variant="primary")
         with gr.Column():
             img_out = gr.Image(type="pil", label="Kết quả nhận diện")

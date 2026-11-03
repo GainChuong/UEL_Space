@@ -2937,17 +2937,25 @@ export class SellerDashboard implements OnInit, OnDestroy {
 
           if (outputTensor && outputTensor.data) {
             const outData = outputTensor.data as Float32Array;
-            // Dims: [1, 6, 8400]
-            // Channel 0: cx, Channel 1: cy, Channel 2: w, Channel 3: h
-            // Channel 4: person_score, Channel 5: face_score
-            const numAnchors = 8400;
+            const dims = outputTensor.dims || [];
+            // Hỗ trợ linh hoạt cả model 1 class [1, 5, 8400] và model đa class [1, 5+N, 8400]
+            const numChannels = dims.length >= 2 ? dims[1] : 5;
+            const numAnchors = dims.length >= 3 ? dims[2] : 8400;
+            const numClasses = Math.max(1, numChannels - 4);
             const scaleX = vw / targetSize;
             const scaleY = vh / targetSize;
 
             for (let a = 0; a < numAnchors; a++) {
-              const personScore = outData[4 * numAnchors + a];
-              const faceScore = outData[5 * numAnchors + a];
-              const maxScore = Math.max(personScore, faceScore);
+              let maxScore = 0;
+              let bestClass = 0;
+
+              for (let c = 0; c < numClasses; c++) {
+                const s = outData[(4 + c) * numAnchors + a];
+                if (s > maxScore) {
+                  maxScore = s;
+                  bestClass = c;
+                }
+              }
 
               if (maxScore >= minScore) {
                 const cx = outData[0 * numAnchors + a];
@@ -2966,7 +2974,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
                   w: Math.round(Math.min(vw - realX, realW)),
                   h: Math.round(Math.min(vh - realY, realH)),
                   score: Math.round(maxScore * 100),
-                  label: personScore >= faceScore ? 'Khách thuê (YOLO26 Web SOTA)' : 'Khuôn mặt (YOLO26 Web SOTA)'
+                  label: bestClass === 1 ? 'Khuôn mặt (YOLO Web AI)' : 'Khách thuê (YOLO Web AI)'
                 });
               }
             }
