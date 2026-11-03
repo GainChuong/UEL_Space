@@ -43,9 +43,9 @@ try:
     finetuned_path = os.path.join(root_dir, "runs", "train", "yolo26_smartclass_occupancy", "weights", "best.pt")
 
     det_candidates = [
-        os.environ.get("YOLO_MODEL_PATH"),
-        finetuned_path,
         os.path.join(script_dir, "best.pt"),
+        finetuned_path,
+        os.environ.get("YOLO_MODEL_PATH"),
         os.path.join(script_dir, "yolo26n.pt"),
         os.path.join(os.getcwd(), "yolo26n.pt"),
         "yolo26n.pt"
@@ -56,9 +56,9 @@ try:
             det_path = p
             break
 
-    logger.info(f"Loading YOLO26 Detection model from: {det_path}...")
+    logger.info(f"Loading YOLO11-IndoorCrowd Detection model from: {det_path}...")
     yolo_model = YOLO(det_path)
-    logger.info(f"YOLO26 Detection model ({os.path.basename(det_path)}) initialized successfully!")
+    logger.info(f"YOLO11 Detection model ({os.path.basename(det_path)}) initialized successfully!")
 
     # Pure YOLO26 Pose Estimation Model (yolo26n-pose.pt)
     pose_candidates = [
@@ -177,9 +177,14 @@ def detect_occupancy(req: DetectRequest):
                 bw = min(float(img_w), x2) - bx
                 bh = min(float(img_h), y2) - by
 
-                if bw > 8 and bh > 8:
+                if bw > 12 and bh > 16:
+                    ar = bw / bh
+                    if ar > 2.2 and score < 0.45:
+                        continue  # Bỏ qua vệt chữ ngang hoặc sàn phẳng
+                    if ar < 0.12:
+                        continue  # Bỏ qua đường kẻ hoặc sợi dây
                     is_lying = bw > (bh * 1.15)
-                    label = "Khách thuê (Tư thế nằm)" if is_lying else "Khách thuê (YOLO26 SOTA)"
+                    label = "Khách thuê (Tư thế nằm)" if is_lying else "Khách thuê (YOLO11 • Indoor Crowd)"
                     candidates.append({
                         "box": [bx, by, bw, bh],
                         "score": score,
@@ -309,7 +314,7 @@ def detect_occupancy(req: DetectRequest):
         elapsed_ms = round((time.time() - start_time) * 1000, 1)
         avg_conf = round(float(np.mean(confidences)) * 100, 1) if confidences else 0.0
 
-        model_desc = "YOLO26 Dual-Head AI (Detection + Pose SOTA)"
+        model_desc = "YOLO11-IndoorCrowd Server AI (Python Native)"
         device_str = str(yolo_model.device) if yolo_model else "CPU"
 
         return DetectResponse(

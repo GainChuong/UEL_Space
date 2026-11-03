@@ -137,6 +137,10 @@ export class SellerDashboard implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.stopCamera();
     this.stopOccupancyDetection();
+    if (this.occAiHealthTimer) {
+      clearInterval(this.occAiHealthTimer);
+      this.occAiHealthTimer = null;
+    }
   }
 
   server_images_link = SERVER_IMAGES_LINK;
@@ -317,9 +321,11 @@ export class SellerDashboard implements OnInit, OnDestroy {
   occEngineMode: 'server' | 'client' = 'server';
   occServerStatus: 'online' | 'offline' | 'checking' = 'checking';
   occServerLatencyMs: number = 0;
+  occLocalAiDirect: boolean = false;
   private occServerFailCount: number = 0;
   private occServerCooldownUntil: number = 0;
   private occServerOfflineNotified: boolean = false;
+  private occAiHealthTimer: any = null;
   private offscreenCanvas: HTMLCanvasElement | null = null;
 
   // Mobile CCTV Node (Điện thoại làm Camera AI qua WebRTC P2P)
@@ -1030,8 +1036,14 @@ export class SellerDashboard implements OnInit, OnDestroy {
     this.initFaceDetector();
     // Tự động tải trước model YOLO11-IndoorCrowd ONNX / COCO Web
     this.loadOccupancyModel().catch(() => {});
-    // Kiểm tra Server AI YOLO11-IndoorCrowd (Option B)
+    // Kiểm tra Server AI YOLO11-IndoorCrowd (Ưu tiên Backend khi bật)
     this.checkServerAiHealth();
+    // Tự động quét tìm Backend Server định kỳ mỗi 8s để tự phục hồi sang Server mode khi bật backend
+    if (!this.occAiHealthTimer) {
+      this.occAiHealthTimer = setInterval(() => {
+        this.checkServerAiHealth().catch(() => {});
+      }, 8000);
+    }
     // Đồng bộ dữ liệu Live từ MongoDB Atlas
     this.loadSpacesFromApi();
     this.loadBookingsFromApi();
@@ -2398,7 +2410,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
 
   setOccEngineMode(mode: 'server'): void {
     this.occEngineMode = 'server';
-    this.occModelName = 'YOLO11-IndoorCrowd Server AI (Pure Vision)';
+    this.occModelName = 'YOLO11-IndoorCrowd Server AI (Đang kết nối...)';
     this.checkServerAiHealth();
     this.cdr.detectChanges();
   }
@@ -2406,7 +2418,30 @@ export class SellerDashboard implements OnInit, OnDestroy {
   async checkServerAiHealth(): Promise<boolean> {
     try {
       this.occServerStatus = 'checking';
-      const res = await fetch(`${SERVER_BASE_URL}/api/occupancy/ai-health`, { signal: AbortSignal.timeout(3500) });
+
+      // 1. ƯU TIÊN SỐ 1: Thử ping trực tiếp Python AI Microservice trên port 5001 (Localhost Direct)
+      try {
+        const directRes = await fetch('http://127.0.0.1:5001/health', { signal: AbortSignal.timeout(1200) });
+        if (directRes.ok) {
+          const directHealth = await directRes.json().catch(() => null);
+          if (directHealth && directHealth.ready) {
+            this.occLocalAiDirect = true;
+            this.occServerStatus = 'online';
+            this.occServerFailCount = 0;
+            this.occServerCooldownUntil = 0;
+            this.occServerOfflineNotified = false;
+            this.occEngineMode = 'server';
+            this.occModelName = 'YOLO11-IndoorCrowd Server AI (Python Native • Port 5001)';
+            this.cdr.detectChanges();
+            return true;
+          }
+        }
+      } catch {}
+
+      this.occLocalAiDirect = false;
+
+      // 2. Thử qua backend API proxy (Express server hoặc Hugging Face)
+      const res = await fetch(`${SERVER_BASE_URL}/api/occupancy/ai-health`, { signal: AbortSignal.timeout(3000) });
       if (res.ok) {
         const health = await res.json().catch(() => null);
         if (health && health.ready) {
@@ -2414,9 +2449,9 @@ export class SellerDashboard implements OnInit, OnDestroy {
           this.occServerFailCount = 0;
           this.occServerCooldownUntil = 0;
           this.occServerOfflineNotified = false;
-          if (this.occEngineMode === 'server') {
-            this.occModelName = 'YOLO11-IndoorCrowd Server AI (Sẵn sàng)';
-          }
+          this.occEngineMode = 'server';
+          this.occModelName = `YOLO11-IndoorCrowd Server AI (${health.device || 'Online'})`;
+          this.cdr.detectChanges();
           return true;
         }
       }
@@ -2433,6 +2468,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
   private markServerAiOffline(): void {
     this.occServerStatus = 'offline';
     this.occServerLatencyMs = 0;
+    this.occLocalAiDirect = false;
     // Tự động chuyển engine mode sang 'client' để kích hoạt trực tiếp YOLO11 ONNX Web Engine
     if (this.occEngineMode === 'server') {
       this.occEngineMode = 'client';
@@ -2448,7 +2484,8 @@ export class SellerDashboard implements OnInit, OnDestroy {
   private handleServerYoloFailure(): void {
     this.occServerFailCount++;
     this.occServerStatus = 'offline';
-    this.occServerCooldownUntil = performance.now() + 60000; // Cooldown 60s để không spam console
+    this.occLocalAiDirect = false;
+    this.occServerCooldownUntil = performance.now() + 15000; // Cooldown 15s để thử lại, chuyển sang client ngay
     this.markServerAiOffline();
     if (!this.occYoloOnnxSession && !this.occCocoModel && !this.occModelLoading) {
       this.loadOccupancyModel().catch(() => {});
@@ -2476,10 +2513,11 @@ export class SellerDashboard implements OnInit, OnDestroy {
       const vh = videoEl.videoHeight;
       if (!vw || !vh) return null;
 
-      // Ưu tiên kiểm tra xem local AI service trên cổng 5001 có sẵn không (nếu người dùng đang chạy máy nội bộ)
-      // Nếu không, gọi qua endpoint của SERVER_BASE_URL
-      const isLocalHost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-      let targetApiUrl = `${SERVER_BASE_URL}/api/occupancy/detect-server`;
+      // Ưu tiên kết nối trực tiếp Python AI Microservice trên cổng 5001 (độ trễ ~15ms)
+      // Nếu không khả dụng, gọi qua endpoint proxy của Express server
+      const targetApiUrl = this.occLocalAiDirect
+        ? 'http://127.0.0.1:5001/detect'
+        : `${SERVER_BASE_URL}/api/occupancy/detect-server`;
 
       // Chuẩn hóa kích thước khung hình gửi lên Server (max width 640px)
       // Tối ưu dung lượng <35KB, truyền tải siêu tốc qua mạng 4G/WiFi cho mọi điện thoại và laptop
@@ -2505,12 +2543,12 @@ export class SellerDashboard implements OnInit, OnDestroy {
         body: JSON.stringify({
           image: base64Image,
           confidenceThreshold: this.occConfidenceThreshold,
-          iouThreshold: 0.60,
+          iouThreshold: 0.45,
           spaceId: this.occSelectedSpace?.id || 'general',
           spaceName: this.occSelectedSpace?.name || 'UEL Space Room'
         }),
-        // Timeout 4s: đủ cho lần suy luận đầu tiên mà không chặn quá lâu
-        signal: AbortSignal.timeout(4000)
+        // Timeout 2s để không bao giờ làm khựng camera nếu mạng chập chờn
+        signal: AbortSignal.timeout(2000)
       });
 
       if (!res.ok) {
@@ -2527,7 +2565,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       this.resetServerYoloHealth();
       this.occEngineMode = 'server';
       this.occServerLatencyMs = Math.round(performance.now() - t0);
-      this.occModelName = `${data.modelName || 'YOLO11-IndoorCrowd AI'} (${data.processingTimeMs}ms • ${data.device ? data.device.toUpperCase() : 'CPU'})`;
+      this.occModelName = `${data.modelName || 'YOLO11-IndoorCrowd Server AI'} (${data.processingTimeMs}ms • ${data.device ? data.device.toUpperCase() : 'CPU'})`;
 
       const boxes: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
       if (Array.isArray(data.boxes)) {
