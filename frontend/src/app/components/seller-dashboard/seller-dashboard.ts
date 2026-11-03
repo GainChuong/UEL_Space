@@ -322,6 +322,9 @@ export class SellerDashboard implements OnInit, OnDestroy {
   occServerStatus: 'online' | 'offline' | 'checking' = 'checking';
   occServerLatencyMs: number = 0;
   occLocalAiDirect: boolean = false;
+  customServerAiUrl: string = typeof localStorage !== 'undefined' ? (localStorage.getItem('uel_custom_ai_url') || '') : '';
+  tempCustomAiUrl: string = '';
+  showCustomAiUrlModal: boolean = false;
   private occServerFailCount: number = 0;
   private occServerCooldownUntil: number = 0;
   private occServerOfflineNotified: boolean = false;
@@ -2415,11 +2418,67 @@ export class SellerDashboard implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  openCustomAiModal(): void {
+    this.tempCustomAiUrl = this.customServerAiUrl;
+    this.showCustomAiUrlModal = true;
+  }
+
+  saveCustomAiUrl(): void {
+    let url = (this.tempCustomAiUrl || '').trim();
+    if (url.endsWith('/')) {
+      url = url.slice(0, -1);
+    }
+    this.customServerAiUrl = url;
+    if (typeof localStorage !== 'undefined') {
+      if (url) {
+        localStorage.setItem('uel_custom_ai_url', url);
+      } else {
+        localStorage.removeItem('uel_custom_ai_url');
+      }
+    }
+    this.showCustomAiUrlModal = false;
+    this.checkServerAiHealth();
+  }
+
+  clearCustomAiUrl(): void {
+    this.customServerAiUrl = '';
+    this.tempCustomAiUrl = '';
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('uel_custom_ai_url');
+    }
+    this.showCustomAiUrlModal = false;
+    this.checkServerAiHealth();
+  }
+
   async checkServerAiHealth(): Promise<boolean> {
     try {
       this.occServerStatus = 'checking';
 
-      // 1. ƯU TIÊN SỐ 1: Chỉ ping direct port 5001 nếu đang chạy HTTP trên localhost/desktop (tránh Mixed Content trên HTTPS)
+      // 0. ƯU TIÊN HÀNG ĐẦU: Custom Remote AI URL (Tunnel HTTPS như localtunnel / cloudflared)
+      if (this.customServerAiUrl) {
+        try {
+          const tunnelRes = await fetch(`${this.customServerAiUrl}/health`, {
+            headers: { 'Bypass-Tunnel-Reminder': 'true' },
+            signal: AbortSignal.timeout(3000)
+          });
+          if (tunnelRes.ok) {
+            const tunnelHealth = await tunnelRes.json().catch(() => null);
+            if (tunnelHealth && tunnelHealth.ready) {
+              this.occLocalAiDirect = false;
+              this.occServerStatus = 'online';
+              this.occServerFailCount = 0;
+              this.occServerCooldownUntil = 0;
+              this.occServerOfflineNotified = false;
+              this.occEngineMode = 'server';
+              this.occModelName = `YOLO11 Server AI (${tunnelHealth.device || 'Remote GPU'})`;
+              this.cdr.detectChanges();
+              return true;
+            }
+          }
+        } catch {}
+      }
+
+      // 1. Chỉ ping direct port 5001 nếu đang chạy HTTP trên localhost/desktop (tránh Mixed Content trên HTTPS)
       const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
       const isLocalHost = typeof window !== 'undefined' && (
         window.location.hostname === 'localhost' ||
@@ -2527,11 +2586,15 @@ export class SellerDashboard implements OnInit, OnDestroy {
       const vh = videoEl.videoHeight;
       if (!vw || !vh) return null;
 
-      // Ưu tiên kết nối trực tiếp Python AI Microservice trên cổng 5001 (độ trễ ~15ms)
-      // Nếu không khả dụng, gọi qua endpoint proxy của Express server
-      const targetApiUrl = this.occLocalAiDirect
-        ? 'http://127.0.0.1:5001/detect'
-        : `${SERVER_BASE_URL}/api/occupancy/detect-server`;
+      // Ưu tiên: Custom Tunnel URL > Direct Localhost Port 5001 > Express Server Proxy
+      let targetApiUrl = '';
+      if (this.customServerAiUrl) {
+        targetApiUrl = `${this.customServerAiUrl}/detect`;
+      } else if (this.occLocalAiDirect) {
+        targetApiUrl = 'http://127.0.0.1:5001/detect';
+      } else {
+        targetApiUrl = `${SERVER_BASE_URL}/api/occupancy/detect-server`;
+      }
 
       // Chuẩn hóa kích thước khung hình gửi lên Server (max width 512px)
       // Tối ưu dung lượng <18KB, truyền tải siêu tốc qua mạng 4G/WiFi cho mọi điện thoại và laptop
@@ -2553,7 +2616,10 @@ export class SellerDashboard implements OnInit, OnDestroy {
       const t0 = performance.now();
       const res = await fetch(targetApiUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Bypass-Tunnel-Reminder': 'true'
+        },
         body: JSON.stringify({
           image: base64Image,
           confidenceThreshold: this.occConfidenceThreshold,
@@ -2561,8 +2627,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
           spaceId: this.occSelectedSpace?.id || 'general',
           spaceName: this.occSelectedSpace?.name || 'UEL Space Room'
         }),
-        // Timeout 2s để không bao giờ làm khựng camera nếu mạng chập chờn
-        signal: AbortSignal.timeout(2000)
+        signal: AbortSignal.timeout(2500)
       });
 
       if (!res.ok) {
