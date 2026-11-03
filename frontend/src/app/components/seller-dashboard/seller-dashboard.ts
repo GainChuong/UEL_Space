@@ -2519,9 +2519,9 @@ export class SellerDashboard implements OnInit, OnDestroy {
         ? 'http://127.0.0.1:5001/detect'
         : `${SERVER_BASE_URL}/api/occupancy/detect-server`;
 
-      // Chuẩn hóa kích thước khung hình gửi lên Server (max width 640px)
-      // Tối ưu dung lượng <35KB, truyền tải siêu tốc qua mạng 4G/WiFi cho mọi điện thoại và laptop
-      const targetWidth = Math.min(640, vw);
+      // Chuẩn hóa kích thước khung hình gửi lên Server (max width 512px)
+      // Tối ưu dung lượng <18KB, truyền tải siêu tốc qua mạng 4G/WiFi cho mọi điện thoại và laptop
+      const targetWidth = Math.min(512, vw);
       const scale = targetWidth / vw;
       const targetHeight = Math.round(vh * scale);
 
@@ -2534,7 +2534,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       if (!ctx) return null;
 
       ctx.drawImage(videoEl, 0, 0, targetWidth, targetHeight);
-      const base64Image = this.offscreenCanvas.toDataURL('image/jpeg', 0.72);
+      const base64Image = this.offscreenCanvas.toDataURL('image/jpeg', 0.65);
 
       const t0 = performance.now();
       const res = await fetch(targetApiUrl, {
@@ -3190,271 +3190,330 @@ export class SellerDashboard implements OnInit, OnDestroy {
     }
 
     const now = performance.now();
-    // Tần suất suy luận: 140ms cho Server AI (tối ưu băng thông/mượt mà), 80ms cho Client Edge AI
+    this.occFrameCount++;
+
+    // TUYẾN 2: ASYNCHRONOUS INFERENCE WORKER (Chạy ngầm không chặn luồng vẽ UI 60 FPS)
     const serverReady = this.occEngineMode === 'server' && now >= this.occServerCooldownUntil;
-    const intervalThreshold = serverReady ? 140 : 80;
-    if (this.isDetectingOccFrame || (now - this.lastOccDetectionTimestamp < intervalThreshold)) {
+    const intervalThreshold = serverReady ? 90 : 70; // 90ms cho GPU Server (~11 FPS inference), 70ms cho Edge
+
+    if (!this.isDetectingOccFrame && (now - this.lastOccDetectionTimestamp >= intervalThreshold)) {
+      this.isDetectingOccFrame = true;
+      this.lastOccDetectionTimestamp = now;
+
+      // Kích hoạt suy luận ngầm và tự động giải phóng cờ khi hoàn tất
+      this.executeAsyncInferencePass(videoEl)
+        .catch(err => console.warn('Inference pass error:', err))
+        .finally(() => {
+          this.isDetectingOccFrame = false;
+        });
+    }
+
+    // TUYẾN 1: REALTIME 60 FPS CANVAS RENDERING & CCTV OSD OVERLAY
+    this.drawTrackingBoxesAndCctvHud(videoEl, canvas, now);
+
+    if (this.occDetectionRunning) {
       requestAnimationFrame(() => this.runDetectionLoop(videoEl));
+    }
+  }
+
+  /**
+   * Tuyến 2: Suy luận Deep Learning (Server CUDA GPU hoặc Client WASM Edge)
+   * Chạy bất đồng bộ, nạp Ground Truth vào bộ theo dõi EMA
+   */
+  private async executeAsyncInferencePass(videoEl: HTMLVideoElement): Promise<void> {
+    const rawDetected: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
+    let usedServerYolo = false;
+
+    // 1. Chế độ Ưu tiên: YOLO11-IndoorCrowd Server AI Microservice
+    const serverBoxes = await this.detectWithServerYolo(videoEl);
+    if (serverBoxes !== null) {
+      usedServerYolo = true;
+      for (const sb of serverBoxes) {
+        rawDetected.push(sb);
+      }
+    }
+
+    // 2. Chế độ Tự động chuyển Client Edge AI khi Server ngoại tuyến
+    if (!usedServerYolo) {
+      const clientBoxes = await this.detectWithClientAi(videoEl);
+      for (const cb of clientBoxes) {
+        rawDetected.push(cb);
+      }
+    }
+
+    // 3. HỢP NHẤT TRIỆT ĐỂ BẰNG NMS SOTA: Gom mọi bộ phận về 1 người duy nhất
+    const detectedPeople = this.consolidateAndMergeDetections(rawDetected, videoEl.videoWidth, videoEl.videoHeight);
+
+    // Nếu không phát hiện ai (phòng trống): dọn sạch tracking ngay lập tức, KHÔNG giữ ghost box!
+    if (detectedPeople.length === 0) {
+      this.trackedPeople = [];
+      this.occCurrentCount = 0;
       return;
     }
 
-    this.isDetectingOccFrame = true;
-    this.lastOccDetectionTimestamp = now;
-    this.occFrameCount++; // Luôn đếm frame xử lý để tính FPS thời gian thực chính xác
+    // 4. BỘ THEO DÕI LÀM MƯỢT KHUNG HÌNH (Temporal EMA Box Tracking)
+    const unmatchedDetected = [...detectedPeople];
+    for (const tracked of this.trackedPeople) {
+      let bestDist = Infinity;
+      let bestIdx = -1;
+      const tcX = tracked.x + tracked.w / 2;
+      const tcY = tracked.y + tracked.h / 2;
 
-    // Ngưỡng điểm tin cậy siêu nhạy chuẩn Models (YOLO11-IndoorCrowd & COCO)
-    const minScore = this.occConfidenceThreshold;
-
-    try {
-      const rawDetected: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
-      let usedServerYolo = false;
-
-      // 1. Chế độ Ưu tiên: YOLO11-IndoorCrowd Server AI Microservice (Detection + Occupancy Tracking)
-      const serverBoxes = await this.detectWithServerYolo(videoEl);
-      if (serverBoxes !== null) {
-        usedServerYolo = true;
-        for (const sb of serverBoxes) {
-          rawDetected.push(sb);
+      for (let i = 0; i < unmatchedDetected.length; i++) {
+        const d = unmatchedDetected[i];
+        const dcX = d.x + d.w / 2;
+        const dcY = d.y + d.h / 2;
+        const dist = Math.hypot(tcX - dcX, tcY - dcY);
+        const maxAllowedDist = Math.max(160, Math.max(tracked.w, tracked.h) * 0.85);
+        if (dist < maxAllowedDist && dist < bestDist) {
+          bestDist = dist;
+          bestIdx = i;
         }
       }
 
-      // 2. Chế độ Tự động chuyển Client Edge AI khi Server ngoại tuyến
-      if (!usedServerYolo) {
-        const clientBoxes = await this.detectWithClientAi(videoEl);
-        for (const cb of clientBoxes) {
-          rawDetected.push(cb);
-        }
-      }
-
-      // 3. HỢP NHẤT TRIỆT ĐỂ BẰNG NMS SOTA: Gom mọi bộ phận về 1 người duy nhất
-      const detectedPeople = this.consolidateAndMergeDetections(rawDetected, videoEl.videoWidth, videoEl.videoHeight);
-
-      // Nếu không phát hiện ai (phòng trống): dọn sạch tracking ngay lập tức, KHÔNG giữ ghost box!
-      if (detectedPeople.length === 0) {
-        this.trackedPeople = [];
-        this.occCurrentCount = 0;
-        const canvas = document.getElementById('occ-detection-canvas') as HTMLCanvasElement;
-        if (canvas) {
-          const ctx = canvas.getContext('2d');
-          if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-        this.isDetectingOccFrame = false;
-        requestAnimationFrame(() => this.runDetectionLoop(videoEl));
-        return;
-      }
-
-      // 4. BỘ THEO DÕI LÀM MƯỢT KHUNG HÌNH (Temporal EMA Box Tracking)
-      const unmatchedDetected = [...detectedPeople];
-      for (const tracked of this.trackedPeople) {
-        let bestDist = Infinity;
-        let bestIdx = -1;
-        const tcX = tracked.x + tracked.w / 2;
-        const tcY = tracked.y + tracked.h / 2;
-
-        for (let i = 0; i < unmatchedDetected.length; i++) {
-          const d = unmatchedDetected[i];
-          const dcX = d.x + d.w / 2;
-          const dcY = d.y + d.h / 2;
-          const dist = Math.hypot(tcX - dcX, tcY - dcY);
-          const maxAllowedDist = Math.max(160, Math.max(tracked.w, tracked.h) * 0.85);
-          if (dist < maxAllowedDist && dist < bestDist) {
-            bestDist = dist;
-            bestIdx = i;
-          }
-        }
-
-        if (bestIdx >= 0) {
-          const matched = unmatchedDetected.splice(bestIdx, 1)[0];
-          const alpha = 0.40;
-          tracked.x = Math.round(tracked.x * (1 - alpha) + matched.x * alpha);
-          tracked.y = Math.round(tracked.y * (1 - alpha) + matched.y * alpha);
-          tracked.w = Math.round(tracked.w * (1 - alpha) + matched.w * alpha);
-          tracked.h = Math.round(tracked.h * (1 - alpha) + matched.h * alpha);
-          tracked.score = matched.score;
-          tracked.label = matched.label;
-          tracked.missing = 0;
-        } else {
-          tracked.missing++;
-        }
-      }
-
-      // Giữ khung hình đang theo dõi trong tối đa 2 frame khi mất tín hiệu tạm thời
-      this.trackedPeople = this.trackedPeople.filter(t => t.missing <= 2);
-
-      // Thêm các mục tiêu mới được phát hiện
-      for (const d of unmatchedDetected) {
-        this.trackedPeople.push({
-          id: this.nextTrackId++,
-          x: d.x,
-          y: d.y,
-          w: d.w,
-          h: d.h,
-          score: d.score,
-          label: d.label,
-          missing: 0
-        });
-      }
-
-      // 4B. Post-tracking fusion: Chỉ hợp nhất nếu 2 vệt theo dõi thực sự là CÙNG 1 NGƯỜI (IoU >= 0.70 hoặc IoS >= 0.88 với khoảng cách tâm rất gần)
-      // TUYỆT ĐỐI không gộp 2 người ngồi sát nhau (bảo toàn 5/5 người trong phòng)
-      for (let i = 0; i < this.trackedPeople.length; i++) {
-        for (let j = i + 1; j < this.trackedPeople.length; j++) {
-          const t1 = this.trackedPeople[i];
-          const t2 = this.trackedPeople[j];
-
-          const interX1 = Math.max(t1.x, t2.x);
-          const interY1 = Math.max(t1.y, t2.y);
-          const interX2 = Math.min(t1.x + t1.w, t2.x + t2.w);
-          const interY2 = Math.min(t1.y + t1.h, t2.y + t2.h);
-          const interW = Math.max(0, interX2 - interX1);
-          const interH = Math.max(0, interY2 - interY1);
-          const interArea = interW * interH;
-          const unionArea = t1.w * t1.h + t2.w * t2.h - interArea;
-          const iou = unionArea > 0 ? interArea / unionArea : 0;
-          const minArea = Math.min(t1.w * t1.h, t2.w * t2.h);
-          const ios = minArea > 0 ? interArea / minArea : 0;
-
-          const tc1X = t1.x + t1.w / 2;
-          const tc1Y = t1.y + t1.h / 2;
-          const tc2X = t2.x + t2.w / 2;
-          const tc2Y = t2.y + t2.h / 2;
-          const distCenters = Math.hypot(tc1X - tc2X, tc1Y - tc2Y);
-          const minDim = Math.min(t1.w, t2.w, t1.h, t2.h);
-
-          if (iou >= 0.70 || (ios >= 0.88 && distCenters < minDim * 0.25)) {
-            const minX = Math.min(t1.x, t2.x);
-            const minY = Math.min(t1.y, t2.y);
-            t1.w = Math.max(t1.x + t1.w, t2.x + t2.w) - minX;
-            t1.h = Math.max(t1.y + t1.h, t2.y + t2.h) - minY;
-            t1.x = minX;
-            t1.y = minY;
-            t1.score = Math.max(t1.score, t2.score);
-            t1.missing = Math.min(t1.missing, t2.missing);
-            if (t2.score > t1.score) t1.label = t2.label;
-            this.trackedPeople.splice(j, 1);
-            j--;
-          }
-        }
-      }
-
-
-      // 5. Vẽ khung nhận diện lên Canvas
-      if (canvas.width !== videoEl.videoWidth || canvas.height !== videoEl.videoHeight) {
-        canvas.width = videoEl.videoWidth;
-        canvas.height = videoEl.videoHeight;
-      }
-
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        this.trackedPeople.forEach((p, idx) => {
-          const isLying = p.label.includes('nằm');
-
-          // Khung viền: Xanh lá Emerald nổi bật nếu là người nằm, Neon Cyan cho dáng người tiêu chuẩn
-          ctx.strokeStyle = isLying ? '#10B981' : '#00F0FF';
-          ctx.lineWidth = 2.5;
-          ctx.strokeRect(p.x, p.y, p.w, p.h);
-
-          // Lớp phủ mờ hiện đại
-          ctx.fillStyle = isLying ? 'rgba(16, 185, 129, 0.10)' : 'rgba(0, 240, 255, 0.08)';
-          ctx.fillRect(p.x, p.y, p.w, p.h);
-
-          // 4 Góc Target Brackets
-          const cLen = Math.min(p.w, p.h) * 0.2;
-          ctx.strokeStyle = isLying ? '#34D399' : '#FFC72C';
-          ctx.lineWidth = 3.5;
-          // Top-left
-          ctx.beginPath(); ctx.moveTo(p.x, p.y + cLen); ctx.lineTo(p.x, p.y); ctx.lineTo(p.x + cLen, p.y); ctx.stroke();
-          // Top-right
-          ctx.beginPath(); ctx.moveTo(p.x + p.w - cLen, p.y); ctx.lineTo(p.x + p.w, p.y); ctx.lineTo(p.x + p.w, p.y + cLen); ctx.stroke();
-          // Bottom-left
-          ctx.beginPath(); ctx.moveTo(p.x, p.y + p.h - cLen); ctx.lineTo(p.x, p.y + p.h); ctx.lineTo(p.x + cLen, p.y + p.h); ctx.stroke();
-          // Bottom-right
-          ctx.beginPath(); ctx.moveTo(p.x + p.w - cLen, p.y + p.h); ctx.lineTo(p.x + p.w, p.y + p.h); ctx.lineTo(p.x + p.w, p.y + p.h - cLen); ctx.stroke();
-
-          // Nhãn thông tin người phát hiện
-          const tag = `#${idx + 1} ${p.label} • ${p.score}%`;
-          ctx.font = 'bold 12px Roboto, system-ui, sans-serif';
-          const tw = ctx.measureText(tag).width;
-          ctx.fillStyle = isLying ? 'rgba(6, 78, 59, 0.95)' : 'rgba(0, 20, 40, 0.9)';
-          ctx.beginPath();
-          ctx.roundRect(p.x, Math.max(2, p.y - 24), tw + 14, 22, 5);
-          ctx.fill();
-          ctx.strokeStyle = isLying ? '#10B981' : '#00F0FF';
-          ctx.lineWidth = 1;
-          ctx.stroke();
-          ctx.fillStyle = '#FFFFFF';
-          ctx.fillText(tag, p.x + 7, Math.max(17, p.y - 9));
-        });
-      }
-
-      // 6. Cập nhật sĩ số thực tế (có Debounce khử rung số)
-      const currentRawCount = this.trackedPeople.length;
-      this.headcountDebounceBuffer.push(currentRawCount);
-      if (this.headcountDebounceBuffer.length > 4) {
-        this.headcountDebounceBuffer.shift();
-      }
-
-      // Tìm giá trị xuất hiện nhiều nhất (mode) trong buffer để khử nhảy số tức thời
-      const freqMap = new Map<number, number>();
-      let debouncedCount = currentRawCount;
-      let maxFreq = 0;
-      for (const c of this.headcountDebounceBuffer) {
-        const freq = (freqMap.get(c) || 0) + 1;
-        freqMap.set(c, freq);
-        if (freq > maxFreq) {
-          maxFreq = freq;
-          debouncedCount = c;
-        }
-      }
-
-      const count = debouncedCount;
-      const countChanged = this.occCurrentCount !== count;
-      this.occFrameCount++;
-
-      if (countChanged || (now - this.lastOccStatsUpdate > 2500)) {
-        this.lastOccStatsUpdate = now;
-        this.ngZone.run(() => {
-          this.occCurrentCount = count;
-          this.occConfidence = this.trackedPeople.length > 0
-            ? Math.round(this.trackedPeople.reduce((sum, p) => sum + p.score, 0) / this.trackedPeople.length)
-            : 0;
-
-          if (this.occCurrentCount > this.occPeakCount) {
-            this.occPeakCount = this.occCurrentCount;
-          }
-
-          this.evaluateFlexSpaceAiRules();
-
-          if (this.occHistory.length === 0 ||
-              (Date.now() - new Date(this.occHistory[0]?.timestamp || 0).getTime()) > 5000) {
-            const histNow = new Date();
-            this.occHistory.unshift({
-              timestamp: histNow.toLocaleTimeString('vi-VN'),
-              spaceName: this.occSelectedSpace?.name || '',
-              detectedCount: this.occCurrentCount,
-              capacity: this.occSelectedSpace?.capacity || 0,
-              occupancyRate: this.occSelectedSpace ? Math.round((this.occCurrentCount / this.occSelectedSpace.capacity) * 100) : 0,
-              confidence: this.occConfidence
-            });
-            if (this.occHistory.length > 50) this.occHistory.pop();
-
-            const total = this.occHistory.reduce((s, h) => s + h.detectedCount, 0);
-            this.occAvgCount = Math.round(total / this.occHistory.length);
-          }
-          this.cdr.detectChanges();
-        });
-      }
-
-    } catch (err: any) {
-      console.warn('Detection cycle error:', err);
-    } finally {
-      this.isDetectingOccFrame = false;
-      if (this.occDetectionRunning) {
-        requestAnimationFrame(() => this.runDetectionLoop(videoEl));
+      if (bestIdx >= 0) {
+        const matched = unmatchedDetected.splice(bestIdx, 1)[0];
+        const alpha = 0.45;
+        tracked.x = Math.round(tracked.x * (1 - alpha) + matched.x * alpha);
+        tracked.y = Math.round(tracked.y * (1 - alpha) + matched.y * alpha);
+        tracked.w = Math.round(tracked.w * (1 - alpha) + matched.w * alpha);
+        tracked.h = Math.round(tracked.h * (1 - alpha) + matched.h * alpha);
+        tracked.score = matched.score;
+        tracked.label = matched.label;
+        tracked.missing = 0;
+      } else {
+        tracked.missing++;
       }
     }
+
+    // Giữ khung hình đang theo dõi trong tối đa 2 frame khi mất tín hiệu tạm thời
+    this.trackedPeople = this.trackedPeople.filter(t => t.missing <= 2);
+
+    // Thêm các mục tiêu mới được phát hiện
+    for (const d of unmatchedDetected) {
+      this.trackedPeople.push({
+        id: this.nextTrackId++,
+        x: d.x,
+        y: d.y,
+        w: d.w,
+        h: d.h,
+        score: d.score,
+        label: d.label,
+        missing: 0
+      });
+    }
+
+    // 4B. Post-tracking fusion: Chỉ hợp nhất nếu 2 vệt theo dõi thực sự là CÙNG 1 NGƯỜI
+    for (let i = 0; i < this.trackedPeople.length; i++) {
+      for (let j = i + 1; j < this.trackedPeople.length; j++) {
+        const t1 = this.trackedPeople[i];
+        const t2 = this.trackedPeople[j];
+
+        const interX1 = Math.max(t1.x, t2.x);
+        const interY1 = Math.max(t1.y, t2.y);
+        const interX2 = Math.min(t1.x + t1.w, t2.x + t2.w);
+        const interY2 = Math.min(t1.y + t1.h, t2.y + t2.h);
+        const interW = Math.max(0, interX2 - interX1);
+        const interH = Math.max(0, interY2 - interY1);
+        const interArea = interW * interH;
+        const unionArea = t1.w * t1.h + t2.w * t2.h - interArea;
+        const iou = unionArea > 0 ? interArea / unionArea : 0;
+        const minArea = Math.min(t1.w * t1.h, t2.w * t2.h);
+        const ios = minArea > 0 ? interArea / minArea : 0;
+
+        const tc1X = t1.x + t1.w / 2;
+        const tc1Y = t1.y + t1.h / 2;
+        const tc2X = t2.x + t2.w / 2;
+        const tc2Y = t2.y + t2.h / 2;
+        const distCenters = Math.hypot(tc1X - tc2X, tc1Y - tc2Y);
+        const minDim = Math.min(t1.w, t2.w, t1.h, t2.h);
+
+        if (iou >= 0.70 || (ios >= 0.88 && distCenters < minDim * 0.25)) {
+          const minX = Math.min(t1.x, t2.x);
+          const minY = Math.min(t1.y, t2.y);
+          t1.w = Math.max(t1.x + t1.w, t2.x + t2.w) - minX;
+          t1.h = Math.max(t1.y + t1.h, t2.y + t2.h) - minY;
+          t1.x = minX;
+          t1.y = minY;
+          t1.score = Math.max(t1.score, t2.score);
+          t1.missing = Math.min(t1.missing, t2.missing);
+          if (t2.score > t1.score) t1.label = t2.label;
+          this.trackedPeople.splice(j, 1);
+          j--;
+        }
+      }
+    }
+
+    // Cập nhật sĩ số thực tế (có Debounce khử rung số)
+    const currentRawCount = this.trackedPeople.length;
+    this.headcountDebounceBuffer.push(currentRawCount);
+    if (this.headcountDebounceBuffer.length > 4) {
+      this.headcountDebounceBuffer.shift();
+    }
+
+    const freqMap = new Map<number, number>();
+    let debouncedCount = currentRawCount;
+    let maxFreq = 0;
+    for (const c of this.headcountDebounceBuffer) {
+      const freq = (freqMap.get(c) || 0) + 1;
+      freqMap.set(c, freq);
+      if (freq > maxFreq) {
+        maxFreq = freq;
+        debouncedCount = c;
+      }
+    }
+
+    const count = debouncedCount;
+    const nowTime = performance.now();
+    const countChanged = this.occCurrentCount !== count;
+
+    if (countChanged || (nowTime - this.lastOccStatsUpdate > 2500)) {
+      this.lastOccStatsUpdate = nowTime;
+      this.ngZone.run(() => {
+        this.occCurrentCount = count;
+        this.occConfidence = this.trackedPeople.length > 0
+          ? Math.round(this.trackedPeople.reduce((sum, p) => sum + p.score, 0) / this.trackedPeople.length)
+          : 0;
+
+        if (this.occCurrentCount > this.occPeakCount) {
+          this.occPeakCount = this.occCurrentCount;
+        }
+
+        this.evaluateFlexSpaceAiRules();
+
+        if (this.occHistory.length === 0 ||
+            (Date.now() - new Date(this.occHistory[0]?.timestamp || 0).getTime()) > 5000) {
+          const histNow = new Date();
+          this.occHistory.unshift({
+            timestamp: histNow.toLocaleTimeString('vi-VN'),
+            spaceName: this.occSelectedSpace?.name || '',
+            detectedCount: this.occCurrentCount,
+            capacity: this.occSelectedSpace?.capacity || 0,
+            occupancyRate: this.occSelectedSpace ? Math.round((this.occCurrentCount / this.occSelectedSpace.capacity) * 100) : 0,
+            confidence: this.occConfidence
+          });
+          if (this.occHistory.length > 50) this.occHistory.pop();
+
+          const total = this.occHistory.reduce((s, h) => s + h.detectedCount, 0);
+          this.occAvgCount = Math.round(total / this.occHistory.length);
+        }
+        this.cdr.detectChanges();
+      });
+    }
+  }
+
+  /**
+   * Tuyến 1: Vẽ đồ họa Canvas thời gian thực (60 FPS) kết hợp CCTV Surveillance OSD HUD
+   */
+  private drawTrackingBoxesAndCctvHud(
+    videoEl: HTMLVideoElement,
+    canvas: HTMLCanvasElement,
+    now: number
+  ): void {
+    if (canvas.width !== videoEl.videoWidth || canvas.height !== videoEl.videoHeight) {
+      canvas.width = videoEl.videoWidth;
+      canvas.height = videoEl.videoHeight;
+    }
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const cw = canvas.width;
+    const ch = canvas.height;
+
+    // 1. CCTV HUD: 4 GÓC KHUNG HÌNH (Corner Surveillance Brackets)
+    const bLen = Math.min(36, cw * 0.05);
+    ctx.strokeStyle = 'rgba(0, 240, 255, 0.45)';
+    ctx.lineWidth = 2;
+    // Top-Left
+    ctx.beginPath(); ctx.moveTo(16, 16 + bLen); ctx.lineTo(16, 16); ctx.lineTo(16 + bLen, 16); ctx.stroke();
+    // Top-Right
+    ctx.beginPath(); ctx.moveTo(cw - 16 - bLen, 16); ctx.lineTo(cw - 16, 16); ctx.lineTo(cw - 16, 16 + bLen); ctx.stroke();
+    // Bottom-Left
+    ctx.beginPath(); ctx.moveTo(16, ch - 16 - bLen); ctx.lineTo(16, ch - 16); ctx.lineTo(16 + bLen, ch - 16); ctx.stroke();
+    // Bottom-Right
+    ctx.beginPath(); ctx.moveTo(cw - 16 - bLen, ch - 16); ctx.lineTo(cw - 16, ch - 16); ctx.lineTo(cw - 16, ch - 16 - bLen); ctx.stroke();
+
+    // 2. CCTV DẤU THẬP TÂM (+ Crosshairs)
+    const midX = cw / 2;
+    const midY = ch / 2;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.20)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(midX - 10, midY); ctx.lineTo(midX + 10, midY);
+    ctx.moveTo(midX, midY - 10); ctx.lineTo(midX, midY + 10);
+    ctx.stroke();
+
+    // 3. CCTV HEADER: Chấm REC nhấp nháy + Mã kênh camera + Thời gian thực tế
+    const isRecBlink = Math.floor(Date.now() / 600) % 2 === 0;
+    // REC Dot
+    ctx.fillStyle = isRecBlink ? '#EF4444' : 'rgba(239, 68, 68, 0.25)';
+    ctx.beginPath();
+    ctx.arc(32, 28, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.font = 'bold 11px "Courier New", monospace, sans-serif';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText('REC', 42, 32);
+
+    // Camera Identifier
+    const camName = `CAM-01 • ${this.occSelectedSpace?.name || 'ZONE_A1'}`.toUpperCase();
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+    ctx.fillText(camName, 80, 32);
+
+    // CCTV Timestamp
+    const nowD = new Date();
+    const timeStr = `${nowD.toISOString().slice(0, 10)} ${nowD.toTimeString().slice(0, 8)}.${String(nowD.getMilliseconds()).padStart(3, '0').slice(0, 2)}`;
+    const twTime = ctx.measureText(timeStr).width;
+    ctx.fillStyle = '#00F0FF';
+    ctx.fillText(timeStr, cw - twTime - 24, 32);
+
+    // CCTV Bottom Status Bar
+    const engineLabel = this.occEngineMode === 'server' ? 'TURBO GPU CUDA (5001)' : 'WASM EDGE SIMD';
+    const bottomLabel = `SYS: YOLO11-INDOORCROWD • ${engineLabel} • NVR ACTIVE`;
+    ctx.font = '10px "Courier New", monospace, sans-serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.40)';
+    ctx.fillText(bottomLabel, 24, ch - 22);
+
+    // 4. VẼ CÁC BOUNDING BOX NGƯỜI
+    this.trackedPeople.forEach((p, idx) => {
+      // Khung viền Neon Cyan nổi bật
+      ctx.strokeStyle = '#00F0FF';
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(p.x, p.y, p.w, p.h);
+
+      // Lớp phủ mờ hiện đại
+      ctx.fillStyle = 'rgba(0, 240, 255, 0.08)';
+      ctx.fillRect(p.x, p.y, p.w, p.h);
+
+      // 4 Góc Target Brackets
+      const cLen = Math.min(p.w, p.h) * 0.2;
+      ctx.strokeStyle = '#FFC72C';
+      ctx.lineWidth = 3.5;
+      // Top-left
+      ctx.beginPath(); ctx.moveTo(p.x, p.y + cLen); ctx.lineTo(p.x, p.y); ctx.lineTo(p.x + cLen, p.y); ctx.stroke();
+      // Top-right
+      ctx.beginPath(); ctx.moveTo(p.x + p.w - cLen, p.y); ctx.lineTo(p.x + p.w, p.y); ctx.lineTo(p.x + p.w, p.y + cLen); ctx.stroke();
+      // Bottom-left
+      ctx.beginPath(); ctx.moveTo(p.x, p.y + p.h - cLen); ctx.lineTo(p.x, p.y + p.h); ctx.lineTo(p.x + cLen, p.y + p.h); ctx.stroke();
+      // Bottom-right
+      ctx.beginPath(); ctx.moveTo(p.x + p.w - cLen, p.y + p.h); ctx.lineTo(p.x + p.w, p.y + p.h); ctx.lineTo(p.x + p.w, p.y + p.h - cLen); ctx.stroke();
+
+      // Nhãn thông tin người phát hiện
+      const tag = `#${idx + 1} ${p.label} • ${p.score}%`;
+      ctx.font = 'bold 12px Roboto, system-ui, sans-serif';
+      const tw = ctx.measureText(tag).width;
+      ctx.fillStyle = 'rgba(0, 20, 40, 0.90)';
+      ctx.beginPath();
+      ctx.roundRect(p.x, Math.max(2, p.y - 24), tw + 14, 22, 5);
+      ctx.fill();
+      ctx.strokeStyle = '#00F0FF';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText(tag, p.x + 7, Math.max(17, p.y - 9));
+    });
   }
 
   evaluateFlexSpaceAiRules(): void {

@@ -333,8 +333,10 @@ function ensureYoloAiService() {
         console.warn('Không mở được file log YOLO service:', err.message);
       }
 
+      const venvPy = path.join(__dirname, '..', '.venv', 'Scripts', 'python.exe');
       const pyCandidates = process.platform === 'win32'
   ? [
+      venvPy,
       'C:\\Users\\legal\\AppData\\Local\\Programs\\Python\\Python313\\python.exe',
       'py',
       'python3',
