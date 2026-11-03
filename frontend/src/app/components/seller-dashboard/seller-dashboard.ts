@@ -295,7 +295,8 @@ export class SellerDashboard implements OnInit, OnDestroy {
   occModelLoading: boolean = false;
   occModelError: string = '';
   occModelName: string = 'YOLO11-IndoorCrowd Server AI (Sẵn sàng)';
-  occSensitivity: 'high' | 'normal' | 'strict' = 'high';
+  occConfidenceThreshold: number = 0.23;
+  occSensitivity: 'high' | 'normal' | 'strict' = 'normal';
   occCameraActive: boolean = false;
   occStartingCamera: boolean = false;
   occVideoStream: MediaStream | null = null;
@@ -2503,7 +2504,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image: base64Image,
-          confidenceThreshold: this.occSensitivity === 'high' ? 0.12 : (this.occSensitivity === 'normal' ? 0.16 : 0.22),
+          confidenceThreshold: this.occConfidenceThreshold,
           iouThreshold: 0.60,
           spaceId: this.occSelectedSpace?.id || 'general',
           spaceName: this.occSelectedSpace?.name || 'UEL Space Room'
@@ -2550,8 +2551,27 @@ export class SellerDashboard implements OnInit, OnDestroy {
 
   setOccSensitivity(level: 'high' | 'normal' | 'strict'): void {
     this.occSensitivity = level;
-    const label = level === 'high' ? 'Siêu nhạy (Webcam / Gần)' : (level === 'normal' ? 'Tiêu chuẩn' : 'Nghiêm ngặt');
+    if (level === 'high') {
+      this.occConfidenceThreshold = 0.15;
+    } else if (level === 'normal') {
+      this.occConfidenceThreshold = 0.23;
+    } else {
+      this.occConfidenceThreshold = 0.35;
+    }
+    const label = level === 'high' ? 'Siêu nhạy (0.15)' : (level === 'normal' ? 'Chuẩn tối ưu (0.23)' : 'Nghiêm ngặt (0.35)');
     this.showToast(`${this.i18n.t('Đã chuyển độ nhạy AI:')} ${label}`, 'info');
+  }
+
+  onOccConfidenceSliderChange(event: Event): void {
+    const val = Number((event.target as HTMLInputElement).value);
+    this.occConfidenceThreshold = Math.round(val * 100) / 100;
+    if (this.occConfidenceThreshold <= 0.16) {
+      this.occSensitivity = 'high';
+    } else if (this.occConfidenceThreshold <= 0.28) {
+      this.occSensitivity = 'normal';
+    } else {
+      this.occSensitivity = 'strict';
+    }
   }
 
   async loadOccupancyModel(): Promise<void> {
@@ -2927,7 +2947,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
     const vh = videoEl.videoHeight;
     if (!vw || !vh) return detected;
 
-    const minScore = this.occSensitivity === 'high' ? 0.20 : (this.occSensitivity === 'normal' ? 0.35 : 0.50);
+    const minScore = this.occConfidenceThreshold;
 
     // 1. ƯU TIÊN SỐ 1: Chạy trực tiếp YOLO11-IndoorCrowd ONNX Web Engine
     if (this.occYoloOnnxSession) {
@@ -3120,7 +3140,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
     this.occFrameCount++; // Luôn đếm frame xử lý để tính FPS thời gian thực chính xác
 
     // Ngưỡng điểm tin cậy siêu nhạy chuẩn Models (YOLO11-IndoorCrowd & COCO)
-    const minScore = this.occSensitivity === 'high' ? 0.12 : (this.occSensitivity === 'normal' ? 0.16 : 0.22);
+    const minScore = this.occConfidenceThreshold;
 
     try {
       const rawDetected: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];

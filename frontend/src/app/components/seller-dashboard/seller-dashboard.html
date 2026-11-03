@@ -1714,24 +1714,43 @@
 
 
 
-                  <!-- Sensitivity Selector -->
-                  <div class="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-[11px]">
-                    <span class="px-1 text-slate-500 font-semibold hidden md:inline">{{ 'Độ nhạy:' | t }}</span>
-                    <button type="button" (click)="setOccSensitivity('high')" 
-                            [class]="occSensitivity === 'high' ? 'bg-uel-blue dark:bg-sky-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
-                            class="px-2 py-0.5 rounded-lg transition-all cursor-pointer font-bold">
-                      {{ 'Siêu nhạy' | t }}
-                    </button>
-                    <button type="button" (click)="setOccSensitivity('normal')" 
-                            [class]="occSensitivity === 'normal' ? 'bg-uel-blue dark:bg-sky-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
-                            class="px-2 py-0.5 rounded-lg transition-all cursor-pointer font-bold">
-                      {{ 'Tiêu chuẩn' | t }}
-                    </button>
-                    <button type="button" (click)="setOccSensitivity('strict')" 
-                            [class]="occSensitivity === 'strict' ? 'bg-uel-blue dark:bg-sky-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
-                            class="px-2 py-0.5 rounded-lg transition-all cursor-pointer font-bold">
-                      {{ 'Nghiêm ngặt' | t }}
-                    </button>
+                  <!-- Sensitivity Slider & Selector -->
+                  <div class="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-700 text-[11px]">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-slate-500 font-semibold">{{ 'Độ nhạy AI:' | t }}</span>
+                      <span class="px-1.5 py-0.2 rounded font-black bg-uel-blue/10 dark:bg-sky-500/20 text-uel-blue dark:text-sky-400 font-mono text-[11px]">
+                        {{ occConfidenceThreshold }}
+                      </span>
+                    </div>
+
+                    <input type="range" 
+                           min="0.08" 
+                           max="0.60" 
+                           step="0.01" 
+                           [value]="occConfidenceThreshold" 
+                           (input)="onOccConfidenceSliderChange($event)"
+                           class="w-20 md:w-28 accent-uel-blue dark:accent-sky-400 cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg">
+
+                    <div class="hidden sm:inline-flex items-center gap-1 border-l border-slate-200 dark:border-slate-700 pl-1.5">
+                      <button type="button" (click)="setOccSensitivity('high')" 
+                              [class]="occSensitivity === 'high' ? 'bg-uel-blue dark:bg-sky-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+                              class="px-1.5 py-0.5 rounded-md transition-all cursor-pointer font-bold text-[10px]"
+                              title="Ngưỡng nhạy 0.15 - Phù hợp phòng bị che khuất / ngồi xa">
+                        {{ 'Siêu nhạy' | t }}
+                      </button>
+                      <button type="button" (click)="setOccSensitivity('normal')" 
+                              [class]="occSensitivity === 'normal' ? 'bg-uel-blue dark:bg-sky-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+                              class="px-1.5 py-0.5 rounded-md transition-all cursor-pointer font-bold text-[10px]"
+                              title="Ngưỡng chuẩn tối ưu 0.23 (F1=0.824)">
+                        {{ 'Chuẩn 0.23' | t }}
+                      </button>
+                      <button type="button" (click)="setOccSensitivity('strict')" 
+                              [class]="occSensitivity === 'strict' ? 'bg-uel-blue dark:bg-sky-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+                              class="px-1.5 py-0.5 rounded-md transition-all cursor-pointer font-bold text-[10px]"
+                              title="Ngưỡng nghiêm ngặt 0.35">
+                        {{ 'Nghiêm ngặt' | t }}
+                      </button>
+                    </div>
                   </div>
 
                   @if (occCameraActive) {
