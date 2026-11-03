@@ -295,7 +295,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
   occModelLoading: boolean = false;
   occModelError: string = '';
   occModelName: string = 'YOLO11-IndoorCrowd Server AI (Sẵn sàng)';
-  occConfidenceThreshold: number = 0.23;
+  occConfidenceThreshold: number = 0.28;
   occSensitivity: 'high' | 'normal' | 'strict' = 'normal';
   occCameraActive: boolean = false;
   occStartingCamera: boolean = false;
@@ -2552,22 +2552,22 @@ export class SellerDashboard implements OnInit, OnDestroy {
   setOccSensitivity(level: 'high' | 'normal' | 'strict'): void {
     this.occSensitivity = level;
     if (level === 'high') {
-      this.occConfidenceThreshold = 0.15;
+      this.occConfidenceThreshold = 0.20;
     } else if (level === 'normal') {
-      this.occConfidenceThreshold = 0.23;
+      this.occConfidenceThreshold = 0.28;
     } else {
-      this.occConfidenceThreshold = 0.35;
+      this.occConfidenceThreshold = 0.38;
     }
-    const label = level === 'high' ? 'Siêu nhạy (0.15)' : (level === 'normal' ? 'Chuẩn tối ưu (0.23)' : 'Nghiêm ngặt (0.35)');
+    const label = level === 'high' ? 'Siêu nhạy (0.20)' : (level === 'normal' ? 'Chuẩn tối ưu (0.28)' : 'Nghiêm ngặt (0.38)');
     this.showToast(`${this.i18n.t('Đã chuyển độ nhạy AI:')} ${label}`, 'info');
   }
 
   onOccConfidenceSliderChange(event: Event): void {
     const val = Number((event.target as HTMLInputElement).value);
     this.occConfidenceThreshold = Math.round(val * 100) / 100;
-    if (this.occConfidenceThreshold <= 0.16) {
+    if (this.occConfidenceThreshold <= 0.22) {
       this.occSensitivity = 'high';
-    } else if (this.occConfidenceThreshold <= 0.28) {
+    } else if (this.occConfidenceThreshold <= 0.32) {
       this.occSensitivity = 'normal';
     } else {
       this.occSensitivity = 'strict';
@@ -2992,6 +2992,8 @@ export class SellerDashboard implements OnInit, OnDestroy {
             const scaleX = vw / targetSize;
             const scaleY = vh / targetSize;
 
+            const rawCandidates: Array<{ x: number; y: number; w: number; h: number; score: number }> = [];
+
             for (let a = 0; a < numAnchors; a++) {
               let maxScore = 0;
               let bestClass = 0;
@@ -3002,7 +3004,6 @@ export class SellerDashboard implements OnInit, OnDestroy {
                 bestClass = 0;
               } else {
                 // Model COCO 80 classes: class 0 là 'person'
-                // Chỉ theo dõi class 0 (người) để loại trừ toàn bộ đồ vật khác
                 const personScore = outData[4 * numAnchors + a];
                 maxScore = personScore;
                 bestClass = 0;
@@ -3019,15 +3020,56 @@ export class SellerDashboard implements OnInit, OnDestroy {
                 const realW = w * scaleX;
                 const realH = h * scaleY;
 
-                detected.push({
+                // Lọc nhiễu hình học cơ bản: loại bỏ vệt chữ ngang (YouTube banner) hoặc đường chỉ quá mảnh
+                if (realW < 14 || realH < 18) continue;
+                const ar = realW / realH;
+                if (ar > 2.2 && maxScore < 0.45) continue; // Dòng chữ ngang hoặc sàn phẳng
+                if (ar < 0.12) continue; // Sợi dây hoặc cạnh tường quá hẹp
+
+                rawCandidates.push({
                   x: Math.round(Math.max(0, realX)),
                   y: Math.round(Math.max(0, realY)),
                   w: Math.round(Math.min(vw - realX, realW)),
                   h: Math.round(Math.min(vh - realY, realH)),
-                  score: Math.round(maxScore * 100),
-                  label: 'Khách thuê (YOLO11 • Indoor Crowd)'
+                  score: Math.round(maxScore * 100)
                 });
               }
+            }
+
+            // Áp dụng Standard NMS nội bộ (IoU = 0.45) để khử triệt để việc 1 người hoặc 1 thùng hàng bị 3-5 anchors cùng đè lên
+            rawCandidates.sort((a, b) => b.score - a.score);
+            const nmsYolo: typeof rawCandidates = [];
+            for (const cand of rawCandidates) {
+              let keep = true;
+              for (const kept of nmsYolo) {
+                const interX1 = Math.max(cand.x, kept.x);
+                const interY1 = Math.max(cand.y, kept.y);
+                const interX2 = Math.min(cand.x + cand.w, kept.x + kept.w);
+                const interY2 = Math.min(cand.y + cand.h, kept.y + kept.h);
+                const interW = Math.max(0, interX2 - interX1);
+                const interH = Math.max(0, interY2 - interY1);
+                const interArea = interW * interH;
+                const unionArea = cand.w * cand.h + kept.w * kept.h - interArea;
+                const iou = unionArea > 0 ? interArea / unionArea : 0;
+                if (iou > 0.45) {
+                  keep = false;
+                  break;
+                }
+              }
+              if (keep) {
+                nmsYolo.push(cand);
+              }
+            }
+
+            for (const box of nmsYolo) {
+              detected.push({
+                x: box.x,
+                y: box.y,
+                w: box.w,
+                h: box.h,
+                score: box.score,
+                label: 'Khách thuê (YOLO11 • Indoor Crowd)'
+              });
             }
           }
         }
