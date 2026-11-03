@@ -141,6 +141,89 @@ def compute_iou(boxA, boxB):
 
     return interArea / unionArea if unionArea > 0 else 0.0
 
+def compute_ios(boxA, boxB):
+    """Intersection over Smaller (Độ bao bọc của box nhỏ trong box lớn)"""
+    xA = max(boxA[0], boxB[0])
+    yA = max(boxA[1], boxB[1])
+    xB = min(boxA[0] + boxA[2], boxB[0] + boxB[2])
+    yB = min(boxA[1] + boxA[3], boxB[1] + boxB[3])
+
+    interW = max(0.0, xB - xA)
+    interH = max(0.0, yB - yA)
+    interArea = interW * interH
+
+    areaA = boxA[2] * boxA[3]
+    areaB = boxB[2] * boxB[3]
+    minArea = min(areaA, areaB)
+
+    return interArea / minArea if minArea > 0 else 0.0
+
+def merge_and_suppress_subboxes(candidates: List[dict], iou_thresh: float = 0.45, max_aspect_ratio: float = 2.6) -> List[dict]:
+    """
+    Thuật toán NMS Giải phẫu Hình học Cơ thể Người SOTA:
+    1. Lọc hiện tượng box con (đầu/thân/áo) lồng trong box người lớn (IoS >= 0.50).
+    2. Gộp hiện tượng Xếp chồng trục dọc (Vertical Column Merging: Đầu nằm trên Thân).
+    3. Chặn trần tỷ lệ nhân trắc học H/W <= 2.6 để tuyệt đối không gộp 2 người trước-sau.
+    """
+    if len(candidates) <= 1:
+        return candidates
+
+    # Sắp xếp ứng viên theo điểm tin cậy giảm dần
+    sorted_cands = sorted(candidates, key=lambda c: c["score"], reverse=True)
+    merged: List[dict] = []
+
+    for cand in sorted_cands:
+        b = cand["box"]  # [x, y, w, h]
+        score = cand["score"]
+        is_subpart = False
+
+        for m in merged:
+            mb = m["box"]
+
+            iou = compute_iou(b, mb)
+            ios = compute_ios(b, mb)
+
+            # Tính tâm ngang trục X
+            center_b_x = b[0] + b[2] / 2.0
+            center_m_x = mb[0] + mb[2] / 2.0
+            x_dist = abs(center_b_x - center_m_x)
+            min_width = min(b[2], mb[2])
+
+            # Cùng dải cột dọc X (độ lệch trục X < 45% bề ngang)
+            is_same_column = x_dist < min_width * 0.45
+
+            # Hộp bao ngoài giả định nếu hợp nhất
+            union_x1 = min(b[0], mb[0])
+            union_y1 = min(b[1], mb[1])
+            union_x2 = max(b[0] + b[2], mb[0] + mb[2])
+            union_y2 = max(b[1] + b[3], mb[1] + mb[3])
+            union_w = union_x2 - union_x1
+            union_h = union_y2 - union_y1
+            union_ar = union_h / max(1.0, union_w)
+
+            # Quy tắc 1: IoS >= 50% (Box nhỏ là mảnh vỡ lọt lòng trong box lớn) hoặc IoU >= iou_thresh
+            if iou >= iou_thresh or ios >= 0.50:
+                is_subpart = True
+                m["box"] = [union_x1, union_y1, union_w, union_h]
+                m["score"] = max(m["score"], score)
+                break
+
+            # Quy tắc 2: Xếp chồng trục dọc (Đầu nằm ngay trên Thân trên cùng 1 người)
+            y_overlap = min(b[1] + b[3], mb[1] + mb[3]) - max(b[1], mb[1])
+            y_gap = max(b[1], mb[1]) - min(b[1] + b[3], mb[1] + mb[3])
+
+            if is_same_column and (y_overlap > 0 or y_gap < min(b[3], mb[3]) * 0.35):
+                if union_ar <= max_aspect_ratio:
+                    is_subpart = True
+                    m["box"] = [union_x1, union_y1, union_w, union_h]
+                    m["score"] = max(m["score"], score)
+                    break
+
+        if not is_subpart:
+            merged.append(dict(cand))
+
+    return merged
+
 @app.post("/detect", response_model=DetectResponse)
 def detect_occupancy(req: DetectRequest):
     if not yolo_model:
@@ -200,18 +283,8 @@ def detect_occupancy(req: DetectRequest):
                     "label": "Khách thuê (YOLO11 • Indoor Crowd)"
                 })
 
-        # Greedy NMS deduplication
-        raw_candidates.sort(key=lambda c: c["score"], reverse=True)
-        final_boxes: List[dict] = []
-        for cand in raw_candidates:
-            c_box = cand["box"]
-            is_dup = False
-            for fb in final_boxes:
-                if compute_iou(c_box, fb["box"]) >= iou_thresh:
-                    is_dup = True
-                    break
-            if not is_dup:
-                final_boxes.append(cand)
+        # Áp dụng bộ lọc NMS Hình học Giải phẫu & Chống vỡ mảnh box
+        final_boxes = merge_and_suppress_subboxes(raw_candidates, iou_thresh=iou_thresh, max_aspect_ratio=2.6)
 
         detected_boxes: List[BoundingBox] = []
         confidences = []

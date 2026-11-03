@@ -2821,6 +2821,13 @@ export class SellerDashboard implements OnInit, OnDestroy {
    * 2. Chỉ gộp Face AI vào Body nếu tâm khuôn mặt thực sự nằm trong nửa trên của Body box.
    * 3. Giữ nguyên vẹn mọi tư thế nằm, cúi, tựa lưng hoặc che khuất đầu.
    */
+  /**
+   * Bộ lọc Hợp nhất & Chống vỡ mảnh Bounding Box SOTA (Ensemble Option 1 + Option 2):
+   * 1. Khóa mỏ neo sinh học: Dùng khuôn mặt phần cứng (FaceDetector) để gom mọi box thân/áo về 1 người.
+   * 2. Lưới bọc hình học giải phẫu (IoS >= 50%): Tự động nuốt các mảnh vỡ lọt lòng trong box lớn.
+   * 3. Xếp chồng trục dọc (Vertical Stacking): Hợp nhất đầu và thân nếu cùng cột dọc X và H/W <= 2.6.
+   * 4. Tuyệt đối không gộp 2 người trước-sau nhờ chặn trần nhân trắc học H/W <= 2.6.
+   */
   private consolidateAndMergeDetections(
     boxes: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }>,
     vw: number,
@@ -2828,8 +2835,8 @@ export class SellerDashboard implements OnInit, OnDestroy {
   ): Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> {
     if (boxes.length <= 1) return boxes;
 
-    // Lọc bỏ box quá nhỏ (nhiễu pixel dưới 8px)
-    const validBoxes = boxes.filter(b => b.w >= 8 && b.h >= 8);
+    // Lọc bỏ box quá nhỏ (nhiễu pixel dưới 10px)
+    const validBoxes = boxes.filter(b => b.w >= 10 && b.h >= 12);
     if (validBoxes.length <= 1) return validBoxes;
 
     // Sắp xếp theo điểm tin cậy giảm dần
@@ -2838,10 +2845,12 @@ export class SellerDashboard implements OnInit, OnDestroy {
     const merged: typeof validBoxes = [];
 
     for (const b of validBoxes) {
-      let isDuplicate = false;
+      let isSubpart = false;
 
-      for (const m of merged) {
-        // Tính diện tích giao nhau (Intersection)
+      for (let i = 0; i < merged.length; i++) {
+        const m = merged[i];
+
+        // Tính giao điểm
         const interX1 = Math.max(b.x, m.x);
         const interY1 = Math.max(b.y, m.y);
         const interX2 = Math.min(b.x + b.w, m.x + m.w);
@@ -2850,21 +2859,30 @@ export class SellerDashboard implements OnInit, OnDestroy {
         const interH = Math.max(0, interY2 - interY1);
         const interArea = interW * interH;
 
-        const area1 = b.w * b.h;
-        const area2 = m.w * m.h;
-        const unionArea = area1 + area2 - interArea;
+        const areaB = b.w * b.h;
+        const areaM = m.w * m.h;
+        const unionArea = areaB + areaM - interArea;
         const iou = unionArea > 0 ? interArea / unionArea : 0;
-        const minArea = Math.min(area1, area2);
+        const minArea = Math.min(areaB, areaM);
         const ios = minArea > 0 ? interArea / minArea : 0;
 
-        const c1X = b.x + b.w / 2;
-        const c1Y = b.y + b.h / 2;
-        const c2X = m.x + m.w / 2;
-        const c2Y = m.y + m.h / 2;
-        const distCenters = Math.hypot(c1X - c2X, c1Y - c2Y);
-        const minDim = Math.min(b.w, m.w, b.h, m.h);
+        // Tính tâm ngang và khoảng cách cột dọc
+        const centerBX = b.x + b.w / 2;
+        const centerMX = m.x + m.w / 2;
+        const xDist = Math.abs(centerBX - centerMX);
+        const minW = Math.min(b.w, m.w);
+        const isSameColumn = xDist < minW * 0.45;
 
-        // Trường hợp 1: Face AI trùng lặp với Body box
+        // Khung bao ngoài giả định nếu hợp nhất 2 box
+        const unionX1 = Math.min(b.x, m.x);
+        const unionY1 = Math.min(b.y, m.y);
+        const unionX2 = Math.max(b.x + b.w, m.x + m.w);
+        const unionY2 = Math.max(b.y + b.h, m.y + m.h);
+        const unionW = unionX2 - unionX1;
+        const unionH = unionY2 - unionY1;
+        const unionAr = unionH / Math.max(1, unionW);
+
+        // Quy tắc 1 (Option 2): Neo khuôn mặt (Face AI trùng lặp hoặc nằm trong/trên Body box)
         const isFaceAndBody = (b.label.includes('Face') && !m.label.includes('Face')) || 
                               (m.label.includes('Face') && !b.label.includes('Face'));
         if (isFaceAndBody) {
@@ -2872,27 +2890,48 @@ export class SellerDashboard implements OnInit, OnDestroy {
           const body = b.label.includes('Face') ? m : b;
           const fCenterX = face.x + face.w / 2;
           const fCenterY = face.y + face.h / 2;
-          if (fCenterX >= body.x - 15 && fCenterX <= body.x + body.w + 15 &&
-              fCenterY >= body.y - 15 && fCenterY <= body.y + body.h * 0.65) {
-            isDuplicate = true;
+          if (fCenterX >= body.x - 25 && fCenterX <= body.x + body.w + 25 &&
+              fCenterY >= body.y - 25 && fCenterY <= body.y + body.h * 0.75) {
+            isSubpart = true;
+            m.x = unionX1;
+            m.y = unionY1;
+            m.w = unionW;
+            m.h = unionH;
             m.score = Math.max(m.score, b.score);
+            m.label = 'Khách thuê (YOLO11 • Indoor Crowd)';
             break;
           }
         }
 
-        // Trường hợp 2: Trùng lặp rất cao (cùng 1 người được detect lặp)
-        // Nâng IoU lên 0.65 để TUYỆT ĐỐI KHÔNG gộp nhầm 2 người ngồi sát nhau
-        if (iou >= 0.65 || (ios >= 0.85 && distCenters < minDim * 0.30)) {
-          isDuplicate = true;
-          if (b.score > m.score) {
-            m.score = b.score;
-            m.label = b.label;
-          }
+        // Quy tắc 2 (Option 1): IoS >= 50% hoặc IoU >= 0.45 (Box con lọt lòng trong box lớn)
+        if (iou >= 0.45 || ios >= 0.50) {
+          isSubpart = true;
+          m.x = unionX1;
+          m.y = unionY1;
+          m.w = unionW;
+          m.h = unionH;
+          m.score = Math.max(m.score, b.score);
           break;
+        }
+
+        // Quy tắc 3 (Option 1): Xếp chồng trục dọc (Đầu nằm ngay trên Thân trên cùng 1 người)
+        const yOverlap = Math.min(b.y + b.h, m.y + m.h) - Math.max(b.y, m.y);
+        const yGap = Math.max(b.y, m.y) - Math.min(b.y + b.h, m.y + m.h);
+        if (isSameColumn && (yOverlap > 0 || yGap < Math.min(b.h, m.h) * 0.35)) {
+          // Chặn trần nhân trắc học: Tỷ lệ H/W <= 2.6 để không gộp nhầm 2 người trước-sau
+          if (unionAr <= 2.6) {
+            isSubpart = true;
+            m.x = unionX1;
+            m.y = unionY1;
+            m.w = unionW;
+            m.h = unionH;
+            m.score = Math.max(m.score, b.score);
+            break;
+          }
         }
       }
 
-      if (!isDuplicate) {
+      if (!isSubpart) {
         merged.push({ ...b });
       }
     }
@@ -3352,6 +3391,26 @@ export class SellerDashboard implements OnInit, OnDestroy {
       for (const cb of clientBoxes) {
         rawDetected.push(cb);
       }
+    }
+
+    // 2.1 Bổ sung Mỏ neo Khuôn mặt phần cứng (Hardware FaceDetector API) làm Anchor sinh học
+    if (this.faceDetector && videoEl.videoWidth > 0) {
+      try {
+        const faces = await this.faceDetector.detect(videoEl);
+        if (faces && faces.length > 0) {
+          for (const f of faces) {
+            const fb = f.boundingBox;
+            rawDetected.push({
+              x: Math.round(fb.x),
+              y: Math.round(fb.y),
+              w: Math.round(fb.width),
+              h: Math.round(fb.height),
+              score: 95,
+              label: 'Face'
+            });
+          }
+        }
+      } catch {}
     }
 
     // 3. HỢP NHẤT TRIỆT ĐỂ BẰNG NMS SOTA: Gom mọi bộ phận về 1 người duy nhất
