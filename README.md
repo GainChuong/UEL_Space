@@ -28,10 +28,14 @@
 **UEL Space** là **Đồ án Giải pháp Trí tuệ Nhân tạo toàn diện (Full-Stack AI Solution)** ứng dụng trong lĩnh vực quản trị mặt bằng và sàn thương mại điện tử cho thuê không gian thông minh (Smart Space Rental Marketplace). Dự án giải quyết triệt để bài toán lãng phí công suất phòng (40–50% diện tích bỏ trống ngoài giờ cao điểm) và tự động hóa quy trình giám sát hiện diện mà không cần sự can thiệp thủ công của con người.
 
 ### 🧠 Hai Trụ Cột Công Nghệ AI Cốt Lõi:
-1. **Thị giác Máy tính Đa tầng (Dual-Head Computer Vision & Pose AI):**
-   * **YOLOv11 Detection + YOLOv11 Pose (17 Keypoints):** Chạy song song trên Python FastAPI Microservice, nhận diện chính xác số lượng người trong phòng, bắt trọn các tư thế phức tạp mà mô hình Object Detection thông thường bỏ sót (người nằm sofa/thảm, cúi gục che khuất đầu).
-   * **Thuật toán Anti-Crowding NMS ($IoU \ge 0.65$):** Loại bỏ quy tắc gộp tâm ngang $\Delta X / \Delta Y$, bảo toàn nguyên vẹn 5/5 người ngồi san sát nhau trong phòng họp nhóm, không bị lỗi gộp 5 người thành 3 người.
-   * **AI Hybrid Fallback:** Tự động kích hoạt Client Edge AI (TensorFlow.js) trên trình duyệt khi mất kết nối máy chủ AI, đảm bảo giám sát 24/7.
+1. **Thị giác Máy tính Hiện diện Thông minh (YOLO11-IndoorCrowd Computer Vision AI):**
+   * **Mô hình chính thức YOLO11-IndoorCrowd:** Được huấn luyện chuyên sâu (Fine-tuned 20 epochs) trên tập dữ liệu đám đông trong nhà, giảng đường và không gian làm việc chia sẻ (`IndoorCrowd`). Mô hình được tối ưu hóa xuất khẩu sang định dạng ONNX Runtime Web (WASM SIMD) chạy trực tiếp 100% trên trình duyệt Client Edge mà không bắt buộc có card đồ họa đắt tiền.
+   * **Đánh giá Thực nghiệm & Ngưỡng Tối ưu ($F_1$-Confidence Curve):** Trải qua thực nghiệm benchmark trên tập dữ liệu kiểm thử thực tế:
+     * **Ngưỡng cân bằng tối ưu toàn cục:** $\text{conf} = 0.23$ đạt chỉ số $F_1 = 0.824$, sai số đếm trung bình $\text{MAE} = 3.22$ người/khung hình.
+     * **Ngưỡng siêu nhạy (High-Recall Occlusion Mode):** $\text{conf} = 0.15$ ($F_1 = 0.811$) giúp bắt trọn sinh viên/khách thuê bị che khuất một phần sau bàn ghế, vách ngăn cubicle hoặc ngồi xa camera.
+   * **Thuật toán Anti-Crowding NMS ($IoU \ge 0.65$):** Bảo toàn nguyên vẹn $11/11$ người ngồi san sát nhau trong không gian hẹp, không bị lỗi gộp người sai lệch.
+   * **Cơ chế Phụ Phí Quá Giờ Tự Động (Overtime Surcharge Policy):** Tích hợp quy tắc tự động tính tiền: khi khách thuê hết giờ mà chưa bấm checkout và Computer Vision AI phát hiện vẫn còn người trong phòng, hệ thống tự động áp dụng công thức phụ phí theo block 30 phút dựa trên chính sách công khai của từng gian hàng.
+   * **Kiến trúc Chịu lỗi Hybrid:** Chạy ưu tiên Client Edge WASM ONNX $\leftrightarrow$ Server Microservice FastAPI (NVIDIA GPU / Hugging Face Spaces) $\leftrightarrow$ COCO-SSD fallback.
 2. **Trợ lý Ngôn ngữ Tự nhiên & Đặt phòng 1 chạm (Conversational AI & Context-RAG):**
    * **Lõi Google Gemini Flash:** Tiếp nhận yêu cầu tự nhiên tiếng Việt, bóc tách thực thể (sức chứa, giá tiền, trang thiết bị, thời gian).
    * **Context-RAG thời gian thực:** Truy xuất dữ liệu phòng trực tiếp từ MongoDB Atlas nạp vào ngữ cảnh để tư vấn chính xác 100%.
@@ -71,7 +75,7 @@ Hệ thống Seller Center bao gồm trọn bộ **8 tab nghiệp vụ hoàn ch�
 | **5. Không gian & Bảng giá niêm yết** | F25–F30 | Lưới thẻ không gian cho thuê thương mại: Quản lý giá giờ/ngày, sức chứa, thời gian hủy tự động, danh mục trang thiết bị và công tắc bật/tắt chế độ bảo trì (`MAINTENANCE`). |
 | **6. Khách thuê & Nhân viên gian hàng** | F31–F33 | Bảng quản lý danh mục tài khoản đối tác: Phân cấp vai trò rõ ràng giữa Chủ Gian Hàng (`Host`), Nhân viên Vận hành và Khách thuê Space; quản lý trạng thái tài khoản (*Hoạt động* / *Tạm khóa*). |
 | **7. Lịch sử Giao dịch & Nhật ký (Audit Logs)** | F34 | Ghi nhận toàn bộ vết kiểm toán hệ thống bất biến (Immutable Audit Trail): `APPROVE_BOOKING`, `AUTO_CHECKOUT_TRIGGERED`, `SPACE_MAINTENANCE_LOCK`, `USER_ROLE_UPDATED` kèm Actor, Timestamp và Severity Level. |
-| **8. Giám sát Sĩ số Dual-Head AI & Anti-Crowding NMS** | F38 | • **Dual-Head Ensemble AI:** Chạy song song `YOLOv11 Detection` (nhận diện người tổng quát) và `YOLOv11 Pose` (nhận diện 17 khớp xương Keypoints), bắt trọn các tư thế khó như người nằm trên sofa/thảm hoặc cúi gục che khuất đầu.<br>• **Thuật toán Anti-Crowding NMS:** Nâng ngưỡng $IoU \ge 0.65$ (hoặc $IoS \ge 0.85$ kết hợp khoảng cách tâm $< 0.3 \cdot \min(W, H)$), loại bỏ hoàn toàn cơ chế gộp tâm ngang $\Delta X / \Delta Y$ giúp bảo toàn nguyên vẹn $5/5$ người khi ngồi sát cạnh nhau trong phòng họp.<br>• **Cảnh báo vi phạm:** Đối chiếu sĩ số thực tế với số lượng đăng ký trên vé, phát hiện vượt sức chứa, cảnh báo quá giờ (Overtime), nhận diện trả phòng sớm và giải phóng khung giờ trống tái bán thời gian thực. |
+| **8. Giám sát Sĩ số IoT YOLO11-IndoorCrowd & Phụ phí Quá giờ** | F38 | • **Mô hình YOLO11-IndoorCrowd:** Nhận diện người chính xác theo thời gian thực trực tiếp trên WebAssembly (WASM SIMD), tối ưu hóa góc quay phòng họp, cubicle văn phòng và giảng đường.<br>• **Thuật toán Anti-Crowding NMS ($IoU \ge 0.65$):** Bảo toàn $100\%$ đối tượng khi ngồi sát cạnh nhau, không bị gộp sai đối tượng.<br>• **Tự động tính phụ phí quá giờ (Overtime Dynamic Billing):** Tự động phát hiện khách chưa checkout khi đã qua giờ kết thúc. Nếu AI nhận diện vẫn còn người vượt số phút ân hạn (`graceMinutes`), hệ thống tự tính phụ phí theo block 30 phút theo bảng giá riêng của từng Space.<br>• **Cảnh báo vượt sĩ số & Trả phòng sớm:** Đối chiếu tức thời sĩ số thực tế với vé đặt chỗ, tự động đề xuất giải phóng phòng tái bán khi khách về sớm. |
 
 ---
 
@@ -223,6 +227,14 @@ Hệ thống xác thực qua **Google OAuth 2.0** và đã nạp sẵn các tài
 * 🎯 [Sơ đồ Ca Sử Dụng Sàn (Use Case Diagram)](Diagram/Use_case/Campus_Space_UseCase_LucidCompatible.drawio) - Phân rã nghiệp vụ Customer, Host & Platform Admin.
 * 🎨 [AI Solution Design Specification](Brand_Guideline/Overview/Web_design_specification.md) - Quy chuẩn thiết kế giao diện, nhận diện thương hiệu & trải nghiệm tương tác sàn thương mại không gian.
 * 🖼️ [Figma & Google Stitch Manifest](design-system/uel-space/FIGMA_MANIFEST.md) - Danh mục 13 màn hình Figma Vector HD tỷ lệ 2560x2048.
+
+---
+
+## 🌐 9. Triển khai Thực tế & Trải nghiệm Trực tiếp (Live Deployment)
+
+* 🚀 **Cổng Trải nghiệm Web (Vercel Production):** [https://uelspace-tan.vercel.app](https://uelspace-tan.vercel.app)
+* 🤗 **Hugging Face AI Space (GPU Serverless Microservice):** [https://huggingface.co/spaces/Gain1109/uel-space-yolo26-ai](https://huggingface.co/spaces/Gain1109/uel-space-yolo26-ai)
+* 📈 **Biểu đồ Đánh giá Ngưỡng $F_1$-Score & Benchmark:** Đã tích hợp sẵn tại `frontend/public/images/f1_curve.png` và `training_results.png`.
 
 ---
 

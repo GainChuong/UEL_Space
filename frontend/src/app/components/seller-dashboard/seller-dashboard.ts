@@ -74,6 +74,8 @@ export interface AdminSpace {
   equipment: string[];
   autoCheckoutMinutes: number;
   awayWarningMinutes: number;
+  overtimeGraceMinutes?: number;
+  overtimeHourlyRate?: number;
   pricePerHour?: number;
   pricePerDay?: number;
   hourlyPrice?: number;
@@ -292,7 +294,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
   occModelLoaded: boolean = false;
   occModelLoading: boolean = false;
   occModelError: string = '';
-  occModelName: string = 'YOLO26 Server AI (Sẵn sàng)';
+  occModelName: string = 'YOLO11-IndoorCrowd Server AI (Sẵn sàng)';
   occSensitivity: 'high' | 'normal' | 'strict' = 'high';
   occCameraActive: boolean = false;
   occStartingCamera: boolean = false;
@@ -310,7 +312,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
   occDetectionFps: number = 0;
   private faceDetector: any = null;
 
-  // Option B: SOTA YOLO26 Server AI Engine State
+  // Option B: YOLO11-IndoorCrowd Server AI Engine State
   occEngineMode: 'server' | 'client' = 'server';
   occServerStatus: 'online' | 'offline' | 'checking' = 'checking';
   occServerLatencyMs: number = 0;
@@ -424,6 +426,8 @@ export class SellerDashboard implements OnInit, OnDestroy {
     pricePerDay: 1400000,
     awayWarningMinutes: 10,
     autoCheckoutMinutes: 20,
+    overtimeGraceMinutes: 15,
+    overtimeHourlyRate: 150000,
     status: 'AVAILABLE' as 'AVAILABLE' | 'PENDING_APPROVAL' | 'MAINTENANCE',
     equipmentString: 'Màn hình 4K, Bảng từ kính, Điều hòa Daikin, Wifi 1Gbps',
     image: 'spaces/space_a2_1_meeting_vip.jpg',
@@ -1023,9 +1027,9 @@ export class SellerDashboard implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initFaceDetector();
-    // Tự động tải trước model YOLO26 ONNX / COCO Web
+    // Tự động tải trước model YOLO11-IndoorCrowd ONNX / COCO Web
     this.loadOccupancyModel().catch(() => {});
-    // Kiểm tra Server AI YOLO26 (Option B)
+    // Kiểm tra Server AI YOLO11-IndoorCrowd (Option B)
     this.checkServerAiHealth();
     // Đồng bộ dữ liệu Live từ MongoDB Atlas
     this.loadSpacesFromApi();
@@ -1290,6 +1294,8 @@ export class SellerDashboard implements OnInit, OnDestroy {
       pricePerDay: 1400000,
       awayWarningMinutes: 10,
       autoCheckoutMinutes: 20,
+      overtimeGraceMinutes: 15,
+      overtimeHourlyRate: 200000,
       status: 'AVAILABLE',
       equipmentString: 'Màn hình 4K, Bảng từ kính, Điều hòa Daikin, Wifi 1Gbps',
       image: 'spaces/space_a2_1_meeting_vip.jpg',
@@ -1316,6 +1322,8 @@ export class SellerDashboard implements OnInit, OnDestroy {
       pricePerDay: space.pricePerDay || space.dailyPrice || 1050000,
       awayWarningMinutes: space.awayWarningMinutes || 10,
       autoCheckoutMinutes: space.autoCheckoutMinutes || 20,
+      overtimeGraceMinutes: space.overtimeGraceMinutes || 15,
+      overtimeHourlyRate: space.overtimeHourlyRate || space.pricePerHour || 150000,
       status: (space.status === 'MAINTENANCE' || space.status === 'PENDING_APPROVAL') ? space.status : 'AVAILABLE',
       equipmentString: (space.equipment || []).join(', '),
       image: space.image || 'spaces/space_a2_1_meeting_vip.jpg',
@@ -1448,6 +1456,8 @@ export class SellerDashboard implements OnInit, OnDestroy {
       tags: tagsList,
       awayWarningMinutes: Number(this.spaceModal.awayWarningMinutes),
       autoCheckoutMinutes: Number(this.spaceModal.autoCheckoutMinutes),
+      overtimeGraceMinutes: Number(this.spaceModal.overtimeGraceMinutes || 15),
+      overtimeHourlyRate: Number(this.spaceModal.overtimeHourlyRate || this.spaceModal.pricePerHour || 150000),
       policy: {
         awayWarningMinutes: Number(this.spaceModal.awayWarningMinutes),
         autoCheckoutMinutes: Number(this.spaceModal.autoCheckoutMinutes),
@@ -2387,7 +2397,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
 
   setOccEngineMode(mode: 'server'): void {
     this.occEngineMode = 'server';
-    this.occModelName = 'YOLO26 Server AI (Pure Vision SOTA)';
+    this.occModelName = 'YOLO11-IndoorCrowd Server AI (Pure Vision)';
     this.checkServerAiHealth();
     this.cdr.detectChanges();
   }
@@ -2404,7 +2414,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
           this.occServerCooldownUntil = 0;
           this.occServerOfflineNotified = false;
           if (this.occEngineMode === 'server') {
-            this.occModelName = 'YOLO26 Server AI (Sẵn sàng)';
+            this.occModelName = 'YOLO11-IndoorCrowd Server AI (Sẵn sàng)';
           }
           return true;
         }
@@ -2422,14 +2432,14 @@ export class SellerDashboard implements OnInit, OnDestroy {
   private markServerAiOffline(): void {
     this.occServerStatus = 'offline';
     this.occServerLatencyMs = 0;
-    // Tự động chuyển engine mode sang 'client' để kích hoạt trực tiếp YOLO26 ONNX Web Engine
+    // Tự động chuyển engine mode sang 'client' để kích hoạt trực tiếp YOLO11 ONNX Web Engine
     if (this.occEngineMode === 'server') {
       this.occEngineMode = 'client';
       if (!this.occServerOfflineNotified) {
         this.occServerOfflineNotified = true;
         this.occModelName = this.occYoloOnnxSession
-          ? 'YOLO26 Dual-Head Web AI (WASM SIMD • SOTA)'
-          : 'Đang nạp mô hình YOLO26 ONNX...';
+          ? 'YOLO11-IndoorCrowd AI (WASM SIMD Edge)'
+          : 'Đang nạp mô hình YOLO11 ONNX...';
       }
     }
   }
@@ -2516,7 +2526,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       this.resetServerYoloHealth();
       this.occEngineMode = 'server';
       this.occServerLatencyMs = Math.round(performance.now() - t0);
-      this.occModelName = `${data.modelName || 'YOLO26 Dual-Head AI'} (${data.processingTimeMs}ms • ${data.device ? data.device.toUpperCase() : 'CPU'})`;
+      this.occModelName = `${data.modelName || 'YOLO11-IndoorCrowd AI'} (${data.processingTimeMs}ms • ${data.device ? data.device.toUpperCase() : 'CPU'})`;
 
       const boxes: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
       if (Array.isArray(data.boxes)) {
@@ -2527,7 +2537,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
             w: Math.round(b.w / scale),
             h: Math.round(b.h / scale),
             score: Math.round(b.confidence),
-            label: b.label || 'Khách thuê (YOLO26 SOTA)'
+            label: b.label || 'Khách thuê (YOLO11 • Indoor Crowd)'
           });
         }
       }
@@ -2549,10 +2559,10 @@ export class SellerDashboard implements OnInit, OnDestroy {
     if (this.occYoloOnnxSession || this.occCocoModel) return;
     this.occModelLoading = true;
     this.occModelError = '';
-    this.occModelName = 'Đang nạp mô hình YOLO26 ONNX SOTA...';
+    this.occModelName = 'Đang nạp mô hình YOLO11-IndoorCrowd AI...';
     this.cdr.detectChanges();
 
-    // 1. ƯU TIÊN HÀNG ĐẦU: Nạp trực tiếp SOTA YOLO26 Web ONNX Model (/models/yolo26n_occupancy.onnx)
+    // 1. ƯU TIÊN HÀNG ĐẦU: Nạp trực tiếp mô hình YOLO11 Fine-tuned Web ONNX (/models/yolo11n_indoor_crowd.onnx)
     try {
       const ort: any = await import('onnxruntime-web');
       if (ort?.env?.wasm) {
@@ -2560,8 +2570,8 @@ export class SellerDashboard implements OnInit, OnDestroy {
         ort.env.wasm.numThreads = 1;
       }
 
-      console.log('[YOLO26 Web] Đang tải mô hình YOLO26 Occupancy ONNX...');
-      const session = await ort.InferenceSession.create('/models/yolo26n_occupancy.onnx', {
+      console.log('[YOLO11 Web] Đang tải mô hình YOLO11 IndoorCrowd Occupancy ONNX...');
+      const session = await ort.InferenceSession.create('/models/yolo11n_indoor_crowd.onnx', {
         executionProviders: ['wasm'],
         graphOptimizationLevel: 'all'
       });
@@ -2570,15 +2580,32 @@ export class SellerDashboard implements OnInit, OnDestroy {
         this.occYoloOnnxSession = session;
         this.occModelLoaded = true;
         this.occModelLoading = false;
-        this.occModelName = 'YOLO26 Dual-Head Web AI (WASM SIMD • SOTA)';
-        console.log('[YOLO26 Web] Khởi tạo thành công mô hình YOLO26 ONNX trên trình duyệt!');
+        this.occModelName = 'YOLO11-IndoorCrowd AI (Fine-tuned • WASM Edge)';
+        console.log('[YOLO11 Web] Khởi tạo thành công mô hình YOLO11 IndoorCrowd trên trình duyệt!');
         this.cdr.detectChanges();
         // Nạp thêm COCO-SSD ngầm để làm Hybrid AI (góc ngang và đời thường đều bắt trọn)
         setTimeout(() => this.loadCocoSsdNgam(), 100);
         return;
       }
     } catch (errOnnx: any) {
-      console.warn('[YOLO26 Web] Không thể nạp YOLO26 ONNX, chuyển sang COCO fallback:', errOnnx);
+      console.warn('[YOLO11 Web] Không thể nạp YOLO11 ONNX, thử nạp qua đường dẫn dự phòng:', errOnnx);
+      try {
+        const ort: any = await import('onnxruntime-web');
+        const session = await ort.InferenceSession.create('/models/yolo26n_occupancy.onnx', {
+          executionProviders: ['wasm'],
+          graphOptimizationLevel: 'all'
+        });
+        if (session) {
+          this.occYoloOnnxSession = session;
+          this.occModelLoaded = true;
+          this.occModelLoading = false;
+          this.occModelName = 'YOLO11-IndoorCrowd AI (Fine-tuned • WASM Edge)';
+          this.cdr.detectChanges();
+          return;
+        }
+      } catch (eFallback) {
+        console.warn('Fallback ONNX error:', eFallback);
+      }
     }
 
     // 2. DỰ PHÒNG CẤP 2: Nạp COCO-SSD nếu thiết bị không hỗ trợ WASM/ONNX
@@ -2888,7 +2915,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
 
   /**
    * Client Edge AI Detection Engine:
-   * 1. SOTA YOLO26 Web ONNX Model (Trained trên Smart Classroom & Coworking Dataset, chạy trực tiếp WASM SIMD)
+   * 1. YOLO11-IndoorCrowd Web ONNX Model (Trained trên Indoor Crowd & Coworking Dataset, chạy trực tiếp WASM SIMD)
    * 2. COCO-SSD Deep Learning (Pretrained Model dự phòng cấp 2)
    * 3. Hardware FaceDetector (Shape Detection API - Native trên Edge, Chrome)
    */
@@ -2902,7 +2929,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
 
     const minScore = this.occSensitivity === 'high' ? 0.20 : (this.occSensitivity === 'normal' ? 0.35 : 0.50);
 
-    // 1. ƯU TIÊN SỐ 1: Chạy trực tiếp SOTA YOLO26 ONNX Web Engine
+    // 1. ƯU TIÊN SỐ 1: Chạy trực tiếp YOLO11-IndoorCrowd ONNX Web Engine
     if (this.occYoloOnnxSession) {
       try {
         const ort: any = await import('onnxruntime-web');
@@ -2949,12 +2976,16 @@ export class SellerDashboard implements OnInit, OnDestroy {
               let maxScore = 0;
               let bestClass = 0;
 
-              for (let c = 0; c < numClasses; c++) {
-                const s = outData[(4 + c) * numAnchors + a];
-                if (s > maxScore) {
-                  maxScore = s;
-                  bestClass = c;
-                }
+              if (numClasses === 1) {
+                // Model 1 class duy nhất: persona / person
+                maxScore = outData[4 * numAnchors + a];
+                bestClass = 0;
+              } else {
+                // Model COCO 80 classes: class 0 là 'person'
+                // Chỉ theo dõi class 0 (người) để loại trừ toàn bộ đồ vật khác
+                const personScore = outData[4 * numAnchors + a];
+                maxScore = personScore;
+                bestClass = 0;
               }
 
               if (maxScore >= minScore) {
@@ -2974,14 +3005,14 @@ export class SellerDashboard implements OnInit, OnDestroy {
                   w: Math.round(Math.min(vw - realX, realW)),
                   h: Math.round(Math.min(vh - realY, realH)),
                   score: Math.round(maxScore * 100),
-                  label: bestClass === 1 ? 'Khuôn mặt (YOLO Web AI)' : 'Khách thuê (YOLO Web AI)'
+                  label: 'Khách thuê (YOLO11 • Indoor Crowd)'
                 });
               }
             }
           }
         }
       } catch (errYoloOnnx) {
-        console.warn('YOLO26 Web ONNX inference error:', errYoloOnnx);
+        console.warn('YOLO11 Web ONNX inference error:', errYoloOnnx);
       }
     }
 
@@ -3012,7 +3043,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
                 w: bw,
                 h: bh,
                 score: Math.round(p.score * 100),
-                label: 'Khách thuê (YOLO26 • SOTA Vision)'
+                label: 'Khách thuê (YOLO11 • Ensemble Vision)'
               });
             }
           }
@@ -3088,14 +3119,14 @@ export class SellerDashboard implements OnInit, OnDestroy {
     this.lastOccDetectionTimestamp = now;
     this.occFrameCount++; // Luôn đếm frame xử lý để tính FPS thời gian thực chính xác
 
-    // Ngưỡng điểm tin cậy siêu nhạy chuẩn SOTA Pretrained Models (YOLO26 Dual-Head & COCO)
+    // Ngưỡng điểm tin cậy siêu nhạy chuẩn Models (YOLO11-IndoorCrowd & COCO)
     const minScore = this.occSensitivity === 'high' ? 0.12 : (this.occSensitivity === 'normal' ? 0.16 : 0.22);
 
     try {
       const rawDetected: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
       let usedServerYolo = false;
 
-      // 1. Chế độ Ưu tiên: SOTA YOLO26 Server AI Microservice (Dual-Head Detection + Pose)
+      // 1. Chế độ Ưu tiên: YOLO11-IndoorCrowd Server AI Microservice (Detection + Occupancy Tracking)
       const serverBoxes = await this.detectWithServerYolo(videoEl);
       if (serverBoxes !== null) {
         usedServerYolo = true;
@@ -3357,17 +3388,30 @@ export class SellerDashboard implements OnInit, OnDestroy {
       }
     }
 
-    // 2. Kiểm tra Overtime (Sử dụng quá giờ thực tế)
+    // 2. Kiểm tra Overtime (Sử dụng quá giờ thực tế khi chưa checkout)
     if (!this.occEarlyCheckoutDone) {
       const isOvertime = this.checkBookingOvertime(this.occActiveBooking);
+      // Khi đã qua giờ kết thúc, khách chưa checkout và Computer Vision phát hiện còn người trong phòng
       if (isOvertime && this.occCurrentCount > 0) {
         this.occIsOvertime = true;
         this.occOvertimeMinutes = this.calculateOvertimeMinutes(this.occActiveBooking);
-        // Gợi ý phụ phí theo block 30 phút (+50.000 VNĐ / block 30p)
-        const blocks = Math.max(1, Math.ceil(this.occOvertimeMinutes / 30));
-        this.occSuggestedSurcharge = blocks * 50000;
+
+        // Tính phụ phí tự động dựa trên chính sách config của Space
+        const spacePolicy = this.occSelectedSpace;
+        const hourlyRate = spacePolicy?.overtimeHourlyRate || spacePolicy?.pricePerHour || 150000;
+        const graceMinutes = spacePolicy?.overtimeGraceMinutes || 15;
+
+        if (this.occOvertimeMinutes > graceMinutes) {
+          // Tính phí theo block 30 phút quá giờ
+          const chargeableMinutes = this.occOvertimeMinutes;
+          const blocks = Math.max(1, Math.ceil(chargeableMinutes / 30));
+          this.occSuggestedSurcharge = Math.round(blocks * (hourlyRate / 2));
+        } else {
+          this.occSuggestedSurcharge = 0;
+        }
       } else {
         this.occIsOvertime = false;
+        this.occSuggestedSurcharge = 0;
       }
     }
 
@@ -3646,7 +3690,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       }
       if (loadedModel) {
         this.occCocoModel = loadedModel;
-        console.log('[Hybrid AI] Nạp thành công COCO-SSD song hành với YOLO26!');
+        console.log('[Hybrid AI] Nạp thành công COCO-SSD song hành với YOLO11!');
       }
     } catch (e) {
       console.warn('COCO load ngam error:', e);

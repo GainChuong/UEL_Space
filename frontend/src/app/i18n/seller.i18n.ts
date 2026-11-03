@@ -146,7 +146,8 @@ export const SELLER_EN: Record<string, string> = {
   "Địa chỉ IP": "IP Address",
 
   // AI Camera & Occupancy
-  "Giám sát Sĩ số AI Camera & Chống Gian lận (SOTA YOLO26 Vision)": "AI Camera Occupancy Monitoring & Fraud Prevention (SOTA YOLO26 Vision)",
+  "Giám sát Sĩ số AI Camera & Chống Gian lận (SOTA YOLO26 Vision)": "AI Camera Occupancy Monitoring & Fraud Prevention (YOLO11-IndoorCrowd Vision)",
+  "Giám sát Sĩ số AI Camera & Chống Gian lận (YOLO11-IndoorCrowd Vision)": "AI Camera Occupancy Monitoring & Fraud Prevention (YOLO11-IndoorCrowd Vision)",
   "Phát hiện người theo thời gian thực (Dual-head Vision), kiểm soát sức chứa, cảnh báo vắng mặt và tự động giải phóng phòng": "Real-time person detection (Dual-head Vision), capacity enforcement, absence alerts, and automated room release",
   "Bảng điều khiển Giám sát": "Monitoring Dashboard",
   "Cấu hình & Tích hợp Thiết bị IoT": "IoT Device Setup & Integration",

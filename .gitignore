@@ -47,6 +47,13 @@ AIRC-SMARTCLASS A Multi-Modal Classroom Dataset fo/
 AIRC-SMARTCLASS A Multi-Modal Classroom Dataset fo.zip
 datasets/
 runs/
+mall_dataset/
+*.pt
+*.onnx
+!frontend/public/models/*.onnx
+!deploy_hf_space/best.pt
+deploy_hf_space/best_custom.onnx
+deploy_hf_space/best_custom.pt
 
 # ==========================================
 # Tệp ngoài lề (Giữ trên máy tính, không đưa lên GitHub)

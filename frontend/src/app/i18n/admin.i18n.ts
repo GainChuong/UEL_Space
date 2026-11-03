@@ -591,7 +591,7 @@ export const ADMIN_EN: Record<string, string> = {
   "ĐÃ QUYẾT TOÁN": "SETTLED",
   "Giải ngân Payout": "Disburse Payout",
   "Tòa Trọng Tài Sàn: Xử Lý Khiếu Nại, Phụ Phí & Tranh Chấp": "Platform Arbitration: Complaints, Surcharges & Disputes",
-  "Giải quyết tranh chấp giữa Khách thuê và Host. Hệ thống đối chiếu dữ liệu hình ảnh AI YOLO26 & IoT Kiosk làm bằng chứng khách quan.": "Arbitrate disputes between tenants and hosts. System uses AI YOLO26 vision & IoT Kiosk as objective evidence.",
+  "Giải quyết tranh chấp giữa Khách thuê và Host. Hệ thống đối chiếu dữ liệu hình ảnh AI YOLO11 & IoT Kiosk làm bằng chứng khách quan.": "Arbitrate disputes between tenants and hosts. System uses AI YOLO11 vision & IoT Kiosk as objective evidence.",
   "ca cần phán quyết": "cases need ruling",
   "Trị giá tranh chấp:": "Disputed Amount:",
   "Khách thuê (Bên khiếu nại/bị phản ánh)": "Tenant (Complainant / Reported)",

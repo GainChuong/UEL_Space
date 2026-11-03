@@ -1,6 +1,6 @@
 """
-UEL Space - YOLO26 AI Detection Microservice
-Phiên bản: Pure Deep Vision YOLO26 (Đã gỡ bỏ toàn bộ thuật toán màu da)
+UEL Space - YOLO11-IndoorCrowd AI Occupancy Microservice
+Phiên bản: Pure Deep Vision YOLO11 (Fine-tuned trên IndoorCrowd)
 Chạy trên Hugging Face (ZeroGPU A10G & Free CPU)
 Tập trung vào mạng nơ-ron Deep Learning chuẩn mực, ổn định tuyệt đối.
 """
@@ -27,7 +27,7 @@ except ImportError:
             return fn
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-logger = logging.getLogger("UEL_YOLO26_GRADIO")
+logger = logging.getLogger("UEL_YOLO11_GRADIO")
 
 yolo_model = None
 
@@ -37,19 +37,19 @@ try:
     model_path = os.path.join(script_dir, "best.pt")
 
     if os.path.exists(model_path):
-        logger.info(f"Đang nạp trọng số YOLO26: {model_path}")
+        logger.info(f"Đang nạp trọng số YOLO11-IndoorCrowd: {model_path}")
         yolo_model = YOLO(model_path)
     else:
         logger.warning("Không tìm thấy best.pt, nạp yolo11n.pt mặc định...")
         yolo_model = YOLO("yolo11n.pt")
 
-    logger.info("YOLO26 Model loaded successfully!")
+    logger.info("YOLO11 Model loaded successfully!")
 except Exception as e:
-    logger.error(f"Lỗi nạp YOLO26: {e}")
+    logger.error(f"Lỗi nạp YOLO11: {e}")
     yolo_model = None
 
 @spaces.GPU
-def run_yolo_inference(pil_img, conf=0.25, iou=0.50):
+def run_yolo_inference(pil_img, conf=0.15, iou=0.50):
     if not yolo_model:
         return []
     
@@ -64,7 +64,7 @@ def run_yolo_inference(pil_img, conf=0.25, iou=0.50):
     return results
 
 @spaces.GPU
-def detect_api(image_base64: str, conf_threshold: float = 0.25, iou_threshold: float = 0.50):
+def detect_api(image_base64: str, conf_threshold: float = 0.15, iou_threshold: float = 0.50):
     if not yolo_model:
         return {"success": False, "message": "Model not ready"}
 
@@ -82,7 +82,7 @@ def detect_api(image_base64: str, conf_threshold: float = 0.25, iou_threshold: f
 
     results = run_yolo_inference(
         pil_img,
-        conf=float(conf_threshold or 0.25),
+        conf=float(conf_threshold or 0.15),
         iou=float(iou_threshold or 0.50)
     )
 
@@ -115,7 +115,7 @@ def detect_api(image_base64: str, conf_threshold: float = 0.25, iou_threshold: f
                         "h": h_box,
                         "confidence": conf_pct,
                         "classId": 0,
-                        "label": "Khách thuê (YOLO26 SOTA)"
+                        "label": "Khách thuê (YOLO11 • Indoor Crowd)"
                     })
 
     person_count = len(boxes)
@@ -129,7 +129,7 @@ def detect_api(image_base64: str, conf_threshold: float = 0.25, iou_threshold: f
         "boxes": boxes,
         "processingTimeMs": proc_ms,
         "device": "Hugging Face Cloud (NVIDIA ZeroGPU A10G)",
-        "modelName": "YOLO26 Pure Vision Occupancy (IndoorCrowd SOTA)",
+        "modelName": "YOLO11-IndoorCrowd Fine-tuned AI",
         "spaceId": "general",
         "spaceName": "UEL Space Room",
         "message": f"Phát hiện {person_count} người trong phòng thành công"
@@ -150,14 +150,14 @@ def detect_ui(image_input, conf_slider):
     return Image.fromarray(res_plotted), f"Phát hiện: {count} người trong phòng"
 
 # Tạo giao diện Gradio hỗ trợ cả Web UI và REST API
-with gr.Blocks(title="UEL Space YOLO26 AI") as demo:
-    gr.Markdown("# 🏢 UEL Space - YOLO26 Pure Vision Occupancy Microservice")
+with gr.Blocks(title="UEL Space YOLO11 AI") as demo:
+    gr.Markdown("# 🏢 UEL Space - YOLO11-IndoorCrowd AI Occupancy Microservice")
     gr.Markdown("Microservice Deep Learning giám sát sĩ số và hiện diện không gian UEL Space (Hugging Face ZeroGPU A10G).")
     
     with gr.Row():
         with gr.Column():
             img_in = gr.Image(type="pil", label="Ảnh phòng / Camera")
-            conf_sl = gr.Slider(minimum=0.1, maximum=0.8, value=0.25, step=0.02, label="Ngưỡng tin cậy (Confidence)")
+            conf_sl = gr.Slider(minimum=0.08, maximum=0.8, value=0.15, step=0.01, label="Ngưỡng tin cậy (Confidence) - Khuyên dùng 0.12 - 0.18")
             btn = gr.Button("Phát hiện người", variant="primary")
         with gr.Column():
             img_out = gr.Image(type="pil", label="Kết quả nhận diện")
