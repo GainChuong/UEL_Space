@@ -7,7 +7,7 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "ai:start": "node -e \"const fs = require('fs'); const { spawn } = require('child_process'); const p = fs.existsSync('../.venv/Scripts/python.exe') ? '../.venv/Scripts/python.exe' : 'py'; spawn(p, ['src/ai-service/yolo_service.py'], { stdio: 'inherit' });\"",
-    "ai:tunnel": "node -e \"const { spawn } = require('child_process'); const fs = require('fs'); const exe = fs.existsSync('C:\\\\Program Files (x86)\\\\cloudflared\\\\cloudflared.exe') ? 'C:\\\\Program Files (x86)\\\\cloudflared\\\\cloudflared.exe' : (fs.existsSync('C:\\\\Program Files\\\\cloudflared\\\\cloudflared.exe') ? 'C:\\\\Program Files\\\\cloudflared\\\\cloudflared.exe' : 'cloudflared'); spawn(exe, ['tunnel', '--url', 'http://localhost:5001'], { stdio: 'inherit' });\"",
+    "ai:tunnel": "node -e \"const { spawn } = require('child_process'); const fs = require('fs'); const exe = fs.existsSync('C:\\\\Program Files (x86)\\\\cloudflared\\\\cloudflared.exe') ? 'C:\\\\Program Files (x86)\\\\cloudflared\\\\cloudflared.exe' : (fs.existsSync('C:\\\\Program Files\\\\cloudflared\\\\cloudflared.exe') ? 'C:\\\\Program Files\\\\cloudflared\\\\cloudflared.exe' : 'cloudflared'); spawn(exe, ['tunnel', '--protocol', 'http2', '--no-prechecks', '--url', 'http://localhost:5001'], { stdio: 'inherit' });\"",
     "seed": "node src/seed/seed.js",
     "db:up": "docker compose up -d mongo",
     "db:down": "docker compose down"
