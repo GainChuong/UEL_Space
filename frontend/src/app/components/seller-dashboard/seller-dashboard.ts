@@ -348,6 +348,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
   private procCanvas: HTMLCanvasElement | null = null;
   private prevProcFrame: Uint8ClampedArray | null = null;
   private trackedPeople: Array<{ id: number; x: number; y: number; w: number; h: number; score: number; label: string; missing: number }> = [];
+  occPolygons: Array<Array<{ x: number; y: number }>> = [];
   private nextTrackId: number = 1;
   private headcountDebounceBuffer: number[] = [];
 
@@ -2651,32 +2652,53 @@ export class SellerDashboard implements OnInit, OnDestroy {
             spaceId: this.occSelectedSpace?.id || 'general',
             spaceName: this.occSelectedSpace?.name || 'UEL Space Room'
           }),
-          signal: AbortSignal.timeout(1200)
+          signal: AbortSignal.timeout(4500)
         });
       } catch (eFetch: any) {
-        this.handleServerYoloFailure(eFetch?.name === 'TimeoutError' ? 'timeout' : 'network');
+        this.occServerFailCount++;
+        if (this.occServerFailCount >= 3) {
+          this.handleServerYoloFailure(eFetch?.name === 'TimeoutError' ? 'timeout' : 'network');
+        }
         return null;
       }
 
       if (!res.ok) {
-        if (res.status === 502 || res.status === 503 || res.status === 504) {
-          this.handleServerYoloFailure('bad_gateway');
-        } else {
-          this.handleServerYoloFailure('error');
+        this.occServerFailCount++;
+        if (this.occServerFailCount >= 2) {
+          if (res.status === 502 || res.status === 503 || res.status === 504) {
+            this.handleServerYoloFailure('bad_gateway');
+          } else {
+            this.handleServerYoloFailure('error');
+          }
         }
         return null;
       }
 
       const data = await res.json().catch(() => null);
       if (!data || !data.success) {
-        this.handleServerYoloFailure();
+        this.occServerFailCount++;
+        if (this.occServerFailCount >= 3) {
+          this.handleServerYoloFailure();
+        }
         return null;
       }
 
       this.resetServerYoloHealth();
       this.occEngineMode = 'server';
       this.occServerLatencyMs = Math.round(performance.now() - t0);
-      this.occModelName = `${data.modelName || 'YOLO11-IndoorCrowd Server AI'} (${data.processingTimeMs}ms • ${data.device ? data.device.toUpperCase() : 'CPU'})`;
+      this.occModelName = `${data.modelName || 'YOLO11 Dual-Head Ensemble'} (${data.processingTimeMs}ms • ${data.device ? data.device.toUpperCase() : 'CPU'})`;
+
+      // Cập nhật đa giác phân đoạn cơ thể người (YOLO11n-seg Instance Segmentation)
+      if (Array.isArray(data.polygons)) {
+        this.occPolygons = data.polygons.map((poly: any) =>
+          Array.isArray(poly) ? poly.map((pt: any) => ({
+            x: Math.round(pt[0] / scale),
+            y: Math.round(pt[1] / scale)
+          })) : []
+        );
+      } else {
+        this.occPolygons = [];
+      }
 
       const boxes: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
       if (Array.isArray(data.boxes)) {
@@ -2687,7 +2709,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
             w: Math.round(b.w / scale),
             h: Math.round(b.h / scale),
             score: Math.round(b.confidence),
-            label: b.label || 'Khách thuê (YOLO11 • Indoor Crowd)'
+            label: b.label || 'Khách thuê (YOLO11 • Ensemble)'
           });
         }
       }
@@ -3648,6 +3670,27 @@ export class SellerDashboard implements OnInit, OnDestroy {
     ctx.fillStyle = 'rgba(255, 255, 255, 0.40)';
     ctx.fillText(bottomLabel, 24, ch - 22);
 
+    // 3.5 VẼ MẶT NẠ PHÂN ĐOẠN ĐA GIÁC (YOLO11n-seg Instance Polygon Overlay)
+    if (this.occPolygons && this.occPolygons.length > 0 && this.trackedPeople.length > 0) {
+      for (const poly of this.occPolygons) {
+        if (poly && poly.length >= 3) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(poly[0].x, poly[0].y);
+          for (let i = 1; i < poly.length; i++) {
+            ctx.lineTo(poly[i].x, poly[i].y);
+          }
+          ctx.closePath();
+          ctx.fillStyle = 'rgba(0, 240, 255, 0.20)';
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(0, 240, 255, 0.85)';
+          ctx.lineWidth = 1.8;
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+    }
+
     // 4. VẼ CÁC BOUNDING BOX NGƯỜI
     this.trackedPeople.forEach((p, idx) => {
       // Khung viền Neon Cyan nổi bật
@@ -3978,7 +4021,8 @@ export class SellerDashboard implements OnInit, OnDestroy {
 
       this.dashboardPeer.on('error', (err: any) => {
         console.warn('[WebRTC P2P] Peer warning:', err);
-        if (err?.type === 'unavailable-id') {
+        const errStr = String(err?.message || err?.type || err || '');
+        if (err?.type === 'unavailable-id' || errStr.includes('is taken') || errStr.includes('unavailable-id')) {
           // Trùng ID do reload nhanh: hủy và tạo ID mới cùng QR code
           try { this.dashboardPeer?.destroy(); } catch {}
           this.dashboardPeer = null;
@@ -3999,6 +4043,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
   }
 
   private stopLocalCamera(): void {
+    this.occPolygons = [];
     if (this.occVideoStream) {
       this.occVideoStream.getTracks().forEach(track => {
         try { track.stop(); } catch {}
@@ -4015,6 +4060,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
   }
 
   private stopP2pCctv(): void {
+    this.occPolygons = [];
     if (this.activeP2pCall) {
       try { this.activeP2pCall.close(); } catch {}
       this.activeP2pCall = null;
