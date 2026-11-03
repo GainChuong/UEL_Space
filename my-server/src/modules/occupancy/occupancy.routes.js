@@ -38,7 +38,7 @@ function occupancyRoutes(collections) {
     res.status(201).json({ success: true, record: doc });
   }));
 
-  // Kiểm tra trạng thái THẬT của YOLO Microservice (Hỗ trợ cả Hugging Face Space & Local Flask/FastAPI)
+  // Kiểm tra trạng thái THẬT của YOLO Microservice (Python Native / Local Host)
   let aiHealthCache = { at: 0, data: null };
   router.get('/ai-health', asyncHandler(async (req, res) => {
     const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://127.0.0.1:5001';
@@ -49,30 +49,30 @@ function occupancyRoutes(collections) {
 
     let data;
     try {
-      const isHfSpace = AI_SERVICE_URL.includes('hf.space');
-      const healthUrl = isHfSpace ? `${AI_SERVICE_URL}/` : `${AI_SERVICE_URL}/health`;
+      const healthUrl = `${AI_SERVICE_URL}/health`;
       const r = await fetch(healthUrl, { signal: AbortSignal.timeout(4000) });
       if (!r.ok) {
         data = { success: true, ready: false, message: `AI Microservice error (HTTP ${r.status})` };
       } else {
+        const json = await r.json().catch(() => ({}));
         data = {
           success: true,
           ready: true,
-          model: 'YOLO26 Occupancy Pure Vision SOTA',
+          model: json.model || 'YOLO11-IndoorCrowd Pure Vision SOTA',
           serviceStatus: 'running',
-          device: isHfSpace ? 'Hugging Face ZeroGPU (NVIDIA A10G Cloud)' : 'Local Host',
-          message: 'YOLO26 AI Service ready'
+          device: json.device || 'Local Host',
+          message: 'YOLO11 AI Service ready'
         };
       }
     } catch (err) {
-      data = { success: true, ready: false, message: `YOLO26 Service offline: ${err.message}` };
+      data = { success: true, ready: false, message: `YOLO Service offline: ${err.message}` };
     }
 
     aiHealthCache = { at: now, data };
     res.json(data);
   }));
 
-  // SOTA Server AI (Option B): YOLO Microservice Proxy (Hỗ trợ Hugging Face Gradio 5 API & Local Flask)
+  // SOTA Server AI: YOLO Microservice Proxy (Direct Python Service on port 5001)
   router.post('/detect-server', asyncHandler(async (req, res) => {
     const { image, confidenceThreshold, iouThreshold, spaceId, spaceName, capacity, saveRecord } = req.body;
     if (!image) {
@@ -80,68 +80,32 @@ function occupancyRoutes(collections) {
     }
 
     const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://127.0.0.1:5001';
-    const isHfSpace = AI_SERVICE_URL.includes('hf.space');
 
     try {
-      let result;
+      // Standard Flask / FastAPI direct endpoint
+      const response = await fetch(`${AI_SERVICE_URL}/detect`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image,
+          confidenceThreshold: Number(confidenceThreshold) || 0.28,
+          iouThreshold: Number(iouThreshold) || 0.45,
+          spaceId,
+          spaceName
+        }),
+        signal: AbortSignal.timeout(10000)
+      });
 
-      if (isHfSpace) {
-        // Hugging Face Space Gradio 5 REST API flow (/gradio_api/call/detect)
-        const initResp = await fetch(`${AI_SERVICE_URL}/gradio_api/call/detect`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ data: [image] }),
-          signal: AbortSignal.timeout(10000)
+      if (!response.ok) {
+        const errText = await response.text();
+        return res.status(response.status).json({
+          success: false,
+          fallbackRequired: true,
+          message: `AI Microservice error: ${errText}`
         });
-
-        if (!initResp.ok) {
-          const errText = await initResp.text();
-          throw new Error(`HF Space Gradio init error (${initResp.status}): ${errText}`);
-        }
-
-        const { event_id } = await initResp.json();
-        const eventResp = await fetch(`${AI_SERVICE_URL}/gradio_api/call/detect/${event_id}`, {
-          signal: AbortSignal.timeout(15000)
-        });
-
-        if (!eventResp.ok) {
-          throw new Error(`HF Space Gradio event fetch error (${eventResp.status})`);
-        }
-
-        const rawEventData = await eventResp.text();
-        const match = rawEventData.match(/data:\s*(\[.*?\])/);
-        if (!match) {
-          throw new Error(`Invalid SSE response format from HF Space: ${rawEventData.slice(0, 100)}`);
-        }
-
-        const parsedArray = JSON.parse(match[1]);
-        result = parsedArray[0] || { success: false, message: 'No result from HF Space' };
-      } else {
-        // Standard Flask / FastAPI direct endpoint
-        const response = await fetch(`${AI_SERVICE_URL}/detect`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            image,
-            confidenceThreshold: Number(confidenceThreshold) || 0.25,
-            iouThreshold: Number(iouThreshold) || 0.45,
-            spaceId,
-            spaceName
-          }),
-          signal: AbortSignal.timeout(10000)
-        });
-
-        if (!response.ok) {
-          const errText = await response.text();
-          return res.status(response.status).json({
-            success: false,
-            fallbackRequired: true,
-            message: `AI Microservice error: ${errText}`
-          });
-        }
-
-        result = await response.json();
       }
+
+      const result = await response.json();
 
       // Nếu client yêu cầu tự động đồng bộ MongoDB Atlas
       if (saveRecord && result.success) {

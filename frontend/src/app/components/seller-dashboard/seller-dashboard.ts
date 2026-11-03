@@ -2440,7 +2440,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
 
       this.occLocalAiDirect = false;
 
-      // 2. Thử qua backend API proxy (Express server hoặc Hugging Face)
+      // 2. Thử qua backend API proxy (Express server local port 3000)
       const res = await fetch(`${SERVER_BASE_URL}/api/occupancy/ai-health`, { signal: AbortSignal.timeout(3000) });
       if (res.ok) {
         const health = await res.json().catch(() => null);

@@ -13,8 +13,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/AI_Solution-Dual--Head_Hybrid-7C3AED?style=for-the-badge&logo=openai&logoColor=white" alt="AI Solution">
   <img src="https://img.shields.io/badge/Google_Gemini-Flash_AI-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini AI">
-  <img src="https://img.shields.io/badge/YOLOv11-Detection_%26_Pose-00FFFF?style=for-the-badge&logo=yolo&logoColor=black" alt="YOLOv11">
-  <img src="https://img.shields.io/badge/Hugging_Face-Indoor_Scenes-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black" alt="Hugging Face">
+  <img src="https://img.shields.io/badge/YOLOv11-IndoorCrowd_Vision-00FFFF?style=for-the-badge&logo=yolo&logoColor=black" alt="YOLOv11">
   <img src="https://img.shields.io/badge/Angular-22.2-DD0031?style=for-the-badge&logo=angular&logoColor=white" alt="Angular">
   <img src="https://img.shields.io/badge/Node.js-20+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js">
   <img src="https://img.shields.io/badge/MongoDB-Atlas_6.8-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB">
@@ -35,14 +34,14 @@
      * **Ngưỡng siêu nhạy (High-Recall Occlusion Mode):** $\text{conf} = 0.15$ ($F_1 = 0.811$) giúp bắt trọn sinh viên/khách thuê bị che khuất một phần sau bàn ghế, vách ngăn cubicle hoặc ngồi xa camera.
    * **Thuật toán Anti-Crowding NMS ($IoU \ge 0.65$):** Bảo toàn nguyên vẹn $11/11$ người ngồi san sát nhau trong không gian hẹp, không bị lỗi gộp người sai lệch.
    * **Cơ chế Phụ Phí Quá Giờ Tự Động (Overtime Surcharge Policy):** Tích hợp quy tắc tự động tính tiền: khi khách thuê hết giờ mà chưa bấm checkout và Computer Vision AI phát hiện vẫn còn người trong phòng, hệ thống tự động áp dụng công thức phụ phí theo block 30 phút dựa trên chính sách công khai của từng gian hàng.
-   * **Kiến trúc Chịu lỗi Hybrid:** Chạy ưu tiên Client Edge WASM ONNX $\leftrightarrow$ Server Microservice FastAPI (NVIDIA GPU / Hugging Face Spaces) $\leftrightarrow$ COCO-SSD fallback.
+   * **Kiến trúc Chịu lỗi Hybrid:** Chạy ưu tiên Server Python Native Microservice (Port 5001 / CUDA GPU) $\leftrightarrow$ Client Edge WASM ONNX (`yolo11n_indoor_crowd.onnx`) $\leftrightarrow$ COCO-SSD fallback.
 2. **Trợ lý Ngôn ngữ Tự nhiên & Đặt phòng 1 chạm (Conversational AI & Context-RAG):**
    * **Lõi Google Gemini Flash:** Tiếp nhận yêu cầu tự nhiên tiếng Việt, bóc tách thực thể (sức chứa, giá tiền, trang thiết bị, thời gian).
    * **Context-RAG thời gian thực:** Truy xuất dữ liệu phòng trực tiếp từ MongoDB Atlas nạp vào ngữ cảnh để tư vấn chính xác 100%.
    * **Kiến trúc chịu lỗi 3 tầng (Circuit Breaker):** Cloud Gemini $\rightarrow$ Server Regex Heuristics Engine ($<5\text{ms}$) $\rightarrow$ Client Local Offline Fallback.
    * **Đặt phòng nhanh 1 chạm:** Tự động tạo thẻ xem trước và điều hướng thẳng sang thanh toán MoMo / đồng bộ Google Calendar.
 
-Hệ thống được làm giàu dữ liệu thực tế thông qua việc khai thác bộ dữ liệu lớn **Hugging Face (`FatimaSaadNaik/indoor-scenes-dataset`)** và **Unsplash Research Dataset Lite** với hơn 100+ không gian phòng thực tế.
+Hệ thống được làm giàu dữ liệu thực tế với hơn 100+ không gian phòng thực tế chuẩn hóa theo các phân khúc: Coworking, Hội thảo VIP, Lab máy tính và Studio sáng tạo.
 
 ---
 
@@ -233,7 +232,7 @@ Hệ thống xác thực qua **Google OAuth 2.0** và đã nạp sẵn các tài
 ## 🌐 9. Triển khai Thực tế & Trải nghiệm Trực tiếp (Live Deployment)
 
 * 🚀 **Cổng Trải nghiệm Web (Vercel Production):** [https://uelspace-tan.vercel.app](https://uelspace-tan.vercel.app)
-* 🤗 **Hugging Face AI Space (GPU Serverless Microservice):** [https://huggingface.co/spaces/Gain1109/uel-space-yolo26-ai](https://huggingface.co/spaces/Gain1109/uel-space-yolo26-ai)
+* ⚡ **AI Backend Service (Python Native / Local Host):** Port `5001` (YOLO11-IndoorCrowd inference `http://127.0.0.1:5001/detect`)
 * 📈 **Biểu đồ Đánh giá Ngưỡng $F_1$-Score & Benchmark:** Đã tích hợp sẵn tại `frontend/public/images/f1_curve.png` và `training_results.png`.
 
 ---
