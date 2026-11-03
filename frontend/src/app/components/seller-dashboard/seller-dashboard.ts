@@ -2437,7 +2437,14 @@ export class SellerDashboard implements OnInit, OnDestroy {
       }
     }
     this.showCustomAiUrlModal = false;
-    this.checkServerAiHealth();
+    this.occServerOfflineNotified = false;
+    this.checkServerAiHealth().then(ok => {
+      if (!ok && url) {
+        this.showToast(this.i18n.t('Đã lưu URL GPU nhưng server phản hồi 502/Offline. Bạn nhớ chạy npm run ai:start trên máy nhé!'), 'warning');
+      } else if (ok) {
+        this.showToast(this.i18n.t('Đã kết nối thành công tới GPU Server từ xa!'), 'success');
+      }
+    });
   }
 
   clearCustomAiUrl(): void {
@@ -2447,6 +2454,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
       localStorage.removeItem('uel_custom_ai_url');
     }
     this.showCustomAiUrlModal = false;
+    this.occServerOfflineNotified = false;
     this.checkServerAiHealth();
   }
 
@@ -2459,7 +2467,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
         try {
           const tunnelRes = await fetch(`${this.customServerAiUrl}/health`, {
             headers: { 'Bypass-Tunnel-Reminder': 'true' },
-            signal: AbortSignal.timeout(3000)
+            signal: AbortSignal.timeout(2000)
           });
           if (tunnelRes.ok) {
             const tunnelHealth = await tunnelRes.json().catch(() => null);
@@ -2476,6 +2484,12 @@ export class SellerDashboard implements OnInit, OnDestroy {
             }
           }
         } catch {}
+
+        this.occServerStatus = 'offline';
+        this.occEngineMode = 'client';
+        this.occModelName = 'YOLO11-IndoorCrowd AI (WASM SIMD Edge)';
+        this.cdr.detectChanges();
+        return false;
       }
 
       // 1. Chỉ ping direct port 5001 nếu đang chạy HTTP trên localhost/desktop (tránh Mixed Content trên HTTPS)
@@ -2554,12 +2568,20 @@ export class SellerDashboard implements OnInit, OnDestroy {
     }
   }
 
-  private handleServerYoloFailure(): void {
+  private handleServerYoloFailure(reason?: string): void {
     this.occServerFailCount++;
     this.occServerStatus = 'offline';
     this.occLocalAiDirect = false;
-    this.occServerCooldownUntil = performance.now() + 30000; // Cooldown 30s để thử lại, chuyển sang client ngay
+    this.occServerCooldownUntil = performance.now() + 15000; // Cooldown 15s để chuyển nhẹ sang Edge AI
     this.markServerAiOffline();
+    if (!this.occServerOfflineNotified) {
+      this.occServerOfflineNotified = true;
+      if (reason === 'bad_gateway') {
+        this.showToast(this.i18n.t('GPU Server chưa khởi động (502 Bad Gateway). Hãy chạy npm run ai:start trên máy tính.'), 'warning');
+      } else if (reason === 'timeout') {
+        this.showToast(this.i18n.t('Kết nối GPU Server bị quá thời gian. Đã tự chuyển sang WASM Edge AI.'), 'warning');
+      }
+    }
     this.cdr.detectChanges();
   }
 
@@ -2614,24 +2636,34 @@ export class SellerDashboard implements OnInit, OnDestroy {
       const base64Image = this.offscreenCanvas.toDataURL('image/jpeg', 0.65);
 
       const t0 = performance.now();
-      const res = await fetch(targetApiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Bypass-Tunnel-Reminder': 'true'
-        },
-        body: JSON.stringify({
-          image: base64Image,
-          confidenceThreshold: this.occConfidenceThreshold,
-          iouThreshold: 0.45,
-          spaceId: this.occSelectedSpace?.id || 'general',
-          spaceName: this.occSelectedSpace?.name || 'UEL Space Room'
-        }),
-        signal: AbortSignal.timeout(2500)
-      });
+      let res: Response;
+      try {
+        res = await fetch(targetApiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Bypass-Tunnel-Reminder': 'true'
+          },
+          body: JSON.stringify({
+            image: base64Image,
+            confidenceThreshold: this.occConfidenceThreshold,
+            iouThreshold: 0.45,
+            spaceId: this.occSelectedSpace?.id || 'general',
+            spaceName: this.occSelectedSpace?.name || 'UEL Space Room'
+          }),
+          signal: AbortSignal.timeout(1200)
+        });
+      } catch (eFetch: any) {
+        this.handleServerYoloFailure(eFetch?.name === 'TimeoutError' ? 'timeout' : 'network');
+        return null;
+      }
 
       if (!res.ok) {
-        this.handleServerYoloFailure();
+        if (res.status === 502 || res.status === 503 || res.status === 504) {
+          this.handleServerYoloFailure('bad_gateway');
+        } else {
+          this.handleServerYoloFailure('error');
+        }
         return null;
       }
 
@@ -3754,9 +3786,14 @@ export class SellerDashboard implements OnInit, OnDestroy {
   }
 
   openMobileCctvModal(): void {
+    if (this.dashboardPeer) {
+      try { this.dashboardPeer.destroy(); } catch {}
+      this.dashboardPeer = null;
+    }
     const rawId = this.occSelectedSpace?.id || 'room-main';
     const cleanId = rawId.replace(/[^a-zA-Z0-9_-]/g, '');
-    this.mobileCctvStreamId = `uel-cctv-${cleanId || 'default'}`;
+    const sessionToken = Math.random().toString(36).slice(2, 7);
+    this.mobileCctvStreamId = `uel-cctv-${cleanId || 'default'}-${sessionToken}`;
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://uelspace-tan.vercel.app';
     const lensUrl = `${origin}/cctv-lens?peerId=${encodeURIComponent(this.mobileCctvStreamId)}`;
     this.mobileCctvQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(lensUrl)}`;
@@ -3796,13 +3833,16 @@ export class SellerDashboard implements OnInit, OnDestroy {
   }
 
   private async initDashboardP2pListener(): Promise<void> {
-    if (this.dashboardPeer) return;
+    if (this.dashboardPeer && !this.dashboardPeer.destroyed) return;
 
     try {
       const { Peer } = await import('peerjs');
-      const rawId = this.occSelectedSpace?.id || 'room-main';
-      const cleanId = rawId.replace(/[^a-zA-Z0-9_-]/g, '');
-      this.mobileCctvStreamId = `uel-cctv-${cleanId || 'default'}`;
+      if (!this.mobileCctvStreamId) {
+        const rawId = this.occSelectedSpace?.id || 'room-main';
+        const cleanId = rawId.replace(/[^a-zA-Z0-9_-]/g, '');
+        const sessionToken = Math.random().toString(36).slice(2, 7);
+        this.mobileCctvStreamId = `uel-cctv-${cleanId || 'default'}-${sessionToken}`;
+      }
 
       this.dashboardPeer = new Peer(this.mobileCctvStreamId);
 
@@ -3819,6 +3859,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
         call.on('stream', (remoteStream: MediaStream) => {
           console.log('[WebRTC P2P] Luồng camera điện thoại kết nối thành công 30 FPS!');
           this.mobileCctvConnected = true;
+          this.occVideoSource = 'mobile_cctv';
           this.occCameraActive = true;
           this.occDetectionRunning = true;
           this.occFrameCount = 0;
@@ -3842,18 +3883,29 @@ export class SellerDashboard implements OnInit, OnDestroy {
 
           this.cdr.detectChanges();
 
-          setTimeout(() => {
+          const attachAndPlayStream = () => {
             const videoEl = document.getElementById('occ-detection-video') as HTMLVideoElement;
-            if (videoEl) {
-              videoEl.muted = true;
-              videoEl.setAttribute('playsinline', 'true');
-              videoEl.setAttribute('webkit-playsinline', 'true');
+            if (!videoEl) return;
+            videoEl.muted = true;
+            videoEl.setAttribute('playsinline', 'true');
+            videoEl.setAttribute('webkit-playsinline', 'true');
+            if (videoEl.srcObject !== remoteStream) {
               videoEl.srcObject = remoteStream;
+            }
+            const doPlay = () => {
               videoEl.play().catch(e => console.warn('Play remote stream retry:', e)).finally(() => {
                 this.runDetectionLoop(videoEl);
               });
+            };
+            if (videoEl.readyState >= HTMLMediaElement.HAVE_METADATA) {
+              doPlay();
+            } else {
+              videoEl.onloadedmetadata = () => doPlay();
             }
-          }, 80);
+          };
+
+          setTimeout(attachAndPlayStream, 60);
+          setTimeout(attachAndPlayStream, 200);
 
           this.showToast(this.i18n.t('Đã kết nối trực tiếp Camera Điện thoại (Real-time P2P)!'), 'success');
           this.cdr.detectChanges();
@@ -3867,6 +3919,20 @@ export class SellerDashboard implements OnInit, OnDestroy {
 
       this.dashboardPeer.on('error', (err: any) => {
         console.warn('[WebRTC P2P] Peer warning:', err);
+        if (err?.type === 'unavailable-id') {
+          // Trùng ID do reload nhanh: hủy và tạo ID mới cùng QR code
+          try { this.dashboardPeer?.destroy(); } catch {}
+          this.dashboardPeer = null;
+          const rawId = this.occSelectedSpace?.id || 'room-main';
+          const cleanId = rawId.replace(/[^a-zA-Z0-9_-]/g, '');
+          const sessionToken = Math.random().toString(36).slice(2, 7);
+          this.mobileCctvStreamId = `uel-cctv-${cleanId || 'default'}-${sessionToken}`;
+          const origin = typeof window !== 'undefined' ? window.location.origin : 'https://uelspace-tan.vercel.app';
+          const lensUrl = `${origin}/cctv-lens?peerId=${encodeURIComponent(this.mobileCctvStreamId)}`;
+          this.mobileCctvQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(lensUrl)}`;
+          this.initDashboardP2pListener();
+          this.cdr.detectChanges();
+        }
       });
     } catch (e) {
       console.error('Không thể nạp PeerJS:', e);
