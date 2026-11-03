@@ -133,11 +133,12 @@ function occupancyRoutes(collections) {
 
       res.json(result);
     } catch (err) {
-      // Server AI offline hoặc timeout -> Trả về fallbackRequired để frontend tự chuyển client AI
-      res.status(503).json({
+      // Server AI offline hoặc timeout -> Trả về fallbackRequired êm dịu để frontend chuyển Client Edge AI
+      res.status(200).json({
         success: false,
         fallbackRequired: true,
-        message: `YOLOv11 Server AI is currently offline or unreachable: ${err.message}`
+        offline: true,
+        message: `YOLO11 Server AI is currently offline: ${err.message}`
       });
     }
   }));

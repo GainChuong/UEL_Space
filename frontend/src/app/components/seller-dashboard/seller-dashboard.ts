@@ -2419,42 +2419,52 @@ export class SellerDashboard implements OnInit, OnDestroy {
     try {
       this.occServerStatus = 'checking';
 
-      // 1. ƯU TIÊN SỐ 1: Thử ping trực tiếp Python AI Microservice trên port 5001 (Localhost Direct)
+      // 1. ƯU TIÊN SỐ 1: Chỉ ping direct port 5001 nếu đang chạy HTTP trên localhost/desktop (tránh Mixed Content trên HTTPS)
+      const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+      const isLocalHost = typeof window !== 'undefined' && (
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1'
+      );
+
+      if (!isHttps && isLocalHost) {
+        try {
+          const directRes = await fetch('http://127.0.0.1:5001/health', { signal: AbortSignal.timeout(1000) });
+          if (directRes.ok) {
+            const directHealth = await directRes.json().catch(() => null);
+            if (directHealth && directHealth.ready) {
+              this.occLocalAiDirect = true;
+              this.occServerStatus = 'online';
+              this.occServerFailCount = 0;
+              this.occServerCooldownUntil = 0;
+              this.occServerOfflineNotified = false;
+              this.occEngineMode = 'server';
+              this.occModelName = `YOLO11-IndoorCrowd Server AI (${directHealth.device || 'CUDA Turbo'})`;
+              this.cdr.detectChanges();
+              return true;
+            }
+          }
+        } catch {}
+      }
+
+      this.occLocalAiDirect = false;
+
+      // 2. Thử qua backend API proxy (Express server)
       try {
-        const directRes = await fetch('http://127.0.0.1:5001/health', { signal: AbortSignal.timeout(1200) });
-        if (directRes.ok) {
-          const directHealth = await directRes.json().catch(() => null);
-          if (directHealth && directHealth.ready) {
-            this.occLocalAiDirect = true;
+        const res = await fetch(`${SERVER_BASE_URL}/api/occupancy/ai-health`, { signal: AbortSignal.timeout(2000) });
+        if (res.ok) {
+          const health = await res.json().catch(() => null);
+          if (health && health.ready) {
             this.occServerStatus = 'online';
             this.occServerFailCount = 0;
             this.occServerCooldownUntil = 0;
             this.occServerOfflineNotified = false;
             this.occEngineMode = 'server';
-            this.occModelName = 'YOLO11-IndoorCrowd Server AI (Python Native • Port 5001)';
+            this.occModelName = `YOLO11-IndoorCrowd Server AI (${health.device || 'Online'})`;
             this.cdr.detectChanges();
             return true;
           }
         }
       } catch {}
-
-      this.occLocalAiDirect = false;
-
-      // 2. Thử qua backend API proxy (Express server local port 3000)
-      const res = await fetch(`${SERVER_BASE_URL}/api/occupancy/ai-health`, { signal: AbortSignal.timeout(3000) });
-      if (res.ok) {
-        const health = await res.json().catch(() => null);
-        if (health && health.ready) {
-          this.occServerStatus = 'online';
-          this.occServerFailCount = 0;
-          this.occServerCooldownUntil = 0;
-          this.occServerOfflineNotified = false;
-          this.occEngineMode = 'server';
-          this.occModelName = `YOLO11-IndoorCrowd Server AI (${health.device || 'Online'})`;
-          this.cdr.detectChanges();
-          return true;
-        }
-      }
       this.markServerAiOffline();
       return false;
     } catch {
@@ -2469,6 +2479,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
     this.occServerStatus = 'offline';
     this.occServerLatencyMs = 0;
     this.occLocalAiDirect = false;
+    this.occServerCooldownUntil = performance.now() + 30000; // 30s cooldown để không spam request
     // Tự động chuyển engine mode sang 'client' để kích hoạt trực tiếp YOLO11 ONNX Web Engine
     if (this.occEngineMode === 'server') {
       this.occEngineMode = 'client';
@@ -2479,17 +2490,17 @@ export class SellerDashboard implements OnInit, OnDestroy {
           : 'Đang nạp mô hình YOLO11 ONNX...';
       }
     }
+    if (!this.occYoloOnnxSession && !this.occCocoModel && !this.occModelLoading) {
+      this.loadOccupancyModel().catch(() => {});
+    }
   }
 
   private handleServerYoloFailure(): void {
     this.occServerFailCount++;
     this.occServerStatus = 'offline';
     this.occLocalAiDirect = false;
-    this.occServerCooldownUntil = performance.now() + 15000; // Cooldown 15s để thử lại, chuyển sang client ngay
+    this.occServerCooldownUntil = performance.now() + 30000; // Cooldown 30s để thử lại, chuyển sang client ngay
     this.markServerAiOffline();
-    if (!this.occYoloOnnxSession && !this.occCocoModel && !this.occModelLoading) {
-      this.loadOccupancyModel().catch(() => {});
-    }
     this.cdr.detectChanges();
   }
 
@@ -2505,7 +2516,10 @@ export class SellerDashboard implements OnInit, OnDestroy {
   ): Promise<Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> | null> {
     try {
       // Chỉ gọi Server AI khi server thực sự online hoặc người dùng chủ động chọn 'server' mode và đã hết cooldown
-      if (this.occServerStatus === 'offline' && performance.now() < this.occServerCooldownUntil) {
+      if (this.occServerStatus !== 'online' || this.occEngineMode !== 'server') {
+        return null;
+      }
+      if (performance.now() < this.occServerCooldownUntil) {
         return null;
       }
 
@@ -3224,12 +3238,14 @@ export class SellerDashboard implements OnInit, OnDestroy {
     const rawDetected: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
     let usedServerYolo = false;
 
-    // 1. Chế độ Ưu tiên: YOLO11-IndoorCrowd Server AI Microservice
-    const serverBoxes = await this.detectWithServerYolo(videoEl);
-    if (serverBoxes !== null) {
-      usedServerYolo = true;
-      for (const sb of serverBoxes) {
-        rawDetected.push(sb);
+    // 1. Chế độ Ưu tiên: YOLO11-IndoorCrowd Server AI Microservice (Chỉ gọi khi Server Online)
+    if (this.occEngineMode === 'server' && this.occServerStatus === 'online') {
+      const serverBoxes = await this.detectWithServerYolo(videoEl);
+      if (serverBoxes !== null) {
+        usedServerYolo = true;
+        for (const sb of serverBoxes) {
+          rawDetected.push(sb);
+        }
       }
     }
 
