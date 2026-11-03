@@ -7,6 +7,7 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "ai:start": "node -e \"const fs = require('fs'); const { spawn } = require('child_process'); const p = fs.existsSync('../.venv/Scripts/python.exe') ? '../.venv/Scripts/python.exe' : 'py'; spawn(p, ['src/ai-service/yolo_service.py'], { stdio: 'inherit' });\"",
+    "ai:tunnel": "cloudflared tunnel --url http://localhost:5001",
     "seed": "node src/seed/seed.js",
     "db:up": "docker compose up -d mongo",
     "db:down": "docker compose down"
