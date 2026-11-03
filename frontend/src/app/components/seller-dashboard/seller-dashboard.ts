@@ -2646,24 +2646,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
         return;
       }
     } catch (errOnnx: any) {
-      console.warn('[YOLO11 Web] Không thể nạp YOLO11 ONNX, thử nạp qua đường dẫn dự phòng:', errOnnx);
-      try {
-        const ort: any = await import('onnxruntime-web');
-        const session = await ort.InferenceSession.create('/models/yolo26n_occupancy.onnx', {
-          executionProviders: ['wasm'],
-          graphOptimizationLevel: 'all'
-        });
-        if (session) {
-          this.occYoloOnnxSession = session;
-          this.occModelLoaded = true;
-          this.occModelLoading = false;
-          this.occModelName = 'YOLO11-IndoorCrowd AI (Fine-tuned • WASM Edge)';
-          this.cdr.detectChanges();
-          return;
-        }
-      } catch (eFallback) {
-        console.warn('Fallback ONNX error:', eFallback);
-      }
+      console.warn('[YOLO11 Web] Không thể nạp YOLO11 ONNX Edge:', errOnnx);
     }
 
     // 2. DỰ PHÒNG CẤP 2: Nạp COCO-SSD nếu thiết bị không hỗ trợ WASM/ONNX

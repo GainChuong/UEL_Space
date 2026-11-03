@@ -1,6 +1,7 @@
 """
-UEL Space - YOLO26 Server AI Occupancy Detection Microservice
-FastAPI + Dual-Head Ultralytics YOLO26 SOTA Vision (Detection + Pose Keypoints)
+UEL Space - YOLO11-IndoorCrowd Server AI Occupancy Detection Microservice
+FastAPI + Ultralytics YOLO11 Fine-tuned on IndoorCrowd Dataset (Pure Vision Detection)
+No Pose estimation, no clutter - single streamlined high-precision person detector.
 """
 
 import os
@@ -18,9 +19,9 @@ import numpy as np
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-logger = logging.getLogger("UEL_YOLO26")
+logger = logging.getLogger("UEL_YOLO11")
 
-app = FastAPI(title="UEL Space YOLO26 Dual-Head Occupancy AI", version="3.0.0")
+app = FastAPI(title="UEL Space YOLO11 IndoorCrowd Occupancy AI", version="3.1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -30,60 +31,41 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 1. Load Pure YOLO26 Detection & Pose Models
+# 1. Load YOLO11-IndoorCrowd Fine-tuned Detection Model
 yolo_model = None
-pose_model = None
 
 try:
     from ultralytics import YOLO
     script_dir = os.path.dirname(os.path.abspath(__file__))
-
-    # Ưu tiên trọng số YOLO26 đã Fine-tune trên Smart Classroom & Coworking Dataset
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    finetuned_path = os.path.join(root_dir, "runs", "train", "yolo26_smartclass_occupancy", "weights", "best.pt")
 
     det_candidates = [
         os.path.join(script_dir, "best.pt"),
-        finetuned_path,
+        os.path.join(root_dir, "runs", "train", "yolo26_indoor_crowd_occupancy", "weights", "best.pt"),
         os.environ.get("YOLO_MODEL_PATH"),
-        os.path.join(script_dir, "yolo26n.pt"),
-        os.path.join(os.getcwd(), "yolo26n.pt"),
-        "yolo26n.pt"
+        os.path.join(script_dir, "yolo11n.pt"),
+        "yolo11n.pt"
     ]
-    det_path = "yolo26n.pt"
+    det_path = None
     for p in det_candidates:
         if p and os.path.isfile(p):
             det_path = p
             break
 
+    if not det_path:
+        det_path = "yolo11n.pt"
+
     logger.info(f"Loading YOLO11-IndoorCrowd Detection model from: {det_path}...")
     yolo_model = YOLO(det_path)
-    logger.info(f"YOLO11 Detection model ({os.path.basename(det_path)}) initialized successfully!")
-
-    # Pure YOLO26 Pose Estimation Model (yolo26n-pose.pt)
-    pose_candidates = [
-        os.environ.get("YOLO_POSE_MODEL_PATH"),
-        os.path.join(script_dir, "yolo26n-pose.pt"),
-        os.path.join(os.getcwd(), "yolo26n-pose.pt"),
-        "yolo26n-pose.pt"
-    ]
-    pose_path = "yolo26n-pose.pt"
-    for p in pose_candidates:
-        if p and os.path.isfile(p):
-            pose_path = p
-            break
-
-    logger.info(f"Loading YOLO26 Pose model from: {pose_path}...")
-    pose_model = YOLO(pose_path)
-    logger.info(f"YOLO26 Pose model ({os.path.basename(pose_path)}) initialized successfully!")
+    logger.info(f"YOLO11 Detection model ({os.path.basename(det_path)}) initialized successfully on device: {yolo_model.device}!")
 
 except Exception as e:
-    logger.error(f"Failed to load YOLO26 models: {e}")
+    logger.error(f"Failed to load YOLO11 model: {e}")
 
 class DetectRequest(BaseModel):
     image: str  # Base64 data URL or raw base64 string
-    confidenceThreshold: Optional[float] = 0.18
-    iouThreshold: Optional[float] = 0.60
+    confidenceThreshold: Optional[float] = 0.28
+    iouThreshold: Optional[float] = 0.45
     spaceId: Optional[str] = "general"
     spaceName: Optional[str] = "UEL Space Room"
 
@@ -94,8 +76,6 @@ class BoundingBox(BaseModel):
     h: float
     confidence: float
     label: str
-    isLyingDown: Optional[bool] = False
-    hasPoseKeypoints: Optional[bool] = False
 
 class DetectResponse(BaseModel):
     success: bool
@@ -110,11 +90,11 @@ class DetectResponse(BaseModel):
 def health_check():
     return {
         "status": "online",
-        "model": "YOLO26 Dual-Head (Detection + Pose SOTA)",
+        "model": "YOLO11-IndoorCrowd Pure Vision SOTA",
         "ready": yolo_model is not None,
-        "poseReady": pose_model is not None,
         "classes": ["person"],
-        "timestamp": time.time()
+        "timestamp": time.time(),
+        "device": str(yolo_model.device) if yolo_model else "offline"
     }
 
 def compute_iou(boxA, boxB):
@@ -150,14 +130,11 @@ def detect_occupancy(req: DetectRequest):
         pil_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         img_w, img_h = pil_image.size
 
-        # Ngưỡng nhạy thông minh:
-        # Tự động hạ ngưỡng đối với người nằm hoặc người ngồi sát trong phòng họp
-        base_conf = req.confidenceThreshold if req.confidenceThreshold is not None else 0.16
-        iou_thresh = req.iouThreshold if req.iouThreshold is not None else 0.60
+        # Default confidence: 0.28 (optimal balance on IndoorCrowd F1-curve), NMS IoU: 0.45
+        base_conf = float(req.confidenceThreshold) if req.confidenceThreshold is not None else 0.28
+        iou_thresh = float(req.iouThreshold) if req.iouThreshold is not None else 0.45
 
-        candidates: List[dict] = []
-
-        # 1. Chạy Head 1: Standard YOLO26 Object Detection (Class 0: Person)
+        # Run pure YOLO11 Person Detection (Class 0: Person)
         det_results = yolo_model.predict(
             source=pil_image,
             conf=base_conf,
@@ -166,6 +143,7 @@ def detect_occupancy(req: DetectRequest):
             verbose=False
         )
 
+        raw_candidates = []
         if len(det_results) > 0 and det_results[0].boxes is not None:
             boxes = det_results[0].boxes
             for box in boxes:
@@ -177,126 +155,37 @@ def detect_occupancy(req: DetectRequest):
                 bw = min(float(img_w), x2) - bx
                 bh = min(float(img_h), y2) - by
 
-                if bw > 12 and bh > 16:
-                    ar = bw / bh
-                    if ar > 2.2 and score < 0.45:
-                        continue  # Bỏ qua vệt chữ ngang hoặc sàn phẳng
-                    if ar < 0.12:
-                        continue  # Bỏ qua đường kẻ hoặc sợi dây
-                    is_lying = bw > (bh * 1.15)
-                    label = "Khách thuê (Tư thế nằm)" if is_lying else "Khách thuê (YOLO11 • Indoor Crowd)"
-                    candidates.append({
-                        "box": [bx, by, bw, bh],
-                        "score": score,
-                        "label": label,
-                        "isLyingDown": is_lying,
-                        "hasPoseKeypoints": False,
-                        "source": "det"
-                    })
+                # Minimum size filter
+                if bw < 14 or bh < 18:
+                    continue
 
-        # 2. Chạy Head 2: YOLO26 Pose Estimation (17 Human Keypoints)
-        # Bắt trọn 100% người nằm trên sofa, cúi gục, che mặt, tư thế khó thấy đầu
-        if pose_model is not None:
-            try:
-                # Ngưỡng siêu nhạy cho Pose để bắt trọn xương người
-                pose_conf = max(0.12, base_conf - 0.04)
-                pose_results = pose_model.predict(
-                    source=pil_image,
-                    conf=pose_conf,
-                    iou=iou_thresh,
-                    verbose=False
-                )
+                # Human aspect ratio filter: filters out flat tables, cardboard boxes, long wires
+                ar = bw / bh
+                if ar > 2.2 or ar < 0.12:
+                    continue
 
-                if len(pose_results) > 0 and pose_results[0].boxes is not None:
-                    p_boxes = pose_results[0].boxes
-                    p_keypoints = pose_results[0].keypoints
+                raw_candidates.append({
+                    "box": [bx, by, bw, bh],
+                    "score": score,
+                    "label": "Khách thuê (YOLO11 • Indoor Crowd)"
+                })
 
-                    for idx, box in enumerate(p_boxes):
-                        xyxy = box.xyxy[0].tolist()
-                        score = float(box.conf[0].item())
-                        x1, y1, x2, y2 = xyxy
-                        bx = max(0.0, x1)
-                        by = max(0.0, y1)
-                        bw = min(float(img_w), x2) - bx
-                        bh = min(float(img_h), y2) - by
-
-                        if bw > 8 and bh > 8:
-                            # Kiểm tra keypoints: nếu có ít nhất 3 khớp xương rõ ràng (vai, hông, gối, chân)
-                            has_skeleton = False
-                            if p_keypoints is not None and len(p_keypoints) > idx:
-                                kp_data = p_keypoints[idx].conf
-                                if kp_data is not None:
-                                    visible_kps = (kp_data[0] > 0.25).sum().item()
-                                    has_skeleton = visible_kps >= 3
-
-                            is_lying = bw > (bh * 1.10)
-                            label = "Khách thuê (Pose AI • Tư thế nằm)" if is_lying else "Khách thuê (YOLO26 Pose AI)"
-                            
-                            candidates.append({
-                                "box": [bx, by, bw, bh],
-                                "score": score,
-                                "label": label,
-                                "isLyingDown": is_lying,
-                                "hasPoseKeypoints": has_skeleton,
-                                "source": "pose"
-                            })
-            except Exception as e_pose:
-                logger.warn(f"Pose inference exception: {e_pose}")
-
-        # 3. Dual-Head Ensemble Fusion (Chống gộp nhầm 5 người thành 3, bảo toàn từng cá thể riêng biệt)
-        # Sắp xếp các box theo điểm tin cậy giảm dần
-        candidates.sort(key=lambda c: c["score"], reverse=True)
-        fused: List[dict] = []
-
-        for cand in candidates:
+        # Greedy NMS deduplication
+        raw_candidates.sort(key=lambda c: c["score"], reverse=True)
+        final_boxes: List[dict] = []
+        for cand in raw_candidates:
             c_box = cand["box"]
-            c_cx = c_box[0] + c_box[2] / 2
-            c_cy = c_box[1] + c_box[3] / 2
-
-            # Chỉ coi là 1 người nếu trùng lặp diện tích rất cao (IoU >= 0.55)
-            # HOẶC tâm 2 box gần như trùng khít và một box nằm lọt trong box kia
-            is_duplicate = False
-            for f in fused:
-                f_box = f["box"]
-                iou_val = compute_iou(c_box, f_box)
-
-                # Kiểm tra diện tích giao nhau trên diện tích box nhỏ hơn (IoS)
-                xA = max(c_box[0], f_box[0])
-                yA = max(c_box[1], f_box[1])
-                xB = min(c_box[0] + c_box[2], f_box[0] + f_box[2])
-                yB = min(c_box[1] + c_box[3], f_box[1] + f_box[3])
-                inter_area = max(0.0, xB - xA) * max(0.0, yB - yA)
-                min_area = min(c_box[2] * c_box[3], f_box[2] * f_box[3])
-                ios_val = inter_area / min_area if min_area > 0 else 0.0
-
-                # Khoảng cách tâm giữa 2 người
-                f_cx = f_box[0] + f_box[2] / 2
-                f_cy = f_box[1] + f_box[3] / 2
-                dist_centers = np.hypot(c_cx - f_cx, c_cy - f_cy)
-                min_dim = min(c_box[2], f_box[2], c_box[3], f_box[3])
-
-                # CHỈ gộp nếu trùng lặp rất cao (cùng 1 người được cả Detection lẫn Pose nhận diện)
-                # TUYỆT ĐỐI KHÔNG gộp 2 người ngồi cạnh nhau (khi dist_centers > min_dim * 0.40)
-                if iou_val >= 0.55 or (ios_val >= 0.80 and dist_centers < min_dim * 0.35):
-                    is_duplicate = True
-                    # Cập nhật thông tin tốt hơn từ mô hình Pose hoặc Detection
-                    if cand.get("hasPoseKeypoints"):
-                        f["hasPoseKeypoints"] = True
-                    if cand.get("isLyingDown"):
-                        f["isLyingDown"] = True
-                    if cand["score"] > f["score"]:
-                        f["score"] = cand["score"]
-                        f["label"] = cand["label"]
+            is_dup = False
+            for fb in final_boxes:
+                if compute_iou(c_box, fb["box"]) >= iou_thresh:
+                    is_dup = True
                     break
+            if not is_dup:
+                final_boxes.append(cand)
 
-            if not is_duplicate:
-                fused.append(cand)
-
-        # Chuyển đổi thành BoundingBox cho response
         detected_boxes: List[BoundingBox] = []
         confidences = []
-
-        for f in fused:
+        for f in final_boxes:
             bx, by, bw, bh = f["box"]
             score = f["score"]
             detected_boxes.append(BoundingBox(
@@ -305,9 +194,7 @@ def detect_occupancy(req: DetectRequest):
                 w=round(bw, 1),
                 h=round(bh, 1),
                 confidence=round(score * 100, 1),
-                label=f["label"],
-                isLyingDown=f.get("isLyingDown", False),
-                hasPoseKeypoints=f.get("hasPoseKeypoints", False)
+                label=f["label"]
             ))
             confidences.append(score)
 
@@ -334,5 +221,5 @@ def detect_occupancy(req: DetectRequest):
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 5001))
-    logger.info(f"Starting UEL Space YOLO26 AI Service on port {port}...")
+    logger.info(f"Starting UEL Space YOLO11 AI Service on port {port}...")
     uvicorn.run(app, host="0.0.0.0", port=port)

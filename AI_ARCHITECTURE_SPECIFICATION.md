@@ -25,8 +25,8 @@ Hệ thống **UEL Space** triển khai kiến trúc AI kết hợp giữa **Clo
           ▼                                       ▼                                       ▼
    [Cloud Generative AI]                 [Server Vision AI]                      [Client Edge AI]
    • Google Gemini Flash 3.8             • Ultralytics YOLOv11 Detection         • TensorFlow.js (WebGL/CPU)
-   • Context-RAG từ MongoDB              • Ultralytics YOLOv11 Pose              • MobileNetV2 COCO-SSD
-   • JSON Structured Outputs             • Anti-Crowding NMS & Fusion            • Hardware FaceDetector API
+   • Context-RAG từ MongoDB              • Fine-tuned on IndoorCrowd              • MobileNetV2 COCO-SSD
+   • JSON Structured Outputs             • Anti-Crowding Greedy NMS            • Hardware FaceDetector API
    • Circuit Breaker Fallback            • Microservice FastAPI (Port 5001)      • jsQR Kiosk Scanner
 ```
 
@@ -88,7 +88,6 @@ Hệ thống **UEL Space** triển khai kiến trúc AI kết hợp giữa **Clo
 | Mô hình / Công nghệ | Vị trí thực thi | Kiến trúc / Nền tảng | Nhiệm vụ chính |
 | :--- | :--- | :--- | :--- |
 | **YOLOv11 Nano Detection (`yolo11n.pt`)** | Server Python FastAPI (`my-server/src/ai-service/yolo_service.py`) | CNN SOTA Object Detection (Ultralytics) | Nhận diện đối tượng người (`classes=[0]`) với tốc độ suy luận siêu tốc mili-giây. |
-| **YOLOv11 Nano Pose (`yolo11n-pose.pt`)** | Server Python FastAPI (`my-server/src/ai-service/yolo_service.py`) | 17 Keypoints Human Pose Estimation (Ultralytics) | Bắt trọn 17 khớp xương người, phát hiện các tư thế khó (người nằm sofa, cúi gục đầu làm việc, che mặt). |
 | **COCO-SSD Lite (`lite_mobilenet_v2`)** | Client Trình duyệt Angular (`frontend/src/app/components/admin/admin.ts`) | MobileNetV2 + Single Shot MultiBox Detector qua TensorFlow.js (`@tensorflow/tfjs`) | Mô hình Client Edge AI dự phòng, chạy trực tiếp trên GPU WebGL hoặc CPU khi mất kết nối máy chủ AI. |
 | **Hardware `FaceDetector` API** | Client Trình duyệt Angular (`frontend/src/app/components/admin/admin.ts`) | Shape Detection API phần cứng | Phát hiện khuôn mặt khi cơ thể người bị mặt bàn họp che khuất toàn bộ thân dưới. |
 | **Google Gemini Flash (`gemini-3.8-flash`)** | Backend Node.js Express (`my-server/src/modules/chatbot/gemini.service.js`) | Large Language Model (Google Generative AI REST / Interactions API) | Trợ lý Chatbot hiểu ngôn ngữ tự nhiên tiếng Việt, bóc tách thực thể (Intent & Entity) và sinh phản hồi JSON Structured Output. |
@@ -113,7 +112,7 @@ Hệ thống **UEL Space** triển khai kiến trúc AI kết hợp giữa **Clo
 - **Pixel Dimension Threshold:** Hủy bỏ toàn bộ các bounding box có kích thước nhỏ hơn $8 \times 8\text{px}$ để triệt tiêu nhiễu pixel biên.
 - **Class Filtering:** Chỉ giữ lại class `0` (Person) trong YOLO và class `'person'` trong COCO-SSD.
 - **Aspect Ratio Lying Filter:** Phát hiện tư thế nằm dựa trên tỉ lệ hộp bao:
-  $$\text{Aspect Ratio} = \frac{\text{Width}}{\text{Height}} > 1.15 \quad (\text{Detection}) \quad \text{hoặc} \quad > 1.10 \quad (\text{Pose})$$
+  $$\text{Aspect Ratio} = \frac{\text{Width}}{\text{Height}} \notin [0.12, 2.2]$$
 - **Skeleton Visibility Filter:** Khớp xương được công nhận khi điểm tin cậy $conf > 0.25$, và chỉ xác nhận có khung xương người khi có ít nhất $\ge 3$ khớp xương hợp lệ.
 
 ### 4.3. Bộ lọc Hợp nhất Sĩ số Đa tầng (Anti-Crowding NMS & Fusion)
@@ -145,7 +144,6 @@ Thuật toán giải quyết triệt để lỗi kinh điển của Object Detec
 | Thông số | Giá trị | File mã nguồn | Lý do thiết lập & Căn cứ kỹ thuật |
 | :--- | :---: | :--- | :--- |
 | **`confidenceThreshold` (Server Detection)** | `0.16`<br>*(High: 0.12, Normal: 0.16, Strict: 0.22)* | `yolo_service.py:82`<br>`admin.ts:2783` | **Chống bỏ sót người (False Negatives):** Camera phòng họp thường gắn từ trần cao hoặc góc xa. Khách ngồi làm việc thường cúi đầu, bị mặt bàn hoặc màn hình laptop che khuất thân dưới, khiến điểm tin cậy bị tụt xuống khoảng 0.15–0.22. Nếu để mặc định `0.25`–`0.50` của YOLO, mô hình sẽ đếm thiếu người nghiêm trọng. |
-| **`pose_conf` (Server Pose)** | `max(0.12, base_conf - 0.04)` | `yolo_service.py:194` | **Bắt trọn tư thế khó:** Người nằm dài trên sofa hoặc tựa lưng gục mặt không có hình dạng hộp người tiêu chuẩn. Mô hình Pose chỉ cần nhận diện các khớp xương với ngưỡng tin cậy thấp là đủ cơ sở khẳng định có người. |
 | **`Anti-Crowding IoU`** | `0.60` – `0.65` | `yolo_service.py:83`<br>`admin.ts:2579` | **Bảo toàn số lượng người ngồi cạnh nhau:** Ngưỡng IoU chuẩn của NMS (`0.45`) sẽ xóa nhầm các box của những người ngồi sát nhau trong phòng họp nhóm (vì 2 người kề nhau có thể giao nhau 30–45%). Nâng lên `0.65` giúp bảo toàn đủ 5/5 người. |
 | **`dist_centers` Limit** | $< 0.30 \times \min(W, H)$ | `yolo_service.py:272`<br>`admin.ts:2579` | **Tránh gộp sai:** Khoảng cách tâm giữa hai người cạnh nhau luôn lớn hơn $0.35 \times \min(W, H)$. Ngưỡng này là chốt chặn đảm bảo hai cá thể độc lập không bao giờ bị sáp nhập. |
 | **`Tracking Alpha` (EMA)** | $\alpha = 0.40$ | `admin.ts:2916` | **Làm mượt tọa độ (Anti-jitter):** Công thức $x_{t} = (1 - \alpha)x_{t-1} + \alpha x_{det}$ với $\alpha = 0.40$ giúp khung bao di chuyển êm dịu theo cử động cơ thể, không bị giật khung. |
@@ -203,9 +201,8 @@ Thuật toán giải quyết triệt để lỗi kinh điển của Object Detec
       │ Thành công          │ Lỗi / 503  │
       ▼                     ▼            ▼
 [FastAPI YOLOv11]      [KÍCH HOẠT CLIENT EDGE AI FALLBACK]
-├── Head 1: Detection  ├── Chạy COCO-SSD MobileNetV2 (WebGL/CPU)
-├── Head 2: 17 Pose    ├── Chạy Hardware FaceDetector API
-└── Anti-Crowding NMS  └── Hợp nhất Face & Body (IoU >= 0.65)
+├── YOLO11 Detection   ├── Chạy COCO-SSD MobileNetV2 (WebGL/CPU)
+└── Greedy NMS (0.45)  └── Chạy Hardware FaceDetector API
       │                     │
       └──────────┬──────────┘
                  │

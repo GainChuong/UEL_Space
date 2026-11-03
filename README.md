@@ -6,12 +6,12 @@
 
 <p align="center">
   <strong>ĐỒ ÁN GIẢI PHÁP TRÍ TUỆ NHÂN TẠO (AI SOLUTION PROJECT)</strong><br>
-  <em>Hệ thống Sàn Thương mại Không gian tích hợp AI Hybrid: Dual-Head Computer Vision (YOLOv11 Detection & Pose) & Trợ lý Ngôn ngữ Tự nhiên (Google Gemini Flash NLP)</em><br>
+  <em>Hệ thống Sàn Thương mại Không gian tích hợp AI: YOLO11-IndoorCrowd Computer Vision (Pure Vision Detection) & Trợ lý Ngôn ngữ Tự nhiên (Google Gemini Flash NLP)</em><br>
   <em>Nền tảng Sàn Thương mại Điện tử Thuê Không gian Làm việc, Hội họp & Sự kiện Thông minh (Smart Space Rental Marketplace)</em>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/AI_Solution-Dual--Head_Hybrid-7C3AED?style=for-the-badge&logo=openai&logoColor=white" alt="AI Solution">
+  <img src="https://img.shields.io/badge/AI_Solution-YOLO11_Vision-7C3AED?style=for-the-badge&logo=openai&logoColor=white" alt="AI Solution">
   <img src="https://img.shields.io/badge/Google_Gemini-Flash_AI-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini AI">
   <img src="https://img.shields.io/badge/YOLOv11-IndoorCrowd_Vision-00FFFF?style=for-the-badge&logo=yolo&logoColor=black" alt="YOLOv11">
   <img src="https://img.shields.io/badge/Angular-22.2-DD0031?style=for-the-badge&logo=angular&logoColor=white" alt="Angular">
@@ -134,7 +134,7 @@ UEL_Space/
 │   │   ├── usage-sessions/       # Ghi nhận phiên sử dụng và quét QR Check-in
 │   │   ├── occupancy/            # Nhật ký kiểm đếm sĩ số và kết nối IoT AI
 │   │   └── audit-logs/           # Lưu vết kiểm toán hoạt động bất biến (F34)
-│   ├── src/ai-service/           # Dịch vụ Python AI YOLOv11 (Dual-Head Detection & Pose Estimation)
+│   ├── src/ai-service/           # Dịch vụ Python AI YOLO11 (IndoorCrowd Person Detection Microservice)
 │   ├── src/seed/                 # Bộ script nạp dữ liệu từ Hugging Face & Unsplash Dataset
 │   ├── public/images/            # Kho ảnh static assets nội bộ
 │   └── index.js                  # Điểm khởi chạy Express Server chính

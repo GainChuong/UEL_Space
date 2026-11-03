@@ -308,16 +308,16 @@ function ensureYoloAiService() {
   fetch('http://127.0.0.1:5001/health')
     .then(r => r.json())
     .then(data => {
-      console.log(`🤖 YOLO26 Computer Vision Microservice sẵn sàng (${data.model}) tại cổng 5001`);
+      console.log(`🤖 YOLO11-IndoorCrowd Computer Vision Microservice sẵn sàng (${data.model}) tại cổng 5001`);
     })
     .catch(() => {
       // Nếu AI service được deploy tách riêng (Cloud) thì không tự khởi chạy cục bộ
       if (externalUrl) {
-        console.log(`🤖 YOLO26 Microservice cấu hình ngoài (AI_SERVICE_URL=${externalUrl}), bỏ qua khởi chạy cục bộ.`);
+        console.log(`🤖 YOLO11-IndoorCrowd Microservice cấu hình ngoài (AI_SERVICE_URL=${externalUrl}), bỏ qua khởi chạy cục bộ.`);
         return;
       }
 
-      console.log('🚀 Đang khởi động SOTA YOLO26 Computer Vision AI Service (port 5001)...');
+      console.log('🚀 Đang khởi động SOTA YOLO11-IndoorCrowd Computer Vision AI Service (port 5001)...');
       const { spawn } = require('child_process');
       const fs = require('fs');
       const path = require('path');

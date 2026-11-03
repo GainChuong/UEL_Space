@@ -1,6 +1,6 @@
 """
-UEL Space - YOLO26 Occupancy Training & ONNX Web Export Pipeline (IndoorCrowd)
-Huấn luyện YOLO26 sạch (bắt đầu từ yolo26n.pt) trên bộ dữ liệu indoor_crowd_yolo26.
+UEL Space - YOLO11 Occupancy Training & ONNX Web Export Pipeline (IndoorCrowd)
+Huấn luyện YOLO11 sạch (bắt đầu từ yolo11n.pt) trên bộ dữ liệu indoor_crowd.
 Tự động dùng GPU NVIDIA RTX nếu có hoặc CPU.
 """
 
@@ -18,12 +18,12 @@ from ultralytics import YOLO
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATASET_YAML = os.path.join(BASE_DIR, "datasets", "indoor_crowd_yolo26", "indoor_crowd_yolo26.yaml")
-WEIGHTS_PRETRAINED = os.path.join(BASE_DIR, "yolo26n.pt")
+WEIGHTS_PRETRAINED = os.path.join(BASE_DIR, "yolo11n.pt")
 OUTPUT_RUNS_DIR = os.path.join(BASE_DIR, "runs", "train")
 
 def run_training():
     print("=" * 65)
-    print("🚀 BẮT ĐẦU FINE-TUNE YOLO26 TRÊN BỘ DỮ LIỆU INDOORCROWD")
+    print("🚀 BẮT ĐẦU FINE-TUNE YOLO11 TRÊN BỘ DỮ LIỆU INDOORCROWD")
     print("=" * 65)
 
     has_cuda = torch.cuda.is_available()
@@ -46,8 +46,8 @@ def run_training():
     print(f"📄 Dataset YAML: {DATASET_YAML}")
     print(f"⚡ Batch size: {batch_size} | Thiết bị: {device}")
 
-    # Khởi tạo mô hình sạch từ backbone yolo26n.pt
-    model = YOLO(WEIGHTS_PRETRAINED)
+    # Khởi tạo mô hình sạch từ backbone yolo11n.pt
+    model = YOLO(WEIGHTS_PRETRAINED if os.path.exists(WEIGHTS_PRETRAINED) else "yolo11n.pt")
 
     epochs = 20
 
@@ -61,7 +61,7 @@ def run_training():
         amp=has_cuda,
         workers=2,
         project=OUTPUT_RUNS_DIR,
-        name="yolo26_indoor_crowd_occupancy",
+        name="yolo11_indoor_crowd_occupancy",
         exist_ok=True,
         save=True,
         plots=True,
@@ -77,18 +77,19 @@ def run_training():
         fliplr=0.5
     )
 
-    best_pt = os.path.join(OUTPUT_RUNS_DIR, "yolo26_indoor_crowd_occupancy", "weights", "best.pt")
+    best_pt = os.path.join(OUTPUT_RUNS_DIR, "yolo11_indoor_crowd_occupancy", "weights", "best.pt")
     if not os.path.exists(best_pt):
-        best_pt = model.trainer.best if hasattr(model, 'trainer') and hasattr(model.trainer, 'best') else WEIGHTS_PRETRAINED
+        best_pt = model.trainer.best if hasattr(model, 'trainer') and hasattr(model.trainer, 'best') else "best.pt"
 
     print("\n" + "=" * 65)
     print(f"🎉 HUẤN LUYỆN HOÀN TẤT! Trọng số tối ưu nhất: {best_pt}")
     print("=" * 65)
 
     # Cập nhật best.pt vào AI microservice
-    target_ai_service_pt = os.path.join(BASE_DIR, "my-server-mongodb", "src", "ai-service", "best.pt")
-    shutil.copy2(best_pt, target_ai_service_pt)
-    print(f"✅ Đã đồng bộ best.pt vào: {target_ai_service_pt}")
+    target_ai_service_pt = os.path.join(BASE_DIR, "my-server", "src", "ai-service", "best.pt")
+    if os.path.exists(best_pt):
+        shutil.copy2(best_pt, target_ai_service_pt)
+        print(f"✅ Đã đồng bộ best.pt vào: {target_ai_service_pt}")
 
     # Xuất sang định dạng ONNX
     try:
@@ -98,9 +99,8 @@ def run_training():
         print(f"✅ File ONNX đã xuất tại: {onnx_file}")
 
         onnx_destinations = [
-            os.path.join(BASE_DIR, "yolo26n_occupancy.onnx"),
-            os.path.join(BASE_DIR, "my-server-mongodb", "src", "ai-service", "yolo26n_occupancy.onnx"),
-            os.path.join(BASE_DIR, "frontend", "public", "models", "yolo26n_occupancy.onnx")
+            os.path.join(BASE_DIR, "my-server", "src", "ai-service", "yolo11n_indoor_crowd.onnx"),
+            os.path.join(BASE_DIR, "frontend", "public", "models", "yolo11n_indoor_crowd.onnx")
         ]
         for dst in onnx_destinations:
             os.makedirs(os.path.dirname(dst), exist_ok=True)
@@ -114,4 +114,3 @@ def run_training():
 
 if __name__ == "__main__":
     run_training()
-
