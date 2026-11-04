@@ -130,19 +130,25 @@ Các tập dữ liệu đại trà như COCO hay CrowdHuman đa số thu thập 
 * Ánh sáng đèn huỳnh quang trong nhà tạo ra bóng đổ phức tạp và độ tương phản thấp.
 `IndoorCrowd` được thiết kế chuyên biệt để giải quyết trọn vẹn những thách thức thực địa này.
 
-### 3.2. Cấu trúc Dữ liệu & Các Phân khu Tuyển chọn Thực tế
-Tập dữ liệu gốc cung cấp cấu hình `obj_det_seg` bao gồm ảnh độ phân giải cao kèm siêu dữ liệu hộp bao đối tượng người:
-```json
-{
-  "image": "<PIL.JpegImagePlugin.JpegImageFile>",
-  "width": 1920,
-  "height": 1080,
-  "objects": {
-    "bbox": [[bx, by, bw, bh], ...],
-    "category": [0, ...]
-  }
-}
-```
+### 3.2. Cấu trúc Dữ liệu & Phân Tích Đối Chiếu Số Lượng Record (Bảng Thống Kê Gốc vs Hugging Face vs Dự Án)
+
+Khi đối chiếu giữa **Bảng thống kê bài báo gốc (Table 2: Per-Scene Crowd Statistics)**, **Kho dữ liệu Hugging Face** và **Tập dữ liệu huấn luyện thực tế của UEL Space**, có sự khác biệt rõ rệt về số lượng bản ghi (records) do mục đích sử dụng khác nhau:
+
+#### 📊 Bảng Đối Chiếu Số Liệu Toàn Diện:
+
+| Phân khu (Scene) | Thống kê Paper/Web (Table 2)<br>*(Số Frames / Instances)* | Kho Gốc Hugging Face<br>*(Tổng Frames cấu hình `obj_det_seg`)* | Trích xuất Thực tế UEL Space<br>*(Frames đưa vào Train/Val)* | Mật độ người TB<br>*(Persons/frame)* | Lý do lựa chọn & cân bằng dữ liệu |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **`r_central`** (Giảng đường dốc) | **391** | **380** | **380** *(100% split)* | $6.86 \pm 1.52$ | Tác giả lọc bỏ 11 frame lỗi khi đẩy lên HF. Dự án lấy toàn bộ 380 ảnh do mật độ lớp học dốc cực kỳ giá trị. |
+| **`ie_central`** (Sảnh tự học) | **1,083** | **1,650** | **1,200** *(lấy mẫu)* | $7.96 \pm 3.63$ | Paper thống kê trên 1,083 ảnh benchmark. Dự án lấy mẫu 1,200 ảnh để cân bằng với các phân khu khác. |
+| **`acs_ec`** (Lab máy tính, họp) | **2,128** | **2,802** | **1,200** *(lấy mẫu)* | $12.23 \pm 3.80$ | Mật độ che khuất cao ($79.3\%$ dense). Lấy 1,200 ảnh tránh tình trạng mô hình bị Overfitting thiên lệch vào một góc phòng. |
+| **`acs_eg`** (Hành lang đi lại dài) | **1,260** | **3,975** | **0** *(Loại bỏ)* | $5.41 \pm 1.94$ | **Loại bỏ hoàn toàn**: Bối cảnh hành lang hẹp ngoài ban công, không phù hợp với không gian phòng kín cho thuê của UEL Space. |
+| **TỔNG CỘNG** | **4,862 frames** | **8,807 frames** | **2,780 frames** | $8.10 \pm 4.18$ | **60,938 bounding boxes người** |
+
+> [!NOTE] Giải mã thuật ngữ "Instances" trong bảng của Tác giả:
+> Trong bảng *Per-Scene Crowd Statistics* trên trang tác giả (`sheepseb.github.io/IndoorCrowd`), cột **"Instances" (4,862)** chính là **Số lượng khung hình (Frames/Image Instances)** được chọn để tính toán ma trận mật độ và độ che khuất.
+> * *Chứng minh toán học:* Nếu 4,862 là số bounding boxes (người), thì với mật độ trung bình $8.10 \text{ người/frame}$, toàn bộ dataset chỉ có $4,862 / 8.10 \approx 600 \text{ ảnh}$ (mâu thuẫn với video 9,913 frames và kho 8,807 ảnh trên HF).
+> * Ngược lại, với 4,862 frames $\times 8.10 \text{ người/frame}$, tổng số đối tượng người thực tế trong tập thống kê của tác giả là $\approx 39,382$ người.
+> * Trong dự án UEL Space, 2,780 ảnh trích xuất đem lại tổng cộng **60,938 bounding boxes** người thực tế.
 
 Dự án UEL Space tuyển chọn khắt khe 3 phân khu đại diện cho mọi tình huống không gian thương mại:
 1. **`r_central` (380 ảnh):** Giảng đường bậc thang dốc với mật độ sinh viên ngồi dày đặc từ trước ra sau, góc camera nhìn xiên từ trên cao.
@@ -226,7 +232,7 @@ names:
 ```powershell
 python scripts/prepare_indoor_crowd_yolo11.py
 ```
-*Kết quả:* Hệ thống tự động thu thập **2,432 ảnh Train**, **348 ảnh Val** và gán nhãn cho hơn **35,000 bounding boxes người**.
+*Kết quả:* Hệ thống tự động thu thập **2,432 ảnh Train** ($53,366$ bounding boxes), **348 ảnh Val** ($7,572$ bounding boxes). Tổng cộng **2,780 ảnh** và **60,938 bounding boxes người**.
 
 ---
 
