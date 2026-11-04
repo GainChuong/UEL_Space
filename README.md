@@ -180,8 +180,8 @@ UEL_Space/
 │   ├── src/seed/                 # Bộ script nạp dữ liệu từ Hugging Face & Unsplash Dataset
 │   └── index.js                  # Điểm khởi chạy Express Server chính
 ├── scripts/                      # Bộ công cụ huấn luyện & xuất khẩu mô hình AI
-│   ├── prepare_indoor_crowd_yolo26.py # Chuẩn hóa tập dữ liệu IndoorCrowd (Train/Val/Test)
-│   └── train_yolo26_indoor_crowd.py   # Huấn luyện fine-tune YOLO11 Detection 20 epochs
+│   ├── prepare_indoor_crowd_yolo11.py # Chuẩn hóa tập dữ liệu IndoorCrowd (Train/Val/Test)
+│   └── train_yolo11_indoor_crowd.py   # Huấn luyện fine-tune YOLO11 Detection 20 epochs
 ├── design-system/                # Hệ thống thiết kế & Tài liệu kết nối Figma / Stitch
 ├── Diagram/                      # Sơ đồ thiết kế chuẩn kỹ nghệ phần mềm (BPMN, ERD, Use Case)
 └── Brand_Guideline/              # Tiêu chuẩn thương hiệu & Design Specifications

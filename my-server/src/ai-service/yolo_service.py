@@ -56,7 +56,7 @@ try:
 
     det_candidates = [
         os.path.join(script_dir, "best.pt"),
-        os.path.join(root_dir, "runs", "train", "yolo26_indoor_crowd_occupancy", "weights", "best.pt"),
+        os.path.join(root_dir, "runs", "train", "yolo11_indoor_crowd_occupancy", "weights", "best.pt"),
         os.environ.get("YOLO_MODEL_PATH"),
         os.path.join(script_dir, "yolo11n.pt"),
         "yolo11n.pt"

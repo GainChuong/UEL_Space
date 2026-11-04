@@ -151,7 +151,7 @@ Dự án UEL Space tuyển chọn khắt khe 3 phân khu đại diện cho mọi
 
 ### 3.3. Hướng dẫn Chi tiết Tải & Chuẩn hóa Dữ liệu từ Hugging Face
 Toàn bộ quy trình được đóng gói tự động trong tệp script của dự án:
-📂 [`scripts/prepare_indoor_crowd_yolo26.py`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/scripts/prepare_indoor_crowd_yolo26.py)
+📂 [`scripts/prepare_indoor_crowd_yolo11.py`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/scripts/prepare_indoor_crowd_yolo11.py)
 
 #### Bước 1: Cài đặt Thư viện Phụ thuộc
 ```bash
@@ -167,7 +167,7 @@ from huggingface_hub import login
 from datasets import load_dataset
 
 # Khởi tạo thư mục đích
-OUTPUT_DIR = "datasets/indoor_crowd_yolo26"
+OUTPUT_DIR = "datasets/indoor_crowd_yolo11"
 splits_to_load = [("r_central", 380), ("ie_central", 1200), ("acs_ec", 1200)]
 
 val_interval = 8  # Mỗi 8 ảnh thì lấy 1 ảnh làm validation (12.5% Val, 87.5% Train)
@@ -211,10 +211,10 @@ for split_name, max_samples in splits_to_load:
         count += 1
 ```
 
-#### Bước 3: Tạo Tệp Cấu hình Dataset YAML (`indoor_crowd_yolo26.yaml`)
+#### Bước 3: Tạo Tệp Cấu hình Dataset YAML (`indoor_crowd_yolo11.yaml`)
 Script tự động sinh ra tệp manifest định nghĩa đường dẫn:
 ```yaml
-path: datasets/indoor_crowd_yolo26
+path: datasets/indoor_crowd_yolo11
 train: images/train
 val: images/val
 
@@ -224,7 +224,7 @@ names:
 
 #### Bước 4: Chạy Lệnh Chuẩn bị Dữ liệu
 ```powershell
-python scripts/prepare_indoor_crowd_yolo26.py
+python scripts/prepare_indoor_crowd_yolo11.py
 ```
 *Kết quả:* Hệ thống tự động thu thập **2,432 ảnh Train**, **348 ảnh Val** và gán nhãn cho hơn **35,000 bounding boxes người**.
 
@@ -233,11 +233,11 @@ python scripts/prepare_indoor_crowd_yolo26.py
 ## 4. Cấu hình Huấn luyện & Chiến lược Fine-Tuning 20 Epochs
 
 Toàn bộ quy trình huấn luyện được hiện thực tại:
-📂 [`scripts/train_yolo26_indoor_crowd.py`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/scripts/train_yolo26_indoor_crowd.py)
+📂 [`scripts/train_yolo11_indoor_crowd.py`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/scripts/train_yolo11_indoor_crowd.py)
 
 ### 4.1. Thiết lập Siêu tham số Huấn luyện
 * **Khởi tạo:** `YOLO("yolo11n.pt")`
-* **Dataset YAML:** `datasets/indoor_crowd_yolo26/indoor_crowd_yolo26.yaml`
+* **Dataset YAML:** `datasets/indoor_crowd_yolo11/indoor_crowd_yolo11.yaml`
 * **Số Epochs:** `20`.
 * **Kích thước ảnh:** `640 x 640`.
 * **Batch size:** Tự động phát hiện dung lượng VRAM: `batch=16` (VRAM $\ge 6\text{ GB}$) hoặc `batch=8` (VRAM $4\text{ GB}$).
@@ -259,7 +259,7 @@ Toàn bộ quy trình huấn luyện được hiện thực tại:
 
 Lệnh thực thi tiến trình huấn luyện:
 ```powershell
-python scripts/train_yolo26_indoor_crowd.py
+python scripts/train_yolo11_indoor_crowd.py
 ```
 
 ---
@@ -267,7 +267,7 @@ python scripts/train_yolo26_indoor_crowd.py
 ## 5. Phân tích Diễn biến & Kết quả Đánh giá Benchmark (Epoch 20)
 
 Dữ liệu được trích xuất trực tiếp từ nhật ký huấn luyện bất biến:
-📂 [`runs/train/yolo26_indoor_crowd_occupancy/results.csv`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/runs/train/yolo26_indoor_crowd_occupancy/results.csv)
+📂 [`runs/train/yolo11_indoor_crowd_occupancy/results.csv`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/runs/train/yolo11_indoor_crowd_occupancy/results.csv)
 
 ### 5.1. Bảng Số liệu Hội tụ 20 Epochs
 

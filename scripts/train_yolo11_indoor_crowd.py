@@ -17,7 +17,7 @@ import torch
 from ultralytics import YOLO
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATASET_YAML = os.path.join(BASE_DIR, "datasets", "indoor_crowd_yolo26", "indoor_crowd_yolo26.yaml")
+DATASET_YAML = os.path.join(BASE_DIR, "datasets", "indoor_crowd_yolo11", "indoor_crowd_yolo11.yaml")
 WEIGHTS_PRETRAINED = os.path.join(BASE_DIR, "yolo11n.pt")
 OUTPUT_RUNS_DIR = os.path.join(BASE_DIR, "runs", "train")
 

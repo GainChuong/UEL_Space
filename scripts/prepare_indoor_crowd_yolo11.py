@@ -1,5 +1,5 @@
 """
-UEL Space - Download & Prepare IndoorCrowd Dataset for YOLO26
+UEL Space - Download & Prepare IndoorCrowd Dataset for YOLO11
 Tải từ Hugging Face 'sebnae/IndoorCrowd' (config 'obj_det_seg'),
 chuyển đổi bbox chuẩn YOLO (class 0: person), chia Train/Val cân đối.
 """
@@ -18,11 +18,11 @@ from datasets import load_dataset
 
 HF_TOKEN = "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"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUTPUT_DIR = os.path.join(BASE_DIR, "datasets", "indoor_crowd_yolo26")
+OUTPUT_DIR = os.path.join(BASE_DIR, "datasets", "indoor_crowd_yolo11")
 
 def prepare():
     print("=" * 65)
-    print("🚀 BẮT ĐẦU TẢI & CHUẨN HÓA DATASET INDOORCROWD CHO YOLO26")
+    print("🚀 BẮT ĐẦU TẢI & CHUẨN HÓA DATASET INDOORCROWD CHO YOLO11")
     print("=" * 65)
 
     login(token=HF_TOKEN, add_to_git_credential=False)
@@ -103,7 +103,7 @@ def prepare():
 
         print(f"✅ Hoàn thành split '{split_name}': {count} ảnh.")
 
-    yaml_content = f"""# UEL Space - IndoorCrowd YOLO26 Occupancy Dataset
+    yaml_content = f"""# UEL Space - IndoorCrowd YOLO11 Occupancy Dataset
 path: {OUTPUT_DIR.replace(chr(92), '/')}
 train: images/train
 val: images/val
@@ -112,7 +112,7 @@ val: images/val
 names:
   0: person
 """
-    yaml_path = os.path.join(OUTPUT_DIR, "indoor_crowd_yolo26.yaml")
+    yaml_path = os.path.join(OUTPUT_DIR, "indoor_crowd_yolo11.yaml")
     with open(yaml_path, "w", encoding="utf-8") as yf:
         yf.write(yaml_content)
 
@@ -126,4 +126,3 @@ names:
 
 if __name__ == "__main__":
     prepare()
-
