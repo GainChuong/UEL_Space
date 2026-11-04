@@ -17,7 +17,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Python & AI Cache
+# Python, Virtual Environments & AI Cache
 __pycache__/
 *.py[cod]
 *$py.class
@@ -32,15 +32,19 @@ venv/
 *.key
 *.pem
 
-# Build & Runtime Outputs
+# Build, Log & Runtime Outputs
 /dist/
 /tmp/
 /out-tsc/
 /.angular/cache/
 .sass-cache/
 /coverage/
+*.log
+server.err.log
+server.out.log
+yolo_service.log
 
-# Dữ liệu dataset lớn & tệp nén
+# Dữ liệu dataset lớn, checkpoint huấn luyện & tệp nén
 my-server/unsplash-research-dataset-lite-latest/
 *.tsv
 *.tsv.gz
@@ -49,15 +53,19 @@ AIRC-SMARTCLASS A Multi-Modal Classroom Dataset fo.zip
 datasets/
 runs/
 mall_dataset/
+my-server/src/ai-service/models/
+
+# AI Model Weights
+# Chỉ theo dõi mô hình YOLO11-IndoorCrowd chính thức đã tối ưu hóa cho Production
 *.pt
 *.onnx
 !frontend/public/models/*.onnx
-!deploy_hf_space/best.pt
-deploy_hf_space/best_custom.onnx
-deploy_hf_space/best_custom.pt
+!my-server/src/ai-service/best.pt
+yolo11n.pt
+yolo11n-seg.pt
 
 # ==========================================
-# Tệp ngoài lề (Giữ trên máy tính, không đưa lên GitHub)
+# Tệp ngoài lề, Scripts tạm & Tài liệu nội bộ (Local only)
 # ==========================================
 gemini-chatbot-enhancement.md
 PROMPT_COLLECTION.md
@@ -65,7 +73,8 @@ Instruction/
 Final.docx
 final_docx_dump.txt
 admin-space-management.md
+sync_mongo_spaces_clean.js
 .repo-clean-backups/
 scratch/
 .agent/
-
+temp_*.py
