@@ -33,7 +33,6 @@ app.add_middleware(
 
 # 1. Device Selection & Model Initialization
 yolo_model = None
-yolo_seg_model = None
 device_name = "CPU"
 target_device = "cpu"
 
@@ -55,52 +54,40 @@ try:
     script_dir = os.path.dirname(os.path.abspath(__file__))
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-    # 1.1 Detection Model (YOLO11 Detection)
     det_candidates = [
-        os.path.join(script_dir, "models", "best.pt"),
         os.path.join(script_dir, "best.pt"),
         os.path.join(root_dir, "runs", "train", "yolo26_indoor_crowd_occupancy", "weights", "best.pt"),
         os.environ.get("YOLO_MODEL_PATH"),
         os.path.join(script_dir, "yolo11n.pt"),
         "yolo11n.pt"
     ]
-    det_path = next((p for p in det_candidates if p and os.path.isfile(p)), "yolo11n.pt")
+    det_path = None
+    for p in det_candidates:
+        if p and os.path.isfile(p):
+            det_path = p
+            break
+
+    if not det_path:
+        det_path = "yolo11n.pt"
+
     logger.info(f"Loading YOLO11-IndoorCrowd Detection model from: {det_path}...")
     yolo_model = YOLO(det_path)
     if has_cuda:
         yolo_model.to(target_device)
 
-    # 1.2 Segmentation Model (YOLO11n-seg Fine-tuned on IndoorCrowd)
-    seg_candidates = [
-        os.path.join(script_dir, "models", "yolo11n_indoor_crowd_seg.pt"),
-        os.path.join(root_dir, "runs", "segment", "yolo11n_indoor_crowd_seg", "weights", "best.pt"),
-        os.path.join(script_dir, "yolo11n-seg.pt"),
-        "yolo11n-seg.pt"
-    ]
-    seg_path = next((p for p in seg_candidates if p and os.path.isfile(p)), None)
-    if seg_path:
-        logger.info(f"Loading YOLO11n-seg Segmentation model from: {seg_path}...")
-        yolo_seg_model = YOLO(seg_path)
-        if has_cuda:
-            yolo_seg_model.to(target_device)
-        logger.info(f"🔥 YOLO11n-seg model ({os.path.basename(seg_path)}) initialized successfully on: {device_name}!")
-
     # Warmup pass so the first user frame has zero CUDA compilation latency
     try:
         dummy = np.zeros((640, 640, 3), dtype=np.uint8)
         with torch.inference_mode():
-            if yolo_model:
-                yolo_model.predict(source=dummy, verbose=False, device=target_device)
-            if yolo_seg_model:
-                yolo_seg_model.predict(source=dummy, verbose=False, device=target_device)
+            yolo_model.predict(source=dummy, verbose=False, device=target_device)
         logger.info("🔥 YOLO11 GPU Kernel Warmup completed successfully!")
     except Exception as ew:
         logger.warning(f"Warmup warning: {ew}")
 
-    logger.info(f"Dual-Head Ensemble AI (Detection + Segmentation) ready on: {device_name}!")
+    logger.info(f"YOLO11 Detection model ({os.path.basename(det_path)}) initialized successfully on: {device_name}!")
 
 except Exception as e:
-    logger.error(f"Failed to load YOLO11 models: {e}")
+    logger.error(f"Failed to load YOLO11 model: {e}")
 
 class DetectRequest(BaseModel):
     image: str  # Base64 data URL or raw base64 string
@@ -122,7 +109,6 @@ class DetectResponse(BaseModel):
     count: int
     confidence: float
     boxes: List[BoundingBox]
-    polygons: Optional[List[List[List[float]]]] = None  # Đa giác viền phân đoạn từng người [[ [x, y], ... ]]
     processingTimeMs: float
     modelName: str
     device: str
@@ -220,8 +206,6 @@ def merge_and_suppress_subboxes(candidates: List[dict], iou_thresh: float = 0.45
                 is_subpart = True
                 m["box"] = [union_x1, union_y1, union_w, union_h]
                 m["score"] = max(m["score"], score)
-                if cand.get("poly") and not m.get("poly"):
-                    m["poly"] = cand["poly"]
                 break
 
             # Quy tắc 2: Xếp chồng trục dọc (Đầu nằm ngay trên Thân trên cùng 1 người)
@@ -233,8 +217,6 @@ def merge_and_suppress_subboxes(candidates: List[dict], iou_thresh: float = 0.45
                     is_subpart = True
                     m["box"] = [union_x1, union_y1, union_w, union_h]
                     m["score"] = max(m["score"], score)
-                    if cand.get("poly") and not m.get("poly"):
-                        m["poly"] = cand["poly"]
                     break
 
         if not is_subpart:
@@ -244,8 +226,8 @@ def merge_and_suppress_subboxes(candidates: List[dict], iou_thresh: float = 0.45
 
 @app.post("/detect", response_model=DetectResponse)
 def detect_occupancy(req: DetectRequest):
-    if not yolo_model and not yolo_seg_model:
-        raise HTTPException(status_code=503, detail="YOLO11 models are not loaded yet")
+    if not yolo_model:
+        raise HTTPException(status_code=503, detail="YOLO11 model is not loaded yet")
 
     start_time = time.time()
     try:
@@ -262,86 +244,49 @@ def detect_occupancy(req: DetectRequest):
         base_conf = float(req.confidenceThreshold) if req.confidenceThreshold is not None else 0.28
         iou_thresh = float(req.iouThreshold) if req.iouThreshold is not None else 0.45
 
-        raw_candidates = []
+        # Run pure YOLO11 Person Detection with torch.inference_mode for maximum GPU throughput
         import torch
+        with torch.inference_mode():
+            det_results = yolo_model.predict(
+                source=pil_image,
+                conf=base_conf,
+                iou=iou_thresh,
+                classes=[0],
+                device=target_device,
+                verbose=False
+            )
 
-        # 1. Chạy YOLO11n-seg Segmentation (Ưu tiên SOTA để lấy Mask Đa giác)
-        if yolo_seg_model is not None:
-            with torch.inference_mode():
-                seg_results = yolo_seg_model.predict(
-                    source=pil_image,
-                    conf=base_conf,
-                    iou=iou_thresh,
-                    classes=[0],
-                    device=target_device,
-                    verbose=False
-                )
-            if len(seg_results) > 0 and seg_results[0].boxes is not None:
-                s_boxes = seg_results[0].boxes
-                s_masks = seg_results[0].masks
-                for i, box in enumerate(s_boxes):
-                    xyxy = box.xyxy[0].tolist()
-                    score = float(box.conf[0].item())
-                    bx = max(0.0, xyxy[0])
-                    by = max(0.0, xyxy[1])
-                    bw = min(float(img_w), xyxy[2]) - bx
-                    bh = min(float(img_h), xyxy[3]) - by
-                    if bw < 12 or bh < 14:
-                        continue
+        raw_candidates = []
+        if len(det_results) > 0 and det_results[0].boxes is not None:
+            boxes = det_results[0].boxes
+            for box in boxes:
+                xyxy = box.xyxy[0].tolist()
+                score = float(box.conf[0].item())
+                x1, y1, x2, y2 = xyxy
+                bx = max(0.0, x1)
+                by = max(0.0, y1)
+                bw = min(float(img_w), x2) - bx
+                bh = min(float(img_h), y2) - by
 
-                    poly_pts = []
-                    if s_masks is not None and len(s_masks.xy) > i:
-                        raw_poly = s_masks.xy[i]
-                        if len(raw_poly) >= 3:
-                            # Đơn giản hóa đa giác polygon để gửi siêu tốc qua JSON
-                            eps = 0.004 * cv2.arcLength(raw_poly.astype(np.float32), True)
-                            approx = cv2.approxPolyDP(raw_poly.astype(np.float32), max(1.5, eps), True).reshape(-1, 2)
-                            poly_pts = [[round(float(pt[0]), 1), round(float(pt[1]), 1)] for pt in approx]
+                # Minimum size filter
+                if bw < 14 or bh < 18:
+                    continue
 
-                    raw_candidates.append({
-                        "box": [bx, by, bw, bh],
-                        "score": score,
-                        "poly": poly_pts,
-                        "label": "Khách thuê (YOLO11 • Ensemble Vision)"
-                    })
+                # Human aspect ratio filter: filters out flat tables, cardboard boxes, long wires
+                ar = bw / bh
+                if ar > 2.2 or ar < 0.12:
+                    continue
 
-        # 2. Chạy YOLO11 Detection bổ trợ (nếu có)
-        if yolo_model is not None:
-            with torch.inference_mode():
-                det_results = yolo_model.predict(
-                    source=pil_image,
-                    conf=base_conf,
-                    iou=iou_thresh,
-                    classes=[0],
-                    device=target_device,
-                    verbose=False
-                )
-            if len(det_results) > 0 and det_results[0].boxes is not None:
-                d_boxes = det_results[0].boxes
-                for box in d_boxes:
-                    xyxy = box.xyxy[0].tolist()
-                    score = float(box.conf[0].item())
-                    bx = max(0.0, xyxy[0])
-                    by = max(0.0, xyxy[1])
-                    bw = min(float(img_w), xyxy[2]) - bx
-                    bh = min(float(img_h), xyxy[3]) - by
-                    if bw < 14 or bh < 18:
-                        continue
-                    ar = bw / bh
-                    if ar > 2.2 or ar < 0.12:
-                        continue
-                    raw_candidates.append({
-                        "box": [bx, by, bw, bh],
-                        "score": score,
-                        "poly": [],
-                        "label": "Khách thuê (YOLO11 • Indoor Crowd)"
-                    })
+                raw_candidates.append({
+                    "box": [bx, by, bw, bh],
+                    "score": score,
+                    "label": "Khách thuê (YOLO11 • Indoor Crowd)"
+                })
 
-        # 3. Áp dụng bộ lọc NMS Hình học Giải phẫu & Chống vỡ mảnh box
+        # Áp dụng bộ lọc NMS Hình học Giải phẫu & Chống vỡ mảnh box
         final_boxes = merge_and_suppress_subboxes(raw_candidates, iou_thresh=iou_thresh, max_aspect_ratio=2.6)
 
         detected_boxes: List[BoundingBox] = []
-        final_polygons: List[List[List[float]]] = []
         confidences = []
         for f in final_boxes:
             bx, by, bw, bh = f["box"]
@@ -355,28 +300,17 @@ def detect_occupancy(req: DetectRequest):
                 label=f["label"]
             ))
             confidences.append(score)
-            if f.get("poly") and len(f["poly"]) >= 3:
-                final_polygons.append(f["poly"])
-            else:
-                # Nếu box không có mask (từ det thuần), tạo đa giác chữ nhật bo góc nhẹ
-                final_polygons.append([
-                    [round(bx, 1), round(by, 1)],
-                    [round(bx + bw, 1), round(by, 1)],
-                    [round(bx + bw, 1), round(by + bh, 1)],
-                    [round(bx, 1), round(by + bh, 1)]
-                ])
 
         elapsed_ms = round((time.time() - start_time) * 1000, 1)
         avg_conf = round(float(np.mean(confidences)) * 100, 1) if confidences else 0.0
 
-        model_desc = f"YOLO11 Dual-Head Ensemble (Det + Seg) ({device_name})"
+        model_desc = f"YOLO11-IndoorCrowd Server AI ({device_name})"
 
         return DetectResponse(
             success=True,
             count=len(detected_boxes),
             confidence=avg_conf,
             boxes=detected_boxes,
-            polygons=final_polygons,
             processingTimeMs=elapsed_ms,
             modelName=model_desc,
             device=device_name
