@@ -2618,15 +2618,9 @@ export class SellerDashboard implements OnInit, OnDestroy {
         targetApiUrl = `${SERVER_BASE_URL}/api/occupancy/detect-server`;
       }
 
-      // Kỹ thuật Virtual Zoom-out: Thu nhỏ 25% (tỷ lệ 0.75) và đệm viền xám trung tính (Letterbox)
-      // Giúp đẩy người cận cảnh lùi ra xa trường nhìn của YOLO, triệt tiêu hiện tượng xé đầu/thân
-      const zoomFactor = 0.75;
-      const targetWidth = Math.min(512, vw);
+      // Native YOLO11 input resolution (640px) - Giữ nguyên độ sắc nét cho sinh viên ở các dãy bàn xa
+      const targetWidth = Math.min(640, vw);
       const targetHeight = Math.round((vh / vw) * targetWidth);
-      const contentW = Math.round(targetWidth * zoomFactor);
-      const contentH = Math.round(targetHeight * zoomFactor);
-      const padX = Math.round((targetWidth - contentW) / 2);
-      const padY = Math.round((targetHeight - contentH) / 2);
 
       if (!this.offscreenCanvas) {
         this.offscreenCanvas = document.createElement('canvas');
@@ -2636,11 +2630,8 @@ export class SellerDashboard implements OnInit, OnDestroy {
       const ctx = this.offscreenCanvas.getContext('2d', { willReadFrequently: true });
       if (!ctx) return null;
 
-      // Tô màu xám trung tính #727272 (RGB: 114, 114, 114 chuẩn YOLO letterbox)
-      ctx.fillStyle = '#727272';
-      ctx.fillRect(0, 0, targetWidth, targetHeight);
-      ctx.drawImage(videoEl, padX, padY, contentW, contentH);
-      const base64Image = this.offscreenCanvas.toDataURL('image/jpeg', 0.65);
+      ctx.drawImage(videoEl, 0, 0, targetWidth, targetHeight);
+      const base64Image = this.offscreenCanvas.toDataURL('image/jpeg', 0.75);
 
       const t0 = performance.now();
       let res: Response;
@@ -2686,17 +2677,12 @@ export class SellerDashboard implements OnInit, OnDestroy {
       this.occModelName = `${data.modelName || 'YOLO11-IndoorCrowd Server AI'} (${data.processingTimeMs}ms • ${data.device ? data.device.toUpperCase() : 'CPU'})`;
 
       const boxes: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
-      const scaleX = vw / contentW;
-      const scaleY = vh / contentH;
+      const scaleX = vw / targetWidth;
+      const scaleY = vh / targetHeight;
       if (Array.isArray(data.boxes)) {
         for (const b of data.boxes) {
-          const unpadX = b.x - padX;
-          const unpadY = b.y - padY;
-          if (unpadX + b.w < 0 || unpadY + b.h < 0 || unpadX > contentW || unpadY > contentH) {
-            continue;
-          }
-          const origX = Math.max(0, Math.min(vw - 10, Math.round(unpadX * scaleX)));
-          const origY = Math.max(0, Math.min(vh - 10, Math.round(unpadY * scaleY)));
+          const origX = Math.max(0, Math.min(vw - 10, Math.round(b.x * scaleX)));
+          const origY = Math.max(0, Math.min(vh - 10, Math.round(b.y * scaleY)));
           const origW = Math.min(vw - origX, Math.round(b.w * scaleX));
           const origH = Math.min(vh - origY, Math.round(b.h * scaleY));
 
@@ -2861,6 +2847,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
     // Sắp xếp theo điểm tin cậy giảm dần
     validBoxes.sort((a, b) => b.score - a.score);
 
+    const isCrowd = validBoxes.length >= 3;
     const merged: typeof validBoxes = [];
 
     for (const b of validBoxes) {
@@ -2885,23 +2872,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
         const minArea = Math.min(areaB, areaM);
         const ios = minArea > 0 ? interArea / minArea : 0;
 
-        // Tính tâm ngang và khoảng cách cột dọc
-        const centerBX = b.x + b.w / 2;
-        const centerMX = m.x + m.w / 2;
-        const xDist = Math.abs(centerBX - centerMX);
-        const minW = Math.min(b.w, m.w);
-        const isSameColumn = xDist < minW * 0.45;
-
-        // Khung bao ngoài giả định nếu hợp nhất 2 box
-        const unionX1 = Math.min(b.x, m.x);
-        const unionY1 = Math.min(b.y, m.y);
-        const unionX2 = Math.max(b.x + b.w, m.x + m.w);
-        const unionY2 = Math.max(b.y + b.h, m.y + m.h);
-        const unionW = unionX2 - unionX1;
-        const unionH = unionY2 - unionY1;
-        const unionAr = unionH / Math.max(1, unionW);
-
-        // Quy tắc 1 (Option 2): Neo khuôn mặt (Face AI trùng lặp hoặc nằm trong/trên Body box)
+        // Quy tắc 1: Neo khuôn mặt phần cứng (Face AI nằm trong vùng đầu/ngực của Body box)
         const isFaceAndBody = (b.label.includes('Face') && !m.label.includes('Face')) || 
                               (m.label.includes('Face') && !b.label.includes('Face'));
         if (isFaceAndBody) {
@@ -2909,43 +2880,53 @@ export class SellerDashboard implements OnInit, OnDestroy {
           const body = b.label.includes('Face') ? m : b;
           const fCenterX = face.x + face.w / 2;
           const fCenterY = face.y + face.h / 2;
-          if (fCenterX >= body.x - 25 && fCenterX <= body.x + body.w + 25 &&
-              fCenterY >= body.y - 25 && fCenterY <= body.y + body.h * 0.75) {
+          if (fCenterX >= body.x - 15 && fCenterX <= body.x + body.w + 15 &&
+              fCenterY >= body.y - 15 && fCenterY <= body.y + body.h * 0.60) {
             isSubpart = true;
-            m.x = unionX1;
-            m.y = unionY1;
-            m.w = unionW;
-            m.h = unionH;
             m.score = Math.max(m.score, b.score);
             m.label = 'Khách thuê (YOLO11 • Indoor Crowd)';
             break;
           }
         }
 
-        // Quy tắc 2 (Option 1): IoS >= 50% hoặc IoU >= 0.45 (Box con lọt lòng trong box lớn)
-        if (iou >= 0.45 || ios >= 0.50) {
+        // Quy tắc 2: Lọc mảnh vỡ lồng nhau (Chỉ gộp khi IoS >= 85% hoặc IoU >= 65% để không nuốt người ngồi sau)
+        const minIosThresh = isCrowd ? 0.85 : 0.75;
+        const minIouThresh = isCrowd ? 0.65 : 0.55;
+        if (iou >= minIouThresh || ios >= minIosThresh) {
           isSubpart = true;
-          m.x = unionX1;
-          m.y = unionY1;
-          m.w = unionW;
-          m.h = unionH;
           m.score = Math.max(m.score, b.score);
           break;
         }
 
-        // Quy tắc 3 (Option 1): Xếp chồng trục dọc (Đầu nằm ngay trên Thân trên cùng 1 người)
-        const yOverlap = Math.min(b.y + b.h, m.y + m.h) - Math.max(b.y, m.y);
-        const yGap = Math.max(b.y, m.y) - Math.min(b.y + b.h, m.y + m.h);
-        if (isSameColumn && (yOverlap > 0 || yGap < Math.min(b.h, m.h) * 0.35)) {
-          // Chặn trần nhân trắc học: Tỷ lệ H/W <= 2.6 để không gộp nhầm 2 người trước-sau
-          if (unionAr <= 2.6) {
-            isSubpart = true;
-            m.x = unionX1;
-            m.y = unionY1;
-            m.w = unionW;
-            m.h = unionH;
-            m.score = Math.max(m.score, b.score);
-            break;
+        // Quy tắc 3: Xếp chồng trục dọc (CHỈ kích hoạt khi trong phòng có 1-2 người cận cảnh, TUYỆT ĐỐI không áp dụng khi đám đông)
+        if (!isCrowd) {
+          const centerBX = b.x + b.w / 2;
+          const centerMX = m.x + m.w / 2;
+          const xDist = Math.abs(centerBX - centerMX);
+          const minW = Math.min(b.w, m.w);
+          const isSameColumn = xDist < minW * 0.35;
+          const isFragment = (b.h < m.h * 0.5) || (m.h < b.h * 0.5);
+
+          const yOverlap = Math.min(b.y + b.h, m.y + m.h) - Math.max(b.y, m.y);
+          const yGap = Math.max(b.y, m.y) - Math.min(b.y + b.h, m.y + m.h);
+          if (isSameColumn && isFragment && (yOverlap > 0 || yGap < Math.min(b.h, m.h) * 0.25)) {
+            const unionX1 = Math.min(b.x, m.x);
+            const unionY1 = Math.min(b.y, m.y);
+            const unionX2 = Math.max(b.x + b.w, m.x + m.w);
+            const unionY2 = Math.max(b.y + b.h, m.y + m.h);
+            const unionW = unionX2 - unionX1;
+            const unionH = unionY2 - unionY1;
+            const unionAr = unionH / Math.max(1, unionW);
+
+            if (unionAr <= 2.6) {
+              isSubpart = true;
+              m.x = unionX1;
+              m.y = unionY1;
+              m.w = unionW;
+              m.h = unionH;
+              m.score = Math.max(m.score, b.score);
+              break;
+            }
           }
         }
       }

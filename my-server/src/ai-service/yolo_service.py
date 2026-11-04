@@ -158,15 +158,17 @@ def compute_ios(boxA, boxB):
 
     return interArea / minArea if minArea > 0 else 0.0
 
-def merge_and_suppress_subboxes(candidates: List[dict], iou_thresh: float = 0.45, max_aspect_ratio: float = 2.6) -> List[dict]:
+def merge_and_suppress_subboxes(candidates: List[dict], iou_thresh: float = 0.50, max_aspect_ratio: float = 2.6) -> List[dict]:
     """
-    Thuật toán NMS Giải phẫu Hình học Cơ thể Người SOTA:
-    1. Lọc hiện tượng box con (đầu/thân/áo) lồng trong box người lớn (IoS >= 0.50).
-    2. Gộp hiện tượng Xếp chồng trục dọc (Vertical Column Merging: Đầu nằm trên Thân).
-    3. Chặn trần tỷ lệ nhân trắc học H/W <= 2.6 để tuyệt đối không gộp 2 người trước-sau.
+    Thuật toán NMS Giải phẫu Cơ thể Người - Adaptive Crowd-Aware:
+    1. Khi có đông người (len >= 3): Tuyệt đối KHÔNG gộp dọc (Vertical Merge) để bảo vệ sĩ số sinh viên ngồi trước-sau.
+    2. Chỉ lọc mảnh vỡ lồng nhau thực sự với IoS >= 0.85 (tránh nuốt chửng người ngồi sau bị che khuất).
+    3. Chống hiệu ứng quả tuyết lăn (Snowball): Không phình to box gốc một cách tùy tiện khi IoS khớp.
     """
     if len(candidates) <= 1:
         return candidates
+
+    is_crowd = len(candidates) >= 3
 
     # Sắp xếp ứng viên theo điểm tin cậy giảm dần
     sorted_cands = sorted(candidates, key=lambda c: c["score"], reverse=True)
@@ -183,41 +185,40 @@ def merge_and_suppress_subboxes(candidates: List[dict], iou_thresh: float = 0.45
             iou = compute_iou(b, mb)
             ios = compute_ios(b, mb)
 
-            # Tính tâm ngang trục X
-            center_b_x = b[0] + b[2] / 2.0
-            center_m_x = mb[0] + mb[2] / 2.0
-            x_dist = abs(center_b_x - center_m_x)
-            min_width = min(b[2], mb[2])
-
-            # Cùng dải cột dọc X (độ lệch trục X < 45% bề ngang)
-            is_same_column = x_dist < min_width * 0.45
-
-            # Hộp bao ngoài giả định nếu hợp nhất
-            union_x1 = min(b[0], mb[0])
-            union_y1 = min(b[1], mb[1])
-            union_x2 = max(b[0] + b[2], mb[0] + mb[2])
-            union_y2 = max(b[1] + b[3], mb[1] + mb[3])
-            union_w = union_x2 - union_x1
-            union_h = union_y2 - union_y1
-            union_ar = union_h / max(1.0, union_w)
-
-            # Quy tắc 1: IoS >= 50% (Box nhỏ là mảnh vỡ lọt lòng trong box lớn) hoặc IoU >= iou_thresh
-            if iou >= iou_thresh or ios >= 0.50:
+            # Quy tắc 1: IoS >= 85% (Box nhỏ là mảnh vỡ lọt lòng hoàn toàn trong box lớn) hoặc trùng lặp IoU rất cao >= 0.55
+            if iou >= max(0.55, iou_thresh) or ios >= 0.85:
                 is_subpart = True
-                m["box"] = [union_x1, union_y1, union_w, union_h]
                 m["score"] = max(m["score"], score)
                 break
 
-            # Quy tắc 2: Xếp chồng trục dọc (Đầu nằm ngay trên Thân trên cùng 1 người)
-            y_overlap = min(b[1] + b[3], mb[1] + mb[3]) - max(b[1], mb[1])
-            y_gap = max(b[1], mb[1]) - min(b[1] + b[3], mb[1] + mb[3])
+            # Quy tắc 2: Chỉ áp dụng Xếp chồng trục dọc khi trong phòng CHỈ CÓ 1-2 người cận cảnh (TUYỆT ĐỐI KHÔNG áp dụng khi đông người)
+            if not is_crowd:
+                center_b_x = b[0] + b[2] / 2.0
+                center_m_x = mb[0] + mb[2] / 2.0
+                x_dist = abs(center_b_x - center_m_x)
+                min_width = min(b[2], mb[2])
+                is_same_column = x_dist < min_width * 0.35
 
-            if is_same_column and (y_overlap > 0 or y_gap < min(b[3], mb[3]) * 0.35):
-                if union_ar <= max_aspect_ratio:
-                    is_subpart = True
-                    m["box"] = [union_x1, union_y1, union_w, union_h]
-                    m["score"] = max(m["score"], score)
-                    break
+                # Kiểm tra tỷ lệ: một trong 2 box phải là mảnh vỡ đầu/ngực (chiều cao bé hơn 50% box kia)
+                is_fragment = (b[3] < mb[3] * 0.5) or (mb[3] < b[3] * 0.5)
+
+                y_overlap = min(b[1] + b[3], mb[1] + mb[3]) - max(b[1], mb[1])
+                y_gap = max(b[1], mb[1]) - min(b[1] + b[3], mb[1] + mb[3])
+
+                if is_same_column and is_fragment and (y_overlap > 0 or y_gap < min(b[3], mb[3]) * 0.25):
+                    union_x1 = min(b[0], mb[0])
+                    union_y1 = min(b[1], mb[1])
+                    union_x2 = max(b[0] + b[2], mb[0] + mb[2])
+                    union_y2 = max(b[1] + b[3], mb[1] + mb[3])
+                    union_w = union_x2 - union_x1
+                    union_h = union_y2 - union_y1
+                    union_ar = union_h / max(1.0, union_w)
+
+                    if union_ar <= max_aspect_ratio:
+                        is_subpart = True
+                        m["box"] = [union_x1, union_y1, union_w, union_h]
+                        m["score"] = max(m["score"], score)
+                        break
 
         if not is_subpart:
             merged.append(dict(cand))
@@ -268,13 +269,13 @@ def detect_occupancy(req: DetectRequest):
                 bw = min(float(img_w), x2) - bx
                 bh = min(float(img_h), y2) - by
 
-                # Minimum size filter
-                if bw < 14 or bh < 18:
+                # Minimum size filter: bảo vệ người ngồi ở các hàng ghế xa trong giảng đường
+                if bw < 8 or bh < 12:
                     continue
 
                 # Human aspect ratio filter: filters out flat tables, cardboard boxes, long wires
                 ar = bw / bh
-                if ar > 2.2 or ar < 0.12:
+                if ar > 2.5 or ar < 0.10:
                     continue
 
                 raw_candidates.append({
