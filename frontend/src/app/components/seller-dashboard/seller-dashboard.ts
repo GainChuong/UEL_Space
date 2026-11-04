@@ -2618,11 +2618,15 @@ export class SellerDashboard implements OnInit, OnDestroy {
         targetApiUrl = `${SERVER_BASE_URL}/api/occupancy/detect-server`;
       }
 
-      // Chuẩn hóa kích thước khung hình gửi lên Server (max width 512px)
-      // Tối ưu dung lượng <18KB, truyền tải siêu tốc qua mạng 4G/WiFi cho mọi điện thoại và laptop
+      // Kỹ thuật Virtual Zoom-out: Thu nhỏ 25% (tỷ lệ 0.75) và đệm viền xám trung tính (Letterbox)
+      // Giúp đẩy người cận cảnh lùi ra xa trường nhìn của YOLO, triệt tiêu hiện tượng xé đầu/thân
+      const zoomFactor = 0.75;
       const targetWidth = Math.min(512, vw);
-      const scale = targetWidth / vw;
-      const targetHeight = Math.round(vh * scale);
+      const targetHeight = Math.round((vh / vw) * targetWidth);
+      const contentW = Math.round(targetWidth * zoomFactor);
+      const contentH = Math.round(targetHeight * zoomFactor);
+      const padX = Math.round((targetWidth - contentW) / 2);
+      const padY = Math.round((targetHeight - contentH) / 2);
 
       if (!this.offscreenCanvas) {
         this.offscreenCanvas = document.createElement('canvas');
@@ -2632,7 +2636,10 @@ export class SellerDashboard implements OnInit, OnDestroy {
       const ctx = this.offscreenCanvas.getContext('2d', { willReadFrequently: true });
       if (!ctx) return null;
 
-      ctx.drawImage(videoEl, 0, 0, targetWidth, targetHeight);
+      // Tô màu xám trung tính #727272 (RGB: 114, 114, 114 chuẩn YOLO letterbox)
+      ctx.fillStyle = '#727272';
+      ctx.fillRect(0, 0, targetWidth, targetHeight);
+      ctx.drawImage(videoEl, padX, padY, contentW, contentH);
       const base64Image = this.offscreenCanvas.toDataURL('image/jpeg', 0.65);
 
       const t0 = performance.now();
@@ -2679,13 +2686,25 @@ export class SellerDashboard implements OnInit, OnDestroy {
       this.occModelName = `${data.modelName || 'YOLO11-IndoorCrowd Server AI'} (${data.processingTimeMs}ms • ${data.device ? data.device.toUpperCase() : 'CPU'})`;
 
       const boxes: Array<{ x: number; y: number; w: number; h: number; score: number; label: string }> = [];
+      const scaleX = vw / contentW;
+      const scaleY = vh / contentH;
       if (Array.isArray(data.boxes)) {
         for (const b of data.boxes) {
+          const unpadX = b.x - padX;
+          const unpadY = b.y - padY;
+          if (unpadX + b.w < 0 || unpadY + b.h < 0 || unpadX > contentW || unpadY > contentH) {
+            continue;
+          }
+          const origX = Math.max(0, Math.min(vw - 10, Math.round(unpadX * scaleX)));
+          const origY = Math.max(0, Math.min(vh - 10, Math.round(unpadY * scaleY)));
+          const origW = Math.min(vw - origX, Math.round(b.w * scaleX));
+          const origH = Math.min(vh - origY, Math.round(b.h * scaleY));
+
           boxes.push({
-            x: Math.round(b.x / scale),
-            y: Math.round(b.y / scale),
-            w: Math.round(b.w / scale),
-            h: Math.round(b.h / scale),
+            x: origX,
+            y: origY,
+            w: origW,
+            h: origH,
             score: Math.round(b.confidence),
             label: b.label || 'Khách thuê (YOLO11 • Indoor Crowd)'
           });
@@ -3125,6 +3144,10 @@ export class SellerDashboard implements OnInit, OnDestroy {
       try {
         const ort: any = await import('onnxruntime-web');
         const targetSize = 640;
+        // Virtual Zoom-out 25% (tỷ lệ 0.75) và Letterbox viền xám trung tính cho Edge AI
+        const zoomFactor = 0.75;
+        const contentSize = Math.round(targetSize * zoomFactor);
+        const padOffset = Math.round((targetSize - contentSize) / 2);
 
         if (!this.offscreenCanvas) {
           this.offscreenCanvas = document.createElement('canvas');
@@ -3134,7 +3157,9 @@ export class SellerDashboard implements OnInit, OnDestroy {
         const ctx = this.offscreenCanvas.getContext('2d', { willReadFrequently: true });
 
         if (ctx) {
-          ctx.drawImage(videoEl, 0, 0, targetSize, targetSize);
+          ctx.fillStyle = '#727272';
+          ctx.fillRect(0, 0, targetSize, targetSize);
+          ctx.drawImage(videoEl, padOffset, padOffset, contentSize, contentSize);
           const imgData = ctx.getImageData(0, 0, targetSize, targetSize);
           const { data } = imgData;
           const floatData = new Float32Array(3 * targetSize * targetSize);
@@ -3160,8 +3185,8 @@ export class SellerDashboard implements OnInit, OnDestroy {
             const numChannels = dims.length >= 2 ? dims[1] : 5;
             const numAnchors = dims.length >= 3 ? dims[2] : 8400;
             const numClasses = Math.max(1, numChannels - 4);
-            const scaleX = vw / targetSize;
-            const scaleY = vh / targetSize;
+            const scaleX = vw / contentSize;
+            const scaleY = vh / contentSize;
 
             const rawCandidates: Array<{ x: number; y: number; w: number; h: number; score: number }> = [];
 
@@ -3186,8 +3211,15 @@ export class SellerDashboard implements OnInit, OnDestroy {
                 const w = outData[2 * numAnchors + a];
                 const h = outData[3 * numAnchors + a];
 
-                const realX = (cx - w / 2) * scaleX;
-                const realY = (cy - h / 2) * scaleY;
+                // Trừ padding offset của Virtual Zoom-out
+                const unpadCX = cx - padOffset;
+                const unpadCY = cy - padOffset;
+                if (unpadCX < 0 || unpadCY < 0 || unpadCX > contentSize || unpadCY > contentSize) {
+                  continue;
+                }
+
+                const realX = (unpadCX - w / 2) * scaleX;
+                const realY = (unpadCY - h / 2) * scaleY;
                 const realW = w * scaleX;
                 const realH = h * scaleY;
 
