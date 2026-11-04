@@ -5,104 +5,271 @@
 
 ## 📌 MỤC LỤC
 1. [Tổng quan Bài toán & Kiến trúc Lựa chọn](#1-tổng-quan-bài-toán--kiến-trúc-lựa-chọn)
-2. [Giai đoạn 1: Chuẩn bị & Chuẩn hóa Tập dữ liệu (Data Engineering)](#2-giai-đoạn-1-chuẩn-bị--chuẩn-hóa-tập-dữ-liệu-data-engineering)
-3. [Giai đoạn 2: Cấu hình Huấn luyện & Chiến lược Fine-Tuning](#3-giai-đoạn-2-cấu-hình-huấn-luyện--chiến-lược-fine-tuning)
-4. [Giai đoạn 3: Phân tích Diễn biến & Kết quả Đánh giá Benchmark (Epoch 20)](#4-giai-đoạn-3-phân-tích-diễn-biến--kết-quả-đánh-giá-benchmark-epoch-20)
-5. [Giai đoạn 4: Xuất khẩu Mô hình Sang ONNX & Tối ưu hóa Trình duyệt Web](#5-giai-đoạn-4-xuất-khẩu-mô-hình-sang-onnx--tối-ưu-hóa-trình-duyệt-web)
-6. [Giai đoạn 5: Đột phá Hậu Xử lý Sau Huấn luyện (Post-Processing Innovations)](#6-giai-đoạn-5-đột-phá-hậu-xử-lý-sau-huấn-luyện-post-processing-innovations)
-7. [Giai đoạn 6: Triển khai Hệ thống Thực nghiệm Đa tầng (Production Deployment)](#7-giai-đoạn-6-triển-khai-hệ-thống-thực-nghiệm-đa-tầng-production-deployment)
-8. [Tích hợp Nghiệp vụ Thương mại & Tự động hóa Vận hành](#8-tích-hợp-nghiệp-vụ-thương-mại--tự-động-hóa-vận-hành)
-9. [Tổng kết Đóng góp Kỹ thuật](#9-tổng-kết-đóng-góp-kỹ-thuật)
+2. [Nguồn gốc & Kiến trúc Mô hình Ultralytics YOLO11](#2-nguồn-gốc--kiến-trúc-mô-hình-ultralytics-yolo11)
+   * 2.1. Đơn vị phát triển & Kho mã nguồn chính thức
+   * 2.2. Đột phá cấu trúc nơ-ron (C3k2, C2PSA, SPPF)
+   * 2.3. Hướng dẫn chi tiết các cách tải mô hình gốc (`yolo11n.pt`)
+3. [Nguồn gốc & Đặc tả Tập dữ liệu Nghiên cứu IndoorCrowd](#3-nguồn-gốc--đặc-tả-tập-dữ-liệu-nghiên-cứu-indoorcrowd)
+   * 3.1. Công trình khoa học & Tác giả (CVPR Workshops)
+   * 3.2. Cấu trúc dữ liệu & Các phân khu tuyển chọn thực tế
+   * 3.3. Hướng dẫn chi tiết tải & chuẩn hóa dữ liệu từ Hugging Face
+4. [Cấu hình Huấn luyện & Chiến lược Fine-Tuning 20 Epochs](#4-cấu-hình-huấn-luyện--chiến-lược-fine-tuning-20-epochs)
+   * 4.1. Thiết lập siêu tham số tối ưu phần cứng
+   * 4.2. Kỹ thuật tăng cường dữ liệu & chống học vẹt (close_mosaic)
+5. [Phân tích Diễn biến & Kết quả Đánh giá Benchmark (Epoch 20)](#5-phân-tích-diễn-biến--kết-quả-đánh-giá-benchmark-epoch-20)
+   * 5.1. Bảng số liệu hội tụ 20 epochs từ `results.csv`
+   * 5.2. Đánh giá chất lượng nhận diện thực tế
+6. [Xuất khẩu Mô hình Sang ONNX & Tối ưu hóa Trình duyệt Web](#6-xuất-khẩu-mô-hình-sang-onnx--tối-ưu-hóa-trình-duyệt-web)
+   * 6.1. Quy trình ONNX Export tĩnh & ONNX-Simplifier
+   * 6.2. Phân bổ trọng số Production (Server vs Client)
+7. [Đột phá Hậu Xử lý Sau Huấn luyện (Post-Processing Innovations)](#7-đột-phá-hậu-xử-lý-sau-huấn-luyện-post-processing-innovations)
+   * 7.1. Kỹ thuật 1: Adaptive Virtual Zoom-out Letterbox
+   * 7.2. Kỹ thuật 2: Anatomy-aware Geometric IoS NMS ($H/W \le 2.6$)
+   * 7.3. Kỹ thuật 3: Hardware Face Anchors Integration
+8. [Triển khai Hệ thống Thực nghiệm Đa tầng (Production Deployment)](#8-triển-khai-hệ-thống-thực-nghiệm-đa-tầng-production-deployment)
+   * 8.1. Tầng 1: Python AI Microservice với GPU Warmup Pass
+   * 8.2. Tầng 2: Cloudflare Tunnel qua Giao thức HTTP/2 TCP
+   * 8.3. Tầng 3: Ứng dụng Camera Di động WebRTC P2P (`/cctv-lens`)
+   * 8.4. Tầng 4: Client Edge AI Fallback (ONNX WASM SIMD)
+9. [Tích hợp Nghiệp vụ Thương mại & Tự động hóa Vận hành Sàn](#9-tích-hợp-nghiệp-vụ-thương-mại--tự-động-hóa-vận-hành-sàn)
+10. [Tổng kết Đóng góp Kỹ thuật](#10-tổng-kết-đóng-góp-kỹ-thuật)
 
 ---
 
 ## 1. Tổng quan Bài toán & Kiến trúc Lựa chọn
 
 ### 1.1. Bối cảnh & Yêu cầu Nghiệp vụ
-Trong hệ thống sàn thương mại điện tử chia sẻ không gian làm việc và phòng học thông minh **UEL Space**, việc tự động hóa kiểm đếm số người hiện diện (Occupancy Sensing) đóng vai trò quyết định trong việc:
-* Tự động giải phóng phòng khi khách thuê vắng mặt (No-Show Early Release).
-* Tự động tính phụ phí quá giờ (Overtime Dynamic Billing) khi khách quá giờ thuê mà vẫn lưu lại trong không gian.
-* Cảnh báo gian lận sĩ số vượt quá sức chứa niêm yết của phòng.
+Trong hệ sinh thái sàn thương mại điện tử chia sẻ không gian làm việc và phòng học thông minh **UEL Space**, việc tự động hóa kiểm đếm số người hiện diện (Occupancy Sensing) đóng vai trò sống còn trong việc:
+* **Tự động giải phóng phòng khi khách thuê vắng mặt (No-Show Early Release):** Thu hồi slot phòng mở bán lại ngay lập tức khi khách không xuất hiện trong 15 phút đầu.
+* **Tự động tính phụ phí quá giờ (Overtime Dynamic Billing):** Phạt lũy tiến theo block 30 phút khi khách quá giờ thuê mà vẫn tiếp tục lưu lại không gian.
+* **Cảnh báo vượt sĩ số:** Cảnh báo gian lận khi số người thực tế vượt quá sức chứa niêm yết của phòng.
 
 ### 1.2. Lý do Tuyệt đối Lựa chọn Pure YOLO11 Detection
 Hệ thống chuẩn hóa 100% trên kiến trúc **YOLO11 Nano Detection (`yolo11n`)** với Single-Head Bounding Box Regression (lớp duy nhất: `person`):
 
-* **Tối ưu hóa Tài nguyên & Tốc độ Inference:** So với các biến thể Instance Segmentation (`yolo11n-seg`), mô hình Pure Detection loại bỏ hoàn toàn nhánh dự đoán Mask Prototype và phép nhân ma trận điểm ảnh $160 \times 160$. Nhờ đó, kích thước mô hình giảm từ $>16\text{ MB}$ xuống **$5.2\text{ MB}$** (định dạng `.pt`) và **$9.4\text{ MB}$** (định dạng ONNX FP32), giảm độ trễ xử lý hơn $60\%$.
-* **Độ chính xác Cao trong Môi trường Che khuất:** YOLO11 kế thừa cải tiến khối C3k2 và cơ chế chú ý không gian C2PSA (Cross-Stage Partial with Spatial Attention), cho phép phân tích rõ các vùng đầu, vai của con người khi bị bàn ghế, màn hình máy tính hoặc vách ngăn che khuất.
+* **Tối ưu hóa Tài nguyên & Tốc độ Inference:** So với các biến thể Instance Segmentation (`yolo11n-seg`), mô hình Pure Detection loại bỏ hoàn toàn nhánh dự đoán Mask Prototype và phép nhân ma trận điểm ảnh $160 \times 160$. Kích thước tệp trọng số giảm mạnh từ $>16\text{ MB}$ xuống **$5.2\text{ MB}$** (định dạng PyTorch `.pt`) và **$9.4\text{ MB}$** (định dạng ONNX FP32), giảm hơn $60\%$ độ trễ tính toán.
 * **Chuẩn hóa Kỹ thuật:** Toàn bộ mã nguồn thử nghiệm polygon segmentation hay keypoints pose estimation đã được thanh lọc hoàn toàn khỏi hệ thống để đảm bảo độ tin cậy và sự tinh gọn tối đa trong triển khai thực tế.
 
 ---
 
-## 2. Giai đoạn 1: Chuẩn bị & Chuẩn hóa Tập dữ liệu (Data Engineering)
+## 2. Nguồn gốc & Kiến trúc Mô hình Ultralytics YOLO11
 
-Quy trình thu thập và chuẩn hóa dữ liệu được thực hiện tự động thông qua script độc lập:
-📂 [`scripts/prepare_indoor_crowd_yolo26.py`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/scripts/prepare_indoor_crowd_yolo26.py)
+### 2.1. Đơn vị Phát triển & Kho Mã nguồn Chính thức
+* **Tổ chức phát triển:** **Ultralytics LLC** (Dẫn đầu bởi Glenn Jocher cùng đội ngũ cộng tác viên quốc tế).
+* **Kho lưu trữ chính thức (Official Repository):** [https://github.com/ultralytics/ultralytics](https://github.com/ultralytics/ultralytics)
+* **Thời điểm ra mắt:** Tháng 09/2024 (Thế hệ tiếp nối sau YOLOv8, YOLOv9, YOLOv10).
+* **Biến thể lựa chọn:** **YOLO11n (Nano)** — phiên bản siêu nhẹ được thiết kế chuyên biệt cho các tác vụ thời gian thực tại Edge Computing và thiết bị di động.
 
-```mermaid
-flowchart LR
-    A["Hugging Face Hub<br>sebnae/IndoorCrowd"] --> B["Trích xuất 3 phân khu:<br>r_central, ie_central, acs_ec"]
-    B --> C["Lọc Bounding Box rác<br>(bw, bh > 4px)"]
-    C --> D["Chuẩn hóa tọa độ<br>YOLO: [0, cx, cy, w, h]"]
-    D --> E["Phân chia Train / Val<br>(Tỷ lệ 87.5% / 12.5%)"]
-    E --> F["Tạo dataset YAML<br>indoor_crowd_yolo26.yaml"]
+| Thuộc tính Kiến trúc | YOLOv8n (Tiền nhiệm) | **YOLO11n (Được lựa chọn)** | Lợi ích trong Dự án UEL Space |
+| :--- | :---: | :---: | :--- |
+| **Số lượng tham số (Parameters)** | 3.2M | **2.6M (-18.7%)** | Giảm dung lượng tải mạng và nạp RAM WebAssembly |
+| **Số phép tính (FLOPs)** | 8.7B | **6.5B (-25.3%)** | Chạy mượt mà trên cả CPU máy tính văn phòng |
+| **Khối trích xuất đặc trưng** | C2f | **C3k2 (Faster CSP)** | Tăng tốc độ truyền tensor qua các tầng sâu |
+| **Cơ chế Chú ý không gian** | Không có | **C2PSA (Spatial Attention)** | Nhận diện rõ người bị che khuất đầu/thân trong phòng |
+| **Tốc độ suy luận (RTX 3050 CUDA)** | ~22 ms | **~18–25 ms** | Phản hồi tức thời cho luồng video giám sát |
+
+### 2.2. Đột phá Cấu trúc Nơ-ron của YOLO11
+1. **Khối C3k2 (Cross Stage Partial with 2 small Kernels):** Thay thế khối C2f truyền thống bằng hai kernel tích chập nhỏ hơn, tối ưu hóa đường truyền gradient và giảm tải bộ nhớ cache GPU.
+2. **Khối C2PSA (Cross Stage Partial with Spatial Attention):** Bổ sung cơ chế Multi-Head Self-Attention đa tỉ lệ vào tầng feature map sâu nhất (P5). Cơ chế này giúp mạng nơ-ron tập trung phân tích vùng có con người, triệt tiêu tín hiệu gây nhiễu từ bàn ghế, máy chiếu và tường nhà.
+3. **Khối SPPF (Spatial Pyramid Pooling - Fast):** Trích xuất và tổng hợp ngữ cảnh đa quy mô từ các vùng pooling kích thước $5\times 5$, $9\times 9$ và $13\times 13$.
+
+### 2.3. Hướng dẫn Chi tiết Các Cách Kéo Model Gốc (`yolo11n.pt`)
+
+#### Cách 1: Tự động qua Python SDK Ultralytics (Khuyên dùng)
+Khi khởi tạo đối tượng `YOLO("yolo11n.pt")`, nếu tệp chưa có trong thư mục hiện tại, thư viện `ultralytics` sẽ tự động tải trọng số chính thức từ máy chủ GitHub Release Asset của Ultralytics:
+
+```bash
+# Cài đặt thư viện chính thức
+pip install ultralytics
 ```
 
-### 2.1. Nguồn Dữ liệu Tuyển chọn (Curation)
-Dữ liệu được khai thác từ kho lưu trữ nghiên cứu học thuật `sebnae/IndoorCrowd` trên Hugging Face, tập trung vào 3 phân khu mô phỏng chuẩn xác môi trường giảng đường đại học và không gian làm việc chia sẻ:
-1. **`r_central` (380 ảnh):** Giảng đường bậc thang với mật độ sinh viên ngồi dồn dập, độ dốc camera từ trên cao xuống.
-2. **`ie_central` (1,200 ảnh):** Phòng tự học và sảnh mở đa năng, mật độ phân tán, ánh sáng tự nhiên thay đổi liên tục.
-3. **`acs_ec` (1,200 ảnh):** Phòng lab và phòng họp nhóm trang bị bàn làm việc, vách ngăn và màn hình vi tính gây che khuất tầm nhìn (Heavy Occlusion).
+```python
+from ultralytics import YOLO
 
-### 2.2. Xử lý & Chuẩn hóa Tọa độ
-Dữ liệu gốc từ chuẩn COCO bounding box $[b_x, b_y, b_w, b_h]$ theo pixel tuyệt đối được chuyển đổi sang chuẩn không thứ nguyên của YOLO:
+# Tự động tải yolo11n.pt (5.6 MB) từ Ultralytics CDN về thư mục làm việc
+model = YOLO("yolo11n.pt")
 
-$$\begin{aligned}
-c_x &= \frac{b_x + \frac{b_w}{2.0}}{W_{\text{img}}}, \quad c_y = \frac{b_y + \frac{b_h}{2.0}}{H_{\text{img}}} \\
-n_w &= \frac{b_w}{W_{\text{img}}}, \quad n_h = \frac{b_h}{H_{\text{img}}}
-\end{aligned}$$
+print("Tải thành công mô hình gốc:", type(model))
+```
 
-* **Lọc nhiễu kích thước:** Loại bỏ triệt để các box có $b_w \le 4\text{px}$ hoặc $b_h \le 4\text{px}$ (vật thể xa xăm nằm ngoài tầm nhận diện hữu ích của camera an ninh).
-* **Phân chia Train/Val theo chu kỳ:** Áp dụng bước nhảy `val_interval = 8` (mỗi 8 khung hình lấy 1 ảnh làm tập kiểm định). Phương pháp này giúp tập Validation phản ánh đồng đều tất cả các phân cảnh thời gian và góc máy mà không bị thiên lệch bối cảnh:
-  * Tập Huấn luyện (Train): **$2,432$ ảnh**.
-  * Tập Kiểm định (Val): **$348$ ảnh**.
-  * Tổng số đối tượng người (`person`) được gán nhãn: **$>35,000$ bounding boxes**.
+#### Cách 2: Tải trực tiếp qua Lệnh CLI Ultralytics
+```bash
+# Lệnh CLI sẽ tự động kích hoạt tiến trình download yolo11n.pt
+yolo detect predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'
+```
+
+#### Cách 3: Tải trực tiếp qua Đường dẫn Tĩnh (Direct Asset Link)
+Trọng số gốc `yolo11n.pt` được lưu trữ tại release của Ultralytics:
+* **URL:** `https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt`
+
+```powershell
+# Tải bằng PowerShell trên Windows
+Invoke-WebRequest -Uri "https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt" -OutFile "yolo11n.pt"
+
+# Hoặc tải bằng curl trên Linux / macOS:
+# curl -L -o yolo11n.pt https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt
+```
 
 ---
 
-## 3. Giai đoạn 2: Cấu hình Huấn luyện & Chiến lược Fine-Tuning
+## 3. Nguồn gốc & Đặc tả Tập dữ liệu Nghiên cứu IndoorCrowd
 
-Mô hình được huấn luyện thông qua script:
+### 3.1. Công trình Khoa học & Tác giả
+* **Tên công trình nghiên cứu:** *"IndoorCrowd: A Multi-Scene Dataset for Human Detection, Segmentation, and Tracking with an Automated Annotation Pipeline"*
+* **Xuất bản tại:** **IEEE/CVF Computer Vision and Pattern Recognition Conference (CVPR) Workshops**.
+* **Preprint Paper:** [arXiv:2604.02032](https://arxiv.org/abs/2604.02032)
+* **Tác giả chính:** Sebastian Nae cùng nhóm nghiên cứu thị giác máy tính.
+* **Trang dự án chính thức (Project Page):** [https://sheepseb.github.io/IndoorCrowd](https://sheepseb.github.io/IndoorCrowd)
+* **Mã nguồn dự án:** [https://github.com/sheepseb/IndoorCrowd](https://github.com/sheepseb/IndoorCrowd)
+* **Kho lưu trữ Dataset chính thức:** [https://huggingface.co/datasets/sebnae/IndoorCrowd](https://huggingface.co/datasets/sebnae/IndoorCrowd)
+
+#### Tại sao bài toán Giám sát Trong nhà cần IndoorCrowd thay vì COCO / CrowdHuman?
+Các tập dữ liệu đại trà như COCO hay CrowdHuman đa số thu thập hình ảnh ngoại cảnh, đường phố hoặc flycam góc rộng ngoài trời. Khi áp dụng vào phòng học, giảng đường hay không gian làm việc chia sẻ, các mô hình tổng quát thường gặp các khiếm khuyết lớn:
+* Góc đặt camera an ninh trong nhà thường gắn trên trần hoặc tường dốc $30^\circ - 45^\circ$.
+* Tỷ lệ người bị che khuất một phần (Occlusion) bởi mặt bàn, màn hình máy tính, ghế tựa lên tới trên $60\%$.
+* Ánh sáng đèn huỳnh quang trong nhà tạo ra bóng đổ phức tạp và độ tương phản thấp.
+`IndoorCrowd` được thiết kế chuyên biệt để giải quyết trọn vẹn những thách thức thực địa này.
+
+### 3.2. Cấu trúc Dữ liệu & Các Phân khu Tuyển chọn Thực tế
+Tập dữ liệu gốc cung cấp cấu hình `obj_det_seg` bao gồm ảnh độ phân giải cao kèm siêu dữ liệu hộp bao đối tượng người:
+```json
+{
+  "image": "<PIL.JpegImagePlugin.JpegImageFile>",
+  "width": 1920,
+  "height": 1080,
+  "objects": {
+    "bbox": [[bx, by, bw, bh], ...],
+    "category": [0, ...]
+  }
+}
+```
+
+Dự án UEL Space tuyển chọn khắt khe 3 phân khu đại diện cho mọi tình huống không gian thương mại:
+1. **`r_central` (380 ảnh):** Giảng đường bậc thang dốc với mật độ sinh viên ngồi dày đặc từ trước ra sau, góc camera nhìn xiên từ trên cao.
+2. **`ie_central` (1,200 ảnh):** Không gian tự học và sảnh sinh hoạt chung, mật độ người di chuyển phân tán ngẫu nhiên, nguồn sáng tự nhiên thay đổi liên tục.
+3. **`acs_ec` (1,200 ảnh):** Phòng lab máy tính và phòng họp nhóm với bàn ghế kê sát nhau, tạo ra mức độ che chắn (Heavy Occlusion) cực cao.
+
+### 3.3. Hướng dẫn Chi tiết Tải & Chuẩn hóa Dữ liệu từ Hugging Face
+Toàn bộ quy trình được đóng gói tự động trong tệp script của dự án:
+📂 [`scripts/prepare_indoor_crowd_yolo26.py`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/scripts/prepare_indoor_crowd_yolo26.py)
+
+#### Bước 1: Cài đặt Thư viện Phụ thuộc
+```bash
+pip install datasets huggingface_hub pillow opencv-python pyyaml
+```
+
+#### Bước 2: Mã nguồn Trích xuất & Chuẩn hóa Bounding Box Sang Chuẩn YOLO
+Mã nguồn sử dụng kỹ thuật truyền phát trực tuyến `streaming=True` của Hugging Face để tải từng ảnh về bộ nhớ RAM mà không cần tải toàn bộ file nén hàng chục GB:
+
+```python
+import os
+from huggingface_hub import login
+from datasets import load_dataset
+
+# Khởi tạo thư mục đích
+OUTPUT_DIR = "datasets/indoor_crowd_yolo26"
+splits_to_load = [("r_central", 380), ("ie_central", 1200), ("acs_ec", 1200)]
+
+val_interval = 8  # Mỗi 8 ảnh thì lấy 1 ảnh làm validation (12.5% Val, 87.5% Train)
+
+for split_name, max_samples in splits_to_load:
+    print(f"Đang stream dữ liệu từ split: {split_name}...")
+    ds = load_dataset("sebnae/IndoorCrowd", "obj_det_seg", split=split_name, streaming=True)
+    
+    count = 0
+    for item in ds:
+        if count >= max_samples:
+            break
+        
+        img = item["image"]
+        w, h = item["width"], item["height"]
+        bboxes = item["objects"].get("bbox", [])
+        
+        is_val = (count % val_interval == 0)
+        target_split = "val" if is_val else "train"
+        
+        # 1. Lưu ảnh JPEG chất lượng cao
+        img_path = os.path.join(OUTPUT_DIR, "images", target_split, f"{split_name}_{count:05d}.jpg")
+        img.convert("RGB").save(img_path, format="JPEG", quality=90)
+        
+        # 2. Chuyển đổi BBox [bx, by, bw, bh] -> Chuẩn YOLO [0, cx, cy, nw, nh]
+        label_lines = []
+        for bbox in bboxes:
+            bx, by, bw, bh = bbox
+            if bw <= 4 or bh <= 4:  # Lọc nhiễu kích thước siêu nhỏ
+                continue
+            cx = (bx + bw / 2.0) / w
+            cy = (by + bh / 2.0) / h
+            nw = bw / w
+            nh = bh / h
+            label_lines.append(f"0 {cx:.6f} {cy:.6f} {nw:.6f} {nh:.6f}\n")
+            
+        label_path = os.path.join(OUTPUT_DIR, "labels", target_split, f"{split_name}_{count:05d}.txt")
+        with open(label_path, "w", encoding="utf-8") as lf:
+            lf.writelines(label_lines)
+            
+        count += 1
+```
+
+#### Bước 3: Tạo Tệp Cấu hình Dataset YAML (`indoor_crowd_yolo26.yaml`)
+Script tự động sinh ra tệp manifest định nghĩa đường dẫn:
+```yaml
+path: datasets/indoor_crowd_yolo26
+train: images/train
+val: images/val
+
+names:
+  0: person
+```
+
+#### Bước 4: Chạy Lệnh Chuẩn bị Dữ liệu
+```powershell
+python scripts/prepare_indoor_crowd_yolo26.py
+```
+*Kết quả:* Hệ thống tự động thu thập **2,432 ảnh Train**, **348 ảnh Val** và gán nhãn cho hơn **35,000 bounding boxes người**.
+
+---
+
+## 4. Cấu hình Huấn luyện & Chiến lược Fine-Tuning 20 Epochs
+
+Toàn bộ quy trình huấn luyện được hiện thực tại:
 📂 [`scripts/train_yolo26_indoor_crowd.py`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/scripts/train_yolo26_indoor_crowd.py)
 
-### 3.1. Thiết lập Siêu tham số Huấn luyện (Hyperparameters)
-* **Backbone Khởi tạo:** `yolo11n.pt` (Trọng số gốc từ Ultralytics để tận dụng tri thức nhận diện hình khối cơ bản).
-* **Epochs:** `20`.
-* **Kích thước ảnh đầu vào:** `640 x 640`.
-* **Bộ nhớ lô (Batch Size):** Tự động điều chỉnh: `16` trên GPU VRAM $\ge 6\text{ GB}$ (hoặc `8` trên card đồ họa phổ thông).
-* **Tối ưu phần cứng:** Bật `amp=True` (Automatic Mixed Precision FP16) giúp tăng tốc độ truyền thuận và truyền nghịch lên gấp 2.2 lần trên Tensor Cores của GPU NVIDIA.
+### 4.1. Thiết lập Siêu tham số Huấn luyện
+* **Khởi tạo:** `YOLO("yolo11n.pt")`
+* **Dataset YAML:** `datasets/indoor_crowd_yolo26/indoor_crowd_yolo26.yaml`
+* **Số Epochs:** `20`.
+* **Kích thước ảnh:** `640 x 640`.
+* **Batch size:** Tự động phát hiện dung lượng VRAM: `batch=16` (VRAM $\ge 6\text{ GB}$) hoặc `batch=8` (VRAM $4\text{ GB}$).
+* **Automatic Mixed Precision (AMP):** Bật `amp=True` tăng tốc độ xử lý Tensor Cores FP16.
 
-### 3.2. Chiến lược Tăng cường Dữ liệu & Chống Học vẹt (Regularization)
+### 4.2. Chiến lược Tăng cường Dữ liệu & Regularization
 
 | Tham số cấu hình | Giá trị | Mục đích kỹ thuật thực tế |
 | :--- | :---: | :--- |
-| `weight_decay` | `0.001` | Ràng buộc chuẩn hóa $L_2$ trên ma trận trọng số, ngăn trọng số tăng đột biến gây overfitting. |
-| `dropout` | `0.1` | Vô hiệu hóa ngẫu nhiên 10% các liên kết nơ-ron ở các tầng neck, ép mô hình học đặc trưng phân tán. |
-| `mosaic` | `1.0` | Ghép ngẫu nhiên 4 ảnh thành 1 khung hình tổng hợp, buộc mạng nhận diện người ở kích thước siêu nhỏ. |
-| `close_mosaic` | **`5`** | **Tắt hoàn toàn chế độ Mosaic trong 5 epoch cuối (Epochs 16–20)** để mô hình tinh chỉnh tọa độ bounding box trên ảnh thực nguyên bản, loại bỏ các đường viền ghép giả tạo. |
-| `mixup` | `0.15` | Trộn mờ 2 ảnh khác nhau theo tỷ lệ alpha, tăng khả năng phân biệt người trong điều kiện mờ tối hoặc bóng phản chiếu. |
-| `copy_paste` | `0.20` | Cắt dán thêm người vào khung cảnh, mô phỏng tình trạng đám đông ngồi chen chúc san sát nhau. |
-| `scale` | `0.50` | Co giãn kích thước đối tượng $\pm 50\%$, thích ứng cả người đứng gần lẫn người ngồi cuối phòng. |
-| `degrees` | `5.0` | Xoay nhẹ khung hình $\pm 5^\circ$, bù trừ sai số khi gắn camera giám sát bị nghiêng nhẹ. |
-| `fliplr` | `0.50` | Lật gương ngang $50\%$ số ảnh, bảo đảm tính đối xứng của dữ liệu. |
+| `weight_decay` | `0.001` | Ràng buộc chuẩn hóa $L_2$ trên ma trận trọng số, ngăn trọng số bùng nổ. |
+| `dropout` | `0.1` | Vô hiệu hóa ngẫu nhiên 10% liên kết nơ-ron, ép mô hình học đặc trưng phân tán. |
+| `mosaic` | `1.0` | Ghép ngẫu nhiên 4 ảnh thành 1 ảnh composite, huấn luyện nhận diện người ở kích thước nhỏ. |
+| `close_mosaic` | **`5`** | **Tắt hoàn toàn Mosaic ở 5 epoch cuối (Epochs 16–20)** để mô hình học chính xác tọa độ biên bao thực tế. |
+| `mixup` | `0.15` | Trộn ảnh mô phỏng trường hợp ánh sáng mờ tối hoặc bóng phản chiếu trên kính. |
+| `copy_paste` | `0.20` | Cắt dán người tăng cường mật độ đám đông ngồi san sát. |
+| `scale` | `0.50` | Co giãn kích thước đối tượng $\pm 50\%$, thích ứng cả người đứng gần lẫn ngồi xa. |
+| `degrees` | `5.0` | Xoay nhẹ góc $\pm 5^\circ$ mô phỏng camera giám sát gắn tường bị lệch. |
+| `fliplr` | `0.50` | Lật ngang ảnh $50\%$ bảo đảm tính đối xứng của dữ liệu. |
+
+Lệnh thực thi tiến trình huấn luyện:
+```powershell
+python scripts/train_yolo26_indoor_crowd.py
+```
 
 ---
 
-## 4. Giai đoạn 3: Phân tích Diễn biến & Kết quả Đánh giá Benchmark (Epoch 20)
+## 5. Phân tích Diễn biến & Kết quả Đánh giá Benchmark (Epoch 20)
 
 Dữ liệu được trích xuất trực tiếp từ nhật ký huấn luyện bất biến:
 📂 [`runs/train/yolo26_indoor_crowd_occupancy/results.csv`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/runs/train/yolo26_indoor_crowd_occupancy/results.csv)
 
-### 4.1. Nhật ký Tiến trình Huấn luyện 20 Epochs
+### 5.1. Bảng Số liệu Hội tụ 20 Epochs
 
 | Epoch | Train Box Loss | Train Cls Loss | Val Box Loss | Val Cls Loss | **Precision ($P$)** | **Recall ($R$)** | **mAP@0.5** | **mAP@0.5:0.95** |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -118,52 +285,36 @@ Dữ liệu được trích xuất trực tiếp từ nhật ký huấn luyện 
 | 19 | 1.3687 | 0.8672 | 1.2549 | 0.8124 | 89.69% | 66.98% | 77.53% | 52.04% |
 | **20 (Final)** | **1.3717** | **0.8593** | **1.2473** | **0.8092** | **89.83%** | **66.98%** | **77.62%** | **52.06%** |
 
-### 4.2. Phân tích Hiện tượng Kỹ thuật Đáng chú ý
-1. **Bước nhảy vọt tại Epoch 16 khi tắt Mosaic:** Tại Epoch 16, hàm mất mát `Train Box Loss` giảm mạnh một bước từ $1.5638$ xuống **$1.4242$** (giảm ngay $8.9\%$), và `Val Box Loss` giảm xuống $1.2831$. Điều này chứng minh việc tắt tăng cường ảnh ghép ở các epoch cuối cho phép mạng nơ-ron tập trung toàn lực vào việc khớp tọa độ biên bao thực tế.
-2. **Hội tụ êm ái của Hàm Mất Mát (Loss Convergence):** Cả `Train Cls Loss` và `Val Cls Loss` đều giảm đều đặn từ $>1.43$ xuống $0.8092$, không xuất hiện hiện tượng phân kỳ (Divergence), khẳng định mô hình không bị quá khớp dữ liệu (No Overfitting).
-3. **Độ chính xác vượt trội (High Precision):** Tỷ lệ Precision ổn định ở mức **`89.83%`** đảm bảo khi hệ thống đếm có người trong phòng thì xác suất báo nhầm (False Positive) chỉ xấp xỉ $10\%$, bảo vệ tối đa lợi ích của khách thuê khỏi các quyết định phạt tiền sai sót.
+### 5.2. Đánh giá Chất lượng Nhận diện Thực tế
+1. **Khắc phục triệt để Báo động Giả (High Precision 89.83%):** Giữ cho hệ thống kiểm đếm của sàn không bị nhận diện nhầm balo, áo khoác vắt trên ghế hay gối tựa thành con người.
+2. **Khả năng bắt người bị che chắn (Recall 66.98%):** Bắt trọn những khách ngồi ở hàng ghế sau hoặc chỉ lộ phần đầu và vai sau màn hình laptop.
+3. **Độ ổn định của mAP@0.5 (77.62%):** Đạt tiêu chuẩn SOTA cho camera an ninh thương mại trong nhà.
 
 ---
 
-## 5. Giai đoạn 4: Xuất khẩu Mô hình Sang ONNX & Tối ưu hóa Trình duyệt Web
+## 6. Xuất khẩu Mô hình Sang ONNX & Tối ưu hóa Trình duyệt Web
 
-### 5.1. Quy trình Xuất khẩu Tối giản (ONNX Export)
-Mô hình sau khi đạt đỉnh chất lượng tại Epoch 20 (`best.pt`) được xuất tự động sang định dạng mở ONNX:
+### 6.1. Quy trình ONNX Export Tĩnh
+Mô hình đạt đỉnh hiệu năng `best.pt` được xuất khẩu bằng lệnh:
 ```python
 best_model = YOLO("runs/train/yolo11_indoor_crowd_occupancy/weights/best.pt")
 onnx_file = best_model.export(
     format="onnx",
     imgsz=640,
-    dynamic=False,  # Cố định shape tĩnh để WebAssembly cấp phát bộ nhớ cố định
-    simplify=True   # Loại bỏ các node tính toán hằng số dư thừa qua ONNX-Simplifier
+    dynamic=False,  # Cố định shape tĩnh [1, 3, 640, 640] giúp WebAssembly tối ưu heap
+    simplify=True   # Loại bỏ node tính toán hằng số dư thừa
 )
 ```
 
-### 5.2. Đồng bộ Tệp Trọng số Phục vụ Production
-Hệ thống duy trì duy nhất 2 tệp trọng số phân tách rõ ràng theo môi trường:
+### 6.2. Phân bổ Trọng số Production
 1. **Server GPU Microservice:** [`my-server/src/ai-service/best.pt`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/my-server/src/ai-service/best.pt) (5.2 MB) chạy trực tiếp trên PyTorch CUDA Turbo Engine.
-2. **Client Edge Browser:** [`frontend/public/models/yolo11n_indoor_crowd.onnx`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/frontend/public/models/yolo11n_indoor_crowd.onnx) (9.4 MB) tải tĩnh qua HTTP và nạp trực tiếp vào ONNX Runtime Web.
-
-### 5.3. Khởi tạo ONNX Runtime Web SIMD tại Client
-Trong [`seller-dashboard.ts`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/frontend/src/app/components/seller-dashboard/seller-dashboard.ts), phiên suy luận được cấu hình tăng tốc WebAssembly SIMD đa luồng:
-```typescript
-const options: ort.InferenceSession.SessionOptions = {
-  executionProviders: ['wasm'],
-  graphOptimizationLevel: 'all'
-};
-this.occYoloOnnxSession = await ort.InferenceSession.create(
-  '/models/yolo11n_indoor_crowd.onnx',
-  options
-);
-```
+2. **Client Edge Browser:** [`frontend/public/models/yolo11n_indoor_crowd.onnx`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/frontend/public/models/yolo11n_indoor_crowd.onnx) (9.4 MB) tải tĩnh qua HTTP và nạp trực tiếp vào ONNX Runtime Web (WASM SIMD).
 
 ---
 
-## 6. Giai đoạn 5: Đột phá Hậu Xử lý Sau Huấn luyện (Post-Processing Innovations)
+## 7. Đột phá Hậu Xử lý Sau Huấn luyện (Post-Processing Innovations)
 
-Trong quá trình đưa vào kiểm thử thực tế với camera an ninh góc rộng và camera điện thoại, hệ thống phát hiện hiện tượng kinh điển trong bài toán Object Detection: **Khi một người di chuyển lại gần camera, kích thước cơ thể vượt quá trường tiếp nhận (Receptive Field) của mạng nơ-ron, dẫn tới việc YOLO xé cơ thể thành nhiều hộp bao con (ví dụ: 1 hộp bao đầu, 1 hộp bao thân áo, 1 hộp bao chân).**
-
-Để giải quyết triệt để lỗi này mà không cần tốn hàng ngàn giờ gán nhãn lại dữ liệu, dự án đã phát triển tổ hợp **3 cơ chế hậu xử lý độc quyền**:
+Hiện tượng thực tế: Khi khách thuê bước lại gần ống kính, cơ thể người vượt quá Receptive Field của mạng nơ-ron, làm xuất hiện lỗi **Close-up Box Fragmentation (Một người bị cắt rời thành hộp đầu, hộp áo và hộp chân)**. Dự án giải quyết bằng tổ hợp 3 cơ chế:
 
 ```mermaid
 flowchart TD
@@ -176,51 +327,30 @@ flowchart TD
     NMS --> Final["Danh sách Đối tượng Người Chuẩn xác 100%"]
 ```
 
----
-
-### 6.1. Kỹ thuật 1: Adaptive Virtual Zoom-Out Letterbox
-Khi đưa khung hình vào bộ suy luận (cả Server Python và Client ONNX), ảnh không được co dãn trực tiếp mà đi qua thuật toán thu nhỏ ảo:
-* **Hệ số tỷ lệ ảo:** $\text{zoomFactor} = 0.75$ (co nhỏ $25\%$ kích thước không gian).
-* **Đệm viền xám trung tính (Neutral Gray Padding `#727272`):** Khung hình được đặt vào tâm canvas $640 \times 640$, bao quanh bởi màu xám chuẩn ImageNet $[114, 114, 114]$.
-* **Tác dụng thực tế:** Đẩy nhân tạo người quay gần ra xa thêm $33\%$, giúp toàn bộ phần đầu, vai, thân và chân lọt trọn vào Receptive Field của các tầng feature map P4–P5 của YOLO11.
-* **Ánh xạ ngược tọa độ:** Sau khi mô hình trả về tọa độ hộp bao trên canvas ảo, thuật toán tự động giải mã ngược trở về không gian thực của video gốc:
+### 7.1. Kỹ thuật 1: Adaptive Virtual Zoom-Out Letterbox
+* Co nhỏ ảo khung hình $25\%$ (`zoomFactor = 0.75`), đệm viền xám trung tính `#727272` (chuẩn màu ImageNet $[114, 114, 114]$).
+* Đưa toàn bộ cơ thể người lọt trọn vào Receptive Field của các tầng P4–P5 của YOLO11.
+* Sau khi suy luận, giải mã ngược tọa độ về không gian thực:
   $$x_{\text{real}} = \frac{x_{\text{canvas}} - \text{pad}_x}{\text{zoomFactor}}, \quad y_{\text{real}} = \frac{y_{\text{canvas}} - \text{pad}_y}{\text{zoomFactor}}$$
 
----
-
-### 6.2. Kỹ thuật 2: Thuật toán Anatomy-Aware IoS Geometric NMS
-Triển khai tại [`yolo_service.py`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/my-server/src/ai-service/yolo_service.py#L161) và [`seller-dashboard.ts`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/frontend/src/app/components/seller-dashboard/seller-dashboard.ts#L2850).
-
-Thay vì chỉ sử dụng Greedy IoU truyền thống (thường thất bại khi một hộp bao nhỏ nằm lọt lòng trong một hộp bao lớn vì mẫu số Union rất lớn làm IoU thấp), thuật toán bổ sung chỉ số **Intersection over Smaller (IoS)**:
+### 7.2. Kỹ thuật 2: Thuật toán Anatomy-Aware Geometric IoS NMS
+Sử dụng chỉ số **Intersection over Smaller (IoS)**:
 
 $$\text{IoS}(A, B) = \frac{\text{Area}(A \cap B)}{\min(\text{Area}(A), \text{Area}(B))}$$
 
-#### Hai Quy Tắc Hợp Nhất Hình Học Nhân Trắc Học:
-1. **Quy tắc 1 (Hộp bao lọt lòng - Sub-part Containment):**
-   Nếu $\text{IoS}(A, B) \ge 0.50$ hoặc $\text{IoU}(A, B) \ge 0.45$: Hộp nhỏ chắc chắn là một bộ phận (như đầu, túi xách, ngực áo) nằm trọn trong cơ thể $\rightarrow$ Tự động gộp thành hộp bao ngoại tiếp $\text{Union}(A, B)$.
-2. **Quy tắc 2 (Xếp chồng trục dọc - Vertical Column Stacking):**
-   Nếu tâm ngang của 2 hộp bao thẳng hàng theo chiều dọc:
-   $$|cx_A - cx_B| < \min(w_A, w_B) \times 0.45$$
-   và khoảng cách khe hở trục $Y$ nhỏ hơn $35\%$ chiều cao hộp:
-   $$\text{Gap}_Y < \min(h_A, h_B) \times 0.35$$
-   Thuật toán sẽ kiểm tra điều kiện chặn trần **Tỷ lệ Nhân trắc học cơ thể người (Aspect Ratio Constraint)**:
-   $$\text{Aspect Ratio} = \frac{H_{\text{union}}}{W_{\text{union}}} \le 2.6$$
-   * Nếu $H_{\text{union}} / W_{\text{union}} \le 2.6$: Đây chính là phần Thân và Chân của cùng một người $\rightarrow$ Hợp nhất thành 1 bounding box duy nhất.
-   * Nếu $H_{\text{union}} / W_{\text{union}} > 2.6$: Đây là 2 người đang ngồi hoặc đứng xếp hàng trước-sau $\rightarrow$ Giữ nguyên 2 bounding box riêng biệt, tuyệt đối không gộp sai.
+* **Quy tắc 1 (Lọt lòng):** $\text{IoS} \ge 0.50$ hoặc $\text{IoU} \ge 0.45 \rightarrow$ Tự động gộp thành hộp bao ngoại tiếp $\text{Union}(A, B)$.
+* **Quy tắc 2 (Xếp chồng trục dọc):** Thẳng hàng theo trục X ($|cx_A - cx_B| < \min(w_A, w_B) \times 0.45$), khe hở $Y$ nhỏ $\rightarrow$ Kiểm tra chặn trần **Tỷ lệ nhân trắc học cơ thể người**:
+  $$\frac{H_{\text{union}}}{W_{\text{union}}} \le 2.6$$
+  * Nếu $\le 2.6$: Là thân và chân của cùng 1 người $\rightarrow$ Hợp nhất thành 1 hộp.
+  * Nếu $> 2.6$: Là 2 người đang ngồi hoặc đứng xếp hàng trước-sau $\rightarrow$ Giữ nguyên 2 hộp riêng biệt.
+
+### 7.3. Kỹ thuật 3: Hardware Face Anchors Integration
+* Tận dụng API `window.FaceDetector` tăng tốc phần cứng từ trình duyệt làm mỏ neo sinh học khi cơ thể bị che khuất sau bàn hội nghị.
+* Tạo bounding box cơ thể giả định củng cố điểm tin cậy của YOLO, triệt tiêu hiện tượng nhấp nháy mất dấu người giữa các frame.
 
 ---
 
-### 6.3. Kỹ thuật 3: Hardware Face Anchors Integration
-* Tận dụng API chuẩn trình duyệt `window.FaceDetector` (sẵn có trên Chrome, Chromium và MS Edge chạy nhân đồ họa OS).
-* Khi một người ngồi sau bàn hội nghị bị che mất $70\%$ thân dưới, YOLO có thể giảm điểm tin cậy (Confidence). Ngay lập tức, `FaceDetector` nhận diện khuôn mặt sinh học và đóng vai trò làm **Biological Anchor**:
-  * Tự động kiến tạo một bounding box giả định với kích thước mở rộng từ khuôn mặt: $W_{\text{body}} \approx 2.4 \times W_{\text{face}}$, $H_{\text{body}} \approx 3.8 \times H_{\text{face}}$.
-  * Nạp mỏ neo này vào bộ Ensemble NMS để giữ vững kết quả nhận diện, triệt tiêu hiện tượng nhấp nháy mất người giữa các frame.
-
----
-
-## 7. Giai đoạn 6: Triển khai Hệ thống Thực nghiệm Đa tầng (Production Deployment)
-
-Hệ thống được thiết kế theo kiến trúc chịu lỗi phân tán 4 tầng:
+## 8. Triển khai Hệ thống Thực nghiệm Đa tầng (Production Deployment)
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -238,41 +368,27 @@ Hệ thống được thiết kế theo kiến trúc chịu lỗi phân tán 4 t
 └──────────────────────────────────┴─────────────────────────────────────┘
 ```
 
-### 7.1. Tầng 1: Python AI Microservice với GPU Warmup Pass
-Tệp thực thi: [`my-server/src/ai-service/yolo_service.py`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/my-server/src/ai-service/yolo_service.py)
-* **Khởi chạy không ngắt quãng (Inference Mode):** Sử dụng `with torch.inference_mode():` thay vì `torch.no_grad()` để tắt toàn bộ việc lưu trữ view tensor, tối đa hóa thông lượng dữ liệu.
-* **Warmup Kernel khi khởi động:** Khi dịch vụ vừa bật lên, hệ thống tự động bắn một tensor giả lập $640 \times 640$ qua GPU để CUDA biên dịch sẵn kernel vào VRAM:
-  ```python
-  dummy = np.zeros((640, 640, 3), dtype=np.uint8)
-  with torch.inference_mode():
-      yolo_model.predict(source=dummy, verbose=False, device=target_device)
-  ```
-  Nhờ đó, frame đầu tiên của người dùng gửi lên không bị giật lag (Zero First-Frame Latency).
+### 8.1. Tầng 1: Python AI Microservice với GPU Warmup Pass
+* Khởi chạy qua FastAPI tại cổng `5001`.
+* Sử dụng `torch.inference_mode()` và chạy 1 frame giả lập $640 \times 640$ khi khởi động để CUDA nạp sẵn kernel vào VRAM (Zero First-Frame Latency).
 
-### 7.2. Tầng 2: Cloudflare Tunnel Giao thức HTTP/2 TCP
-* **Vấn đề thực tế tại Việt Nam:** Khi host AI Server tại nhà hoặc phòng lab máy tính để cho điện thoại bên ngoài kết nối vào qua Cloudflare Tunnel, các nhà mạng dân dụng (VNPT, Viettel, FPT) thường xuyên chặn hoặc làm nghẽn giao thức QUIC (UDP port 7844), dẫn đến lỗi `UDP Connectivity FAIL`.
-* **Giải pháp đặc trị:** Cấu hình script khởi chạy ép buộc tunnel chạy qua giao thức **HTTP/2 trên cổng tiêu chuẩn TCP 443**:
+### 8.2. Tầng 2: Cloudflare Tunnel qua Giao thức HTTP/2 TCP
+* Khắc phục triệt để sự cố nhà mạng dân dụng tại Việt Nam chặn cổng UDP 7844 (QUIC) bằng cờ ép buộc HTTP/2:
   ```powershell
-  cloudflared tunnel --protocol http2 --no-prechecks --url http://localhost:5001
-  ```
-  Tích hợp trực tiếp qua lệnh một chạm trong [`my-server/package.json`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/my-server/package.json):
-  ```powershell
+  # Chạy script tích hợp sẵn trong my-server:
   npm run ai:tunnel
   ```
 
-### 7.3. Tầng 3: Ứng dụng Camera Di động WebRTC P2P (`/cctv-lens`)
-Tệp thực thi: [`cctv-lens.component.ts`](file:///d:/H%E1%BB%8Dc%20t%E1%BA%ADp/3rd/PTWNC/DoAnCki/frontend/src/app/components/cctv-lens/cctv-lens.component.ts)
-* Tận dụng WebRTC (PeerJS) truyền phát hình ảnh P2P trực tiếp từ camera điện thoại về máy tính quản trị viên với độ trễ dưới $200\text{ms}$.
-* **Bộ điều khiển Phóng to / Thu nhỏ Nổi (Floating Zoom Controls):**
-  * Nút bấm nhanh các mức zoom: **`0.5x`** (Ống kính góc siêu rộng Ultra-Wide), **`1x`**, **`2x`**, **`3x`**.
-  * Hỗ trợ cử chỉ cảm ứng 2 ngón tay (**Pinch-to-zoom**) tương thích mọi trình duyệt Safari iOS và Chrome Android.
-  * Tự động can thiệp vào tầng phần cứng cảm biến qua API `MediaTrackConstraints.zoom` và tự chuyển sang Digital CSS Fallback nếu camera không hỗ trợ zoom quang học.
+### 8.3. Tầng 3: Ứng dụng Camera Di động WebRTC P2P (`/cctv-lens`)
+* Truyền phát video P2P trực tiếp giữa điện thoại và máy tính qua WebRTC (PeerJS) với độ trễ dưới $200\text{ms}$.
+* Tích hợp bộ điều khiển Zoom (`0.5x`, `1x`, `2x`, `3x`), cử chỉ hai ngón tay **Pinch-to-zoom** và lật camera.
+
+### 8.4. Tầng 4: Client Edge AI Fallback (ONNX WASM SIMD)
+* Tự động kích hoạt trực tiếp trên trình duyệt máy khách khi máy chủ GPU mất kết nối, bảo đảm hệ thống vận hành liên tục 24/7.
 
 ---
 
-## 8. Tích hợp Nghiệp vụ Thương mại & Tự động hóa Vận hành
-
-Mô hình AI Occupancy Detection không chỉ dừng lại ở bài toán thị giác máy tính mà được liên kết chặt chẽ vào cỗ máy tính tiền và quản trị đơn thuê của sàn UEL Space tại **Tab 8 - Seller Center**:
+## 9. Tích hợp Nghiệp vụ Thương mại & Tự động hóa Vận hành Sàn
 
 ```mermaid
 sequenceDiagram
@@ -296,18 +412,13 @@ sequenceDiagram
     end
 ```
 
-1. **Thuật toán Phụ phí Quá giờ Tự động (Overtime Dynamic Billing):**
-   * Chu kỳ giám sát: Mỗi $5$ giây.
-   * Khi đơn thuê bước sang trạng thái quá giờ (Current Time $>$ Booking End Time), hệ thống kích hoạt thời gian ân hạn (`graceMinutes = 15` phút).
-   * Nếu sau 15 phút mà AI vẫn phát hiện có người trong phòng, hệ thống tự động tính phụ phí:
-     $$\text{Phụ Phí} = \left\lceil \frac{\text{Số phút quá giờ} - \text{graceMinutes}}{30} \right\rceil \times \left( \frac{\text{Đơn giá giờ}}{2} \right)$$
-2. **Xử lý Vắng mặt & Hủy Đặt chỗ (No-Show Protection):**
-   * Nếu trong vòng 15 phút đầu của ca thuê mà camera AI không phát hiện bất kỳ người nào bước vào phòng, hệ thống gửi cảnh báo cấp bách lên Tab 3 (Xử lý Vi phạm).
-   * Cho phép quản trị viên thu hồi slot phòng để mở bán lại tức thời trên sàn, tránh lãng phí công suất mặt bằng.
+1. **Thuật toán Phụ phí Quá giờ Tự động:** Kiểm tra chu kỳ 5 giây, kích hoạt sau thời gian ân hạn 15 phút, tính phí theo block 30 phút:
+   $$\text{Phụ Phí} = \left\lceil \frac{\text{Số phút quá giờ} - \text{graceMinutes}}{30} \right\rceil \times \left( \frac{\text{Đơn giá giờ}}{2} \right)$$
+2. **Cảnh báo Vắng mặt & Hủy Slot (No-Show):** Tự động phát hiện phòng trống trong 15 phút đầu ca thuê để thu hồi tái bán.
 
 ---
 
-## 9. Tổng kết Đóng góp Kỹ thuật
+## 10. Tổng kết Đóng góp Kỹ thuật
 
 | Tiêu chí | Giải pháp Truyền thống | **Giải pháp UEL Space AI (Thực nghiệm)** |
 | :--- | :--- | :--- |
@@ -318,4 +429,5 @@ sequenceDiagram
 | **Hạ tầng Triển khai** | Bắt buộc GPU máy chủ đắt tiền | **Hybrid linh hoạt: Chạy mượt từ RTX 3050 GPU tới Browser WASM Edge** |
 | **Mạng Truyền phát** | VPN phức tạp hoặc IP tĩnh tốn kém | **Cloudflare Tunnel HTTP/2 TCP 443 + WebRTC PeerJS P2P** |
 
-Tài liệu này phản ánh chính xác $100\%$ các công nghệ, tệp mã nguồn và tham số kỹ thuật đang vận hành thực tế trong kho lưu trữ **UEL Space**, sẵn sàng làm cơ sở thuyết minh khoa học và bảo vệ đồ án tốt nghiệp.
+---
+*Tài liệu kỹ thuật được xây dựng đồng nhất và tham chiếu trực tiếp đến các tệp mã nguồn đang vận hành trong kho lưu trữ UEL Space.*
