@@ -22,7 +22,7 @@ export class Header {
   // Dropdown states
   isNotificationOpen = false;
   isProfileOpen = false;
-  activeNotifTab: 'all' | 'unread' = 'all';
+  activeNotifTab: 'all' | 'unread' | 'guide' = 'all';
 
   // Toggle notification popover
   toggleNotification(event: Event): void {

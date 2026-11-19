@@ -4,6 +4,7 @@ const { SPACE_STATUS, SPACE_STATUS_LIST, DEFAULT_POLICY } = require('../../commo
 const { requireObject, requireString, optionalString, requireNumber, optionalNumber, requireEnum } = require('../../common/validate');
 const { decorateSpace, timeRangeOverlaps, toMinutes } = require('../../common/presenters');
 const { writeAudit } = require('../../common/audit');
+const { generateUniqueSlug } = require('../../common/slug');
 
 class SpaceService {
   constructor(repository, { catalogRepository, bookingRepository, scheduleRepository } = {}) {
@@ -112,8 +113,14 @@ class SpaceService {
     const spaceType = input.spaceType || refs.categoryName || existing.spaceType || 'Phòng họp VIP';
     const mainImage = input.image || (Array.isArray(input.images) && input.images[0]) || existing.image || 'spaces/space_a2_1_meeting_vip.jpg';
 
+    const resolvedName = input.name !== undefined ? requireString(input.name, 'name', { min: 2 }) : existing.name;
+    const resolvedSlug = input.slug
+      ? await generateUniqueSlug(input.slug, (s) => this.repository.findBySlug(s), existing._id)
+      : existing.slug || (await generateUniqueSlug(resolvedName, (s) => this.repository.findBySlug(s), existing._id));
+
     return {
-      name: input.name !== undefined ? requireString(input.name, 'name', { min: 2 }) : existing.name,
+      name: resolvedName,
+      slug: resolvedSlug,
       code: input.code !== undefined ? requireString(input.code, 'code', { min: 1 }).toUpperCase() : (existing.code || `SP-${newId().slice(0, 6).toUpperCase()}`),
       buildingId: refs.buildingId,
       buildingName: refs.buildingName,

@@ -37,6 +37,14 @@ class BookingController {
     res.json(await this.service.reject(req.params.id, req.user, req.body?.reason));
   };
 
+  reschedule = async (req, res) => {
+    res.json(await this.service.reschedule(req.params.id, req.body, req.user));
+  };
+
+  checkOut = async (req, res) => {
+    res.json(await this.service.checkOut(req.params.id, req.user, req.body || {}));
+  };
+
   qrCheckIn = async (req, res) => {
     const rawCode = (req.body?.code || req.body?.rawCode || req.params.id || '').trim();
     if (!rawCode) {
@@ -67,6 +75,9 @@ function bookingRoutes(collections) {
   router.post('/:id/cancel', requireAuth, asyncHandler(controller.cancel));
   router.post('/:id/approve', requireManager, asyncHandler(controller.approve));
   router.post('/:id/reject', requireManager, asyncHandler(controller.reject));
+  router.patch('/:id/reschedule', requireAuth, asyncHandler(controller.reschedule));
+  router.post('/:id/checkout', requireAuth, asyncHandler(controller.checkOut));
+  router.post('/:id/handover', requireManager, asyncHandler(controller.checkOut));
 
   return router;
 }

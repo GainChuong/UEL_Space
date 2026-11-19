@@ -272,7 +272,7 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
       next: (res) => {
         this.isLoading = false;
         if (res.success && res.user) {
-          this.handleAuthSuccess(res.user);
+          this.handleAuthSuccess(res.user, res.token);
         } else {
           const errMsg = res.error?.message || res.error || this.i18n.t('Đăng nhập không thành công.');
           this.errorMessage = typeof errMsg === 'string' ? errMsg : JSON.stringify(errMsg);
@@ -330,7 +330,7 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
       next: (res) => {
         this.isLoading = false;
         if (res.success && res.user) {
-          this.handleAuthSuccess(res.user);
+          this.handleAuthSuccess(res.user, res.token);
         } else {
           const errMsg = res.error?.message || res.error || this.i18n.t('Đăng nhập không thành công.');
           this.errorMessage = typeof errMsg === 'string' ? errMsg : JSON.stringify(errMsg);
@@ -379,7 +379,7 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
       next: (res) => {
         this.isLoading = false;
         if (res.success && res.user) {
-          this.handleAuthSuccess(res.user);
+          this.handleAuthSuccess(res.user, res.token);
         } else {
           this.errorMessage = res.error || this.i18n.t('Đăng nhập thất bại!');
         }
@@ -404,9 +404,9 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
   }
 
   // Xử lý sau khi Backend xác nhận hợp lệ
-  private handleAuthSuccess(user: UserProfile): void {
+  private handleAuthSuccess(user: UserProfile, token?: string): void {
     this.successMessage = this.i18n.t('Xin chào') + ' ' + user.name + '! ' + this.i18n.t('Đang chuyển hướng...');
-    this.settingsService.login(user);
+    this.settingsService.login(user, token);
 
     setTimeout(() => {
       if (user.role === 'ADMIN') {
@@ -492,7 +492,7 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
         this.isLoading = false;
         if (res.success && res.user) {
           this.successMessage = this.i18n.t('Đăng ký tài khoản thành công và đã lưu vào MongoDB Atlas!');
-          this.handleAuthSuccess(res.user);
+          this.handleAuthSuccess(res.user, res.token);
         } else {
           this.errorMessage = res.message || res.error || this.i18n.t('Đăng ký thất bại!');
         }
@@ -539,7 +539,7 @@ export class Login implements OnInit, OnDestroy, AfterViewInit {
       next: (res) => {
         this.isLoading = false;
         if (res.success && res.user) {
-          this.handleAuthSuccess(res.user);
+          this.handleAuthSuccess(res.user, res.token);
         } else {
           this.errorMessage = res.error?.message || res.message || this.i18n.t('Đăng nhập thất bại!');
         }

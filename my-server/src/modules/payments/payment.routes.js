@@ -45,7 +45,20 @@ function paymentRoutes({ bookingRepository, spaceRepository, notificationService
     }
   });
 
-  // 3. Callback sau khi thanh toán trên MoMo chuyển hướng về
+  // 3. MoMo IPN (Instant Payment Notification) - Xác thực chữ ký HMAC-SHA256
+  router.post('/momo/ipn', async (req, res, next) => {
+    try {
+      const result = await paymentService.handleMomoIpn(req.body || {});
+      res.status(200).json(result);
+    } catch (err) {
+      if (err.statusCode === 400) {
+        return res.status(400).json({ success: false, message: err.message });
+      }
+      next(err);
+    }
+  });
+
+  // 4. Callback sau khi thanh toán trên MoMo chuyển hướng về
   router.get('/momo/callback', async (req, res, next) => {
     try {
       const { resultCode, orderId, transId } = req.query;

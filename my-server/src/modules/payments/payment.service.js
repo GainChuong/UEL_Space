@@ -200,6 +200,65 @@ class PaymentService {
       booking
     };
   }
+
+  /**
+   * Xác thực chữ ký HMAC-SHA256 từ MoMo IPN (Instant Payment Notification)
+   */
+  verifyIpnSignature(payload = {}) {
+    if (!payload.signature) return false;
+    const rawSignature = [
+      'accessKey=' + MOMO_ACCESS_KEY,
+      'amount=' + (payload.amount ?? ''),
+      'extraData=' + (payload.extraData ?? ''),
+      'message=' + (payload.message ?? ''),
+      'orderId=' + (payload.orderId ?? ''),
+      'orderInfo=' + (payload.orderInfo ?? ''),
+      'orderType=' + (payload.orderType ?? ''),
+      'partnerCode=' + (payload.partnerCode ?? MOMO_PARTNER_CODE),
+      'payType=' + (payload.payType ?? ''),
+      'requestId=' + (payload.requestId ?? ''),
+      'responseTime=' + (payload.responseTime ?? ''),
+      'resultCode=' + (payload.resultCode ?? ''),
+      'transId=' + (payload.transId ?? '')
+    ].join('&');
+
+    const expected = crypto
+      .createHmac('sha256', MOMO_SECRET_KEY)
+      .update(rawSignature)
+      .digest('hex');
+
+    const a = Buffer.from(String(payload.signature), 'utf8');
+    const b = Buffer.from(expected, 'utf8');
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
+  }
+
+  /**
+   * Xử lý Webhook IPN từ MoMo (idempotent theo orderId / transId)
+   */
+  async handleMomoIpn(payload = {}) {
+    const valid = this.verifyIpnSignature(payload);
+    if (!valid) {
+      const err = new Error('Chữ ký MoMo IPN không hợp lệ (HMAC-SHA256 mismatch)');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const resultCode = Number(payload.resultCode);
+    if (resultCode === 0 && payload.orderId) {
+      return this.confirmPayment({
+        orderId: String(payload.orderId),
+        transId: String(payload.transId || `MOMO-IPN-${Date.now()}`),
+        paymentMethod: 'MOMO'
+      });
+    }
+
+    return {
+      success: false,
+      resultCode,
+      orderId: payload.orderId,
+      message: payload.message || 'Giao dịch MoMo chưa thành công'
+    };
+  }
 }
 
 module.exports = { PaymentService };

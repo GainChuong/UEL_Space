@@ -232,12 +232,17 @@ export class SettingsService {
     }
   }
 
-  public login(user: UserProfile = this.defaultStudentUser): void {
+  public login(user: UserProfile = this.defaultStudentUser, token?: string): void {
     this.isLoggedInSubject.next(true);
     this.currentUserSubject.next(user);
     if (typeof window !== 'undefined') {
       localStorage.setItem('uel_is_logged_in', 'true');
       localStorage.setItem('uel_current_user', JSON.stringify(user));
+      if (token) {
+        localStorage.setItem('uel_jwt_token', token);
+      } else {
+        localStorage.removeItem('uel_jwt_token');
+      }
     }
   }
 
@@ -247,6 +252,7 @@ export class SettingsService {
     if (typeof window !== 'undefined') {
       localStorage.setItem('uel_is_logged_in', 'false');
       localStorage.removeItem('uel_current_user');
+      localStorage.removeItem('uel_jwt_token');
     }
   }
 

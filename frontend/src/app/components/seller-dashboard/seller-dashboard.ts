@@ -149,7 +149,7 @@ export class SellerDashboard implements OnInit, OnDestroy {
   // Dropdown states for notification and avatar
   isNotificationOpen = false;
   isProfileOpen = false;
-  activeNotifTab: 'all' | 'unread' = 'all';
+  activeNotifTab: 'all' | 'unread' | 'guide' = 'all';
 
   // Navigation State
   activeTab: 'overview' | 'approvals' | 'exceptions' | 'spaces' | 'users' | 'audit' | 'qr-checkin' | 'occupancy-detection' = 'overview';

@@ -8,7 +8,6 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
-const session = require('express-session');
 
 const { env } = require('./src/config/env');
 const { connectToDb, getCollection } = require('./src/config/db');
@@ -84,21 +83,6 @@ async function bootstrap() {
   // Phục vụ tài nguyên tĩnh (Hình ảnh phòng học, logo...)
   app.use(express.static(path.join(__dirname, 'public')));
   app.use('/images', express.static(path.join(__dirname, 'public/images')));
-
-  // Session middleware
-  app.use(
-    session({
-      secret: env.sessionSecret || 'uel-space-secret-key-2026',
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        httpOnly: true,
-        secure: env.isProduction,
-        sameSite: env.isProduction ? 'none' : 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 ngày
-      }
-    })
-  );
 
   // 2. Kết nối MongoDB Atlas thật
   console.log('[my server mongo db] Đang kết nối tới MongoDB Atlas...');
@@ -275,10 +259,13 @@ async function bootstrap() {
     }
   });
 
-  // GET /spaces/:id - Đọc chi tiết phòng từ MongoDB Atlas
+  // GET /spaces/:id - Đọc chi tiết phòng từ MongoDB Atlas (hỗ trợ cả _id và slug)
   app.get('/spaces/:id', async (req, res, next) => {
     try {
-      const space = await collections.spaces.findOne({ _id: req.params.id, deletedAt: null });
+      const space = await collections.spaces.findOne({
+        $or: [{ _id: req.params.id }, { slug: req.params.id }, { code: req.params.id }],
+        deletedAt: null
+      });
       if (!space) {
         return res.status(404).json({ message: 'Không tìm thấy phòng trong cơ sở dữ liệu!' });
       }

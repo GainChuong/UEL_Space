@@ -6,6 +6,7 @@
 const express = require('express');
 const { geminiService } = require('./gemini.service');
 const { ObjectId } = require('mongodb');
+const { extractUserFromRequest } = require('../../middleware/require-auth');
 
 function chatbotRoutes({ spaces, chatSessions, chatLearnedIntents, bookings }) {
   const router = express.Router();
@@ -28,10 +29,10 @@ function chatbotRoutes({ spaces, chatSessions, chatLearnedIntents, bookings }) {
       }
 
       const activeSessionId = sessionId || 'session_' + Date.now();
-      const effectiveUserId = userId || req.session?.user?.id || req.session?.user?._id || null;
-      const effectiveUserEmail = userEmail || req.session?.user?.email || null;
-      const effectiveUserName = userName || req.session?.user?.name || null;
-      const effectiveUserRole = userRole || req.session?.user?.role || null;
+      const effectiveUserId = userId || extractUserFromRequest(req)?.id || extractUserFromRequest(req)?._id || null;
+      const effectiveUserEmail = userEmail || extractUserFromRequest(req)?.email || null;
+      const effectiveUserName = userName || extractUserFromRequest(req)?.name || null;
+      const effectiveUserRole = userRole || extractUserFromRequest(req)?.role || null;
 
       // 1. Trích xuất Bộ nhớ Ngữ cảnh Người dùng (User Memory & History Context)
       let userMemory = null;
@@ -280,8 +281,8 @@ function chatbotRoutes({ spaces, chatSessions, chatLearnedIntents, bookings }) {
         return res.json({ ok: true, sessions: [] });
       }
 
-      const effectiveUserId = req.query.userId || req.session?.user?.id || req.session?.user?._id || null;
-      const effectiveUserEmail = req.query.userEmail || req.session?.user?.email || null;
+      const effectiveUserId = req.query.userId || extractUserFromRequest(req)?.id || extractUserFromRequest(req)?._id || null;
+      const effectiveUserEmail = req.query.userEmail || extractUserFromRequest(req)?.email || null;
       const sessionIdsParam = req.query.sessionIds;
       let filter = {};
 

@@ -349,6 +349,104 @@ class BookingService {
     };
   }
 
+  async reschedule(id, input, actor) {
+    requireObject(input);
+    const booking = await this.repository.findById(id);
+    if (!booking) throw AppError.notFound('Không tìm thấy yêu cầu đặt phòng');
+    const isOwner = actor && booking.userId === actor.id;
+    const isManager = actor && ['ADMIN', 'SELLER', 'SPACE_MANAGER'].includes(actor.role);
+    if (!isOwner && !isManager) {
+      throw AppError.forbidden('Không có quyền đổi lịch yêu cầu này');
+    }
+    if (![BOOKING_STATUS.PENDING, BOOKING_STATUS.APPROVED].includes(booking.status)) {
+      throw AppError.conflict('Chỉ có thể đổi lịch khi đơn đang chờ duyệt hoặc đã xác nhận', 'INVALID_STATE');
+    }
+
+    const space = await this.getSpaceOrThrow(booking.spaceId);
+    const { start, end } = parseWindow(input);
+    this.validatePolicy(space, start, end, booking.expectedUserCount || 1, actor);
+
+    const conflicts = await this.detectConflict(booking.spaceId, start, end, id);
+    if (conflicts.length > 0) {
+      throw AppError.conflict('Khung giờ mới đã có lịch hoặc bị chặn', 'BOOKING_CONFLICT');
+    }
+
+    const updated = await this.repository.update(id, {
+      usageDate: start.toISOString().slice(0, 10),
+      startTime: start,
+      endTime: end,
+      rescheduledAt: now(),
+      rescheduleReason: optionalString(input.reason, 'reason') || '',
+      updatedAt: now()
+    });
+
+    await writeAudit({
+      actorId: actor.id,
+      action: 'RESCHEDULE',
+      entityName: 'Booking',
+      entityId: id,
+      changes: { oldStart: booking.startTime, newStart: start, newEnd: end }
+    });
+    await this.notify(booking.userId, 'booking', 'Đổi lịch đặt phòng thành công', `Đơn ${booking.code} đã chuyển sang khung giờ mới.`);
+    return this.decorate(updated);
+  }
+
+  async checkOut(id, actor, { note = '', earlyRelease = false } = {}) {
+    const booking = await this.repository.findById(id);
+    if (!booking) throw AppError.notFound('Không tìm thấy yêu cầu đặt phòng');
+    const isOwner = actor && booking.userId === actor.id;
+    const isManager = actor && ['ADMIN', 'SELLER', 'SPACE_MANAGER'].includes(actor.role);
+    if (!isOwner && !isManager) {
+      throw AppError.forbidden('Không có quyền thực hiện check-out');
+    }
+    if (booking.status !== BOOKING_STATUS.IN_USE) {
+      throw AppError.conflict(`Chỉ đơn đang sử dụng (IN_USE) mới có thể check-out. Trạng thái hiện tại: ${booking.status}`, 'INVALID_STATE');
+    }
+
+    const currentTime = now();
+    const updated = await this.repository.update(id, {
+      status: BOOKING_STATUS.COMPLETED,
+      actualCheckOutAt: currentTime,
+      earlyReleased: Boolean(earlyRelease),
+      handoverNote: note || '',
+      handoverVerifiedBy: actor.email || actor.id,
+      updatedAt: currentTime
+    });
+
+    if (this.spaces && booking.spaceId) {
+      try {
+        await this.spaces.update(booking.spaceId, {
+          status: SPACE_STATUS.AVAILABLE,
+          updatedAt: currentTime
+        });
+      } catch (errSpace) {
+        console.warn('Reset space status on checkout warning:', errSpace);
+      }
+    }
+
+    await writeAudit({
+      actorId: actor.id,
+      action: 'CHECKOUT_HANDOVER',
+      entityName: 'Booking',
+      entityId: id,
+      changes: { earlyRelease: Boolean(earlyRelease), handoverNote: note }
+    });
+    await this.notify(
+      booking.userId,
+      'booking',
+      'Hoàn tất trả phòng & bàn giao',
+      `Đơn ${booking.code} (${booking.spaceName}) đã hoàn tất. Bạn có thể gửi đánh giá trải nghiệm ngay bây giờ.`
+    );
+
+    return {
+      success: true,
+      message: earlyRelease
+        ? 'Đã trả phòng sớm và mở lại khung giờ trống cho sàn!'
+        : 'Check-out và xác nhận bàn giao thành công!',
+      booking: this.decorate(updated)
+    };
+  }
+
   async notify(userId, category, title, message) {
     if (!this.notifications) return;
     await this.notifications.create({ userId, category, title, message });

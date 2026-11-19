@@ -3,6 +3,7 @@
  */
 
 const express = require('express');
+const { extractUserFromRequest } = require('../../middleware/require-auth');
 
 function calendarRoutes({ calendarService } = {}) {
   const router = express.Router();
@@ -10,8 +11,9 @@ function calendarRoutes({ calendarService } = {}) {
   // 1. Lấy URL ủy quyền Google OAuth 2.0
   router.get('/connect-url', (req, res) => {
     try {
+      const currentUser = extractUserFromRequest(req);
       const redirectUri = req.query.redirect_uri || 'http://localhost:4200/calendar-callback';
-      const userEmail = (req.session?.user?.email || req.query.email || '').trim().toLowerCase();
+      const userEmail = (currentUser?.email || req.query.email || '').trim().toLowerCase();
       const authUrl = calendarService.getAuthUrl(redirectUri, userEmail);
       res.json({ success: true, authUrl });
     } catch (err) {
@@ -22,8 +24,9 @@ function calendarRoutes({ calendarService } = {}) {
   // 2. Trao đổi Authorization Code lấy Tokens
   router.post('/callback', async (req, res) => {
     try {
+      const currentUser = extractUserFromRequest(req);
       const { code, redirectUri, email } = req.body;
-      const userEmail = (req.session?.user?.email || email || '').trim().toLowerCase();
+      const userEmail = (currentUser?.email || email || '').trim().toLowerCase();
       const result = await calendarService.exchangeCodeForTokens({
         code,
         redirectUri: redirectUri || 'http://localhost:4200/calendar-callback',
@@ -38,7 +41,8 @@ function calendarRoutes({ calendarService } = {}) {
   // 3. Kiểm tra trạng thái kết nối
   router.get('/status', async (req, res) => {
     try {
-      const email = (req.session?.user?.email || req.query.email || '').trim().toLowerCase();
+      const currentUser = extractUserFromRequest(req);
+      const email = (currentUser?.email || req.query.email || '').trim().toLowerCase();
       const status = await calendarService.getConnectionStatus(email);
       res.json({ success: true, ...status });
     } catch (err) {
@@ -49,7 +53,8 @@ function calendarRoutes({ calendarService } = {}) {
   // 4. Hủy kết nối
   router.post('/disconnect', async (req, res) => {
     try {
-      const email = (req.session?.user?.email || req.body?.email || '').trim().toLowerCase();
+      const currentUser = extractUserFromRequest(req);
+      const email = (currentUser?.email || req.body?.email || '').trim().toLowerCase();
       const result = await calendarService.disconnect(email);
       res.json(result);
     } catch (err) {
@@ -60,7 +65,8 @@ function calendarRoutes({ calendarService } = {}) {
   // 5. Lấy lịch bận FreeBusy thực tế theo ngày (Hỗ trợ cả GET & POST)
   const handleFreeBusy = async (req, res) => {
     try {
-      const email = (req.body?.email || req.query?.email || req.session?.user?.email || '').trim().toLowerCase();
+      const currentUser = extractUserFromRequest(req);
+      const email = (req.body?.email || req.query?.email || currentUser?.email || '').trim().toLowerCase();
       const date = req.body?.date || req.query?.date || '';
       const result = await calendarService.getFreeBusy({ userEmail: email, dateStr: date });
       res.json(result);
@@ -74,8 +80,9 @@ function calendarRoutes({ calendarService } = {}) {
   // 6. Tự động tạo sự kiện đặt phòng vào Google Calendar
   router.post('/events', async (req, res) => {
     try {
+      const currentUser = extractUserFromRequest(req);
       const { email, bookingData } = req.body;
-      const userEmail = (req.session?.user?.email || email || '').trim().toLowerCase();
+      const userEmail = (currentUser?.email || email || '').trim().toLowerCase();
       const result = await calendarService.createBookingEvent(userEmail, bookingData || req.body);
       res.json(result);
     } catch (err) {

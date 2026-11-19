@@ -163,7 +163,7 @@ export class Admin implements OnInit, OnDestroy {
   isMobileSidebarOpen: boolean = false;
   isNotificationOpen: boolean = false;
   isProfileOpen: boolean = false;
-  activeNotifTab: 'all' | 'unread' = 'all';
+  activeNotifTab: 'all' | 'unread' | 'guide' = 'all';
 
   toggleNotification(event: Event): void {
     event.stopPropagation();
