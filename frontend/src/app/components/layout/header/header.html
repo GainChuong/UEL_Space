@@ -56,10 +56,10 @@
         <!-- Notification Popover Menu -->
         @if (isNotificationOpen) {
           <div (click)="$event.stopPropagation()"
-               class="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-[9999] animate-scaleIn text-slate-800 dark:text-slate-100">
+               class="fixed top-[82px] right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[400px] max-h-[calc(100vh-100px)] flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-[99999] animate-scaleIn text-slate-800 dark:text-slate-100">
             
             <!-- Header -->
-            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/40">
+            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/40 shrink-0">
               <div class="flex items-center gap-2">
                 <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-800 dark:text-white">
                   {{ (settingsService.language$ | async) === 'vi' ? 'Thông báo' : 'Notifications' }}
@@ -80,7 +80,7 @@
             </div>
 
             <!-- Tab Filters -->
-            <div class="px-4 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1.5 text-xs">
+            <div class="px-4 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1.5 text-xs shrink-0">
               <button (click)="activeNotifTab = 'all'"
                       [class]="activeNotifTab === 'all' ? 'bg-uel-blue dark:bg-sky-500 text-white font-bold' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium'"
                       class="px-3 py-1 rounded-full text-[11px] transition-colors cursor-pointer">
@@ -100,17 +100,17 @@
             </div>
 
             <!-- List of Notifications or Guide Content -->
-            <div class="max-h-96 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+            <div class="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
               @if (activeNotifTab === 'guide') {
                 <div class="p-3.5 space-y-3 text-left text-[11px] leading-relaxed bg-slate-50/50 dark:bg-slate-900">
                   <!-- 1. Giới thiệu UEL Space -->
                   <div class="p-3 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700">
                     <div class="font-extrabold text-xs text-uel-blue dark:text-sky-400 mb-1 flex items-center gap-1.5">
                       <span class="w-4 h-4 rounded-full bg-uel-blue text-white text-[10px] flex items-center justify-center">1</span>
-                      {{ (settingsService.language$ | async) === 'vi' ? 'Giới thiệu UEL Space' : 'About UEL Space' }}
+                      Giới thiệu UEL Space
                     </div>
                     <p class="text-slate-600 dark:text-slate-300">
-                      {{ (settingsService.language$ | async) === 'vi' ? 'Nền tảng chia sẻ & cho thuê không gian thông minh kết nối khách thuê với chủ không gian, tích hợp giám sát sĩ số AI YOLO11-IndoorCrowd và trợ lý tư vấn Gemini RAG.' : 'Smart space sharing & rental platform connecting tenants and hosts with YOLO11-IndoorCrowd AI occupancy monitoring and Gemini RAG assistant.' }}
+                      Nền tảng trực tuyến giúp bạn dễ dàng tìm kiếm và đặt thuê phòng học nhóm, phòng họp, phòng thu hoặc không gian tổ chức sự kiện nhanh chóng với mức giá minh bạch.
                     </p>
                   </div>
 
@@ -118,14 +118,14 @@
                   <div class="p-3 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700">
                     <div class="font-extrabold text-xs text-uel-blue dark:text-sky-400 mb-1 flex items-center gap-1.5">
                       <span class="w-4 h-4 rounded-full bg-uel-orange text-white text-[10px] flex items-center justify-center">2</span>
-                      {{ (settingsService.language$ | async) === 'vi' ? 'Quy trình thuê không gian (5 bước)' : '5-Step Rental Process' }}
+                      Quy trình thuê không gian
                     </div>
                     <ul class="text-slate-600 dark:text-slate-300 space-y-1 list-disc pl-4">
-                      <li><b>B1:</b> Tìm kiếm & lọc không gian theo khung giờ, sức chứa, tiện ích.</li>
-                      <li><b>B2:</b> Đặt giữ chỗ & thanh toán qua cổng ví điện tử MoMo.</li>
-                      <li><b>B3:</b> Nhận vé điện tử QR Code & đồng bộ lịch Google Calendar.</li>
-                      <li><b>B4:</b> Quét QR Check-in tại Kiosk tiếp tân & giám sát sĩ số AI.</li>
-                      <li><b>B5:</b> Check-out bàn giao mặt bằng & gửi đánh giá trải nghiệm.</li>
+                      <li><b>Bước 1:</b> Tìm phòng theo ngày giờ, số người và tiện ích mong muốn.</li>
+                      <li><b>Bước 2:</b> Chọn khung giờ trống và thanh toán tiền thuê qua ví MoMo.</li>
+                      <li><b>Bước 3:</b> Nhận mã vé điện tử trong mục Lịch sử đặt chỗ.</li>
+                      <li><b>Bước 4:</b> Đưa mã vé để quét nhận phòng tại quầy khi đến nơi.</li>
+                      <li><b>Bước 5:</b> Trả phòng khi dùng xong và để lại nhận xét, đánh giá.</li>
                     </ul>
                   </div>
 
@@ -133,12 +133,12 @@
                   <div class="p-3 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700">
                     <div class="font-extrabold text-xs text-uel-blue dark:text-sky-400 mb-1 flex items-center gap-1.5">
                       <span class="w-4 h-4 rounded-full bg-emerald-600 text-white text-[10px] flex items-center justify-center">3</span>
-                      {{ (settingsService.language$ | async) === 'vi' ? 'Quy định & Chính sách thuê' : 'Rental Rules & Policies' }}
+                      Quy định và chính sách thuê
                     </div>
                     <ul class="text-slate-600 dark:text-slate-300 space-y-1 list-disc pl-4">
-                      <li><b>Đổi/Hủy lịch:</b> Hỗ trợ đổi lịch hoặc hủy đơn trước giờ bắt đầu thuê.</li>
-                      <li><b>Ân hạn No-show:</b> Tự động giải phóng phòng nếu không Check-in sau <b>30 phút</b>.</li>
-                      <li><b>Giám sát AI & Phụ phí:</b> Hệ thống cảnh báo khi vượt sĩ số đăng ký hoặc quá giờ (+20 phút); dòng tiền bảo vệ qua quỹ Escrow 24h.</li>
+                      <li><b>Đổi hoặc hủy lịch:</b> Bạn có thể đổi giờ hoặc hủy đơn trước giờ bắt đầu thuê.</li>
+                      <li><b>Giữ phòng:</b> Hệ thống giữ phòng tối đa <b>30 phút</b> từ giờ hẹn; nếu không đến nhận, phòng sẽ được mở lại cho người khác.</li>
+                      <li><b>Sử dụng đúng đăng ký:</b> Vui lòng đi đúng số người và trả phòng đúng giờ để tránh phát sinh phí phụ thu.</li>
                     </ul>
                   </div>
 
@@ -146,16 +146,13 @@
                   <div class="p-3 rounded-xl bg-uel-blue/5 dark:bg-sky-500/10 border border-uel-blue/20 dark:border-sky-500/20">
                     <div class="font-extrabold text-xs text-uel-blue dark:text-sky-400 mb-1 flex items-center gap-1.5">
                       <span class="w-4 h-4 rounded-full bg-uel-blue text-white text-[10px] flex items-center justify-center">4</span>
-                      {{ (settingsService.language$ | async) === 'vi' ? 'Thông tin Hỗ trợ & Liên hệ' : 'Support & Contact' }}
+                      Thông tin hỗ trợ và liên hệ
                     </div>
                     <p class="text-slate-600 dark:text-slate-300">
-                      • <b>Đơn vị:</b> Ban Quản trị UEL Space (KP6, P. Linh Trung, TP. Thủ Đức)<br>
-                      • <b>Hotline:</b> 028 3724 4555 • <b>Email:</b> support&#64;uelspace.edu.vn<br>
-                      • <b>Trực tuyến:</b> Trợ lý AI Gemini góc phải màn hình (24/7)
+                      • <b>Đơn vị hỗ trợ:</b> Ban Quản trị UEL Space (Khu phố 6, P. Linh Trung, TP. Thủ Đức)<br>
+                      • <b>Điện thoại:</b> 028 3724 4555 • <b>Email:</b> support&#64;uelspace.edu.vn<br>
+                      • <b>Tư vấn nhanh:</b> Nhấn vào biểu tượng Trợ lý tư vấn ở góc dưới màn hình.
                     </p>
-                    <a routerLink="/about" (click)="isNotificationOpen = false" class="mt-2 inline-flex items-center gap-1 text-[11px] font-extrabold text-uel-orange hover:underline">
-                      Xem trang Hướng dẫn & Giới thiệu chi tiết &rarr;
-                    </a>
                   </div>
                 </div>
               } @else {

@@ -188,10 +188,10 @@
           <!-- Notification Popover Menu (Đồng bộ với Seller) -->
           @if (isNotificationOpen) {
             <div (click)="$event.stopPropagation()"
-                 class="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-[9999] animate-scaleIn text-slate-800 dark:text-white dark:text-slate-100">
+                 class="fixed top-[72px] right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[400px] max-h-[calc(100vh-90px)] flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-[99999] animate-scaleIn text-slate-800 dark:text-white dark:text-slate-100">
               
               <!-- Header -->
-              <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/40">
+              <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/40 shrink-0">
                 <div class="flex items-center gap-2">
                   <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-800 dark:text-white">
                     {{ (settingsService.language$ | async) === 'vi' ? 'Thông báo Sàn' : 'Platform Alerts' }}
@@ -212,7 +212,7 @@
               </div>
 
               <!-- Tab Filters -->
-              <div class="px-4 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1.5 text-xs">
+              <div class="px-4 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1.5 text-xs shrink-0">
                 <button (click)="activeNotifTab = 'all'"
                         [class]="activeNotifTab === 'all' ? 'bg-uel-blue dark:bg-sky-500 text-white font-bold' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium'"
                         class="px-3 py-1 rounded-full text-[11px] transition-colors cursor-pointer">
@@ -232,35 +232,35 @@
               </div>
 
               <!-- List of Notifications or Guide -->
-              <div class="max-h-96 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+              <div class="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
                 @if (activeNotifTab === 'guide') {
                   <div class="p-3.5 space-y-3 text-left text-[11px] leading-relaxed bg-slate-50/50 dark:bg-slate-900">
                     <div class="p-3 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700">
-                      <div class="font-extrabold text-xs text-uel-blue dark:text-sky-400 mb-1">1. Giới thiệu UEL Space & Quản trị Sàn</div>
-                      <p class="text-slate-600 dark:text-slate-300">Trung tâm điều hành toàn sàn UEL Space: kiểm duyệt niêm yết, xác thực định danh eKYC, đối soát dòng tiền Escrow, phán quyết tranh chấp bằng chứng AI và nhật ký kiểm toán.</p>
+                      <div class="font-extrabold text-xs text-uel-blue dark:text-sky-400 mb-1">1. Giới thiệu UEL Space</div>
+                      <p class="text-slate-600 dark:text-slate-300">Khu vực Quản trị hỗ trợ theo dõi hoạt động toàn hệ thống: duyệt phòng mới đăng, xác minh tài khoản, kiểm soát thanh toán và giải quyết khiếu nại.</p>
                     </div>
                     <div class="p-3 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700">
-                      <div class="font-extrabold text-xs text-uel-blue dark:text-sky-400 mb-1">2. Quy trình thuê & giám sát toàn sàn</div>
+                      <div class="font-extrabold text-xs text-uel-blue dark:text-sky-400 mb-1">2. Quy trình thuê và vận hành</div>
                       <ul class="text-slate-600 dark:text-slate-300 space-y-1 list-disc pl-4">
-                        <li><b>B1:</b> Thẩm định không gian niêm yết & eKYC đối tác.</li>
-                        <li><b>B2:</b> Khách đặt chỗ & thanh toán MoMo (dòng tiền vào quỹ Escrow).</li>
-                        <li><b>B3:</b> Khách Check-in QR tại Kiosk & AI YOLO11 giám sát sĩ số thực tế.</li>
-                        <li><b>B4:</b> Xử lý tranh chấp/phụ phí dựa trên bằng chứng khung hình AI.</li>
-                        <li><b>B5:</b> Giải ngân tự động cho Chủ không gian sau 24h hoàn tất.</li>
+                        <li><b>Bước 1:</b> Kiểm tra và duyệt thông tin phòng do chủ không gian đăng lên.</li>
+                        <li><b>Bước 2:</b> Khách đặt phòng và thanh toán tiền thuê qua ví MoMo.</li>
+                        <li><b>Bước 3:</b> Khách quét mã nhận phòng và sử dụng theo khung giờ đã đặt.</li>
+                        <li><b>Bước 4:</b> Hỗ trợ xử lý nếu phát sinh khiếu nại về thời gian hoặc số người.</li>
+                        <li><b>Bước 5:</b> Chuyển tiền thuê cho chủ không gian sau khi đơn hoàn tất.</li>
                       </ul>
                     </div>
                     <div class="p-3 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700">
-                      <div class="font-extrabold text-xs text-uel-blue dark:text-sky-400 mb-1">3. Quy định & Chính sách thuê chuẩn</div>
+                      <div class="font-extrabold text-xs text-uel-blue dark:text-sky-400 mb-1">3. Quy định và chính sách thuê</div>
                       <ul class="text-slate-600 dark:text-slate-300 space-y-1 list-disc pl-4">
-                        <li><b>Hoa hồng & Escrow:</b> Phí nền tảng 12%, tạm giữ ký quỹ 24 giờ.</li>
-                        <li><b>Ân hạn No-show & Cảnh báo AI:</b> No-show sau 30 phút; cảnh báo vắng mặt/quá giờ sau 20 phút.</li>
+                        <li><b>Giữ phòng:</b> Tự động mở lại phòng nếu khách không đến nhận sau <b>30 phút</b>.</li>
+                        <li><b>Thanh toán an toàn:</b> Tiền thuê được giữ 24 giờ sau khi trả phòng để đảm bảo quyền lợi cho cả khách thuê và chủ phòng.</li>
                       </ul>
                     </div>
                     <div class="p-3 rounded-xl bg-uel-blue/5 dark:bg-sky-500/10 border border-uel-blue/20 dark:border-sky-500/20">
-                      <div class="font-extrabold text-xs text-uel-blue dark:text-sky-400 mb-1">4. Hỗ trợ & Liên hệ</div>
+                      <div class="font-extrabold text-xs text-uel-blue dark:text-sky-400 mb-1">4. Thông tin hỗ trợ và liên hệ</div>
                       <p class="text-slate-600 dark:text-slate-300">
-                        • <b>Đơn vị:</b> Ban Quản trị UEL Space – ĐH Kinh tế - Luật (KP6, P. Linh Trung, TP. Thủ Đức)<br>
-                        • <b>Hotline:</b> 028 3724 4555 • <b>Email:</b> support&#64;uelspace.edu.vn
+                        • <b>Đơn vị quản lý:</b> Ban Quản trị UEL Space – ĐH Kinh tế - Luật (Khu phố 6, P. Linh Trung, TP. Thủ Đức)<br>
+                        • <b>Điện thoại:</b> 028 3724 4555 • <b>Email:</b> support&#64;uelspace.edu.vn
                       </p>
                     </div>
                   </div>
